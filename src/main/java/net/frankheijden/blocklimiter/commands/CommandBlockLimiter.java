@@ -23,8 +23,6 @@ public class CommandBlockLimiter implements CommandExecutor {
                     plugin.utils.color("&b Plugin link: &7https://www.spigotmc.org/resources/56489/"),
                     plugin.utils.color("&8&m-------------------------------------------------")
             });
-            plugin.sqLite.toggleRealtimeCheck((Player) sender);
-            sender.sendMessage("enabled: " + plugin.sqLite.hasRealtimeCheckEnabled((Player) sender));
             return true;
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("reload")) {
