@@ -1,0 +1,44 @@
+name: BlockLimiter
+main: net.frankheijden.blocklimiter.BlockLimiter
+dev-url: https://www.spigotmc.org/resources/56489/
+version: ${project.version}
+api-version: "1.13"
+
+commands:
+  blocklimiter:
+    usage: 'Usage: /<command>'
+
+  check:
+    usage: 'Usage: /<command>'
+
+  checkworlds:
+    usage: 'Usage: /<command>'
+
+  scan:
+    usage: 'Usage: /<command> <tile|entity>'
+
+  scanworld:
+    usage: 'Usage: /<command> <world> <tile|entity>'
+
+permissions:
+  blocklimiter.*:
+    children:
+      blocklimiter.check.*: true
+      blocklimiter.checkworld.*: true
+      blocklimiter.scan.*: true
+      blocklimiter.scanworlds.*: true
+
+  blocklimiter.check.*:
+    children:
+      blocklimiter.check: true
+      blocklimiter.check.realtime: true
+
+  blocklimiter.scan.*:
+    children:
+      blocklimiter.scan.tile: true
+      blocklimiter.scan.entity: true
+
+  blocklimiter.scanworld.*:
+    children:
+      blocklimiter.scanworld.tile: true
+      blocklimiter.scanworld.entity: true
