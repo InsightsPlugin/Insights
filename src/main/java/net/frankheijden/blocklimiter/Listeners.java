@@ -30,7 +30,7 @@ public class Listeners implements Listener {
                     int limit = plugin.config.getInt("general.materials." + materialString);
                     int current = plugin.utils.getAmountInChunk(event.getBlock().getChunk(), material, true);
 
-                    if (player.hasPermission("blocklimiter.check.realtime")) {
+                    if (player.hasPermission("blocklimiter.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
                         plugin.utils.sendActionBar(player, "messages.realtime_check_custom", "%count%", String.valueOf(current), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
                     }
                     return;
@@ -39,7 +39,7 @@ public class Listeners implements Listener {
         }
 
         if (plugin.utils.isTile(event.getBlock())) {
-            if (player.hasPermission("blocklimiter.check.realtime")) {
+            if (player.hasPermission("blocklimiter.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
                 plugin.utils.sendActionBar(player, "messages.realtime_check", "%tile_count%", String.valueOf(event.getBlock().getLocation().getChunk().getTileEntities().length));
             }
         }
@@ -69,7 +69,7 @@ public class Listeners implements Listener {
                         }
                     }
 
-                    if (event.getPlayer().hasPermission("blocklimiter.check.realtime")) {
+                    if (event.getPlayer().hasPermission("blocklimiter.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
                         plugin.utils.sendActionBar(event.getPlayer(), "messages.realtime_check_custom", "%count%", String.valueOf(current), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
                     }
                     return;
@@ -85,7 +85,7 @@ public class Listeners implements Listener {
                 }
             }
 
-            if (player.hasPermission("blocklimiter.check.realtime")) {
+            if (player.hasPermission("blocklimiter.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
                 plugin.utils.sendActionBar(player, "messages.realtime_check", "%tile_count%", String.valueOf(event.getBlock().getLocation().getChunk().getTileEntities().length));
             }
         }

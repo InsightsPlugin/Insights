@@ -21,6 +21,7 @@ public class BlockLimiter extends JavaPlugin {
     public boolean useNewAPI = true;
 
     public Utils utils;
+    public SQLite sqLite;
 
     // ChunkX_ChunkZ : MaterialName : Count
     public HashMap<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
@@ -46,13 +47,17 @@ public class BlockLimiter extends JavaPlugin {
 
     private void setupClasses() {
         utils = new Utils(this);
+        sqLite = new SQLite(this);
+        sqLite.load();
 
         Bukkit.getPluginManager().registerEvents(new Listeners(this), this);
         Objects.requireNonNull(this.getCommand("blocklimiter")).setExecutor(new CommandBlockLimiter(this));
         Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck(this));
         Objects.requireNonNull(this.getCommand("checkworlds")).setExecutor(new CommandCheckworlds(this));
         Objects.requireNonNull(this.getCommand("scan")).setExecutor(new CommandScan(this));
+        Objects.requireNonNull(this.getCommand("scanradius")).setExecutor(new CommandScanradius(this));
         Objects.requireNonNull(this.getCommand("scanworld")).setExecutor(new CommandScanworld(this));
+        Objects.requireNonNull(this.getCommand("togglecheck")).setExecutor(new CommandTogglecheck(this));
     }
 
     private void setupNMS() {
@@ -65,6 +70,7 @@ public class BlockLimiter extends JavaPlugin {
         if (nms.startsWith("v1_12_") || nms.startsWith("v1_11_") || nms.startsWith("v1_10_") || nms.startsWith("v1_9_") || nms.startsWith("v1_8_")) {
             useNewAPI = false;
         }
+        Bukkit.getLogger().info("[BlockLimiter] NMS version '"+nms+"' detected!");
     }
 
     @Override

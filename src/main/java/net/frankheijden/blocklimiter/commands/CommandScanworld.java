@@ -58,7 +58,6 @@ public class CommandScanworld implements CommandExecutor {
                         } else {
                             plugin.utils.sendMessage(sender, "messages.no_permission");
                         }
-                        return true;
                     } else if (args[1].equalsIgnoreCase("entity")) {
                         if (entityPerm) {
                             TreeMap<String, Integer> entityTreeMap = new TreeMap<>();
@@ -80,22 +79,21 @@ public class CommandScanworld implements CommandExecutor {
                                 plugin.utils.sendMessage(sender, "messages.scanworld.entity.total", "%world%", world.getName(), "%total_count%", String.valueOf(totalEntityCount));
                                 plugin.utils.sendMessage(sender, "messages.scanworld.entity.footer");
                             } else {
-                                plugin.utils.sendMessage(sender, "messages.scanworld.tile.no_entities");
+                                plugin.utils.sendMessage(sender, "messages.scanworld.entity.no_entities");
                             }
                         } else {
                             plugin.utils.sendMessage(sender, "messages.no_permission");
                         }
-                        return true;
                     }
                 } else {
                     plugin.utils.sendMessage(sender, "messages.checkworld.invalid_world");
-                    return true;
                 }
+            } else {
+                return false;
             }
         } else {
             plugin.utils.sendMessage(sender, "messages.no_permission");
-            return true;
         }
-        return false;
+        return true;
     }
 }

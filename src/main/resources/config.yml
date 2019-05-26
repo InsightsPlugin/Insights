@@ -100,6 +100,33 @@ messages:
       footer: "&8&m-------------------------------------------------"
       no_tiles: "&cThis chunk does not contain any tiles."
 
+  # Messages send when a user executes /scan <entity|tile>
+  scanradius:
+    entity:
+      header: "&8&m----------------=&r&8[&b&l Entity Count&r &8]&m=----------------"
+      # Special placeholders:
+      # %entity%
+      # %count%
+      format: "&b %entity%&8: &7&l%count%"
+      # Special placeholders:
+      # %total_count%
+      total: "&3 These chunks contain a total of &b&l%total_count% &3entities."
+      footer: "&8&m-------------------------------------------------"
+      no_entities: "&cThe only entity these chunks have is you."
+    tile:
+      header: "&8&m-----------------=&r&8[&b&l Tile Count &8]&m=-----------------"
+      # Special placeholders:
+      # %tile%
+      # %count%
+      format: "&b %tile%&8: &7&l%count%"
+      # Special placeholders:
+      # %total_count%
+      total: "&3 These chunks contain a total of &b&l%total_count% &3tile(s)."
+      footer: "&8&m-------------------------------------------------"
+      no_tiles: "&cThese chunks do not contain any tiles."
+    invalid_number: "&cThat is not a valid number."
+    invalid_radius: "&cThat radius is too big too handle for the server."
+
   # Messages send when a user executes /scanworld <world> <entity|tile>
   scanworld:
     entity:
@@ -131,6 +158,15 @@ messages:
       # %world%
       no_tiles: "&cWorld %world% has no loaded tiles."
     invalid_world: "&cThat world does not exist."
+
+  # Messages send when a user executes /togglecheck
+  togglecheck:
+    # Special placeholders:
+    # %name%
+    enabled: "&3Realtime checking has been &benabled &3for &b%name%&3."
+    # Special placeholders:
+    # %name%
+    disabled: "&3Realtime checking has been &bdisabled &3for &b%name%&3."
 
   # Message send when a user does not have a permission
   no_permission: "&cYou don't have permission to execute that command!"
