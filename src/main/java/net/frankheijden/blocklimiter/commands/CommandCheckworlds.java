@@ -8,6 +8,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
+import java.util.Objects;
+import java.util.TreeSet;
+
 public class CommandCheckworlds implements CommandExecutor {
     private BlockLimiter plugin;
 
@@ -22,9 +25,15 @@ public class CommandCheckworlds implements CommandExecutor {
 
             int totalTileCount = 0;
             int totalEntityCount = 0;
+
+            TreeSet<String> worldTreeSet = new TreeSet<>();
             for (World world : Bukkit.getWorlds()) {
-                String worldName = world.getName();
-                int worldEntityCount = world.getEntities().size();
+                worldTreeSet.add(world.getName());
+            }
+
+            for (String worldName : worldTreeSet) {
+                World world = Bukkit.getWorld(worldName);
+                int worldEntityCount = Objects.requireNonNull(world).getEntities().size();
 
                 int worldTileCount = 0;
                 for (Chunk chunk : world.getLoadedChunks()) {
