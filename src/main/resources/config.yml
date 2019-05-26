@@ -45,7 +45,9 @@ messages:
     &b /check &f| &7Displays the amount of entities & tiles in this chunk.
     &b /checkworlds &f| &7Displays the amount of entities & tiles in the server.
     &b /scan <entity|tile> &f| &7Displays a detailed message about this chunk.
+    &b /scanradius <entity|tile> &f| &7Displays a detailed message about chunks.
     &b /scanworld <world> <entity|tile> &f| &7Displays a detailed message about a world.
+    &b /togglecheck &f| &7Toggles realtime info in actionbar.
     &8&m-------------------------------------------------
 
   # Message send when the plugin has been successfully reloaded
