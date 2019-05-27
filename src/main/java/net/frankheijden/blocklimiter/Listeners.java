@@ -81,7 +81,7 @@ public class Listeners implements Listener {
             if (plugin.max > -1 && event.getBlockPlaced().getLocation().getChunk().getTileEntities().length >= plugin.max) {
                 if (!player.hasPermission("blocklimiter.bypass")) {
                     event.setCancelled(true);
-                    plugin.utils.sendMessage(player, "messages.limit_reached");
+                    plugin.utils.sendMessage(player, "messages.limit_reached", "%limit%", String.valueOf(plugin.max));
                 }
             }
 

@@ -1,6 +1,8 @@
 messages:
   # Message send when a user tries to place more tiles than the above value
-  limit_reached: "&cYou have reached the limit of 256 tiles in this chunk. Please remove some."
+  # Special placeholders:
+  # %limit%
+  limit_reached: "&cYou have reached the limit of %limit% tiles in this chunk. Please remove some."
 
   # Message send when a user tries to place more custom defined limited blocks
   # Special placeholders:
