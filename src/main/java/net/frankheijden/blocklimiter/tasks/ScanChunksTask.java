@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.text.NumberFormat;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ScanChunksTask extends Thread {
@@ -52,26 +53,17 @@ public class ScanChunksTask extends Thread {
             }
         }
 
-        Position currentPosition = null;
-        for (x = 0; x < examined.length && currentPosition == null; x++) {
-            for (z = 0; z < examined[0][0].length && currentPosition == null; z++) {
-                Position position = new Position(x, maxHeight - 1, z);
-                if (this.getMaterialAt(position) == Material.AIR) {
-                    currentPosition = position;
-                }
-            }
-        }
+        Position currentPosition = new Position(0, maxHeight - 1, 0);
 
         BukkitTask bukkitTask = new BukkitRunnable() {
             @Override
             public void run() {
-                plugin.utils.sendMessage(player, "messages.scanradius.individual.progress", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%count%", String.valueOf(materialCount));
+                plugin.utils.sendMessage(player, "messages.scanradius.individual.progress", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%count%", NumberFormat.getIntegerInstance().format(materialCount));
             }
         }.runTaskTimer(plugin, 20 * 10, 20 * 10);
 
         ConcurrentLinkedQueue<Position> unexaminedQueue = new ConcurrentLinkedQueue<>();
         try {
-            assert currentPosition != null;
             examined[currentPosition.x][currentPosition.y][currentPosition.z] = true;
         } catch (ArrayIndexOutOfBoundsException ex) {
             ex.printStackTrace();
@@ -109,7 +101,7 @@ public class ScanChunksTask extends Thread {
         }
 
         bukkitTask.cancel();
-        plugin.utils.sendMessage(player, "messages.scanradius.individual.total", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%count%", String.valueOf(materialCount));
+        plugin.utils.sendMessage(player, "messages.scanradius.individual.total", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%count%", NumberFormat.getIntegerInstance().format(materialCount));
     }
 
     private Material getMaterialAt(Position position) {

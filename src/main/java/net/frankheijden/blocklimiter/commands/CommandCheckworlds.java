@@ -9,6 +9,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 
+import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -43,14 +44,14 @@ public class CommandCheckworlds implements CommandExecutor, TabExecutor {
                     worldTileCount = worldTileCount + chunk.getTileEntities().length;
                 }
 
-                plugin.utils.sendMessage(sender, "messages.checkworlds.format", "%world%", worldName, "%entities%", String.valueOf(worldEntityCount), "%tiles%", String.valueOf(worldTileCount));
+                plugin.utils.sendMessage(sender, "messages.checkworlds.format", "%world%", worldName, "%entities%", NumberFormat.getIntegerInstance().format(worldEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(worldTileCount));
 
                 totalTileCount = totalTileCount + worldTileCount;
                 totalEntityCount = totalEntityCount + worldEntityCount;
             }
 
             if (totalTileCount > 0 || totalEntityCount > 0) {
-                plugin.utils.sendMessage(sender, "messages.checkworlds.total", "%entities%", String.valueOf(totalEntityCount), "%tiles%", String.valueOf(totalTileCount));
+                plugin.utils.sendMessage(sender, "messages.checkworlds.total", "%entities%", NumberFormat.getIntegerInstance().format(totalEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(totalTileCount));
             } else {
                 plugin.utils.sendMessage(sender, "messages.checkworlds.none");
             }

@@ -16,6 +16,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
+import java.text.NumberFormat;
 import java.util.*;
 
 public class CommandScanradius implements CommandExecutor, TabExecutor {
@@ -69,12 +70,12 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
 
                                     for (Map.Entry<String, Integer> entry : entryTreeMap.entrySet()) {
                                         String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                                        plugin.utils.sendMessage(sender, "messages.scanradius.both.format", "%entry%", name, "%count%", String.valueOf(entry.getValue()));
+                                        plugin.utils.sendMessage(sender, "messages.scanradius.both.format", "%entry%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
 
                                         totalEntityCount = totalEntityCount + entry.getValue();
                                     }
 
-                                    plugin.utils.sendMessage(sender, "messages.scanradius.both.total", "%entities%", String.valueOf(totalEntityCount), "%tiles%", String.valueOf(totalTileCount));
+                                    plugin.utils.sendMessage(sender, "messages.scanradius.both.total", "%entities%", NumberFormat.getIntegerInstance().format(totalEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(totalTileCount));
                                     plugin.utils.sendMessage(sender, "messages.scanradius.both.footer");
                                 } else {
                                     plugin.utils.sendMessage(sender, "messages.scanradius.both.no_entries");
@@ -120,12 +121,12 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                         int totalEntityCount = 0;
                                         for (Map.Entry<String, Integer> entry : entityTreeMap.entrySet()) {
                                             String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                                            plugin.utils.sendMessage(sender, "messages.scanradius.entity.format", "%entity%", name, "%count%", String.valueOf(entry.getValue()));
+                                            plugin.utils.sendMessage(sender, "messages.scanradius.entity.format", "%entity%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
 
                                             totalEntityCount = totalEntityCount + entry.getValue();
                                         }
 
-                                        plugin.utils.sendMessage(sender, "messages.scanradius.entity.total", "%total_count%", String.valueOf(totalEntityCount));
+                                        plugin.utils.sendMessage(sender, "messages.scanradius.entity.total", "%total_count%", NumberFormat.getIntegerInstance().format(totalEntityCount));
                                         plugin.utils.sendMessage(sender, "messages.scanradius.entity.footer");
                                     } else {
                                         plugin.utils.sendMessage(sender, "messages.scanradius.entity.no_entities");
@@ -159,12 +160,12 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                         int totalTileCount = 0;
                                         for (Map.Entry<String, Integer> entry : tileTreeMap.entrySet()) {
                                             String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                                            plugin.utils.sendMessage(sender, "messages.scanradius.tile.format", "%tile%", name, "%count%", String.valueOf(entry.getValue()));
+                                            plugin.utils.sendMessage(sender, "messages.scanradius.tile.format", "%tile%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
 
                                             totalTileCount = totalTileCount + entry.getValue();
                                         }
 
-                                        plugin.utils.sendMessage(sender, "messages.scanradius.tile.total", "%total_count%", String.valueOf(totalTileCount));
+                                        plugin.utils.sendMessage(sender, "messages.scanradius.tile.total", "%total_count%", NumberFormat.getIntegerInstance().format(totalTileCount));
                                         plugin.utils.sendMessage(sender, "messages.scanradius.tile.footer");
                                     } else {
                                         plugin.utils.sendMessage(sender, "messages.scanradius.tile.no_tiles");
@@ -188,7 +189,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                 EntityType entityType = plugin.utils.getEntityType(args[2]);
                                 if (material != null) {
                                     if (player.hasPermission("blocklimiter.scanradius.individual. " + material.name())) {
-                                        plugin.utils.sendMessage(player, "messages.scanradius.individual.start", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%chunks%", String.valueOf((radius * 2 + 1) * (radius * 2 + 1)));
+                                        plugin.utils.sendMessage(player, "messages.scanradius.individual.start", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%chunks%", NumberFormat.getIntegerInstance().format((radius * 2 + 1) * (radius * 2 + 1)));
 
                                         ChunkSnapshot[][] chunkSnapshots = plugin.utils.getChunkSnapshots(player.getLocation().getChunk(), radius);
                                         ScanChunksTask task = new ScanChunksTask(plugin, chunkSnapshots, player, material);
@@ -216,7 +217,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                             }
                                         }
 
-                                        plugin.utils.sendMessage(player, "messages.scanradius.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", String.valueOf(entityCount));
+                                        plugin.utils.sendMessage(player, "messages.scanradius.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", NumberFormat.getIntegerInstance().format(entityCount));
                                     } else {
                                         plugin.utils.sendMessage(player, "messages.scanradius.individual");
                                     }

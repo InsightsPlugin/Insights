@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
+import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class CommandCheck implements CommandExecutor, TabExecutor {
 
             if (player.hasPermission("blocklimiter.check")) {
                 Chunk chunk = player.getLocation().getChunk();
-                plugin.utils.sendMessage(player, "messages.check", "%tile_count%", String.valueOf(chunk.getTileEntities().length), "%entity_count%", String.valueOf(chunk.getEntities().length));
+                plugin.utils.sendMessage(player, "messages.check", "%tile_count%", NumberFormat.getIntegerInstance().format(chunk.getTileEntities().length), "%entity_count%", NumberFormat.getIntegerInstance().format(chunk.getEntities().length));
             } else {
                 plugin.utils.sendMessage(player, "messages.no_permission");
             }

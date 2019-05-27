@@ -11,6 +11,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
+import java.text.NumberFormat;
 import java.util.*;
 
 public class CommandScan implements CommandExecutor, TabExecutor {
@@ -35,10 +36,10 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                         for (Map.Entry<String, Integer> entry : plugin.utils.getEntitiesAndTilesInChunk(chunk)) {
                             String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                            plugin.utils.sendMessage(player, "messages.scan.both.format", "%entry%", name, "%count%", String.valueOf(entry.getValue()));
+                            plugin.utils.sendMessage(player, "messages.scan.both.format", "%entry%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
                         }
 
-                        plugin.utils.sendMessage(player, "messages.scan.both.total", "%entities%", String.valueOf(entityCount), "%tiles%", String.valueOf(tileCount));
+                        plugin.utils.sendMessage(player, "messages.scan.both.total", "%entities%", NumberFormat.getIntegerInstance().format(entityCount), "%tiles%", NumberFormat.getIntegerInstance().format(tileCount));
                         plugin.utils.sendMessage(player, "messages.scan.both.footer");
                     } else {
                         plugin.utils.sendMessage(player, "messages.scan.both.no_entries");
@@ -56,10 +57,10 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                             for (Map.Entry<String, Integer> entry : plugin.utils.getEntitiesInChunk(player.getLocation().getChunk())) {
                                 String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                                plugin.utils.sendMessage(player, "messages.scan.entity.format", "%entity%", name, "%count%", String.valueOf(entry.getValue()));
+                                plugin.utils.sendMessage(player, "messages.scan.entity.format", "%entity%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
                             }
 
-                            plugin.utils.sendMessage(player, "messages.scan.entity.total", "%total_count%", String.valueOf(entityCount));
+                            plugin.utils.sendMessage(player, "messages.scan.entity.total", "%total_count%", NumberFormat.getIntegerInstance().format(entityCount));
                             plugin.utils.sendMessage(player, "messages.scan.entity.footer");
                         } else {
                             plugin.utils.sendMessage(player, "messages.scan.entity.no_entities");
@@ -76,10 +77,10 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                             for (Map.Entry<String, Integer> entry : plugin.utils.getTilesInChunk(player.getLocation().getChunk())) {
                                 String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                                plugin.utils.sendMessage(player, "messages.scan.tile.format", "%tile%", name, "%count%", String.valueOf(entry.getValue()));
+                                plugin.utils.sendMessage(player, "messages.scan.tile.format", "%tile%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
                             }
 
-                            plugin.utils.sendMessage(player, "messages.scan.tile.total", "%total_count%", String.valueOf(tileCount));
+                            plugin.utils.sendMessage(player, "messages.scan.tile.total", "%total_count%", NumberFormat.getIntegerInstance().format(tileCount));
                             plugin.utils.sendMessage(player, "messages.scan.tile.footer");
                         } else {
                             plugin.utils.sendMessage(player, "messages.scan.tile.no_tiles");
@@ -96,14 +97,14 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                     if (material != null) {
                         if (player.hasPermission("blocklimiter.scan.individual. " + material.name())) {
                             int materialCount = plugin.utils.getAmountInChunk(player.getLocation().getChunk(), material);
-                            plugin.utils.sendMessage(player, "messages.scan.individual.total", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%count%", String.valueOf(materialCount));
+                            plugin.utils.sendMessage(player, "messages.scan.individual.total", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%count%", NumberFormat.getIntegerInstance().format(materialCount));
                         } else {
                             plugin.utils.sendMessage(player, "messages.no_permission");
                         }
                     } else if (entityType != null) {
                         if (player.hasPermission("blocklimiter.scan.individual. " + entityType.name())) {
                             int entityCount = plugin.utils.getAmountInChunk(player.getLocation().getChunk(), entityType);
-                            plugin.utils.sendMessage(player, "messages.scan.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", String.valueOf(entityCount));
+                            plugin.utils.sendMessage(player, "messages.scan.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", NumberFormat.getIntegerInstance().format(entityCount));
                         } else {
                             plugin.utils.sendMessage(player, "messages.scan.individual");
                         }

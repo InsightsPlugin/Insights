@@ -10,6 +10,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.StringUtil;
 
+import java.text.NumberFormat;
 import java.util.*;
 
 public class CommandScanworld implements CommandExecutor, TabExecutor {
@@ -48,11 +49,11 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
 
                             for (Map.Entry<String, Integer> entry : entryTreeMap.entrySet()) {
                                 String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                                plugin.utils.sendMessage(sender, "messages.scanworld.both.format", "%entry%", name, "%count%", String.valueOf(entry.getValue()));
+                                plugin.utils.sendMessage(sender, "messages.scanworld.both.format", "%entry%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
 
                             }
 
-                            plugin.utils.sendMessage(sender, "messages.scanworld.both.total", "%world%", world.getName(), "%entities%", String.valueOf(totalEntityCount), "%tiles%", String.valueOf(totalTileCount));
+                            plugin.utils.sendMessage(sender, "messages.scanworld.both.total", "%world%", world.getName(), "%entities%", NumberFormat.getIntegerInstance().format(totalEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(totalTileCount));
                             plugin.utils.sendMessage(sender, "messages.scanworld.both.footer");
                         } else {
                             plugin.utils.sendMessage(sender, "messages.scanworld.both.no_entries", "%world%", world.getName());
@@ -81,12 +82,12 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                                 int totalTileCount = 0;
                                 for (Map.Entry<String, Integer> entry : tileTreeMap.entrySet()) {
                                     String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                                    plugin.utils.sendMessage(sender, "messages.scanworld.tile.format", "%tile%", name, "%count%", String.valueOf(entry.getValue()));
+                                    plugin.utils.sendMessage(sender, "messages.scanworld.tile.format", "%tile%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
 
                                     totalTileCount = totalTileCount + entry.getValue();
                                 }
 
-                                plugin.utils.sendMessage(sender, "messages.scanworld.tile.total", "%world%", world.getName(), "%total_count%", String.valueOf(totalTileCount));
+                                plugin.utils.sendMessage(sender, "messages.scanworld.tile.total", "%world%", world.getName(), "%total_count%", NumberFormat.getIntegerInstance().format(totalTileCount));
                                 plugin.utils.sendMessage(sender, "messages.scanworld.tile.footer");
                             } else {
                                 plugin.utils.sendMessage(sender, "messages.scanworld.tile.no_tiles", "%world%", world.getName());
@@ -111,12 +112,12 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                                 int totalEntityCount = 0;
                                 for (Map.Entry<String, Integer> entry : entityTreeMap.entrySet()) {
                                     String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                                    plugin.utils.sendMessage(sender, "messages.scanworld.entity.format", "%entity%", name, "%count%", String.valueOf(entry.getValue()));
+                                    plugin.utils.sendMessage(sender, "messages.scanworld.entity.format", "%entity%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
 
                                     totalEntityCount = totalEntityCount + entry.getValue();
                                 }
 
-                                plugin.utils.sendMessage(sender, "messages.scanworld.entity.total", "%world%", world.getName(), "%total_count%", String.valueOf(totalEntityCount));
+                                plugin.utils.sendMessage(sender, "messages.scanworld.entity.total", "%world%", world.getName(), "%total_count%", NumberFormat.getIntegerInstance().format(totalEntityCount));
                                 plugin.utils.sendMessage(sender, "messages.scanworld.entity.footer");
                             } else {
                                 plugin.utils.sendMessage(sender, "messages.scanworld.entity.no_entities", "%world%", world.getName());
