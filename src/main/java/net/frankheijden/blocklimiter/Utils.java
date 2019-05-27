@@ -3,22 +3,49 @@ package net.frankheijden.blocklimiter;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 
 public class Utils {
     private BlockLimiter plugin;
 
     Utils(BlockLimiter plugin) {
         this.plugin = plugin;
+    }
+
+    public Set<Map.Entry<String, Integer>> getEntitiesInChunk(Chunk chunk) {
+        TreeMap<String, Integer> entryTreeMap = new TreeMap<>();
+        for (Entity entity : chunk.getEntities()) {
+            entryTreeMap.merge(entity.getType().name(), 1, Integer::sum);
+        }
+        return entryTreeMap.entrySet();
+    }
+
+    public Set<Map.Entry<String, Integer>> getTilesInChunk(Chunk chunk) {
+        TreeMap<String, Integer> entryTreeMap = new TreeMap<>();
+        for (BlockState bs : chunk.getTileEntities()) {
+            entryTreeMap.merge(bs.getType().name(), 1, Integer::sum);
+        }
+        return entryTreeMap.entrySet();
+    }
+
+    public Set<Map.Entry<String, Integer>> getEntitiesAndTilesInChunk(Chunk chunk) {
+        TreeMap<String, Integer> entryTreeMap = new TreeMap<>();
+        for (Entity entity : chunk.getEntities()) {
+            entryTreeMap.merge(entity.getType().name(), 1, Integer::sum);
+        }
+        for (BlockState bs : chunk.getTileEntities()) {
+            entryTreeMap.merge(bs.getType().name(), 1, Integer::sum);
+        }
+        return entryTreeMap.entrySet();
     }
 
     public int getAmountInChunk(Chunk chunk, Material material, Boolean isBreak) {

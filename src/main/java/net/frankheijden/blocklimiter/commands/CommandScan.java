@@ -2,13 +2,10 @@ package net.frankheijden.blocklimiter.commands;
 
 import net.frankheijden.blocklimiter.BlockLimiter;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
-import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
@@ -34,14 +31,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                     if (entityCount > 1 || tileCount > 0) {
                         plugin.utils.sendMessage(player, "messages.scan.both.header");
 
-                        TreeMap<String, Integer> entryTreeMap = new TreeMap<>();
-                        for (Entity entity : chunk.getEntities()) {
-                            entryTreeMap.merge(entity.getType().name(), 1, Integer::sum);
-                        }
-                        for (BlockState bs : chunk.getTileEntities()) {
-                            entryTreeMap.merge(bs.getType().name(), 1, Integer::sum);
-                        }
-                        for (Map.Entry<String, Integer> entry : entryTreeMap.entrySet()) {
+                        for (Map.Entry<String, Integer> entry : plugin.utils.getEntitiesAndTilesInChunk(chunk)) {
                             String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
                             plugin.utils.sendMessage(player, "messages.scan.both.format", "%entry%", name, "%count%", String.valueOf(entry.getValue()));
                         }
@@ -62,11 +52,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                         if (entityCount > 1) {
                             plugin.utils.sendMessage(player, "messages.scan.entity.header");
 
-                            TreeMap<String, Integer> entityTreeMap = new TreeMap<>();
-                            for (Entity entity : player.getLocation().getChunk().getEntities()) {
-                                entityTreeMap.merge(entity.getType().name(), 1, Integer::sum);
-                            }
-                            for (Map.Entry<String, Integer> entry : entityTreeMap.entrySet()) {
+                            for (Map.Entry<String, Integer> entry : plugin.utils.getEntitiesInChunk(player.getLocation().getChunk())) {
                                 String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
                                 plugin.utils.sendMessage(player, "messages.scan.entity.format", "%entity%", name, "%count%", String.valueOf(entry.getValue()));
                             }
@@ -86,12 +72,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                         if (tileCount > 0) {
                             plugin.utils.sendMessage(player, "messages.scan.tile.header");
 
-                            TreeMap<String, Integer> tileTreeMap = new TreeMap<>();
-                            for (BlockState bs : player.getLocation().getChunk().getTileEntities()) {
-                                tileTreeMap.merge(bs.getType().name(), 1, Integer::sum);
-                            }
-
-                            for (Map.Entry<String, Integer> entry : tileTreeMap.entrySet()) {
+                            for (Map.Entry<String, Integer> entry : plugin.utils.getTilesInChunk(player.getLocation().getChunk())) {
                                 String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
                                 plugin.utils.sendMessage(player, "messages.scan.tile.format", "%tile%", name, "%count%", String.valueOf(entry.getValue()));
                             }

@@ -3,7 +3,6 @@ package net.frankheijden.blocklimiter.commands;
 import net.frankheijden.blocklimiter.BlockLimiter;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
