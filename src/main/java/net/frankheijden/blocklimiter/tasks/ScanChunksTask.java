@@ -23,6 +23,7 @@ public class ScanChunksTask extends Thread {
         this.chunks = chunks;
         this.player = player;
         this.material = material;
+        System.out.println(material);
     }
 
     private class Position {
@@ -73,7 +74,7 @@ public class ScanChunksTask extends Thread {
         int x, y, z;
         boolean[][][] examined = new boolean[this.chunks.length * 16][maxHeight][this.chunks.length * 16];
         for (x = 0; x < examined.length; x++) {
-            for (y = 0; y < examined[0].length; y++) {
+            for (y = 0; y < maxHeight; y++) {
                 for (z = 0; z < examined[0][0].length; z++) {
                     examined[x][y][z] = false;
                 }
@@ -110,26 +111,25 @@ public class ScanChunksTask extends Thread {
             currentPosition = unexaminedQueue.remove();
             Material examinedMaterial = this.getMaterialAt(currentPosition);
 
-            if (examinedMaterial == null) continue;
-            if (passthroughMaterials.contains(examinedMaterial.name())) {
-                ConcurrentLinkedQueue<Position> adjacentPositionQueue = new ConcurrentLinkedQueue<>();
-                adjacentPositionQueue.add(new Position(currentPosition.x + 1, currentPosition.y, currentPosition.z));
-                adjacentPositionQueue.add(new Position(currentPosition.x - 1, currentPosition.y, currentPosition.z));
-                adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y, currentPosition.z + 1));
-                adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y, currentPosition.z - 1));
-                adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y + 1, currentPosition.z));
-                adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y - 1, currentPosition.z));
+            if (examinedMaterial == null || currentPosition.y < 0) continue;
 
-                while (!adjacentPositionQueue.isEmpty()) {
-                    Position adjacentPosition = adjacentPositionQueue.remove();
+            ConcurrentLinkedQueue<Position> adjacentPositionQueue = new ConcurrentLinkedQueue<>();
+            adjacentPositionQueue.add(new Position(currentPosition.x + 1, currentPosition.y, currentPosition.z));
+            adjacentPositionQueue.add(new Position(currentPosition.x - 1, currentPosition.y, currentPosition.z));
+            adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y, currentPosition.z + 1));
+            adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y, currentPosition.z - 1));
+            adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y + 1, currentPosition.z));
+            adjacentPositionQueue.add(new Position(currentPosition.x, currentPosition.y - 1, currentPosition.z));
 
-                    try {
-                        if (!examined[adjacentPosition.x][adjacentPosition.y][adjacentPosition.z]) {
-                            examined[adjacentPosition.x][adjacentPosition.y][adjacentPosition.z] = true;
-                            unexaminedQueue.add(adjacentPosition);
-                        }
-                    } catch (ArrayIndexOutOfBoundsException ignored) {}
-                }
+            while (!adjacentPositionQueue.isEmpty()) {
+                Position adjacentPosition = adjacentPositionQueue.remove();
+
+                try {
+                    if (!examined[adjacentPosition.x][adjacentPosition.y][adjacentPosition.z]) {
+                        examined[adjacentPosition.x][adjacentPosition.y][adjacentPosition.z] = true;
+                        unexaminedQueue.add(adjacentPosition);
+                    }
+                } catch (ArrayIndexOutOfBoundsException ignored) {}
             }
 
             if (examinedMaterial == material) {
