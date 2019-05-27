@@ -1,6 +1,6 @@
-package net.frankheijden.blocklimiter.commands;
+package net.frankheijden.insights.commands;
 
-import net.frankheijden.blocklimiter.BlockLimiter;
+import net.frankheijden.insights.Insights;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,15 +11,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommandTogglecheck implements CommandExecutor, TabExecutor {
-    private BlockLimiter plugin;
+    private Insights plugin;
 
-    public CommandTogglecheck(BlockLimiter plugin) {
+    public CommandTogglecheck(Insights plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (sender.hasPermission("blocklimiter.togglecheck")) {
+        if (sender.hasPermission("insights.togglecheck")) {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 plugin.sqLite.toggleRealtimeCheck(player);

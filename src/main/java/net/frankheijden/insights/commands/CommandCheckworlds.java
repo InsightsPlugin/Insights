@@ -1,6 +1,6 @@
-package net.frankheijden.blocklimiter.commands;
+package net.frankheijden.insights.commands;
 
-import net.frankheijden.blocklimiter.BlockLimiter;
+import net.frankheijden.insights.Insights;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -16,15 +16,15 @@ import java.util.Objects;
 import java.util.TreeSet;
 
 public class CommandCheckworlds implements CommandExecutor, TabExecutor {
-    private BlockLimiter plugin;
+    private Insights plugin;
 
-    public CommandCheckworlds(BlockLimiter plugin) {
+    public CommandCheckworlds(Insights plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (sender.hasPermission("blocklimiter.checkworlds")) {
+        if (sender.hasPermission("insights.checkworlds")) {
             plugin.utils.sendMessage(sender, "messages.checkworlds.header");
 
             int totalTileCount = 0;

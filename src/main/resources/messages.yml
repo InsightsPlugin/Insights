@@ -10,12 +10,12 @@ messages:
   # %material%
   limit_reached_custom: "&cYou have reached the limit of %limit%x %material% in this chunk. Please remove some."
 
-  # Message send when a user has the permission blocklimiter.check.realtime and places a tile
+  # Message send when a user has the permission insights.check.realtime and places a tile
   # Special placeholders:
   # %tile_count%
   realtime_check: "&3Tiles: &b%tile_count%&3/&b256"
 
-  # Message send when a user has the permission blocklimiter.check.realtime and places a custom defined block
+  # Message send when a user has the permission insights.check.realtime and places a custom defined block
   # Special placeholders:
   # %material%
   # %count%
@@ -24,17 +24,20 @@ messages:
 
   # Command messages below
 
-  # Messages send when a user executed /blocklimiter help
+  # Messages send when a user executed /insights help
   help: |-
-    &8&m--------------=&r&8[&b&l BlockLimiter Help&r &8]&m=--------------
-    &b /blocklimiter &f| &7Displays information about this plugin.
-    &b /blocklimiter help &f| &7Displays this message.
-    &b /blocklimiter reload &f| &7Reloads the plugin.
+    &8&m---------------=&r&8[&b&l Insights Help&r &8]&m=----------------
+    &b /insights &f| &7Displays information about this plugin.
+    &b /insights help &f| &7Displays this message.
+    &b /insights reload &f| &7Reloads the plugin.
     &b /check &f| &7Displays the amount of entities & tiles in this chunk.
     &b /checkworlds &f| &7Displays the amount of entities & tiles in the server.
     &b /scan ['entity'|'tile'] &f| &7Displays a detailed message about this chunk.
+    &b /scan custom [entity1] [material2] ... &f| &7Scan this chunk.
     &b /scanradius ['entity'|'tile'] &f| &7Displays a detailed message about chunks.
+    &b /scanradius custom [entity1] [material2] ... &f| &7Scan chunks in a radius.
     &b /scanworld <world> ['entity'|'tile'] &f| &7Displays a detailed message about a world.
+    &b /scanworld <world> custom [entity1] [material2] ... &f| &7Scan a world.
     &b /togglecheck &f| &7Toggles realtime info in actionbar.
     &8&m-------------------------------------------------
 
@@ -67,14 +70,32 @@ messages:
 
   # Messages send when a user executes /scan <entity|tile>
   scan:
-    individual:
+    custom:
       # Special placeholders:
-      # %entry%
+      # %chunks%
+      start: "&3Started scanning &b&l%chunks% &3chunk, this may take a while..."
+      # Special placeholders:
       # %count%
-      total: "&3This chunk contains a total of &b&l%count% &3%entry%."
-      invalid_argument: "&cThat is not a valid entity or material."
+      # %total%
+      progress: "&3Scanned &b&l%count%&3/&b&l%total% &3chunks..."
+      end:
+        header: "&8&m---------------=&r&8[&b&l Chunk Count&r &8]&m=-----------------"
+        # Special placeholders:
+        # %entry%
+        # %count%
+        format: "&b %entry%&8: &7&l%count%"
+        # Special placeholders:
+        # %chunks%
+        # %blocks%
+        # %time%
+        total: "&3 Scanned through a total of &b&l%chunks% &3chunk with a total of &b&l%blocks% &3blocks. Took &b%time%&3!"
+        footer: "&8&m-------------------------------------------------"
+        no_entries: "&cCouldn't find anything you're looking for in these chunks."
+      # Special placeholders:
+      # %argument%
+      invalid_argument: "&cThe argument '%argument%' is not a valid entity or material."
     both:
-      header: "&8&m----------------=&r&8[&b&l Chunk Count&r &8]&m=-----------------"
+      header: "&8&m---------------=&r&8[&b&l Chunk Count&r &8]&m=-----------------"
       # Special placeholders:
       # %entry%
       # %count%
@@ -110,20 +131,30 @@ messages:
 
   # Messages send when a user executes /scan <entity|tile>
   scanradius:
-    individual:
+    custom:
       # Special placeholders:
-      # %entry%
       # %chunks%
-      start: "&3Started scanning &b&l%chunks% &3chunks for &b%entry%&3, this may take a while..."
+      start: "&3Started scanning &b&l%chunks% &3chunks, this may take a while..."
       # Special placeholders:
       # %count%
-      # %entry%
-      progress: "&3Currently found &b&l%count% &3of &b%entry%&3. Still scanning..."
+      # %total%
+      progress: "&3Scanned &b&l%count%&3/&b&l%total% &3chunks..."
+      end:
+        header: "&8&m----------------=&r&8[&b&l Radius Count&r &8]&m=----------------"
+        # Special placeholders:
+        # %entry%
+        # %count%
+        format: "&b %entry%&8: &7&l%count%"
+        # Special placeholders:
+        # %chunks%
+        # %blocks%
+        # %time%
+        total: "&3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks. Took &b%time%&3!"
+        footer: "&8&m-------------------------------------------------"
+        no_entries: "&cCouldn't find anything you're looking for in these chunks."
       # Special placeholders:
-      # %entry%
-      # %count%
-      total: "&3These chunks contain a total of &b&l%count% &3%entry%."
-      invalid_argument: "&cThat is not a valid entity or material."
+      # %argument%
+      invalid_argument: "&cThe argument '%argument%' is not a valid entity or material."
     both:
       header: "&8&m----------------=&r&8[&b&l Radius Count&r &8]&m=----------------"
       # Special placeholders:
@@ -163,6 +194,35 @@ messages:
 
   # Messages send when a user executes /scanworld <world> <entity|tile>
   scanworld:
+    custom:
+      # Special placeholders:
+      # %chunks%
+      # %world%
+      start: "&3Started scanning &b&l%chunks% &3chunks in &b%world%&3, this may take a while..."
+      # Special placeholders:
+      # %count%
+      # %total%
+      # %world%
+      progress: "&3Scanned &b&l%count%&3/&b&l%total% &3chunks in &b%world%&3..."
+      end:
+        header: "&8&m----------------=&r&8[&b&l World Count&r &8]&m=----------------"
+        # Special placeholders:
+        # %entry%
+        # %count%
+        format: "&b %entry%&8: &7&l%count%"
+        # Special placeholders:
+        # %chunks%
+        # %blocks%
+        # %world%
+        # %time%
+        total: "&3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks in &b%world%&3. Took &b%time%&3!"
+        footer: "&8&m-------------------------------------------------"
+        # Special placeholders:
+        # %world%
+        no_entries: "&cCouldn't find anything you're looking for in %world%."
+      # Special placeholders:
+      # %argument%
+      invalid_argument: "&cThe argument '%argument%' is not a valid entity or material."
     both:
       header: "&8&m----------------=&r&8[&b&l World Count&r &8]&m=----------------"
       # Special placeholders:

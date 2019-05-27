@@ -1,7 +1,7 @@
-package net.frankheijden.blocklimiter.commands;
+package net.frankheijden.insights.commands;
 
-import net.frankheijden.blocklimiter.BlockLimiter;
-import net.frankheijden.blocklimiter.tasks.ScanChunksTask;
+import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.tasks.ScanTask;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
@@ -20,16 +20,16 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public class CommandScanradius implements CommandExecutor, TabExecutor {
-    private BlockLimiter plugin;
+    private Insights plugin;
 
-    public CommandScanradius(BlockLimiter plugin) {
+    public CommandScanradius(Insights plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        boolean tilePerm = sender.hasPermission("blocklimiter.scanradius.tile");
-        boolean entityPerm = sender.hasPermission("blocklimiter.scanradius.entity");
+        boolean tilePerm = sender.hasPermission("insights.scanradius.tile");
+        boolean entityPerm = sender.hasPermission("insights.scanradius.entity");
 
         if (tilePerm || entityPerm) {
             if (sender instanceof Player) {
@@ -180,50 +180,79 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                     } else {
                         plugin.utils.sendMessage(sender, "messages.scanradius.invalid_number");
                     }
-                } else if (args.length == 3) {
+                } else if (args.length > 2) {
                     if (args[0].matches("-?(0|[1-9]\\d*)")) {
                         int radius = Integer.valueOf(args[0]);
                         if (radius >= 1 && radius <= 25) {
-                            if (args[1].equalsIgnoreCase("individual")) {
-                                Material material = Material.getMaterial(args[2]);
-                                EntityType entityType = plugin.utils.getEntityType(args[2]);
-                                if (material != null) {
-                                    if (player.hasPermission("blocklimiter.scanradius.individual. " + material.name())) {
-                                        plugin.utils.sendMessage(player, "messages.scanradius.individual.start", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%chunks%", NumberFormat.getIntegerInstance().format((radius * 2 + 1) * (radius * 2 + 1)));
+                            if (args[1].equalsIgnoreCase("custom")) {
+                                long now = System.currentTimeMillis();
 
-                                        ChunkSnapshot[][] chunkSnapshots = plugin.utils.getChunkSnapshots(player.getLocation().getChunk(), radius);
-                                        ScanChunksTask task = new ScanChunksTask(plugin, chunkSnapshots, player, material);
-                                        task.setPriority(Thread.MIN_PRIORITY);
-                                        task.start();
-
+                                ArrayList<Material> materials = new ArrayList<>();
+                                ArrayList<EntityType> entityTypes = new ArrayList<>();
+                                boolean isAll = false;
+                                for (int i = 2; i < args.length; i++) {
+                                    Material material = Material.getMaterial(args[i]);
+                                    EntityType entityType = plugin.utils.getEntityType(args[i]);
+                                    if (material != null) {
+                                        if (sender.hasPermission("insights.scanradius.custom. " + material.name())) {
+                                            materials.add(material);
+                                        } else {
+                                            plugin.utils.sendMessage(sender, "messages.no_permission");
+                                            return true;
+                                        }
+                                    } else if (entityType != null) {
+                                        if (sender.hasPermission("insights.scanradius.custom. " + entityType.name())) {
+                                            entityTypes.add(entityType);
+                                        } else {
+                                            plugin.utils.sendMessage(sender, "messages.no_permission");
+                                            return true;
+                                        }
+                                    } else if (args[i].equalsIgnoreCase("ALL")) {
+                                        isAll = true;
                                     } else {
-                                        plugin.utils.sendMessage(player, "messages.no_permission");
+                                        plugin.utils.sendMessage(sender, "messages.scanradius.custom.invalid_argument", "%argument%", args[i]);
+                                        return true;
                                     }
-                                } else if (entityType != null) {
-                                    if (player.hasPermission("blocklimiter.scanradius.individual. " + entityType.name())) {
-                                        int entityCount = 0;
+                                }
 
-                                        World world = player.getWorld();
-                                        int x = player.getLocation().getChunk().getX();
-                                        int z = player.getLocation().getChunk().getZ();
-                                        for (int xc = x-radius; xc <= x+radius; xc++) {
-                                            for (int zc = z - radius; zc <= z + radius; zc++) {
-                                                Chunk chunk = world.getChunkAt(xc, zc);
-                                                if (!chunk.isLoaded()) {
-                                                    chunk.load();
+                                if (materials.isEmpty() && entityTypes.isEmpty() && !isAll) return true;
+
+                                ChunkSnapshot[] chunks = new ChunkSnapshot[(radius+radius+1)*(radius+radius+1)];
+
+                                World world = player.getWorld();
+                                int x = player.getLocation().getChunk().getX();
+                                int z = player.getLocation().getChunk().getZ();
+                                int i = 0;
+                                HashMap<String, Integer> entityHashMap = new HashMap<>();
+                                for (int xc = x-radius; xc <= x+radius; xc++) {
+                                    for (int zc = z - radius; zc <= z + radius; zc++) {
+                                        Chunk chunk = world.getChunkAt(xc, zc);
+                                        if (!chunk.isLoaded()) {
+                                            chunk.load(true);
+                                        }
+
+                                        if (!entityTypes.isEmpty() || isAll) {
+                                            for (Entity entity : chunk.getEntities()) {
+                                                if (entityTypes.contains(entity.getType()) || isAll) {
+                                                    entityHashMap.merge(entity.getType().name(), 1, Integer::sum);
                                                 }
-
-                                                entityCount = entityCount + plugin.utils.getAmountInChunk(chunk, entityType);
                                             }
                                         }
 
-                                        plugin.utils.sendMessage(player, "messages.scanradius.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", NumberFormat.getIntegerInstance().format(entityCount));
-                                    } else {
-                                        plugin.utils.sendMessage(player, "messages.scanradius.individual");
+                                        chunks[i] = chunk.getChunkSnapshot();
+                                        i++;
                                     }
-                                } else {
-                                    plugin.utils.sendMessage(player, "messages.scanradius.individual.invalid_argument");
                                 }
+
+                                for (EntityType entityType : entityTypes) {
+                                    if (!entityHashMap.containsKey(entityType.name())) {
+                                        entityHashMap.put(entityType.name(), 0);
+                                    }
+                                }
+
+                                ScanTask task = new ScanTask(plugin, chunks, world, sender, "messages.scanradius.custom", now, (isAll ? null : materials), entityHashMap);
+                                task.setPriority(Thread.MIN_PRIORITY);
+                                task.start();
                                 return true;
                             } else {
                                 return false;
@@ -248,46 +277,21 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
-        if (args.length == 2) {
-            List<String> list = new ArrayList<>();
-            if (sender.hasPermission("blocklimiter.scanradius.entity")) {
-                list.add("entity");
-            }
-            for (Material material : Material.values()) {
-                if (material.isBlock()) {
-                    if (sender.hasPermission("blocklimiter.scanradius.individual." + material.name())) {
-                        list.add("individual");
-                        break;
-                    }
+        if (sender.hasPermission("insights.scanradius.tab")) {
+            if (args.length == 2) {
+                List<String> list = Arrays.asList("custom", "entity", "tile");
+                return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
+            } else if (args.length > 2 && args[1].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
+                List<String> list = new ArrayList<>();
+                list.add("ALL");
+                for (Material material : Material.values()) {
+                    list.add(material.name());
                 }
-            }
-            if (!list.contains("individual")) {
                 for (EntityType entityType : EntityType.values()) {
-                    if (sender.hasPermission("blocklimiter.scanradius.individual." + entityType.name())) {
-                        list.add("individual");
-                        break;
-                    }
-                }
-            }
-            if (sender.hasPermission("blocklimiter.scanradius.tile")) {
-                list.add("tile");
-            }
-            return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
-        } else if (args.length == 3 && args[1].equalsIgnoreCase("individual") && args[2].length() > 0) {
-            List<String> list = new ArrayList<>();
-            for (Material material : Material.values()) {
-                if (material.isBlock()) {
-                    if (sender.hasPermission("blocklimiter.scanradius.individual." + material.name())) {
-                        list.add(material.name());
-                    }
-                }
-            }
-            for (EntityType entityType : EntityType.values()) {
-                if (sender.hasPermission("blocklimiter.scanradius.individual." + entityType.name())) {
                     list.add(entityType.name());
                 }
+                return StringUtil.copyPartialMatches(args[args.length-1], list, new ArrayList<>());
             }
-            return StringUtil.copyPartialMatches(args[2], list, new ArrayList<>());
         }
         return Collections.emptyList();
     }

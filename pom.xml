@@ -6,8 +6,8 @@
 
     <groupId>net.frankheijden</groupId>
     <artifactId>blocklimiter</artifactId>
-    <version>2.2.1</version>
-    <name>BlockLimiter</name>
+    <version>2.3.0</version>
+    <name>Insights</name>
 
     <build>
         <finalName>${project.name}-${project.version}</finalName>

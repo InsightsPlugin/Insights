@@ -1,14 +1,14 @@
-name: BlockLimiter
-main: net.frankheijden.blocklimiter.BlockLimiter
+name: Insights
+main: net.frankheijden.insights.Insights
 dev-url: https://www.spigotmc.org/resources/56489/
 version: ${project.version}
 api-version: "1.13"
 
 commands:
-  blocklimiter:
+  insights:
     usage: 'Usage: /<command>'
     aliases:
-      - 'bl'
+      - 'in'
 
   check:
     usage: 'Usage: /<command>'
@@ -22,8 +22,8 @@ commands:
       Examples:
        /<command> tile
        /<command> entity
-       /<command> individual DIAMOND_ORE
-       /<command> individual COW
+       /<command> custom DIAMOND_ORE
+       /<command> custom DIAMOND_ORE COW
 
   scanradius:
     usage: |-
@@ -31,8 +31,8 @@ commands:
       Examples:
        /<command> <radius> tile
        /<command> <radius> entity
-       /<command> <radius> individual DIAMOND_ORE
-       /<command> <radius> individual COW
+       /<command> <radius> custom DIAMOND_ORE
+       /<command> <radius> custom DIAMOND_ORE COW
 
   scanworld:
     usage: |-
@@ -40,8 +40,8 @@ commands:
       Examples:
        /<command> <world> tile
        /<command> <world> entity
-       /<command> <world> individual DIAMOND_ORE
-       /<command> <world> individual COW
+       /<command> <world> custom DIAMOND_ORE
+       /<command> <world> custom DIAMOND_ORE COW
 
   togglecheck:
     usage: 'Usage: /<command>'
@@ -62,13 +62,19 @@ permissions:
     children:
       blocklimiter.scan.tile: true
       blocklimiter.scan.entity: true
+      blocklimiter.scan.custom.*: true
+      blocklimiter.scan.tab: true
 
   blocklimiter.scanradius.*:
     children:
       blocklimiter.scanradius.tile: true
       blocklimiter.scanradius.entity: true
+      blocklimiter.scanradius.custom.*: true
+      blocklimiter.scanradius.tab: true
 
   blocklimiter.scanworld.*:
     children:
       blocklimiter.scanworld.tile: true
       blocklimiter.scanworld.entity: true
+      blocklimiter.scanworld.custom.*: true
+      blocklimiter.scanworld.tab: true

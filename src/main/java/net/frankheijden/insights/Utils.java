@@ -1,4 +1,4 @@
-package net.frankheijden.blocklimiter;
+package net.frankheijden.insights;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
@@ -14,11 +14,12 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class Utils {
-    private BlockLimiter plugin;
+    private Insights plugin;
 
-    Utils(BlockLimiter plugin) {
+    Utils(Insights plugin) {
         this.plugin = plugin;
     }
 
@@ -165,6 +166,10 @@ public class Utils {
         return null;
     }
 
+    public void scanChunks(Chunk[] chunkArray) {
+
+    }
+
     private ArrayList<String> names = new ArrayList<>(Arrays.asList(
             "SIGN",
             "SIGN_POST",
@@ -230,7 +235,7 @@ public class Utils {
             }
             sender.sendMessage(color(message));
         } else {
-            System.err.println("[BlockLimiter] Missing locale in messages.yml at path '" + path + "'!");
+            System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
         }
     }
 
@@ -292,25 +297,123 @@ public class Utils {
                 ex.printStackTrace();
             }
         } else {
-            System.err.println("[BlockLimiter] Missing locale in messages.yml at path '" + path + "'!");
+            System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
         }
     }
 
     public void reload() {
         File configFile = new File(plugin.getDataFolder(), "config.yml");
         if (!configFile.exists()) {
-            Bukkit.getLogger().info("[BlockLimiter] config.yml not found, creating!");
+            Bukkit.getLogger().info("[Insights] config.yml not found, creating!");
             plugin.saveDefaultConfig();
         }
         plugin.config = YamlConfiguration.loadConfiguration(configFile);
 
         File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
         if (!messagesFile.exists()) {
-            Bukkit.getLogger().info("[BlockLimiter] messages.yml not found, creating!");
+            Bukkit.getLogger().info("[Insights] messages.yml not found, creating!");
             plugin.saveResource("messages.yml", false);
         }
         plugin.messages = YamlConfiguration.loadConfiguration(messagesFile);
 
         plugin.max = plugin.config.getInt("general.limit");
+    }
+
+    private String getTime(int seconds) {
+        if (seconds < 60) {
+            if (seconds == 1) {
+                return seconds + " second";
+            } else {
+                return seconds + " seconds";
+            }
+        } else {
+            int minutes = seconds / 60;
+            int s = 60 * minutes;
+            int secondsLeft = seconds - s;
+            if (minutes < 60) {
+                if (secondsLeft > 0) {
+                    String min = "minutes";
+                    String sec = "seconds";
+                    if (minutes == 1) {
+                        min = "minute";
+                    }
+                    if (secondsLeft == 1) {
+                        sec = "second";
+                    }
+                    return minutes + " " + min + " " + secondsLeft + " " + sec;
+                } else {
+                    return minutes == 1 ? minutes + " minute" : minutes + " minutes";
+                }
+            } else {
+                String time;
+                String h = "hours";
+                String m = "minutes";
+                String se = "seconds";
+                String d = "days";
+                int days;
+                int inMins;
+                int leftOver;
+                if (secondsLeft == 1) {
+                    se = "second";
+                }
+                if (minutes < 1440) {
+                    days = minutes / 60;
+                    if (days == 1) {
+                        h = "hour";
+                    }
+                    time = days + " "+h+" ";
+                    inMins = 60 * days;
+                    leftOver = minutes - inMins;
+                    if (leftOver == 1) {
+                        m = "minute";
+                    }
+                    if (leftOver >= 1) {
+                        time = time + " " + leftOver + " "+m+" ";
+                    }
+
+                    if (secondsLeft > 0) {
+                        time = time + " " + secondsLeft + " "+se;
+                    }
+
+                    return time;
+                } else {
+                    days = minutes / 1440;
+                    if (days == 1) {
+                        d = "day";
+                    }
+                    time = days + " "+d;
+                    inMins = 1440 * days;
+                    leftOver = minutes - inMins;
+                    if (leftOver == 1) {
+                        m = "minute";
+                    }
+                    if (leftOver >= 1) {
+                        if (leftOver < 60) {
+                            time = time + " " + leftOver + " "+m;
+                        } else {
+                            int hours = leftOver / 60;
+                            if (hours == 1) {
+                                h = "hour";
+                            }
+                            time = time + " " + hours + " "+h;
+                            int hoursInMins = 60 * hours;
+                            int minsLeft = leftOver - hoursInMins;
+                            if (leftOver >= 1) {
+                                time = time + " " + minsLeft + " "+m;
+                            }
+                        }
+                    }
+
+                    if (secondsLeft > 0) {
+                        time = time + " " + secondsLeft + " "+se;
+                    }
+                    return time;
+                }
+            }
+        }
+    }
+
+    public String getDHMS(long startTime) {
+        return getTime((int) TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime));
     }
 }

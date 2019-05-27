@@ -1,4 +1,4 @@
-package net.frankheijden.blocklimiter;
+package net.frankheijden.insights;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -9,12 +9,12 @@ import java.sql.*;
 import java.util.HashMap;
 
 public class SQLite {
-    private BlockLimiter plugin;
+    private Insights plugin;
 
     public String db = "players";
     public Connection connection;
 
-    public SQLite(BlockLimiter plugin) {
+    public SQLite(Insights plugin) {
         this.plugin = plugin;
     }
 
@@ -46,7 +46,7 @@ public class SQLite {
 
     private HashMap<String, Boolean> cached = new HashMap<>();
     public void load() {
-        Bukkit.getLogger().info("[BlockLimiter] Setting up database connection...");
+        Bukkit.getLogger().info("[Insights] Setting up database connection...");
         setupConnection();
 
         try {

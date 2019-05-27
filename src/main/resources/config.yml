@@ -4,7 +4,7 @@ general:
   limit: 256
 
   # Set a limit to custom blocks in a chunk
-  # Bypass with e.g. 'blocklimiter.bypass.DIAMOND_ORE' permission
+  # Bypass with e.g. 'insights.bypass.DIAMOND_ORE' permission
   materials:
     # Format:
     # MATERIAL: LIMIT

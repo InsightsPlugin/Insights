@@ -1,6 +1,7 @@
-package net.frankheijden.blocklimiter.commands;
+package net.frankheijden.insights.commands;
 
-import net.frankheijden.blocklimiter.BlockLimiter;
+import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.tasks.ScanTask;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
@@ -8,22 +9,23 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.util.StringUtil;
 
 import java.text.NumberFormat;
 import java.util.*;
 
 public class CommandScanworld implements CommandExecutor, TabExecutor {
-    private BlockLimiter plugin;
+    private Insights plugin;
 
-    public CommandScanworld(BlockLimiter plugin) {
+    public CommandScanworld(Insights plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        boolean tilePerm = sender.hasPermission("blocklimiter.scanworld.tile");
-        boolean entityPerm = sender.hasPermission("blocklimiter.scanworld.entity");
+        boolean tilePerm = sender.hasPermission("insights.scanworld.tile");
+        boolean entityPerm = sender.hasPermission("insights.scanworld.entity");
 
         if (tilePerm || entityPerm) {
             if (args.length == 1) {
@@ -131,63 +133,80 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                 } else {
                     return false;
                 }
-            } /*else if (args.length == 3) {
+            } else if (args.length > 2) {
                 World world = Bukkit.getWorld(args[0]);
-                if (args[1].equalsIgnoreCase("individual")) {
-                    Material material = Material.getMaterial(args[2]);
-                    EntityType entityType = plugin.utils.getEntityType(args[2]);
-                    if (material != null) {
-                        if (sender.hasPermission("blocklimiter.scanworld.individual. " + material.name())) {
-                            if (world != null) {
-                                Chunk[] chunks = world.getLoadedChunks();
-                                plugin.utils.sendMessage(sender, "messages.scanworld.individual.start", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%chunks%", String.valueOf(chunks.length));
+                if (args[1].equalsIgnoreCase("custom")) {
+                    long now = System.currentTimeMillis();
 
-                                for (Chunk chunk : chunks) {
-                                    if (!chunk.isLoaded()) {
-                                        chunk.load();
-                                    }
-
-
-                                }
-
-                                ChunkSnapshot[][] chunkSnapshots = plugin.utils.getChunkSnapshots(player.getLocation().getChunk(), radius);
-                                ScanChunksTask task = new ScanChunksTask(plugin, chunkSnapshots, player, material);
-                                task.setPriority(Thread.MIN_PRIORITY);
-                                task.start();
+                    ArrayList<Material> materials = new ArrayList<>();
+                    ArrayList<EntityType> entityTypes = new ArrayList<>();
+                    boolean isAll = false;
+                    for (int i = 2; i < args.length; i++) {
+                        Material material = Material.getMaterial(args[i]);
+                        EntityType entityType = plugin.utils.getEntityType(args[i]);
+                        if (material != null) {
+                            if (sender.hasPermission("insights.scanworld.custom. " + material.name())) {
+                                materials.add(material);
                             } else {
-                                plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
+                                plugin.utils.sendMessage(sender, "messages.no_permission");
+                                return true;
                             }
+                        } else if (entityType != null) {
+                            if (sender.hasPermission("insights.scanworld.custom. " + entityType.name())) {
+                                entityTypes.add(entityType);
+                            } else {
+                                plugin.utils.sendMessage(sender, "messages.no_permission");
+                                return true;
+                            }
+                        } else if (args[i].equalsIgnoreCase("ALL")) {
+                            isAll = true;
                         } else {
-                            plugin.utils.sendMessage(sender, "messages.no_permission");
+                            plugin.utils.sendMessage(sender, "messages.scanworld.custom.invalid_argument", "%argument%", args[i]);
+                            return true;
                         }
-                    } else if (entityType != null) {
-                        if (sender.hasPermission("blocklimiter.scanworld.individual. " + entityType.name())) {
-                            if (world != null) {
-                                int entityCount = 0;
+                    }
 
-                                for (Chunk chunk : world.getLoadedChunks()) {
-                                    for (Entity entity : chunk.getEntities()) {
-                                        if (entity.getType() == entityType) {
-                                            entityCount++;
-                                        }
+                    if (materials.isEmpty() && entityTypes.isEmpty() && !isAll) return true;
+
+                    if (world != null) {
+                        ChunkSnapshot[] chunks = new ChunkSnapshot[world.getLoadedChunks().length];
+                        int i = 0;
+
+                        HashMap<String, Integer> entityHashMap = new HashMap<>();
+                        for (Chunk chunk : world.getLoadedChunks()) {
+                            if (!chunk.isLoaded()) {
+                                chunk.load(true);
+                            }
+
+                            if (!entityTypes.isEmpty() || isAll) {
+                                for (Entity entity : chunk.getEntities()) {
+                                    if (entityTypes.contains(entity.getType()) || isAll) {
+                                        entityHashMap.merge(entity.getType().name(), 1, Integer::sum);
                                     }
                                 }
-
-                                plugin.utils.sendMessage(sender, "messages.scanworld.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", String.valueOf(entityCount));
-                            } else {
-                                plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
                             }
-                        } else {
-                            plugin.utils.sendMessage(sender, "messages.scanworld.individual");
+
+                            chunks[i] = chunk.getChunkSnapshot();
+                            i++;
                         }
+
+                        for (EntityType entityType : entityTypes) {
+                            if (!entityHashMap.containsKey(entityType.name())) {
+                                entityHashMap.put(entityType.name(), 0);
+                            }
+                        }
+
+                        ScanTask task = new ScanTask(plugin, chunks, world, sender, "messages.scanworld.custom", now, (isAll ? null : materials), entityHashMap, "%world%", world.getName());
+                        task.setPriority(Thread.MIN_PRIORITY);
+                        task.start();
                     } else {
-                        plugin.utils.sendMessage(sender, "messages.scanworld.individual.invalid_argument");
+                        plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
                     }
                     return true;
                 } else {
                     return false;
                 }
-            }*/ else {
+            } else {
                 return false;
             }
         } else {
@@ -198,25 +217,27 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
-        boolean entityPerm = sender.hasPermission("blocklimiter.scanworld.entity");
-        boolean tilePerm = sender.hasPermission("blocklimiter.scanworld.tile");
-        if (args.length == 1) {
-            if (entityPerm || tilePerm) {
+        if (sender.hasPermission("insights.scanworld.tab")) {
+            if (args.length == 1) {
                 List<String> list = new ArrayList<>();
                 for (World world : Bukkit.getWorlds()) {
                     list.add(world.getName());
                 }
                 return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
+            } else if (args.length == 2) {
+                List<String> list = Arrays.asList("custom", "entity", "tile");
+                return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
+            } else if (args.length > 2 && args[1].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
+                List<String> list = new ArrayList<>();
+                list.add("ALL");
+                for (Material material : Material.values()) {
+                    list.add(material.name());
+                }
+                for (EntityType entityType : EntityType.values()) {
+                    list.add(entityType.name());
+                }
+                return StringUtil.copyPartialMatches(args[args.length-1], list, new ArrayList<>());
             }
-        } else if (args.length == 2) {
-            List<String> list = new ArrayList<>();
-            if (sender.hasPermission("blocklimiter.scanworld.entity")) {
-                list.add("entity");
-            }
-            if (sender.hasPermission("blocklimiter.scanworld.tile")) {
-                list.add("tile");
-            }
-            return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
         }
         return Collections.emptyList();
     }

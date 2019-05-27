@@ -1,6 +1,6 @@
-package net.frankheijden.blocklimiter.commands;
+package net.frankheijden.insights.commands;
 
-import net.frankheijden.blocklimiter.BlockLimiter;
+import net.frankheijden.insights.Insights;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class CommandBlockLimiter implements CommandExecutor, TabExecutor {
-    private BlockLimiter plugin;
+public class CommandInsights implements CommandExecutor, TabExecutor {
+    private Insights plugin;
 
-    public CommandBlockLimiter(BlockLimiter plugin) {
+    public CommandInsights(Insights plugin) {
         this.plugin = plugin;
     }
 
@@ -22,7 +22,7 @@ public class CommandBlockLimiter implements CommandExecutor, TabExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(new String[]{
-                    plugin.utils.color("&8&l&m--------------=&r&8[ &b&lBlockLimiter&8 ]&l&m=--------------"),
+                    plugin.utils.color("&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------"),
                     plugin.utils.color("&b Plugin version: &7" + plugin.getDescription().getVersion()),
                     plugin.utils.color("&b Plugin author: &7https://www.spigotmc.org/members/213966/"),
                     plugin.utils.color("&b Plugin link: &7https://www.spigotmc.org/resources/56489/"),
@@ -31,7 +31,7 @@ public class CommandBlockLimiter implements CommandExecutor, TabExecutor {
             return true;
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("reload")) {
-                if (sender.hasPermission("blocklimiter.reload")) {
+                if (sender.hasPermission("insights.reload")) {
                     try {
                         plugin.utils.reload();
                     } catch (Exception ex) {
@@ -56,7 +56,7 @@ public class CommandBlockLimiter implements CommandExecutor, TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 1) {
             List<String> list = new ArrayList<>(Collections.singletonList("help"));
-            if (sender.hasPermission("blocklimiter.reload")) {
+            if (sender.hasPermission("insights.reload")) {
                 list.add("reload");
             }
             return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());

@@ -1,6 +1,6 @@
-package net.frankheijden.blocklimiter.commands;
+package net.frankheijden.insights.commands;
 
-import net.frankheijden.blocklimiter.BlockLimiter;
+import net.frankheijden.insights.Insights;
 import org.bukkit.Chunk;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -13,9 +13,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommandCheck implements CommandExecutor, TabExecutor {
-    private BlockLimiter plugin;
+    private Insights plugin;
 
-    public CommandCheck(BlockLimiter plugin) {
+    public CommandCheck(Insights plugin) {
         this.plugin = plugin;
     }
 
@@ -24,7 +24,7 @@ public class CommandCheck implements CommandExecutor, TabExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
 
-            if (player.hasPermission("blocklimiter.check")) {
+            if (player.hasPermission("insights.check")) {
                 Chunk chunk = player.getLocation().getChunk();
                 plugin.utils.sendMessage(player, "messages.check", "%tile_count%", NumberFormat.getIntegerInstance().format(chunk.getTileEntities().length), "%entity_count%", NumberFormat.getIntegerInstance().format(chunk.getEntities().length));
             } else {
