@@ -140,12 +140,14 @@ public class Utils {
     }
 
     public void sendMessage(CommandSender sender, String path, String... placeholders) {
-        String message = plugin.config.getString(path);
+        String message = plugin.messages.getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++,i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
             }
             sender.sendMessage(color(message));
+        } else {
+            System.err.println("[BlockLimiter] Missing locale in messages.yml at path '" + path + "'!");
         }
     }
 
@@ -159,7 +161,7 @@ public class Utils {
             return;
         }
 
-        String message = plugin.config.getString(path);
+        String message = plugin.messages.getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++,i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
@@ -206,6 +208,8 @@ public class Utils {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+        } else {
+            System.err.println("[BlockLimiter] Missing locale in messages.yml at path '" + path + "'!");
         }
     }
 
@@ -216,6 +220,14 @@ public class Utils {
             plugin.saveDefaultConfig();
         }
         plugin.config = YamlConfiguration.loadConfiguration(configFile);
+
+        File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
+        if (!messagesFile.exists()) {
+            Bukkit.getLogger().info("[BlockLimiter] messages.yml not found, creating!");
+            plugin.saveResource("messages.yml", false);
+        }
+        plugin.messages = YamlConfiguration.loadConfiguration(messagesFile);
+
         plugin.max = plugin.config.getInt("general.limit");
     }
 }

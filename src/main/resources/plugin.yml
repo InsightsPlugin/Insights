@@ -15,13 +15,13 @@ commands:
     usage: 'Usage: /<command>'
 
   scan:
-    usage: 'Usage: /<command> <tile|entity>'
+    usage: 'Usage: /<command> [''tile''|''entity'']'
 
   scanradius:
-    usage: 'Usage: /<command> <radius> <tile|entity>'
+    usage: 'Usage: /<command> <radius> [''tile''|''entity'']'
 
   scanworld:
-    usage: 'Usage: /<command> <world> <tile|entity>'
+    usage: 'Usage: /<command> <world> [''tile''|''entity'']'
 
   togglecheck:
     usage: 'Usage: /<command>'

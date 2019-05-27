@@ -12,6 +12,7 @@ import java.util.*;
 public class BlockLimiter extends JavaPlugin {
     private BlockLimiter plugin;
     public FileConfiguration config;
+    public FileConfiguration messages;
     public int max;
 
     public BlockLimiter(){}
@@ -42,6 +43,14 @@ public class BlockLimiter extends JavaPlugin {
             saveDefaultConfig();
         }
         config = YamlConfiguration.loadConfiguration(configFile);
+
+        File messagesFile = new File(getDataFolder(), "messages.yml");
+        if (!messagesFile.exists()) {
+            Bukkit.getLogger().info("[BlockLimiter] messages.yml not found, creating!");
+            saveResource("messages.yml", false);
+        }
+        messages = YamlConfiguration.loadConfiguration(messagesFile);
+
         max = config.getInt("general.limit");
     }
 

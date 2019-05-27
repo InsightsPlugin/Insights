@@ -7,11 +7,14 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
 
-public class CommandCheckworlds implements CommandExecutor {
+public class CommandCheckworlds implements CommandExecutor, TabExecutor {
     private BlockLimiter plugin;
 
     public CommandCheckworlds(BlockLimiter plugin) {
@@ -56,5 +59,10 @@ public class CommandCheckworlds implements CommandExecutor {
             plugin.utils.sendMessage(sender, "messages.no_permission");
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+        return Collections.emptyList();
     }
 }

@@ -4,9 +4,14 @@ import net.frankheijden.blocklimiter.BlockLimiter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import org.bukkit.command.TabExecutor;
+import org.bukkit.util.StringUtil;
 
-public class CommandBlockLimiter implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class CommandBlockLimiter implements CommandExecutor, TabExecutor {
     private BlockLimiter plugin;
 
     public CommandBlockLimiter(BlockLimiter plugin) {
@@ -44,5 +49,18 @@ public class CommandBlockLimiter implements CommandExecutor {
 
         plugin.utils.sendMessage(sender, "messages.help");
         return true;
+    }
+
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+        if (args.length == 1) {
+            List<String> list = new ArrayList<>(Collections.singletonList("help"));
+            if (sender.hasPermission("blocklimiter.reload")) {
+                list.add("reload");
+            }
+            return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
+        }
+        return Collections.emptyList();
     }
 }
