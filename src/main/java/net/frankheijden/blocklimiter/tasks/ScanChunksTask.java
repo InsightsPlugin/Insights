@@ -23,7 +23,6 @@ public class ScanChunksTask extends Thread {
         this.chunks = chunks;
         this.player = player;
         this.material = material;
-        System.out.println(material);
     }
 
     private class Position {
