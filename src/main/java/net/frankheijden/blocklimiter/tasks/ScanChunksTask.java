@@ -7,8 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ScanChunksTask extends Thread {
@@ -40,32 +38,6 @@ public class ScanChunksTask extends Thread {
             return this.x + " " + this.y + " " + this.z;
         }
     }
-
-    private ArrayList<String> passthroughMaterials = new ArrayList<>(Arrays.asList(
-            "AIR", // 1.8 - 1.12.2
-            "WOOD_DOOR",
-            "WOODEN_DOOR",
-            "TRAP_DOOR",
-            "IRON_DOOR_BLOCK",
-            "IRON_TRAPDOOR",
-            "LADDER",
-
-            "CAVE_AIR", // 1.13 +
-            "BUBBLE_COLUMN",
-            "OAK_DOOR",
-            "SPRUCE_DOOR",
-            "BIRCH_DOOR",
-            "JUNGLE_DOOR",
-            "ACACIA_DOOR",
-            "DARK_OAK_DOOR",
-            "OAK_TRAPDOOR",
-            "SPRUCE_TRAPDOOR",
-            "BIRCH_TRAPDOOR",
-            "JUNGLE_TRAPDOOR",
-            "ACACIA_TRAPDOOR",
-            "DARK_OAK_TRAPDOOR",
-            "IRON_DOOR"
-    ));
 
     @Override
     public void run() {
@@ -138,9 +110,6 @@ public class ScanChunksTask extends Thread {
 
         bukkitTask.cancel();
         plugin.utils.sendMessage(player, "messages.scanradius.individual.total", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%count%", String.valueOf(materialCount));
-        /*
-        ScanChunksMessageTask scanChunksMessageTask = new ScanChunksMessageTask(plugin, player, material, materialCount);
-        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, scanChunksMessageTask, 5L);*/
     }
 
     private Material getMaterialAt(Position position) {
