@@ -2,10 +2,12 @@ package net.frankheijden.blocklimiter.commands;
 
 import net.frankheijden.blocklimiter.BlockLimiter;
 import org.bukkit.Chunk;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
@@ -87,6 +89,29 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                     }
                     return true;
                 }
+            } else if (args.length == 2) {
+                if (args[0].equalsIgnoreCase("individual")) {
+                    Material material = Material.getMaterial(args[1]);
+                    EntityType entityType = plugin.utils.getEntityType(args[1]);
+                    if (material != null) {
+                        if (player.hasPermission("blocklimiter.scan.individual. " + material.name())) {
+                            int materialCount = plugin.utils.getAmountInChunk(player.getLocation().getChunk(), material);
+                            plugin.utils.sendMessage(player, "messages.scan.individual.total", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%count%", String.valueOf(materialCount));
+                        } else {
+                            plugin.utils.sendMessage(player, "messages.no_permission");
+                        }
+                    } else if (entityType != null) {
+                        if (player.hasPermission("blocklimiter.scan.individual. " + entityType.name())) {
+                            int entityCount = plugin.utils.getAmountInChunk(player.getLocation().getChunk(), entityType);
+                            plugin.utils.sendMessage(player, "messages.scan.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", String.valueOf(entityCount));
+                        } else {
+                            plugin.utils.sendMessage(player, "messages.scan.individual");
+                        }
+                    } else {
+                        plugin.utils.sendMessage(player, "messages.scan.individual.invalid_argument");
+                    }
+                    return true;
+                }
             }
         } else {
             sender.sendMessage("This command cannot be executed from console!");
@@ -102,10 +127,41 @@ public class CommandScan implements CommandExecutor, TabExecutor {
             if (sender.hasPermission("blocklimiter.scan.entity")) {
                 list.add("entity");
             }
+            for (Material material : Material.values()) {
+                if (material.isBlock()) {
+                    if (sender.hasPermission("blocklimiter.scan.individual." + material.name())) {
+                        list.add("individual");
+                        break;
+                    }
+                }
+            }
+            if (!list.contains("individual")) {
+                for (EntityType entityType : EntityType.values()) {
+                    if (sender.hasPermission("blocklimiter.scan.individual." + entityType.name())) {
+                        list.add("individual");
+                        break;
+                    }
+                }
+            }
             if (sender.hasPermission("blocklimiter.scan.tile")) {
                 list.add("tile");
             }
             return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("individual") && args[1].length() > 0) {
+            List<String> list = new ArrayList<>();
+            for (Material material : Material.values()) {
+                if (material.isBlock()) {
+                    if (sender.hasPermission("blocklimiter.scan.individual." + material.name())) {
+                        list.add(material.name());
+                    }
+                }
+            }
+            for (EntityType entityType : EntityType.values()) {
+                if (sender.hasPermission("blocklimiter.scan.individual." + entityType.name())) {
+                    list.add(entityType.name());
+                }
+            }
+            return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
         }
         return Collections.emptyList();
     }

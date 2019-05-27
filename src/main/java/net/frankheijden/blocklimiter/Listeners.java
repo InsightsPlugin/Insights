@@ -25,10 +25,10 @@ public class Listeners implements Listener {
         MemorySection materials = (MemorySection) plugin.config.get("general.materials");
         if (materials != null) {
             for (String materialString : materials.getKeys(false)) {
-                Material material = Material.valueOf(materialString);
+                Material material = Material.getMaterial(materialString);
                 if (event.getBlock().getType() == material) {
                     int limit = plugin.config.getInt("general.materials." + materialString);
-                    int current = plugin.utils.getAmountInChunk(event.getBlock().getChunk(), material, true);
+                    int current = plugin.utils.updateCachedAmountInChunk(event.getBlock().getChunk(), material, true);
 
                     if (player.hasPermission("blocklimiter.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
                         plugin.utils.sendActionBar(player, "messages.realtime_check_custom", "%count%", String.valueOf(current), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
@@ -55,7 +55,7 @@ public class Listeners implements Listener {
                 Material material = Material.valueOf(materialString);
                 if (event.getBlockPlaced().getType() == material) {
                     int limit = plugin.config.getInt("general.materials." + materialString);
-                    int current = plugin.utils.getAmountInChunk(event.getBlockPlaced().getChunk(), material, false);
+                    int current = plugin.utils.updateCachedAmountInChunk(event.getBlockPlaced().getChunk(), material, false);
                     if (current > limit) {
                         if (!player.hasPermission("blocklimiter.bypass." + materialString)) {
                             String n = event.getBlockPlaced().getChunk().getX() + "_" + event.getBlockPlaced().getChunk().getZ();

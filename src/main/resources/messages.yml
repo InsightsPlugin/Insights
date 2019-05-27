@@ -67,6 +67,12 @@ messages:
 
   # Messages send when a user executes /scan <entity|tile>
   scan:
+    individual:
+      # Special placeholders:
+      # %entry%
+      # %count%
+      total: "&3This chunk contains a total of &b&l%count% &3%entry%."
+      invalid_argument: "&cThat is not a valid entity or material."
     both:
       header: "&8&m----------------=&r&8[&b&l Chunk Count&r &8]&m=-----------------"
       # Special placeholders:
@@ -104,6 +110,20 @@ messages:
 
   # Messages send when a user executes /scan <entity|tile>
   scanradius:
+    individual:
+      # Special placeholders:
+      # %entry%
+      # %chunks%
+      start: "&3Started scanning &b&l%chunks% &3chunks for &b%entry%&3, this may take a while..."
+      # Special placeholders:
+      # %count%
+      # %entry%
+      progress: "&3Currently found &b&l%count% &3of &b%entry%&3. Still scanning..."
+      # Special placeholders:
+      # %entry%
+      # %count%
+      total: "&3These chunks contain a total of &b&l%count% &3%entry%."
+      invalid_argument: "&cThat is not a valid entity or material."
     both:
       header: "&8&m----------------=&r&8[&b&l Radius Count&r &8]&m=----------------"
       # Special placeholders:
@@ -155,7 +175,7 @@ messages:
       # %tiles%
       total: "&3 World &b%world% &3contains a total of &b&l%entities% &3entities and &b&l%tiles% &3tiles."
       footer: "&8&m-------------------------------------------------"
-      no_entries: "&cThere are no tiles or entities in this world, only you."
+      no_entries: "&cWorld &b%world &3has no tiles or entities, only you."
     entity:
       header: "&8&m----------------=&r&8[&b&l Entity Count&r &8]&m=----------------"
       # Special placeholders:

@@ -1,9 +1,7 @@
 package net.frankheijden.blocklimiter.commands;
 
 import net.frankheijden.blocklimiter.BlockLimiter;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -57,19 +55,19 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                             plugin.utils.sendMessage(sender, "messages.scanworld.both.total", "%world%", world.getName(), "%entities%", String.valueOf(totalEntityCount), "%tiles%", String.valueOf(totalTileCount));
                             plugin.utils.sendMessage(sender, "messages.scanworld.both.footer");
                         } else {
-                            plugin.utils.sendMessage(sender, "messages.scanworld.both.no_entries");
+                            plugin.utils.sendMessage(sender, "messages.scanworld.both.no_entries", "%world%", world.getName());
                         }
                     } else {
-                        plugin.utils.sendMessage(sender, "messages.checkworld.invalid_world");
+                        plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
                     }
                 } else {
                     plugin.utils.sendMessage(sender, "messages.no_permission");
                 }
             } else if (args.length == 2) {
                 World world = Bukkit.getWorld(args[0]);
-                if (world != null) {
-                    if (args[1].equalsIgnoreCase("tile")) {
-                        if (tilePerm) {
+                if (args[1].equalsIgnoreCase("tile")) {
+                    if (tilePerm) {
+                        if (world != null) {
                             TreeMap<String, Integer> tileTreeMap = new TreeMap<>();
                             for (Chunk chunk : world.getLoadedChunks()) {
                                 for (BlockState bs : chunk.getTileEntities()) {
@@ -91,13 +89,17 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                                 plugin.utils.sendMessage(sender, "messages.scanworld.tile.total", "%world%", world.getName(), "%total_count%", String.valueOf(totalTileCount));
                                 plugin.utils.sendMessage(sender, "messages.scanworld.tile.footer");
                             } else {
-                                plugin.utils.sendMessage(sender, "messages.scanworld.tile.no_tiles");
+                                plugin.utils.sendMessage(sender, "messages.scanworld.tile.no_tiles", "%world%", world.getName());
                             }
                         } else {
-                            plugin.utils.sendMessage(sender, "messages.no_permission");
+                            plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
                         }
-                    } else if (args[1].equalsIgnoreCase("entity")) {
-                        if (entityPerm) {
+                    } else {
+                        plugin.utils.sendMessage(sender, "messages.no_permission");
+                    }
+                } else if (args[1].equalsIgnoreCase("entity")) {
+                    if (entityPerm) {
+                        if (world != null) {
                             TreeMap<String, Integer> entityTreeMap = new TreeMap<>();
                             for (Entity entity : world.getEntities()) {
                                 entityTreeMap.merge(entity.getType().name(), 1, Integer::sum);
@@ -117,16 +119,74 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                                 plugin.utils.sendMessage(sender, "messages.scanworld.entity.total", "%world%", world.getName(), "%total_count%", String.valueOf(totalEntityCount));
                                 plugin.utils.sendMessage(sender, "messages.scanworld.entity.footer");
                             } else {
-                                plugin.utils.sendMessage(sender, "messages.scanworld.entity.no_entities");
+                                plugin.utils.sendMessage(sender, "messages.scanworld.entity.no_entities", "%world%", world.getName());
+                            }
+                        } else {
+                            plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
+                        }
+                    } else {
+                        plugin.utils.sendMessage(sender, "messages.no_permission");
+                    }
+                } else {
+                    return false;
+                }
+            } /*else if (args.length == 3) {
+                World world = Bukkit.getWorld(args[0]);
+                if (args[1].equalsIgnoreCase("individual")) {
+                    Material material = Material.getMaterial(args[2]);
+                    EntityType entityType = plugin.utils.getEntityType(args[2]);
+                    if (material != null) {
+                        if (sender.hasPermission("blocklimiter.scanworld.individual. " + material.name())) {
+                            if (world != null) {
+                                Chunk[] chunks = world.getLoadedChunks();
+                                plugin.utils.sendMessage(sender, "messages.scanworld.individual.start", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%chunks%", String.valueOf(chunks.length));
+
+                                for (Chunk chunk : chunks) {
+                                    if (!chunk.isLoaded()) {
+                                        chunk.load();
+                                    }
+
+
+                                }
+
+                                ChunkSnapshot[][] chunkSnapshots = plugin.utils.getChunkSnapshots(player.getLocation().getChunk(), radius);
+                                ScanChunksTask task = new ScanChunksTask(plugin, chunkSnapshots, player, material);
+                                task.setPriority(Thread.MIN_PRIORITY);
+                                task.start();
+                            } else {
+                                plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
                             }
                         } else {
                             plugin.utils.sendMessage(sender, "messages.no_permission");
                         }
+                    } else if (entityType != null) {
+                        if (sender.hasPermission("blocklimiter.scanworld.individual. " + entityType.name())) {
+                            if (world != null) {
+                                int entityCount = 0;
+
+                                for (Chunk chunk : world.getLoadedChunks()) {
+                                    for (Entity entity : chunk.getEntities()) {
+                                        if (entity.getType() == entityType) {
+                                            entityCount++;
+                                        }
+                                    }
+                                }
+
+                                plugin.utils.sendMessage(sender, "messages.scanworld.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", String.valueOf(entityCount));
+                            } else {
+                                plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
+                            }
+                        } else {
+                            plugin.utils.sendMessage(sender, "messages.scanworld.individual");
+                        }
+                    } else {
+                        plugin.utils.sendMessage(sender, "messages.scanworld.individual.invalid_argument");
                     }
+                    return true;
                 } else {
-                    plugin.utils.sendMessage(sender, "messages.checkworld.invalid_world");
+                    return false;
                 }
-            } else {
+            }*/ else {
                 return false;
             }
         } else {

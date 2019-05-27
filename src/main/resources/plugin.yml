@@ -7,6 +7,8 @@ api-version: "1.13"
 commands:
   blocklimiter:
     usage: 'Usage: /<command>'
+    aliases:
+      - 'bl'
 
   check:
     usage: 'Usage: /<command>'
@@ -15,13 +17,31 @@ commands:
     usage: 'Usage: /<command>'
 
   scan:
-    usage: 'Usage: /<command> [''tile''|''entity'']'
+    usage: |-
+      Usage: /<command> [tile|entity|individual]
+      Examples:
+       /<command> tile
+       /<command> entity
+       /<command> individual DIAMOND_ORE
+       /<command> individual COW
 
   scanradius:
-    usage: 'Usage: /<command> <radius> [''tile''|''entity'']'
+    usage: |-
+      Usage: /<command> <radius> [tile|entity|individual]
+      Examples:
+       /<command> <radius> tile
+       /<command> <radius> entity
+       /<command> <radius> individual DIAMOND_ORE
+       /<command> <radius> individual COW
 
   scanworld:
-    usage: 'Usage: /<command> <world> [''tile''|''entity'']'
+    usage: |-
+      Usage: /<command> <world> [tile|entity|individual]
+      Examples:
+       /<command> <world> tile
+       /<command> <world> entity
+       /<command> <world> individual DIAMOND_ORE
+       /<command> <world> individual COW
 
   togglecheck:
     usage: 'Usage: /<command>'

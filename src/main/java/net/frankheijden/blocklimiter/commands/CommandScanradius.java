@@ -1,7 +1,10 @@
 package net.frankheijden.blocklimiter.commands;
 
 import net.frankheijden.blocklimiter.BlockLimiter;
+import net.frankheijden.blocklimiter.tasks.ScanChunksTask;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
@@ -9,6 +12,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
@@ -33,7 +37,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                 if (args.length == 1) {
                     if (entityPerm && tilePerm) {
                         if (args[0].matches("-?(0|[1-9]\\d*)")) {
-                            Integer radius = Integer.valueOf(args[0]);
+                            int radius = Integer.valueOf(args[0]);
                             if (radius >= 1 && radius <= 25) {
                                 World world = player.getWorld();
                                 int x = player.getLocation().getChunk().getX();
@@ -44,11 +48,9 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                 int totalTileCount = 0;
                                 for (int xc = x-radius; xc <= x+radius; xc++) {
                                     for (int zc = z-radius; zc <= z+radius; zc++) {
-                                        boolean shouldUnload = false;
                                         Chunk chunk = world.getChunkAt(xc, zc);
                                         if (!chunk.isLoaded()) {
                                             chunk.load();
-                                            shouldUnload = true;
                                         }
 
                                         for (Entity entity : chunk.getEntities()) {
@@ -58,10 +60,6 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                         for (BlockState bs : chunk.getTileEntities()) {
                                             entryTreeMap.merge(bs.getType().name(), 1, Integer::sum);
                                             totalTileCount++;
-                                        }
-
-                                        if (shouldUnload) {
-                                            chunk.unload();
                                         }
                                     }
                                 }
@@ -93,7 +91,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                     return true;
                 } else if (args.length == 2) {
                     if (args[0].matches("-?(0|[1-9]\\d*)")) {
-                        Integer radius = Integer.valueOf(args[0]);
+                        int radius = Integer.valueOf(args[0]);
                         if (radius >= 1 && radius <= 25) {
 
                             if (args[1].equalsIgnoreCase("entity")) {
@@ -105,19 +103,13 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     TreeMap<String, Integer> entityTreeMap = new TreeMap<>();
                                     for (int xc = x-radius; xc <= x+radius; xc++) {
                                         for (int zc = z-radius; zc <= z+radius; zc++) {
-                                            boolean shouldUnload = false;
                                             Chunk chunk = world.getChunkAt(xc, zc);
                                             if (!chunk.isLoaded()) {
                                                 chunk.load();
-                                                shouldUnload = true;
                                             }
 
                                             for (Entity entity : chunk.getEntities()) {
                                                 entityTreeMap.merge(entity.getType().name(), 1, Integer::sum);
-                                            }
-
-                                            if (shouldUnload) {
-                                                chunk.unload();
                                             }
                                         }
                                     }
@@ -150,19 +142,13 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     TreeMap<String, Integer> tileTreeMap = new TreeMap<>();
                                     for (int xc = x-radius; xc <= x+radius; xc++) {
                                         for (int zc = z-radius; zc <= z+radius; zc++) {
-                                            boolean shouldUnload = false;
                                             Chunk chunk = world.getChunkAt(xc, zc);
                                             if (!chunk.isLoaded()) {
                                                 chunk.load();
-                                                shouldUnload = true;
                                             }
 
                                             for (BlockState bs : chunk.getTileEntities()) {
                                                 tileTreeMap.merge(bs.getType().name(), 1, Integer::sum);
-                                            }
-
-                                            if (shouldUnload) {
-                                                chunk.unload();
                                             }
                                         }
                                     }
@@ -193,6 +179,60 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                     } else {
                         plugin.utils.sendMessage(sender, "messages.scanradius.invalid_number");
                     }
+                } else if (args.length == 3) {
+                    if (args[0].matches("-?(0|[1-9]\\d*)")) {
+                        int radius = Integer.valueOf(args[0]);
+                        if (radius >= 1 && radius <= 25) {
+                            if (args[1].equalsIgnoreCase("individual")) {
+                                Material material = Material.getMaterial(args[2]);
+                                EntityType entityType = plugin.utils.getEntityType(args[2]);
+                                if (material != null) {
+                                    if (player.hasPermission("blocklimiter.scanradius.individual. " + material.name())) {
+                                        plugin.utils.sendMessage(player, "messages.scanradius.individual.start", "%entry%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%chunks%", String.valueOf((radius * 2 + 1) * (radius * 2 + 1)));
+
+                                        ChunkSnapshot[][] chunkSnapshots = plugin.utils.getChunkSnapshots(player.getLocation().getChunk(), radius);
+                                        ScanChunksTask task = new ScanChunksTask(plugin, chunkSnapshots, player, material);
+                                        task.setPriority(Thread.MIN_PRIORITY);
+                                        task.start();
+
+                                    } else {
+                                        plugin.utils.sendMessage(player, "messages.no_permission");
+                                    }
+                                } else if (entityType != null) {
+                                    if (player.hasPermission("blocklimiter.scanradius.individual. " + entityType.name())) {
+                                        int entityCount = 0;
+
+                                        World world = player.getWorld();
+                                        int x = player.getLocation().getChunk().getX();
+                                        int z = player.getLocation().getChunk().getZ();
+                                        for (int xc = x-radius; xc <= x+radius; xc++) {
+                                            for (int zc = z - radius; zc <= z + radius; zc++) {
+                                                Chunk chunk = world.getChunkAt(xc, zc);
+                                                if (!chunk.isLoaded()) {
+                                                    chunk.load();
+                                                }
+
+                                                entityCount = entityCount + plugin.utils.getAmountInChunk(chunk, entityType);
+                                            }
+                                        }
+
+                                        plugin.utils.sendMessage(player, "messages.scanradius.individual.total", "%entry%", plugin.utils.capitalizeName(entityType.name().toLowerCase()), "%count%", String.valueOf(entityCount));
+                                    } else {
+                                        plugin.utils.sendMessage(player, "messages.scanradius.individual");
+                                    }
+                                } else {
+                                    plugin.utils.sendMessage(player, "messages.scanradius.individual.invalid_argument");
+                                }
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        } else {
+                            plugin.utils.sendMessage(sender, "messages.scanradius.invalid_radius");
+                        }
+                    } else {
+                        plugin.utils.sendMessage(sender, "messages.scanradius.invalid_number");
+                    }
                 } else {
                     return false;
                 }
@@ -212,10 +252,41 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
             if (sender.hasPermission("blocklimiter.scanradius.entity")) {
                 list.add("entity");
             }
+            for (Material material : Material.values()) {
+                if (material.isBlock()) {
+                    if (sender.hasPermission("blocklimiter.scanradius.individual." + material.name())) {
+                        list.add("individual");
+                        break;
+                    }
+                }
+            }
+            if (!list.contains("individual")) {
+                for (EntityType entityType : EntityType.values()) {
+                    if (sender.hasPermission("blocklimiter.scanradius.individual." + entityType.name())) {
+                        list.add("individual");
+                        break;
+                    }
+                }
+            }
             if (sender.hasPermission("blocklimiter.scanradius.tile")) {
                 list.add("tile");
             }
             return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
+        } else if (args.length == 3 && args[1].equalsIgnoreCase("individual") && args[2].length() > 0) {
+            List<String> list = new ArrayList<>();
+            for (Material material : Material.values()) {
+                if (material.isBlock()) {
+                    if (sender.hasPermission("blocklimiter.scanradius.individual." + material.name())) {
+                        list.add(material.name());
+                    }
+                }
+            }
+            for (EntityType entityType : EntityType.values()) {
+                if (sender.hasPermission("blocklimiter.scanradius.individual." + entityType.name())) {
+                    list.add(entityType.name());
+                }
+            }
+            return StringUtil.copyPartialMatches(args[2], list, new ArrayList<>());
         }
         return Collections.emptyList();
     }

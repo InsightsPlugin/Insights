@@ -7,6 +7,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -48,26 +49,42 @@ public class Utils {
         return entryTreeMap.entrySet();
     }
 
-    public int getAmountInChunk(Chunk chunk, Material material, Boolean isBreak) {
-        String chunkName = chunk.getX() + "_" + chunk.getZ();
-
-        if (plugin.chunkSnapshotHashMap.containsKey(chunkName)) {
-            HashMap<Material, Integer> materials = plugin.chunkSnapshotHashMap.get(chunkName);
-            int newCount;
-            Integer i = materials.get(material);
-            i = (i == null ? 0 : i);
-            if (!isBreak) {
-                newCount = i + 1;
-            } else {
-                newCount = i - 1;
+    public ChunkSnapshot[][] getChunkSnapshots(Chunk centerChunk, int radius) {
+        ChunkSnapshot[][] snapshots = new ChunkSnapshot[2 * radius + 1][2 * radius + 1];
+        for (int x = 0; x < snapshots.length; x++) {
+            for (int z = 0; z < snapshots[0].length; z++) {
+                snapshots[x][z] = null;
             }
-
-            materials.put(material, newCount);
-            plugin.chunkSnapshotHashMap.put(chunkName, materials);
-
-            return newCount;
         }
 
+        World world = centerChunk.getWorld();
+        int minX = centerChunk.getX() - radius;
+        int minZ = centerChunk.getZ() - radius;
+        for (int x = 0; x < snapshots.length; x++) {
+            for (int z = 0; z < snapshots[0].length; z++) {
+                if (snapshots[x][z] != null) continue;
+
+                Chunk chunk = world.getChunkAt(x + minX, z + minZ);
+                if (chunk.isLoaded() || chunk.load(true)) {
+                    ChunkSnapshot snapshot = chunk.getChunkSnapshot();
+                    snapshots[x][z] = snapshot;
+                }
+            }
+        }
+        return snapshots;
+    }
+
+    public int getAmountInChunk(Chunk chunk, EntityType entityType) {
+        int count = 0;
+        for (Entity entity : chunk.getEntities()) {
+            if (entity.getType() == entityType) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int getAmountInChunk(Chunk chunk, Material material) {
         ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
 
         int count = 0;
@@ -80,12 +97,51 @@ public class Utils {
                 }
             }
         }
+        return count;
+    }
 
-        HashMap<Material, Integer> materials = new HashMap<>();
+    public int updateCachedAmountInChunk(Chunk chunk, Material material, Boolean isBreak) {
+        String chunkName = chunk.getX() + "_" + chunk.getZ();
+
+        if (plugin.chunkSnapshotHashMap.containsKey(chunkName) && plugin.chunkSnapshotHashMap.get(chunkName).containsKey(material)) {
+            HashMap<Material, Integer> materials = plugin.chunkSnapshotHashMap.get(chunkName);
+            Integer i = materials.get(material);
+            int newCount = (i == null ? 0 : i);
+            if (isBreak != null) {
+                if (!isBreak) {
+                    newCount = newCount + 1;
+                } else {
+                    newCount = newCount - 1;
+                }
+            }
+
+            materials.put(material, newCount);
+            plugin.chunkSnapshotHashMap.put(chunkName, materials);
+
+            return newCount;
+        }
+
+        int count = getAmountInChunk(chunk, material);
+
+        HashMap<Material, Integer> materials;
+        if (plugin.chunkSnapshotHashMap.containsKey(chunkName)) {
+            materials = plugin.chunkSnapshotHashMap.get(chunkName);
+        } else {
+            materials = new HashMap<>();
+        }
         materials.put(material, count);
         plugin.chunkSnapshotHashMap.put(chunkName, materials);
 
         return count;
+    }
+    
+    public EntityType getEntityType(String entityType) {
+        try {
+            return EntityType.valueOf(entityType);
+        } catch (IllegalArgumentException ignored) {
+            //
+        }
+        return null;
     }
 
     public Material getMaterial(ChunkSnapshot chunkSnapshot, int x, int y, int z) {
