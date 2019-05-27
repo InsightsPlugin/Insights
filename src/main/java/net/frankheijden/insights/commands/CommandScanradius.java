@@ -194,21 +194,26 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     Material material = Material.getMaterial(args[i]);
                                     EntityType entityType = plugin.utils.getEntityType(args[i]);
                                     if (material != null) {
-                                        if (sender.hasPermission("insights.scanradius.custom. " + material.name())) {
+                                        if (sender.hasPermission("insights.scanradius.custom." + material.name())) {
                                             materials.add(material);
                                         } else {
                                             plugin.utils.sendMessage(sender, "messages.no_permission");
                                             return true;
                                         }
                                     } else if (entityType != null) {
-                                        if (sender.hasPermission("insights.scanradius.custom. " + entityType.name())) {
+                                        if (sender.hasPermission("insights.scanradius.custom." + entityType.name())) {
                                             entityTypes.add(entityType);
                                         } else {
                                             plugin.utils.sendMessage(sender, "messages.no_permission");
                                             return true;
                                         }
                                     } else if (args[i].equalsIgnoreCase("ALL")) {
-                                        isAll = true;
+                                        if (sender.hasPermission("insights.scan.custom.all")) {
+                                            isAll = true;
+                                        } else {
+                                            plugin.utils.sendMessage(sender, "messages.no_permission");
+                                            return true;
+                                        }
                                     } else {
                                         plugin.utils.sendMessage(sender, "messages.scanradius.custom.invalid_argument", "%argument%", args[i]);
                                         return true;
