@@ -14,6 +14,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class Utils {
@@ -128,15 +129,19 @@ public class Utils {
         return null;
     }
 
-    public Chunk getChunk(World world, int x, int z) {
+    public CompletableFuture<Chunk> getChunk(World world, int x, int z) {
         try {
             if (isPaper) {
                 Class<?> worldClass = Class.forName("org.bukkit.World");
                 Object worldObject = worldClass.cast(world);
                 Method m = worldClass.getDeclaredMethod("getChunkAtAsync", int.class, int.class);
-                return (Chunk) m.invoke(worldObject, x, z);
+                Object mObject = m.invoke(worldObject, x, z);
+                if (mObject instanceof CompletableFuture) {
+                    return (CompletableFuture<Chunk>) mObject;
+                }
             } else {
-                return world.getChunkAt(x, z);
+                Chunk chunk = world.getChunkAt(x, z);
+                return CompletableFuture.supplyAsync(() -> chunk);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
