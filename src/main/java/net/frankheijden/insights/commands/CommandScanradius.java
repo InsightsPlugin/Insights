@@ -49,7 +49,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                 int totalTileCount = 0;
                                 for (int xc = x-radius; xc <= x+radius; xc++) {
                                     for (int zc = z-radius; zc <= z+radius; zc++) {
-                                        Chunk chunk = world.getChunkAt(xc, zc);
+                                        Chunk chunk = plugin.utils.getChunk(world, xc, zc);
                                         if (!chunk.isLoaded()) {
                                             chunk.load();
                                         }
@@ -104,7 +104,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     TreeMap<String, Integer> entityTreeMap = new TreeMap<>();
                                     for (int xc = x-radius; xc <= x+radius; xc++) {
                                         for (int zc = z-radius; zc <= z+radius; zc++) {
-                                            Chunk chunk = world.getChunkAt(xc, zc);
+                                            Chunk chunk = plugin.utils.getChunk(world, xc, zc);
                                             if (!chunk.isLoaded()) {
                                                 chunk.load();
                                             }
@@ -143,7 +143,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     TreeMap<String, Integer> tileTreeMap = new TreeMap<>();
                                     for (int xc = x-radius; xc <= x+radius; xc++) {
                                         for (int zc = z-radius; zc <= z+radius; zc++) {
-                                            Chunk chunk = world.getChunkAt(xc, zc);
+                                            Chunk chunk = plugin.utils.getChunk(world, xc, zc);
                                             if (!chunk.isLoaded()) {
                                                 chunk.load();
                                             }
@@ -231,7 +231,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                 HashMap<String, Integer> entityHashMap = new HashMap<>();
                                 for (int xc = x-radius; xc <= x+radius; xc++) {
                                     for (int zc = z - radius; zc <= z + radius; zc++) {
-                                        Chunk chunk = world.getChunkAt(xc, zc);
+                                        Chunk chunk = plugin.utils.getChunk(world, xc, zc);
                                         if (!chunk.isLoaded()) {
                                             chunk.load(false);
                                         }

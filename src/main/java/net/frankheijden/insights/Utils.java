@@ -18,9 +18,17 @@ import java.util.concurrent.TimeUnit;
 
 public class Utils {
     private Insights plugin;
+    private boolean isPaper;
 
     Utils(Insights plugin) {
         this.plugin = plugin;
+
+        try {
+            Class.forName("com.destroystokyo.paper.event.server.PaperServerListPingEvent");
+            isPaper = true;
+        } catch (ClassNotFoundException ignored) {
+            isPaper = false;
+        }
     }
 
     public Set<Map.Entry<String, Integer>> getEntitiesInChunk(Chunk chunk) {
@@ -48,31 +56,6 @@ public class Utils {
             entryTreeMap.merge(bs.getType().name(), 1, Integer::sum);
         }
         return entryTreeMap.entrySet();
-    }
-
-    public ChunkSnapshot[][] getChunkSnapshots(Chunk centerChunk, int radius) {
-        ChunkSnapshot[][] snapshots = new ChunkSnapshot[2 * radius + 1][2 * radius + 1];
-        for (int x = 0; x < snapshots.length; x++) {
-            for (int z = 0; z < snapshots[0].length; z++) {
-                snapshots[x][z] = null;
-            }
-        }
-
-        World world = centerChunk.getWorld();
-        int minX = centerChunk.getX() - radius;
-        int minZ = centerChunk.getZ() - radius;
-        for (int x = 0; x < snapshots.length; x++) {
-            for (int z = 0; z < snapshots[0].length; z++) {
-                if (snapshots[x][z] != null) continue;
-
-                Chunk chunk = world.getChunkAt(x + minX, z + minZ);
-                if (chunk.isLoaded() || chunk.load(false)) {
-                    ChunkSnapshot snapshot = chunk.getChunkSnapshot();
-                    snapshots[x][z] = snapshot;
-                }
-            }
-        }
-        return snapshots;
     }
 
     public int getAmountInChunk(Chunk chunk, EntityType entityType) {
@@ -145,13 +128,29 @@ public class Utils {
         return null;
     }
 
+    public Chunk getChunk(World world, int x, int z) {
+        try {
+            if (isPaper) {
+                Class<?> worldClass = Class.forName("org.bukkit.World");
+                Object worldObject = worldClass.cast(world);
+                Method m = worldClass.getDeclaredMethod("getChunkAtAsync", int.class, int.class);
+                return (Chunk) m.invoke(worldObject, x, z);
+            } else {
+                return world.getChunkAt(x, z);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     public Material getMaterial(ChunkSnapshot chunkSnapshot, int x, int y, int z) {
         try {
             Class<?> chunkSnapshotClass = Class.forName("org.bukkit.ChunkSnapshot");
             Object chunkSnap = chunkSnapshotClass.cast(chunkSnapshot);
             if (plugin.useNewAPI) {
                 Method m = chunkSnapshotClass.getDeclaredMethod("getBlockType", int.class, int.class, int.class);
-                return (Material) m.invoke(chunkSnap, x,y,z);
+                return (Material) m.invoke(chunkSnap, x, y, z);
             } else {
                 Method m = chunkSnapshotClass.getDeclaredMethod("getBlockTypeId", int.class, int.class, int.class);
                 int id = (int) m.invoke(chunkSnap, x, y, z);
@@ -164,10 +163,6 @@ public class Utils {
             ex.printStackTrace();
         }
         return null;
-    }
-
-    public void scanChunks(Chunk[] chunkArray) {
-
     }
 
     private ArrayList<String> names = new ArrayList<>(Arrays.asList(
