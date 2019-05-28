@@ -233,7 +233,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     for (int zc = z - radius; zc <= z + radius; zc++) {
                                         Chunk chunk = world.getChunkAt(xc, zc);
                                         if (!chunk.isLoaded()) {
-                                            chunk.load(true);
+                                            chunk.load(false);
                                         }
 
                                         if (!entityTypes.isEmpty() || isAll) {

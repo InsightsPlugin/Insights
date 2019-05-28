@@ -66,7 +66,7 @@ public class Utils {
                 if (snapshots[x][z] != null) continue;
 
                 Chunk chunk = world.getChunkAt(x + minX, z + minZ);
-                if (chunk.isLoaded() || chunk.load(true)) {
+                if (chunk.isLoaded() || chunk.load(false)) {
                     ChunkSnapshot snapshot = chunk.getChunkSnapshot();
                     snapshots[x][z] = snapshot;
                 }

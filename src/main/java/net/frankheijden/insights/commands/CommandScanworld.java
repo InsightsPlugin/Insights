@@ -180,7 +180,7 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                         HashMap<String, Integer> entityHashMap = new HashMap<>();
                         for (Chunk chunk : world.getLoadedChunks()) {
                             if (!chunk.isLoaded()) {
-                                chunk.load(true);
+                                chunk.load(false);
                             }
 
                             if (!entityTypes.isEmpty() || isAll) {

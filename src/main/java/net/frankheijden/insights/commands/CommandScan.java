@@ -5,7 +5,6 @@ import net.frankheijden.insights.tasks.ScanTask;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -138,7 +137,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                     Chunk chunk = player.getLocation().getChunk();
                     if (!chunk.isLoaded()) {
-                        chunk.load(true);
+                        chunk.load(false);
                     }
 
                     if (!entityTypes.isEmpty() || isAll) {
