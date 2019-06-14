@@ -1,11 +1,9 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.objects.ChunkLocation;
 import net.frankheijden.insights.tasks.ScanTask;
-import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -51,7 +49,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     for (int zc = z-radius; zc <= z+radius; zc++) {
                                         Chunk chunk = world.getChunkAt(xc, zc);
                                         if (!chunk.isLoaded()) {
-                                            chunk.load();
+                                            chunk.load(true);
                                         }
 
                                         for (Entity entity : chunk.getEntities()) {
@@ -106,7 +104,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                         for (int zc = z-radius; zc <= z+radius; zc++) {
                                             Chunk chunk = world.getChunkAt(xc, zc);
                                             if (!chunk.isLoaded()) {
-                                                chunk.load();
+                                                chunk.load(true);
                                             }
 
                                             for (Entity entity : chunk.getEntities()) {
@@ -145,7 +143,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                         for (int zc = z-radius; zc <= z+radius; zc++) {
                                             Chunk chunk = world.getChunkAt(xc, zc);
                                             if (!chunk.isLoaded()) {
-                                                chunk.load();
+                                                chunk.load(true);
                                             }
 
                                             for (BlockState bs : chunk.getTileEntities()) {
@@ -185,11 +183,10 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                         int radius = Integer.valueOf(args[0]);
                         if (radius >= 1 && radius <= 25) {
                             if (args[1].equalsIgnoreCase("custom")) {
-                                long now = System.currentTimeMillis();
+                                long startTime = System.currentTimeMillis();
 
                                 ArrayList<Material> materials = new ArrayList<>();
                                 ArrayList<EntityType> entityTypes = new ArrayList<>();
-                                boolean isAll = false;
                                 for (int i = 2; i < args.length; i++) {
                                     Material material = Material.getMaterial(args[i]);
                                     EntityType entityType = plugin.utils.getEntityType(args[i]);
@@ -208,9 +205,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                             return true;
                                         }
                                     } else if (args[i].equalsIgnoreCase("ALL")) {
-                                        if (sender.hasPermission("insights.scan.custom.all")) {
-                                            isAll = true;
-                                        } else {
+                                        if (!sender.hasPermission("insights.scan.custom.all")) {
                                             plugin.utils.sendMessage(sender, "messages.no_permission");
                                             return true;
                                         }
@@ -220,44 +215,18 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     }
                                 }
 
-                                if (materials.isEmpty() && entityTypes.isEmpty() && !isAll) return true;
-
-                                ChunkSnapshot[] chunks = new ChunkSnapshot[(radius+radius+1)*(radius+radius+1)];
-
                                 World world = player.getWorld();
                                 int x = player.getLocation().getChunk().getX();
                                 int z = player.getLocation().getChunk().getZ();
-                                int i = 0;
-                                HashMap<String, Integer> entityHashMap = new HashMap<>();
+                                ArrayList<ChunkLocation> chunkLocations = new ArrayList<>();
                                 for (int xc = x-radius; xc <= x+radius; xc++) {
                                     for (int zc = z - radius; zc <= z + radius; zc++) {
-                                        Chunk chunk = world.getChunkAt(xc, zc);
-                                        if (!chunk.isLoaded()) {
-                                            chunk.load(false);
-                                        }
-
-                                        if (!entityTypes.isEmpty() || isAll) {
-                                            for (Entity entity : chunk.getEntities()) {
-                                                if (entityTypes.contains(entity.getType()) || isAll) {
-                                                    entityHashMap.merge(entity.getType().name(), 1, Integer::sum);
-                                                }
-                                            }
-                                        }
-
-                                        chunks[i] = chunk.getChunkSnapshot();
-                                        i++;
+                                        chunkLocations.add(new ChunkLocation(xc, zc));
                                     }
                                 }
 
-                                for (EntityType entityType : entityTypes) {
-                                    if (!entityHashMap.containsKey(entityType.name())) {
-                                        entityHashMap.put(entityType.name(), 0);
-                                    }
-                                }
-
-                                ScanTask task = new ScanTask(plugin, chunks, world, sender, "messages.scanradius.custom", now, (isAll ? null : materials), entityHashMap);
-                                task.setPriority(Thread.MIN_PRIORITY);
-                                task.start();
+                                ScanTask test = new ScanTask(plugin, world, player, "messages.scanradius.custom", chunkLocations, materials, entityTypes);
+                                test.start(startTime);
                                 return true;
                             } else {
                                 return false;
@@ -283,7 +252,9 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         if (sender.hasPermission("insights.scanradius.tab")) {
-            if (args.length == 2) {
+            if (args.length == 1) {
+                return StringUtil.copyPartialMatches(args[0], Collections.singletonList(String.valueOf(plugin.config.GENERAL_SCANRADIUS_DEFAULT)), new ArrayList<>());
+            } else if (args.length == 2) {
                 List<String> list = Arrays.asList("custom", "entity", "tile");
                 return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
             } else if (args.length > 2 && args[1].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {

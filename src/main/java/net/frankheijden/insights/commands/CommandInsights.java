@@ -33,7 +33,7 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
             if (args[0].equalsIgnoreCase("reload")) {
                 if (sender.hasPermission("insights.reload")) {
                     try {
-                        plugin.utils.reload();
+                        plugin.reload();
                     } catch (Exception ex) {
                         plugin.utils.sendMessage(sender, "messages.reload_failed");
                         return true;

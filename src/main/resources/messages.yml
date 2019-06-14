@@ -73,11 +73,11 @@ messages:
     custom:
       # Special placeholders:
       # %chunks%
-      start: "&3Started scanning &b&l%chunks% &3chunk, this may take a while..."
+      start: "&3Started loading and scanning &b&l%chunks% &3chunk, this may take a while..."
       # Special placeholders:
       # %count%
       # %total%
-      progress: "&3Scanned &b&l%count%&3/&b&l%total% &3chunks..."
+      progress: "&3Processed &b&l%count%&3/&b&l%total% &3chunks..."
       end:
         header: "&8&m---------------=&r&8[&b&l Chunk Count&r &8]&m=-----------------"
         # Special placeholders:
@@ -129,16 +129,16 @@ messages:
       footer: "&8&m-------------------------------------------------"
       no_tiles: "&cThis chunk does not contain any tiles."
 
-  # Messages send when a user executes /scan <entity|tile>
+  # Messages send when a user executes /scanradius <radius> <entity|tile|custom> [...]
   scanradius:
     custom:
       # Special placeholders:
       # %chunks%
-      start: "&3Started scanning &b&l%chunks% &3chunks, this may take a while..."
+      start: "&3Started loading and scanning &b&l%chunks%&3 chunks, this may take a while..."
       # Special placeholders:
       # %count%
       # %total%
-      progress: "&3Scanned &b&l%count%&3/&b&l%total% &3chunks..."
+      progress: "&3Processed &b&l%count%&3/&b&l%total% &3chunks..."
       end:
         header: "&8&m----------------=&r&8[&b&l Radius Count&r &8]&m=----------------"
         # Special placeholders:
@@ -198,12 +198,12 @@ messages:
       # Special placeholders:
       # %chunks%
       # %world%
-      start: "&3Started scanning &b&l%chunks% &3chunks in &b%world%&3, this may take a while..."
+      start: "&3Started loadind and scanning &b&l%chunks% &3chunks in &b%world%&3, this may take a while..."
       # Special placeholders:
       # %count%
       # %total%
       # %world%
-      progress: "&3Scanned &b&l%count%&3/&b&l%total% &3chunks in &b%world%&3..."
+      progress: "&3Processed &b&l%count%&3/&b&l%total% &3chunks in &b%world%&3..."
       end:
         header: "&8&m----------------=&r&8[&b&l World Count&r &8]&m=----------------"
         # Special placeholders:

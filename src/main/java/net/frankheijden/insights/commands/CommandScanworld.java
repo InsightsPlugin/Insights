@@ -1,6 +1,7 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.objects.ChunkLocation;
 import net.frankheijden.insights.tasks.ScanTask;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
@@ -136,7 +137,7 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
             } else if (args.length > 2) {
                 World world = Bukkit.getWorld(args[0]);
                 if (args[1].equalsIgnoreCase("custom")) {
-                    long now = System.currentTimeMillis();
+                    long startTime = System.currentTimeMillis();
 
                     ArrayList<Material> materials = new ArrayList<>();
                     ArrayList<EntityType> entityTypes = new ArrayList<>();
@@ -174,36 +175,15 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                     if (materials.isEmpty() && entityTypes.isEmpty() && !isAll) return true;
 
                     if (world != null) {
-                        ChunkSnapshot[] chunks = new ChunkSnapshot[world.getLoadedChunks().length];
-                        int i = 0;
+                        List<ChunkLocation> chunkLocations = new ArrayList<>();
+                        Chunk[] chunks = world.getLoadedChunks();
 
-                        HashMap<String, Integer> entityHashMap = new HashMap<>();
-                        for (Chunk chunk : world.getLoadedChunks()) {
-                            if (!chunk.isLoaded()) {
-                                chunk.load(false);
-                            }
-
-                            if (!entityTypes.isEmpty() || isAll) {
-                                for (Entity entity : chunk.getEntities()) {
-                                    if (entityTypes.contains(entity.getType()) || isAll) {
-                                        entityHashMap.merge(entity.getType().name(), 1, Integer::sum);
-                                    }
-                                }
-                            }
-
-                            chunks[i] = chunk.getChunkSnapshot();
-                            i++;
+                        for (Chunk chunk : chunks) {
+                            chunkLocations.add(new ChunkLocation(chunk));
                         }
 
-                        for (EntityType entityType : entityTypes) {
-                            if (!entityHashMap.containsKey(entityType.name())) {
-                                entityHashMap.put(entityType.name(), 0);
-                            }
-                        }
-
-                        ScanTask task = new ScanTask(plugin, chunks, world, sender, "messages.scanworld.custom", now, (isAll ? null : materials), entityHashMap, "%world%", world.getName());
-                        task.setPriority(Thread.MIN_PRIORITY);
-                        task.start();
+                        ScanTask task = new ScanTask(plugin, world, sender, "messages.scanworld.custom", chunkLocations, materials, entityTypes);
+                        task.start(startTime);
                     } else {
                         plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
                     }

@@ -1,6 +1,9 @@
 package net.frankheijden.insights;
 
+import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.commands.*;
+import net.frankheijden.insights.utils.BossBarUtils;
+import net.frankheijden.insights.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -10,10 +13,7 @@ import java.io.File;
 import java.util.*;
 
 public class Insights extends JavaPlugin {
-    private Insights plugin;
-    public FileConfiguration config;
     public FileConfiguration messages;
-    public int max;
 
     public Insights(){}
 
@@ -21,28 +21,31 @@ public class Insights extends JavaPlugin {
     public boolean oldActionBar = false;
     public boolean useNewAPI = true;
 
+    public Config config;
     public Utils utils;
     public SQLite sqLite;
+    public BossBarUtils bossBarUtils;
 
-    // ChunkX_ChunkZ : MaterialName : Count
     public HashMap<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
 
     @Override
     public void onEnable() {
-        this.plugin = this;
+        PaperLib.suggestPaper(this);
 
         setupConfiguration();
         setupClasses();
         setupNMS();
+
+        if (PaperLib.getMinecraftVersion() >= 9) {
+            bossBarUtils = new BossBarUtils(this);
+            bossBarUtils.setupDefaultBossBar();
+            bossBarUtils.setupBossBarRunnable();
+        }
     }
 
     private void setupConfiguration() {
-        File configFile = new File(getDataFolder(), "config.yml");
-        if (!configFile.exists()) {
-            Bukkit.getLogger().info("[Insights] config.yml not found, creating!");
-            saveDefaultConfig();
-        }
-        config = YamlConfiguration.loadConfiguration(configFile);
+        config = new Config(this);
+        config.reload();
 
         File messagesFile = new File(getDataFolder(), "messages.yml");
         if (!messagesFile.exists()) {
@@ -50,8 +53,6 @@ public class Insights extends JavaPlugin {
             saveResource("messages.yml", false);
         }
         messages = YamlConfiguration.loadConfiguration(messagesFile);
-
-        max = config.getInt("general.limit");
     }
 
     private void setupClasses() {
@@ -82,8 +83,11 @@ public class Insights extends JavaPlugin {
         Bukkit.getLogger().info("[Insights] NMS version '"+nms+"' detected!");
     }
 
-    @Override
-    public void onDisable() {
-        this.plugin = null;
+    public void reload() {
+        setupConfiguration();
+
+        if (PaperLib.getMinecraftVersion() >= 9) {
+            bossBarUtils.setupDefaultBossBar();
+        }
     }
 }

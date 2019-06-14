@@ -1,7 +1,6 @@
 package net.frankheijden.insights;
 
 import org.bukkit.Material;
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,25 +21,30 @@ public class Listeners implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
 
-        MemorySection materials = (MemorySection) plugin.config.get("general.materials");
-        if (materials != null) {
-            for (String materialString : materials.getKeys(false)) {
-                Material material = Material.getMaterial(materialString);
-                if (event.getBlock().getType() == material) {
-                    int limit = plugin.config.getInt("general.materials." + materialString);
-                    int current = plugin.utils.updateCachedAmountInChunk(event.getBlock().getChunk(), material, true);
+        if (!plugin.config.GENERAL_WORLDS.contains(player.getWorld().getName())) {
+            return;
+        }
 
-                    if (player.hasPermission("insights.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
-                        plugin.utils.sendActionBar(player, "messages.realtime_check_custom", "%count%", String.valueOf(current), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
-                    }
-                    return;
-                }
+        Material material = event.getBlock().getType();
+        if (plugin.config.GENERAL_MATERIALS.keySet().contains(material)) {
+            int limit = plugin.config.GENERAL_MATERIALS.get(material);
+            int current = plugin.utils.updateCachedAmountInChunk(event.getBlock().getChunk(), material, true);
+
+            if (player.hasPermission("insights.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
+                double progress = ((double) current)/((double) limit);
+                if (progress > 1) progress = 1;
+                plugin.utils.sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", String.valueOf(current), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
             }
+            return;
         }
 
         if (plugin.utils.isTile(event.getBlock())) {
             if (player.hasPermission("insights.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
-                plugin.utils.sendActionBar(player, "messages.realtime_check", "%tile_count%", String.valueOf(event.getBlock().getLocation().getChunk().getTileEntities().length));
+                int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
+                int limit = plugin.config.GENERAL_LIMIT;
+                double progress = ((double) current)/((double) limit);
+                if (progress > 1) progress = 1;
+                plugin.utils.sendSpecialMessage(player, "messages.realtime_check", progress, "%tile_count%", String.valueOf(current));
             }
         }
     }
@@ -49,44 +53,49 @@ public class Listeners implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         Player player = event.getPlayer();
 
-        MemorySection materials = (MemorySection) plugin.config.get("general.materials");
-        if (materials != null) {
-            for (String materialString : materials.getKeys(false)) {
-                Material material = Material.valueOf(materialString);
-                if (event.getBlockPlaced().getType() == material) {
-                    int limit = plugin.config.getInt("general.materials." + materialString);
-                    int current = plugin.utils.updateCachedAmountInChunk(event.getBlockPlaced().getChunk(), material, false);
-                    if (current > limit) {
-                        if (!player.hasPermission("insights.bypass." + materialString)) {
-                            String n = event.getBlockPlaced().getChunk().getX() + "_" + event.getBlockPlaced().getChunk().getZ();
-                            HashMap<Material, Integer> ms = plugin.chunkSnapshotHashMap.get(n);
-                            ms.put(material, limit);
-                            plugin.chunkSnapshotHashMap.put(n, ms);
-                            current = current - 1;
+        if (!plugin.config.GENERAL_WORLDS.contains(player.getWorld().getName())) {
+            return;
+        }
 
-                            plugin.utils.sendMessage(event.getPlayer(), "messages.limit_reached_custom", "%limit%", String.valueOf(limit), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()));
-                            event.setCancelled(true);
-                        }
-                    }
+        Material material = event.getBlock().getType();
+        if (plugin.config.GENERAL_MATERIALS.keySet().contains(material)) {
+            int limit = plugin.config.GENERAL_MATERIALS.get(material);
+            int current = plugin.utils.updateCachedAmountInChunk(event.getBlockPlaced().getChunk(), material, false);
+            if (current > limit) {
+                if (!player.hasPermission("insights.bypass." + material.name())) {
+                    String n = event.getBlockPlaced().getChunk().getX() + "_" + event.getBlockPlaced().getChunk().getZ();
+                    HashMap<Material, Integer> ms = plugin.chunkSnapshotHashMap.get(n);
+                    ms.put(material, limit);
+                    plugin.chunkSnapshotHashMap.put(n, ms);
+                    current = current - 1;
 
-                    if (event.getPlayer().hasPermission("insights.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
-                        plugin.utils.sendActionBar(event.getPlayer(), "messages.realtime_check_custom", "%count%", String.valueOf(current), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
-                    }
-                    return;
+                    plugin.utils.sendMessage(event.getPlayer(), "messages.limit_reached_custom", "%limit%", String.valueOf(limit), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()));
+                    event.setCancelled(true);
                 }
             }
+
+            if (event.getPlayer().hasPermission("insights.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
+                double progress = ((double) current)/((double) limit);
+                if (progress > 1) progress = 1;
+                plugin.utils.sendSpecialMessage(event.getPlayer(), "messages.realtime_check_custom", progress, "%count%", String.valueOf(current), "%material%", plugin.utils.capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
+            }
+            return;
         }
 
         if (plugin.utils.isTile(event.getBlockPlaced())) {
-            if (plugin.max > -1 && event.getBlockPlaced().getLocation().getChunk().getTileEntities().length >= plugin.max) {
+            int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
+            int limit = plugin.config.GENERAL_LIMIT;
+            if (limit > -1 && current >= limit) {
                 if (!player.hasPermission("insights.bypass")) {
                     event.setCancelled(true);
-                    plugin.utils.sendMessage(player, "messages.limit_reached", "%limit%", String.valueOf(plugin.max));
+                    plugin.utils.sendMessage(player, "messages.limit_reached", "%limit%", String.valueOf(limit));
                 }
             }
 
             if (player.hasPermission("insights.check.realtime") && plugin.sqLite.hasRealtimeCheckEnabled(player)) {
-                plugin.utils.sendActionBar(player, "messages.realtime_check", "%tile_count%", String.valueOf(event.getBlock().getLocation().getChunk().getTileEntities().length));
+                double progress = ((double) current)/((double) limit);
+                if (progress > 1) progress = 1;
+                plugin.utils.sendSpecialMessage(player, "messages.realtime_check", progress, "%tile_count%", String.valueOf(current));
             }
         }
     }

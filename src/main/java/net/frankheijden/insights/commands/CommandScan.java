@@ -1,6 +1,7 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.objects.ChunkLocation;
 import net.frankheijden.insights.tasks.ScanTask;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
@@ -95,7 +96,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                 }
             } else {
                 if (args[0].equalsIgnoreCase("custom")) {
-                    long now = System.currentTimeMillis();
+                    long startTime = System.currentTimeMillis();
 
                     ArrayList<Material> materials = new ArrayList<>();
                     ArrayList<EntityType> entityTypes = new ArrayList<>();
@@ -132,33 +133,10 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                     if (materials.isEmpty() && entityTypes.isEmpty() && !isAll) return true;
 
-                    ChunkSnapshot[] chunks = new ChunkSnapshot[1];
-                    HashMap<String, Integer> entityHashMap = new HashMap<>();
+                    List<ChunkLocation> chunkLocations = Collections.singletonList(new ChunkLocation(player.getLocation().getChunk()));
 
-                    Chunk chunk = player.getLocation().getChunk();
-                    if (!chunk.isLoaded()) {
-                        chunk.load(false);
-                    }
-
-                    if (!entityTypes.isEmpty() || isAll) {
-                        for (Entity entity : chunk.getEntities()) {
-                            if (entityTypes.contains(entity.getType()) || isAll) {
-                                entityHashMap.merge(entity.getType().name(), 1, Integer::sum);
-                            }
-                        }
-                    }
-
-                    for (EntityType entityType : entityTypes) {
-                        if (!entityHashMap.containsKey(entityType.name())) {
-                            entityHashMap.put(entityType.name(), 0);
-                        }
-                    }
-
-                    chunks[0] = chunk.getChunkSnapshot();
-
-                    ScanTask task = new ScanTask(plugin, chunks, chunk.getWorld(), sender, "messages.scan.custom", now, (isAll ? null : materials), entityHashMap);
-                    task.setPriority(Thread.MIN_PRIORITY);
-                    task.start();
+                    ScanTask task = new ScanTask(plugin, player.getWorld(), player, "messages.scan.custom", chunkLocations, materials, entityTypes);
+                    task.start(startTime);
                     return true;
                 }
             }

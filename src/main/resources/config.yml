@@ -3,10 +3,50 @@ general:
   # A chunk is defined as width x length x height blocks (16 x 16 x 256).
   limit: 256
 
+  # Worlds in which the live-tile-scanning feature should be enabled
+  worlds:
+    - "world"
+    - "world_nether"
+    - "world_the_end"
+
+  notification:
+    # How we inform the player about the live-tile count
+    # Possible values are "ACTIONBAR", "BOSSBAR"
+    # Default: "BOSSBAR"
+    #
+    # Please note: bossbar is only on Minecraft versions greater than or equal to 1.9!
+    type: "BOSSBAR"
+
+    bossbar:
+      # Bossbar color
+      # Possible values are "BLUE", "GREEN", "PINK", "PURPLE", "RED", "WHITE", "YELLOW"
+      # Default: "BLUE"
+      color: "BLUE"
+
+      # Bossbar style
+      # Possible values are "SOLID", "SEGMENTED_6", "SEGMENTED_10", "SEGMENTED_12", "SEGMENTED_20"
+      # Default: "SEGMENTED_10"
+      style: "SEGMENTED_10"
+
+      # Bossbar flags
+      # Possible values are "DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG"
+      # Default: []
+      flags: [] # Remove [] to add values
+      #  - "DARKEN_SKY"
+      #  - "PLAY_BOSS_MUSIC"
+
+      # Bossbar duration before it should disappear in ticks
+      # 1 second = 20 ticks
+      duration: 60
+
+  # Scanradius default radius (which will appear in tabcomplete)
+  # Default: 5
+  scanradius_default: 5
+
   # Set a limit to custom blocks in a chunk
   # Bypass with e.g. 'insights.bypass.DIAMOND_ORE' permission
   materials:
     # Format:
     # MATERIAL: LIMIT
     DIAMOND_ORE: 128
-    ENCHANTING_TABLE: 16
+    ENCHANTING_TABLE: 16 # If on < 1.13 use "ENCHANTMENT_TABLE"

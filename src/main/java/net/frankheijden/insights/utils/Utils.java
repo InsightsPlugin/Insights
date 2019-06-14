@@ -1,27 +1,29 @@
-package net.frankheijden.insights;
+package net.frankheijden.insights.utils;
 
+import io.papermc.lib.PaperLib;
+import net.frankheijden.insights.Insights;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class Utils {
     private Insights plugin;
     private boolean isPaper;
 
-    Utils(Insights plugin) {
+    public Utils(Insights plugin) {
         this.plugin = plugin;
 
         try {
@@ -85,28 +87,31 @@ public class Utils {
         return count;
     }
 
-    public int updateCachedAmountInChunk(Chunk chunk, Material material, Boolean isBreak) {
+    public int updateCachedAmountInChunk(Chunk chunk, Material material, boolean isBreak) {
         String chunkName = chunk.getX() + "_" + chunk.getZ();
 
-        if (plugin.chunkSnapshotHashMap.containsKey(chunkName) && plugin.chunkSnapshotHashMap.get(chunkName).containsKey(material)) {
-            HashMap<Material, Integer> materials = plugin.chunkSnapshotHashMap.get(chunkName);
-            Integer i = materials.get(material);
-            int newCount = (i == null ? 0 : i);
-            if (isBreak != null) {
-                if (!isBreak) {
-                    newCount = newCount + 1;
+        if (plugin.chunkSnapshotHashMap.containsKey(chunkName)) {
+            if (plugin.chunkSnapshotHashMap.get(chunkName).containsKey(material)) {
+                HashMap<Material, Integer> materials = plugin.chunkSnapshotHashMap.get(chunkName);
+                Integer i = materials.get(material);
+                int newCount = (i == null) ? 0 : i;
+                if (isBreak) {
+                    newCount--;
                 } else {
-                    newCount = newCount - 1;
+                    newCount++;
                 }
+
+                materials.put(material, newCount);
+                plugin.chunkSnapshotHashMap.put(chunkName, materials);
+
+                return newCount;
             }
-
-            materials.put(material, newCount);
-            plugin.chunkSnapshotHashMap.put(chunkName, materials);
-
-            return newCount;
         }
 
         int count = getAmountInChunk(chunk, material);
+        if (isBreak) {
+            count--;
+        }
 
         HashMap<Material, Integer> materials;
         if (plugin.chunkSnapshotHashMap.containsKey(chunkName)) {
@@ -127,6 +132,11 @@ public class Utils {
             //
         }
         return null;
+    }
+
+    public <T> CompletableFuture<List<T>> allOf(List<CompletableFuture<T>> futuresList) {
+        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
+        return allFuturesResult.thenApply(v -> futuresList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
     }
 
     public CompletableFuture<Chunk> getChunk(World world, int x, int z) {
@@ -150,6 +160,8 @@ public class Utils {
     }
 
     public Material getMaterial(ChunkSnapshot chunkSnapshot, int x, int y, int z) {
+        if (chunkSnapshot == null) return null;
+
         try {
             Class<?> chunkSnapshotClass = Class.forName("org.bukkit.ChunkSnapshot");
             Object chunkSnap = chunkSnapshotClass.cast(chunkSnapshot);
@@ -170,7 +182,7 @@ public class Utils {
         return null;
     }
 
-    private ArrayList<String> names = new ArrayList<>(Arrays.asList(
+    private ArrayList<String> TILES_1_8 = new ArrayList<>(Arrays.asList(
             "SIGN",
             "SIGN_POST",
             "WALL_SIGN",
@@ -204,18 +216,66 @@ public class Utils {
             "CAULDRON"
     ));
 
-    public boolean isTile(Block block) {
-        if (block.getState().getClass().getName().contains("CraftBlockState")) {
-            if (!plugin.oldActionBar && !isOldTile(block)) {
-                return false;
-            }
-            return true;
-        }
-        return false;
-    }
+    private ArrayList<String> TILES_1_13_KEYWORDS = new ArrayList<>(Arrays.asList(
+            "SIGN",
+            "BANNER",
+            "BED",
+            "CHEST",
+            "ENDER_CHEST",
+            "SPAWNER",
+            "END_PORTAL",
+            "SHULKER_BOX"
+    ));
+    private ArrayList<String> TILES_1_13 = new ArrayList<>(Arrays.asList(
+            "DISPENSER",
+            "BARREL",
+            "SMOKER",
+            "BLAST_FURNACE",
+            "CAMPFIRE",
+            "LECTERN",
+            "FURNACE",
+            "BREWING_STAND",
+            "HOPPER",
+            "DROPPER",
+            "BEACON",
+            "NOTE_BLOCK",
+            "JUKEBOX",
+            "ENCHANTING_TABLE",
+            "END_GATEWAY",
+            "SKELETON_SKULL",
+            "SKELETON_WALL_SKULL",
+            "WITHER_SKELETON_SKULL",
+            "WITHER_SKELETON_WALL_SKULL",
+            "ZOMBIE_HEAD",
+            "ZOMBIE_WALL_HEAD",
+            "PLAYER_HEAD",
+            "PLAYER_WALL_HEAD",
+            "CREEPER_HEAD",
+            "CREEPER_WALL_HEAD",
+            "DRAGON_HEAD",
+            "DRAGON_WALL_HEAD",
+            "CHAIN_COMMAND_BLOCK",
+            "REPEATING_COMMAND_BLOCK",
+            "COMMAND_BLOCK",
+            "STRUCTURE_BLOCK",
+            "STRUCTURE_VOID",
+            "JIGSAW",
+            "DAYLIGHT_DETECTOR",
+            "FLOWER_POT",
+            "COMPARATOR",
+            "CAULDRON",
+            "CONDUIT",
+            "BELL"
+    ));
 
-    public boolean isOldTile(Block block) {
-        return names.contains(block.getType().name());
+    public boolean isTile(Block block) {
+        String name = block.getType().name();
+        for (String key : TILES_1_13_KEYWORDS) {
+            if (name.contains(key)) {
+                return true;
+            }
+        }
+        return TILES_1_8.contains(name) || TILES_1_13.contains(name);
     }
 
     public String capitalizeName(String name) {
@@ -244,11 +304,41 @@ public class Utils {
         return ChatColor.translateAlternateColorCodes('&', string);
     }
 
-    public void sendActionBar(Player player, String path, String... placeholders) {
-        if (!player.isOnline()) {
-            return;
+    public void sendSpecialMessage(Player player, String path, double progress, String... placeholders) {
+        String messageType = plugin.config.GENERAL_NOTIFICATION_TYPE;
+        if (messageType == null) messageType = "ACTIONBAR";
+        if (messageType.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
+            sendBossBar(player, path, progress, placeholders);
+        } else {
+            sendActionBar(player, path, placeholders);
         }
+    }
 
+    private void sendBossBar(Player player, String path, double progress, String... placeholders) {
+        String message = plugin.messages.getString(path);
+        if (message != null && !message.isEmpty()) {
+            for (int i = 0; i < placeholders.length; i++,i++) {
+                message = message.replace(placeholders[i], placeholders[i + 1]);
+            }
+            message = color(message);
+
+            BossBar bossBar = plugin.bossBarUtils.bossBarPlayers.get(player);
+            if (bossBar == null) {
+                bossBar = plugin.bossBarUtils.defaultBossBar;
+                bossBar.addPlayer(player);
+            }
+            bossBar.setTitle(message);
+            bossBar.setProgress(progress);
+            bossBar.setVisible(true);
+
+            plugin.bossBarUtils.bossBarPlayers.put(player, bossBar);
+            plugin.bossBarUtils.bossBarDurationPlayers.put(player, System.currentTimeMillis() + plugin.bossBarUtils.bossBarDuration);
+        } else {
+            System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
+        }
+    }
+
+    private void sendActionBar(Player player, String path, String... placeholders) {
         String message = plugin.messages.getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++,i++) {
@@ -299,24 +389,6 @@ public class Utils {
         } else {
             System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
         }
-    }
-
-    public void reload() {
-        File configFile = new File(plugin.getDataFolder(), "config.yml");
-        if (!configFile.exists()) {
-            Bukkit.getLogger().info("[Insights] config.yml not found, creating!");
-            plugin.saveDefaultConfig();
-        }
-        plugin.config = YamlConfiguration.loadConfiguration(configFile);
-
-        File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-        if (!messagesFile.exists()) {
-            Bukkit.getLogger().info("[Insights] messages.yml not found, creating!");
-            plugin.saveResource("messages.yml", false);
-        }
-        plugin.messages = YamlConfiguration.loadConfiguration(messagesFile);
-
-        plugin.max = plugin.config.getInt("general.limit");
     }
 
     private String getTime(int seconds) {
