@@ -48,19 +48,6 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     plugin.utils.sendMessage(sender, "messages.no_permission");
                 }
                 return true;
-            } else if (args[0].equalsIgnoreCase("test")) {
-                InsightsAPI insightsAPI = new InsightsAPI();
-
-                List<ChunkLocation> chunkLocations = new ArrayList<>();
-                for (int x = 0; x < 9; x++) {
-                    for (int z = 0; z < 9; z++) {
-                        chunkLocations.add(new ChunkLocation(x, z));
-                    }
-                }
-
-                insightsAPI.scan(Bukkit.getWorld("world"), chunkLocations, Collections.singletonList(Material.DIAMOND_ORE), null).whenCompleteAsync((counts, error) -> {
-                    sender.sendMessage(counts.toString());
-                });
             }
         }
 
