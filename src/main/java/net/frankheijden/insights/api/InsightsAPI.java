@@ -28,12 +28,23 @@ public class InsightsAPI {
     }
 
     /**
+     * Scans chunks for all Materials and EntityTypes.
+     *
+     * @param world World in which we should scan
+     * @param chunkLocations List of ChunkLocation to scan in
+     * @return CompletableFuture which supplies the counts.
+     */
+    public CompletableFuture<TreeMap<String, Integer>> scan(World world, List<ChunkLocation> chunkLocations) {
+        return scan(world, chunkLocations, null, null);
+    }
+
+    /**
      * Scans chunks for Materials and EntityTypes.
      *
      * @param world World in which we should scan
      * @param chunkLocations List of ChunkLocation to scan in
-     * @param materials List of Material to scan for
-     * @param entityTypes List of EntityType to scan for
+     * @param materials List of Material to scan for, null if none
+     * @param entityTypes List of EntityType to scan for, null if none
      * @return CompletableFuture which supplies the counts.
      */
     public CompletableFuture<TreeMap<String, Integer>> scan(World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
