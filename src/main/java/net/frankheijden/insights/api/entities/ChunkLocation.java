@@ -1,4 +1,4 @@
-package net.frankheijden.insights.objects;
+package net.frankheijden.insights.api.entities;
 
 import org.bukkit.Chunk;
 

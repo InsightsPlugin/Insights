@@ -1,6 +1,10 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.api.InsightsAPI;
+import net.frankheijden.insights.api.entities.ChunkLocation;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -44,6 +48,19 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     plugin.utils.sendMessage(sender, "messages.no_permission");
                 }
                 return true;
+            } else if (args[0].equalsIgnoreCase("test")) {
+                InsightsAPI insightsAPI = new InsightsAPI();
+
+                List<ChunkLocation> chunkLocations = new ArrayList<>();
+                for (int x = 0; x < 9; x++) {
+                    for (int z = 0; z < 9; z++) {
+                        chunkLocations.add(new ChunkLocation(x, z));
+                    }
+                }
+
+                insightsAPI.scan(Bukkit.getWorld("world"), chunkLocations, Collections.singletonList(Material.DIAMOND_ORE), null).whenCompleteAsync((counts, error) -> {
+                    sender.sendMessage(counts.toString());
+                });
             }
         }
 

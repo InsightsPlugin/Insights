@@ -1,7 +1,7 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.objects.ChunkLocation;
+import net.frankheijden.insights.api.entities.ChunkLocation;
 import net.frankheijden.insights.tasks.ScanTask;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
@@ -182,7 +182,7 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                             chunkLocations.add(new ChunkLocation(chunk));
                         }
 
-                        ScanTask task = new ScanTask(plugin, world, sender, "messages.scanworld.custom", chunkLocations, materials, entityTypes);
+                        ScanTask task = new ScanTask(plugin, world, sender, "messages.scanworld.custom", chunkLocations, materials, entityTypes, null);
                         task.start(startTime);
                     } else {
                         plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");

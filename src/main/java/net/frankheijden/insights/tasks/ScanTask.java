@@ -2,7 +2,9 @@ package net.frankheijden.insights.tasks;
 
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.objects.ChunkLocation;
+import net.frankheijden.insights.api.events.ScanCompleteEvent;
+import net.frankheijden.insights.api.interfaces.ScanCompleteEventListener;
+import net.frankheijden.insights.api.entities.ChunkLocation;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -22,6 +24,7 @@ public class ScanTask implements Runnable {
     private transient List<ChunkLocation> chunkLocations;
     private transient List<Material> materials;
     private transient List<EntityType> entityTypes;
+    private ScanCompleteEventListener listener;
 
     private transient Map<CompletableFuture<Chunk>, ChunkLocation> pendingChunks;
     private transient boolean run = true;
@@ -33,7 +36,11 @@ public class ScanTask implements Runnable {
     private long startTime;
     private int totalChunks;
 
-    public ScanTask(Insights plugin, World world, CommandSender sender, String path, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
+    public ScanTask(Insights plugin, World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, ScanCompleteEventListener listener) {
+        this(plugin, world, null, null, chunkLocations, materials, entityTypes, listener);
+    }
+
+    public ScanTask(Insights plugin, World world, CommandSender sender, String path, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, ScanCompleteEventListener listener) {
         this.plugin = plugin;
         this.world = world;
         this.sender = sender;
@@ -41,6 +48,7 @@ public class ScanTask implements Runnable {
         this.chunkLocations = chunkLocations;
         this.materials = (materials != null && materials.isEmpty()) ? null : materials;
         this.entityTypes = (entityTypes != null && entityTypes.isEmpty()) ? null : entityTypes;
+        this.listener = listener;
     }
 
     public void start(long startTime) {
@@ -48,7 +56,6 @@ public class ScanTask implements Runnable {
 
         this.totalChunks = chunkLocations.size();
         plugin.utils.sendMessage(sender, path + ".start", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", world.getName());
-
         pendingChunks = new HashMap<>();
         taskID = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
 
@@ -193,6 +200,11 @@ public class ScanTask implements Runnable {
                 plugin.utils.sendMessage(sender, path + ".end.footer");
             } else {
                 plugin.utils.sendMessage(sender, path + ".end.no_entries");
+            }
+
+            if (listener != null) {
+                ScanCompleteEvent scanCompleteEvent = new ScanCompleteEvent(counts, world, chunkLocations, materials, entityTypes);
+                listener.onScanComplete(scanCompleteEvent);
             }
 
             System.gc();

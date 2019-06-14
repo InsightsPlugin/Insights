@@ -288,14 +288,16 @@ public class Utils {
     }
 
     public void sendMessage(CommandSender sender, String path, String... placeholders) {
-        String message = plugin.messages.getString(path);
-        if (message != null && !message.isEmpty()) {
-            for (int i = 0; i < placeholders.length; i++,i++) {
-                message = message.replace(placeholders[i], placeholders[i + 1]);
+        if (sender != null && path != null) {
+            String message = plugin.messages.getString(path);
+            if (message != null && !message.isEmpty()) {
+                for (int i = 0; i < placeholders.length; i++, i++) {
+                    message = message.replace(placeholders[i], placeholders[i + 1]);
+                }
+                sender.sendMessage(color(message));
+            } else {
+                System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
             }
-            sender.sendMessage(color(message));
-        } else {
-            System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
         }
     }
 

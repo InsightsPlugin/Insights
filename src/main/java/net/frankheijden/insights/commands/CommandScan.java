@@ -1,16 +1,14 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.objects.ChunkLocation;
+import net.frankheijden.insights.api.entities.ChunkLocation;
 import net.frankheijden.insights.tasks.ScanTask;
 import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -135,7 +133,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                     List<ChunkLocation> chunkLocations = Collections.singletonList(new ChunkLocation(player.getLocation().getChunk()));
 
-                    ScanTask task = new ScanTask(plugin, player.getWorld(), player, "messages.scan.custom", chunkLocations, materials, entityTypes);
+                    ScanTask task = new ScanTask(plugin, player.getWorld(), player, "messages.scan.custom", chunkLocations, materials, entityTypes, null);
                     task.start(startTime);
                     return true;
                 }

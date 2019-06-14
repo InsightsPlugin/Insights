@@ -13,9 +13,14 @@ import java.io.File;
 import java.util.*;
 
 public class Insights extends JavaPlugin {
-    public FileConfiguration messages;
+    private static Insights insights;
+    public static Insights getInstance() {
+        return insights;
+    }
 
     public Insights(){}
+
+    public FileConfiguration messages;
 
     public String nms;
     public boolean oldActionBar = false;
@@ -28,8 +33,12 @@ public class Insights extends JavaPlugin {
 
     public HashMap<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
 
+    public Map<String, TreeMap<String, Integer>> countsMap = new HashMap<>();
+
     @Override
     public void onEnable() {
+        insights = this;
+
         PaperLib.suggestPaper(this);
 
         setupConfiguration();
