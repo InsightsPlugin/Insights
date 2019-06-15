@@ -9,6 +9,15 @@
     <version>2.5.0</version>
     <name>Insights</name>
 
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/FrankHeijden/Insights/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>jenkins</system>
+        <url>https://ci.frankheijden.net/job/Insights</url>
+    </ciManagement>
+
     <build>
         <finalName>${project.name}-${project.version}</finalName>
         <resources>
