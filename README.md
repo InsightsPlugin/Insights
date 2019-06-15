@@ -1,7 +1,34 @@
+<!-- Variables (this block will not be visible in the readme -->
+[spigot]: https://www.spigotmc.org/resources/56489/
+[spigotRatingImg]: https://img.shields.io/badge/dynamic/json.svg?color=brightgreen&label=rating&query=%24.rating.average&suffix=%20%2F%205&url=https%3A%2F%2Fapi.spiget.org%2Fv2%2Fresources%2F56489
+[spigotDownloadsImg]: https://img.shields.io/badge/dynamic/json.svg?color=brightgreen&label=downloads%20%28spigotmc.org%29&query=%24.downloads&url=https%3A%2F%2Fapi.spiget.org%2Fv2%2Fresources%2F56489
+[issues]: https://github.com/FrankHeijden/Insights/issues
+[wiki]: https://github.com/FrankHeijden/Insights/wiki
+[release]: https://github.com/FrankHeijden/Insights/releases/latest
+[releaseImg]: https://img.shields.io/github/release/FrankHeijden/Insights.svg?label=github%20release
+[license]: https://github.com/FrankHeijden/Insights/blob/master/LICENSE
+[licenseImg]: https://img.shields.io/github/license/FrankHeijden/Insights.svg
+[ci]: https://ci.frankheijden.net/job/Insights/
+[ciImg]: https://ci.frankheijden.net/job/Insights/badge/icon
+[bugReports]: https://github.com/FrankHeijden/Insights/issues?q=is%3Aissue+is%3Aopen+label%3Abug
+[bugReportsImg]: https://img.shields.io/github/issues/FrankHeijden/Insights/bug.svg?label=bug%20reports
+[reportBug]: https://github.com/FrankHeijden/Insights/issues/new?labels=bug&template=bug.md
+[featureRequests]: https://github.com/FrankHeijden/Insights/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement
+[featureRequestsImg]: https://img.shields.io/github/issues/FrankHeijden/Insights/enhancement.svg?label=feature%20requests&color=informational
+[requestFeature]: https://github.com/FrankHeijden/Insights/issues/new?labels=enhancement&template=feature.md
+[config]: https://github.com/FrankHeijden/Insights/blob/master/resources/config.yml
+<!-- End of variables block -->
+
+
 Insights
 ===========
 
 For the description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
+
+[![ciImg]][ci] [![releaseImg]][release] [![licenseImg]][license]
+
+[![featureRequestsImg]][featureRequests] [![bugReportsImg]][bugReports]
+[![spigotRatingImg]][spigot] [![spigotDownloadsImg]][spigot]
 
 Developer API
 ------
