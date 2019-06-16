@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.frankheijden</groupId>
-    <artifactId>blocklimiter</artifactId>
+    <artifactId>insights</artifactId>
     <version>2.5.0</version>
     <name>Insights</name>
 
