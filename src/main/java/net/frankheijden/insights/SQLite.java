@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class SQLite {
     private Insights plugin;
@@ -81,23 +82,18 @@ public class SQLite {
         }
     }
 
-    public void toggleRealtimeCheck(Player player) {
-        boolean hasRealtimeCheckEnabled = false;
-
-        String uuid = player.getUniqueId().toString();
-        if (cached.containsKey(uuid)) {
-            hasRealtimeCheckEnabled = !cached.get(uuid);
-        }
+    public void setRealtimeCheck(UUID uuid, boolean value) {
+        String uuidString = uuid.toString();
 
         PreparedStatement ps = null;
         try {
             connection = setupConnection();
             ps = connection.prepareStatement("REPLACE INTO " + db + " (uuid,realtime_check) VALUES(?,?)");
-            ps.setString(1, player.getUniqueId().toString());
-            ps.setBoolean(2, hasRealtimeCheckEnabled);
+            ps.setString(1, uuidString);
+            ps.setBoolean(2, value);
             ps.executeUpdate();
 
-            cached.put(uuid, hasRealtimeCheckEnabled);
+            cached.put(uuidString, value);
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
@@ -110,6 +106,17 @@ public class SQLite {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public void toggleRealtimeCheck(UUID uuid) {
+        boolean value = false;
+
+        String uuidString = uuid.toString();
+        if (cached.containsKey(uuidString)) {
+            value = !cached.get(uuidString);
+        }
+
+        setRealtimeCheck(uuid, value);
     }
 
     public boolean hasRealtimeCheckEnabled(Player player) {

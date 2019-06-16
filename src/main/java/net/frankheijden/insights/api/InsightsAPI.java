@@ -10,9 +10,12 @@ import org.bukkit.entity.EntityType;
 
 import java.util.List;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class InsightsAPI {
+    private Insights instance = null;
+
     /**
      * Initiates a new InsightsAPI instance.
      */
@@ -24,7 +27,10 @@ public class InsightsAPI {
      * @return Insights Main class
      */
     public Insights getInstance() {
-        return Insights.getInstance();
+        if (instance == null) {
+            instance = Insights.getInstance();
+        }
+        return instance;
     }
 
     /**
@@ -76,5 +82,26 @@ public class InsightsAPI {
 
             return getInstance().countsMap.get(key);
         });
+    }
+
+    /**
+     * Toggles realtime checking for the UUID specified.
+     * NOTE: To use realtime checking, the user still needs the permission 'insights.check.realtime'.
+     *
+     * @param uuid UUID of player
+     */
+    public void toggleCheck(UUID uuid) {
+        getInstance().sqLite.toggleRealtimeCheck(uuid);
+    }
+
+    /**
+     * Enables or disabled realtime checking for the UUID specified.
+     * NOTE: To use realtime checking, the user still needs the permission 'insights.check.realtime'.
+     *
+     * @param uuid UUID of player
+     * @param enabled boolean enabled
+     */
+    public void setToggleCheck(UUID uuid, boolean enabled) {
+        getInstance().sqLite.setRealtimeCheck(uuid, enabled);
     }
 }
