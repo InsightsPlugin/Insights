@@ -39,6 +39,9 @@ general:
       # 1 second = 20 ticks
       duration: 60
 
+  # Send notification when scanning in actionbar/bossbar
+  scan_notification: true
+
   # Scanradius default radius (which will appear in tabcomplete)
   # Default: 5
   scanradius_default: 5

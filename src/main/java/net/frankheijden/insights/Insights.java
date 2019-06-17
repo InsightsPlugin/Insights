@@ -1,10 +1,14 @@
 package net.frankheijden.insights;
 
 import io.papermc.lib.PaperLib;
+import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.commands.*;
+import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
+import net.frankheijden.insights.tasks.ScanTask;
 import net.frankheijden.insights.utils.BossBarUtils;
 import net.frankheijden.insights.utils.Utils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,19 +35,23 @@ public class Insights extends JavaPlugin {
     public SQLite sqLite;
     public BossBarUtils bossBarUtils;
 
-    public HashMap<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
-
+    public Map<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
+    public Map<UUID, ScanTask> playerScanTasks = new HashMap<>();
     public Map<String, TreeMap<String, Integer>> countsMap = new HashMap<>();
+
+    private InsightsAPI insightsAPI;
 
     @Override
     public void onEnable() {
         insights = this;
+        insightsAPI = new InsightsAPI();
 
         PaperLib.suggestPaper(this);
 
         setupConfiguration();
         setupClasses();
         setupNMS();
+        setupPlaceholderAPIHook();
 
         if (PaperLib.getMinecraftVersion() >= 9) {
             bossBarUtils = new BossBarUtils(this);
@@ -90,6 +98,20 @@ public class Insights extends JavaPlugin {
             useNewAPI = false;
         }
         Bukkit.getLogger().info("[Insights] NMS version '"+nms+"' detected!");
+    }
+
+    private void setupPlaceholderAPIHook() {
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            if (new InsightsPlaceholderAPIExpansion(this).register()) {
+                Bukkit.getLogger().info("[Insights] Successfully hooked into PlaceholderAPI!");
+            } else {
+                Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
+            }
+        }
+    }
+
+    public InsightsAPI getInsightsAPI() {
+        return insightsAPI;
     }
 
     public void reload() {

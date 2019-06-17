@@ -25,6 +25,7 @@ public class Config {
     private List<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES = Arrays.asList("DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG");
     public int GENERAL_NOTIFICATION_BOSSBAR_DURATION = 60;
     public int GENERAL_SCANRADIUS_DEFAULT = 5;
+    public boolean GENERAL_SCAN_NOTIFICATION = true;
     public Map<Material, Integer> GENERAL_MATERIALS;
 
     public Config(Insights plugin) {
@@ -61,6 +62,8 @@ public class Config {
 
         updateInt("general.notification.bossbar.duration", 1);
         updateInt("general.scanradius_default", 1);
+
+        GENERAL_SCAN_NOTIFICATION = config.getBoolean("general.scan_notification");
 
         GENERAL_MATERIALS = new HashMap<>();
         MemorySection materials = (MemorySection) config.get("general.materials");

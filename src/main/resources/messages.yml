@@ -22,6 +22,13 @@ messages:
   # %limit%
   realtime_check_custom: "&3%material%: &b%count%&3/&b%limit%"
 
+  # Progress message if 'general.scan_notification' is set to true in config.yml
+  # Special placeholders:
+  # %done%
+  # %total%
+  # %progress%
+  scan_notification: "&3Progress: &b%progress%"
+
   # Command messages below
 
   # Messages send when a user executed /insights help
@@ -42,10 +49,10 @@ messages:
     &8&m-------------------------------------------------
 
   # Message send when the plugin has been successfully reloaded
-  reload: "&3BlockLimiter has been successfully reloaded!"
+  reload: "&3Insights has been successfully reloaded!"
 
   # Message send when the plugin has been successfully reloaded
-  reload_failed: "&cBlockLimiter failed to reload the config. Please check the console and report this error."
+  reload_failed: "&cInsights failed to reload the config. Please check the console and report this error."
 
   # Message send when a user executes /check
   # Special placeholders:

@@ -16,6 +16,8 @@ import java.util.List;
 public class BossBarUtils {
     private Insights plugin;
 
+    public HashMap<Player, BossBar> scanBossBarPlayers;
+
     public HashMap<Player, BossBar> bossBarPlayers;
     public HashMap<Player, Long> bossBarDurationPlayers;
     public BossBar defaultBossBar = null;
@@ -28,6 +30,8 @@ public class BossBarUtils {
     }
 
     public void setupBossBarRunnable() {
+        scanBossBarPlayers = new HashMap<>();
+
         bossBarTask = new BossBarTask(plugin);
         bossBarTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, bossBarTask, 0, 1);
     }

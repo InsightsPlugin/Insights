@@ -2,13 +2,14 @@ package net.frankheijden.insights.tasks;
 
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.api.entities.ChunkLocation;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.api.interfaces.ScanCompleteEventListener;
-import net.frankheijden.insights.api.entities.ChunkLocation;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
@@ -31,6 +32,7 @@ public class ScanTask implements Runnable {
     private int taskID;
     private boolean isCancelled = false;
     private ScanRunnable scanRunnable;
+    private ScanNotificationTask scanNotificationTask;
     private long lastProgressMessage;
 
     private long startTime;
@@ -61,10 +63,32 @@ public class ScanTask implements Runnable {
 
         scanRunnable = new ScanRunnable();
         scanRunnable.start();
+
+        if (sender != null && sender instanceof Player) {
+            Player player = (Player) sender;
+            plugin.playerScanTasks.put(player.getUniqueId(), this);
+
+            if (plugin.config.GENERAL_SCAN_NOTIFICATION) {
+                scanNotificationTask = new ScanNotificationTask(player);
+                scanNotificationTask.start();
+            }
+        }
     }
 
     public boolean isScanningForAll() {
         return materials == null && entityTypes == null;
+    }
+
+    public int getTotalChunks() {
+        return totalChunks;
+    }
+
+    public ScanRunnable getScanRunnable() {
+        return scanRunnable;
+    }
+
+    public long getStartTime() {
+        return startTime;
     }
 
     @Override
@@ -160,7 +184,7 @@ public class ScanTask implements Runnable {
         world.save();
     }
 
-    private class ScanRunnable implements Runnable {
+    public class ScanRunnable implements Runnable {
         private transient TreeMap<String, Integer> counts;
         private transient List<CompletableFuture<Chunk>> completableFutures;
         private transient List<CompletableFuture<Chunk>> completableFuturesToAdd;
@@ -176,13 +200,17 @@ public class ScanTask implements Runnable {
             chunksDone = 0;
         }
 
+        public int getChunksDone() {
+            return chunksDone;
+        }
+
         public void add(CompletableFuture<Chunk> completableFuture) {
             completableFuturesToAdd.add(completableFuture);
         }
 
         public void start() {
-            run = true;
-            taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 1);
+            this.run = true;
+            this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 1);
         }
 
         private void stop() {
@@ -200,6 +228,15 @@ public class ScanTask implements Runnable {
                 plugin.utils.sendMessage(sender, path + ".end.footer");
             } else {
                 plugin.utils.sendMessage(sender, path + ".end.no_entries");
+            }
+
+            if (sender != null && sender instanceof Player) {
+                Player player = (Player) sender;
+                plugin.playerScanTasks.remove(player.getUniqueId());
+
+                if (scanNotificationTask != null) {
+                    scanNotificationTask.stop();
+                }
             }
 
             if (listener != null) {
@@ -220,10 +257,10 @@ public class ScanTask implements Runnable {
                 }
             }
 
-            if (!run) {
+            if (!this.run) {
                 return;
             }
-            run = false;
+            this.run = false;
 
             List<CompletableFuture<Chunk>> removeableCompletableFutures = new ArrayList<>();
             for (CompletableFuture<Chunk> completableFuture : completableFutures) {
@@ -271,7 +308,74 @@ public class ScanTask implements Runnable {
                 this.stop();
             }
 
-            run = true;
+            this.run = true;
+        }
+    }
+
+    public class ScanNotificationTask implements Runnable {
+        private Player player;
+        private String message;
+
+        private boolean isBossBar = false;
+        private int taskID;
+
+        public ScanNotificationTask(Player player) {
+            this.player = player;
+        }
+
+        public void start() {
+            if (plugin.config.GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
+                isBossBar = true;
+
+                plugin.bossBarUtils.scanBossBarPlayers.put(player, plugin.bossBarUtils.defaultBossBar);
+                plugin.bossBarUtils.scanBossBarPlayers.get(player).addPlayer(player);
+                plugin.bossBarUtils.scanBossBarPlayers.get(player).setVisible(true);
+            }
+
+            message = plugin.messages.getString("messages.scan_notification");
+            if (message != null && !message.isEmpty()) {
+                this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 10);
+            } else {
+                System.err.println("[Insights] Missing locale in messages.yml at path 'messages.scan_notification'!");
+                player.sendMessage("[Insights] Missing locale in messages.yml at path 'messages.scan_notification'!");
+            }
+        }
+
+        public void stop() {
+            Bukkit.getServer().getScheduler().cancelTask(this.taskID);
+            if (isBossBar) {
+                plugin.bossBarUtils.scanBossBarPlayers.get(player).setVisible(false);
+                plugin.bossBarUtils.scanBossBarPlayers.get(player).removePlayer(player);
+                plugin.bossBarUtils.scanBossBarPlayers.remove(player);
+            }
+        }
+
+        @Override
+        public void run() {
+            String done = NumberFormat.getIntegerInstance().format(scanRunnable.chunksDone);
+            String total = NumberFormat.getIntegerInstance().format(totalChunks);
+            double progressDouble = ((double) scanRunnable.chunksDone)/((double) totalChunks);
+            if (progressDouble < 0) {
+                progressDouble = 0;
+            } else if (progressDouble > 1) {
+                progressDouble = 1;
+            }
+            String progress = (int) (progressDouble*100) + "%";
+            String message = plugin.utils.color(this.message.replace("%done%", done).replace("%total%", total).replace("%progress%", progress));
+            if (isBossBar) {
+                updateBossBar(message, progressDouble);
+            } else {
+                updateActionBar(message);
+            }
+        }
+
+        private void updateBossBar(String message, double progress) {
+            plugin.bossBarUtils.scanBossBarPlayers.get(player).setProgress(progress);
+            plugin.bossBarUtils.scanBossBarPlayers.get(player).setTitle(message);
+        }
+
+        private void updateActionBar(String message) {
+            plugin.utils.sendActionbar(player, message);
         }
     }
 }

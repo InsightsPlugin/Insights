@@ -104,4 +104,51 @@ public class InsightsAPI {
     public void setToggleCheck(UUID uuid, boolean enabled) {
         getInstance().sqLite.setRealtimeCheck(uuid, enabled);
     }
+
+    /**
+     * Checks if the player specified is scanning for chunks.
+     *
+     * @param uuid UUID of player
+     * @return boolean scanning
+     */
+    public boolean isScanningChunks(UUID uuid) {
+        return getInstance().playerScanTasks.containsKey(uuid);
+    }
+
+    /**
+     * Gets a percentage between 0 and 1 of the progress of scanning chunks,
+     * returns null if the player is not scanning chunks.
+     *
+     * @param uuid UUID of player
+     * @return double progress, or null if no ScanTask.
+     */
+    public Double getScanProgress(UUID uuid) {
+        ScanTask task = getInstance().playerScanTasks.get(uuid);
+        if (task != null) {
+            double total = (double) task.getTotalChunks();
+            double done = (double) task.getScanRunnable().getChunksDone();
+            double progress = done/total;
+            if (progress < 0) {
+                progress = 0;
+            } else if (progress > 1) {
+                progress = 1;
+            }
+            return progress;
+        }
+        return null;
+    }
+
+    /**
+     * Gets the time elapsed for the current scan of a player
+     *
+     * @param uuid UUID of player
+     * @return String time elapsed, or null if no ScanTask.
+     */
+    public String getTimeElapsedOfScan(UUID uuid) {
+        ScanTask task = getInstance().playerScanTasks.get(uuid);
+        if (task != null) {
+            return getInstance().utils.getDHMS(task.getStartTime());
+        }
+        return null;
+    }
 }

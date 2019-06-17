@@ -348,57 +348,72 @@ public class Utils {
             }
             message = color(message);
 
-            try {
-                Class<?> craftPlayerClass = Class.forName("org.bukkit.craftbukkit." + plugin.nms + ".entity.CraftPlayer");
-                Object craftPlayer = craftPlayerClass.cast(player);
-                Object packet;
-                Class<?> packetPlayOutChatClass = Class.forName("net.minecraft.server." + plugin.nms + ".PacketPlayOutChat");
-                Class<?> packetClass = Class.forName("net.minecraft.server." + plugin.nms + ".Packet");
-                if (plugin.oldActionBar) {
-                    Class<?> chatSerializerClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatSerializer");
-                    Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + plugin.nms + ".IChatBaseComponent");
-                    Method m3 = chatSerializerClass.getDeclaredMethod("a", String.class);
-                    Object cbc = iChatBaseComponentClass.cast(m3.invoke(chatSerializerClass, "{\"text\": \"" + message + "\"}"));
-                    packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(cbc, (byte) 2);
-                } else {
-                    Class<?> chatComponentTextClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatComponentText");
-                    Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + plugin.nms + ".IChatBaseComponent");
-                    try {
-                        Class<?> chatMessageTypeClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatMessageType");
-                        Object[] chatMessageTypes = chatMessageTypeClass.getEnumConstants();
-                        Object chatMessageType = null;
-                        for (Object obj : chatMessageTypes) {
-                            if (obj.toString().equals("GAME_INFO")) {
-                                chatMessageType = obj;
-                            }
-                        }
-                        Object chatCompontentText = chatComponentTextClass.getConstructor(new Class<?>[]{String.class}).newInstance(message);
-                        packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass}).newInstance(chatCompontentText, chatMessageType);
-                    } catch (ClassNotFoundException cnfe) {
-                        Object chatCompontentText = chatComponentTextClass.getConstructor(new Class<?>[]{String.class}).newInstance(message);
-                        packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(chatCompontentText, (byte) 2);
-                    }
-                }
-                Method craftPlayerHandleMethod = craftPlayerClass.getDeclaredMethod("getHandle");
-                Object craftPlayerHandle = craftPlayerHandleMethod.invoke(craftPlayer);
-                Field playerConnectionField = craftPlayerHandle.getClass().getDeclaredField("playerConnection");
-                Object playerConnection = playerConnectionField.get(craftPlayerHandle);
-                Method sendPacketMethod = playerConnection.getClass().getDeclaredMethod("sendPacket", packetClass);
-                sendPacketMethod.invoke(playerConnection, packet);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            sendActionbar(player, message);
         } else {
             System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
         }
     }
 
-    private String getTime(int seconds) {
+    public void sendActionbar(Player player, String message) {
+        try {
+            Class<?> craftPlayerClass = Class.forName("org.bukkit.craftbukkit." + plugin.nms + ".entity.CraftPlayer");
+            Object craftPlayer = craftPlayerClass.cast(player);
+            Object packet;
+            Class<?> packetPlayOutChatClass = Class.forName("net.minecraft.server." + plugin.nms + ".PacketPlayOutChat");
+            Class<?> packetClass = Class.forName("net.minecraft.server." + plugin.nms + ".Packet");
+            if (plugin.oldActionBar) {
+                Class<?> chatSerializerClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatSerializer");
+                Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + plugin.nms + ".IChatBaseComponent");
+                Method m3 = chatSerializerClass.getDeclaredMethod("a", String.class);
+                Object cbc = iChatBaseComponentClass.cast(m3.invoke(chatSerializerClass, "{\"text\": \"" + message + "\"}"));
+                packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(cbc, (byte) 2);
+            } else {
+                Class<?> chatComponentTextClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatComponentText");
+                Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + plugin.nms + ".IChatBaseComponent");
+                try {
+                    Class<?> chatMessageTypeClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatMessageType");
+                    Object[] chatMessageTypes = chatMessageTypeClass.getEnumConstants();
+                    Object chatMessageType = null;
+                    for (Object obj : chatMessageTypes) {
+                        if (obj.toString().equals("GAME_INFO")) {
+                            chatMessageType = obj;
+                        }
+                    }
+                    Object chatCompontentText = chatComponentTextClass.getConstructor(new Class<?>[]{String.class}).newInstance(message);
+                    packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass}).newInstance(chatCompontentText, chatMessageType);
+                } catch (ClassNotFoundException cnfe) {
+                    Object chatCompontentText = chatComponentTextClass.getConstructor(new Class<?>[]{String.class}).newInstance(message);
+                    packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(chatCompontentText, (byte) 2);
+                }
+            }
+            Method craftPlayerHandleMethod = craftPlayerClass.getDeclaredMethod("getHandle");
+            Object craftPlayerHandle = craftPlayerHandleMethod.invoke(craftPlayer);
+            Field playerConnectionField = craftPlayerHandle.getClass().getDeclaredField("playerConnection");
+            Object playerConnection = playerConnectionField.get(craftPlayerHandle);
+            Method sendPacketMethod = playerConnection.getClass().getDeclaredMethod("sendPacket", packetClass);
+            sendPacketMethod.invoke(playerConnection, packet);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private String getHumanTime(int seconds) {
+        String s_ = "second";
+        String ss_ = "seconds";
+        String m_ = "minute";
+        String ms_ = "minutes";
+        String h_ = "hour";
+        String hs_ = "hours";
+        String d_ = "day";
+        String ds_ = "days";
+
+        String and_ = "en";
+
         if (seconds < 60) {
             if (seconds == 1) {
-                return seconds + " second";
+                return seconds + " " + s_;
             } else {
-                return seconds + " seconds";
+                return seconds + " " + ss_;
             }
         } else {
             int minutes = seconds / 60;
@@ -406,80 +421,89 @@ public class Utils {
             int secondsLeft = seconds - s;
             if (minutes < 60) {
                 if (secondsLeft > 0) {
-                    String min = "minutes";
-                    String sec = "seconds";
-                    if (minutes == 1) {
-                        min = "minute";
-                    }
-                    if (secondsLeft == 1) {
-                        sec = "second";
-                    }
-                    return minutes + " " + min + " " + secondsLeft + " " + sec;
+                    String min = (minutes == 1) ? m_ : ms_;
+                    String sec = (secondsLeft == 1) ? s_ : ss_;
+                    return minutes + " " + min + " " + and_ + " " + secondsLeft + " " + sec;
                 } else {
-                    return minutes == 1 ? minutes + " minute" : minutes + " minutes";
+                    return (minutes == 1) ? minutes + " " + m_ : minutes + " " + ms_;
                 }
             } else {
                 String time;
-                String h = "hours";
-                String m = "minutes";
-                String se = "seconds";
-                String d = "days";
+                String h = hs_;
+                String m = ms_;
+                String se = ss_;
+                String d = ds_;
                 int days;
                 int inMins;
                 int leftOver;
                 if (secondsLeft == 1) {
-                    se = "second";
+                    se = s_;
                 }
                 if (minutes < 1440) {
                     days = minutes / 60;
                     if (days == 1) {
-                        h = "hour";
+                        h = h_;
                     }
                     time = days + " "+h+" ";
                     inMins = 60 * days;
                     leftOver = minutes - inMins;
                     if (leftOver == 1) {
-                        m = "minute";
+                        m = m_;
                     }
                     if (leftOver >= 1) {
-                        time = time + " " + leftOver + " "+m+" ";
+                        time = time + ", " + leftOver + " "+m+" ";
                     }
 
                     if (secondsLeft > 0) {
-                        time = time + " " + secondsLeft + " "+se;
+                        time = time + ", " + secondsLeft + " "+se;
                     }
 
                     return time;
                 } else {
                     days = minutes / 1440;
                     if (days == 1) {
-                        d = "day";
+                        d = d_;
                     }
                     time = days + " "+d;
                     inMins = 1440 * days;
                     leftOver = minutes - inMins;
                     if (leftOver == 1) {
-                        m = "minute";
+                        m = m_;
                     }
                     if (leftOver >= 1) {
                         if (leftOver < 60) {
-                            time = time + " " + leftOver + " "+m;
+                            time = time + ", " + leftOver + " "+m;
                         } else {
                             int hours = leftOver / 60;
                             if (hours == 1) {
-                                h = "hour";
+                                h = h_;
                             }
-                            time = time + " " + hours + " "+h;
                             int hoursInMins = 60 * hours;
                             int minsLeft = leftOver - hoursInMins;
-                            if (leftOver >= 1) {
-                                time = time + " " + minsLeft + " "+m;
+                            if (minsLeft <= 0 && secondsLeft <= 0) {
+                                time = time + " " + and_ + " " + hours + " "+h;
+                            } else {
+                                time = time + ", " + hours + " "+h;
+                            }
+
+                            if (secondsLeft > 0) {
+                                if (minsLeft == 1) {
+                                    time = time + ", " + minsLeft + " "+m_;
+                                } else if (minsLeft >= 1) {
+                                    time = time + ", " + minsLeft + " "+ms_;
+                                }
+                            } else {
+                                if (minsLeft == 1) {
+                                    time = time + " " + and_ + " " + minsLeft + " "+m_;
+                                } else if (minsLeft >= 1) {
+                                    time = time + " " + and_ + " " + minsLeft + " "+ms_;
+                                }
                             }
                         }
                     }
 
                     if (secondsLeft > 0) {
-                        time = time + " " + secondsLeft + " "+se;
+                        time = time + " " + and_ + " " + secondsLeft + " "+se;
                     }
                     return time;
                 }
@@ -488,6 +512,6 @@ public class Utils {
     }
 
     public String getDHMS(long startTime) {
-        return getTime((int) TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime));
+        return getHumanTime((int) TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime));
     }
 }
