@@ -1,18 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>net.frankheijden</groupId>
     <artifactId>insights</artifactId>
     <version>2.6.0</version>
+
     <name>Insights</name>
+    <url>https://www.spigotmc.org/resources/56489/</url>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License, Version 3.0</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <issueManagement>
         <system>GitHub</system>
         <url>https://github.com/FrankHeijden/Insights/issues</url>
     </issueManagement>
+
+    <scm>
+        <connection>scm:git:https://github.com/FrankHeijden/Insights.git</connection>
+        <url>https://github.com/FrankHeijden/Insights</url>
+    </scm>
+
+    <properties>
+        <build.number></build.number>
+        <build.origin></build.origin>
+        <git.revision></git.revision>
+        <project.build.timestamp>${maven.build.timestamp}</project.build.timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss z</maven.build.timestamp.format>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <ciManagement>
         <system>jenkins</system>
         <url>https://ci.frankheijden.net/job/Insights</url>
@@ -30,7 +52,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.8.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -42,7 +64,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
-                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
                     <relocations>
                         <relocation>
                             <pattern>io.papermc.lib</pattern>
@@ -59,6 +81,35 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Specification-Title>${project.name}</Specification-Title>
+                            <Specification-Version>${project.version}</Specification-Version>
+                            <Specification-Vendor>FrankHeijden</Specification-Vendor>
+                            <Build-Origin>${build.origin}</Build-Origin>
+                            <Build-Number>${build.number}</Build-Number>
+                            <Git-Revision>${git.revision}</Git-Revision>
+                            <Build-Date>${project.build.timestamp}</Build-Date>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.0</version>
+                <configuration>
+                    <skip>false</skip>
+                    <skipTests>false</skipTests>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -72,6 +123,11 @@
         <repository>
             <id>placeholderapi</id>
             <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
+        <!-- frankheijden -->
+        <repository>
+            <id>frankheijden</id>
+            <url>https://repo.frankheijden.net/repository/minecraft/</url>
         </repository>
     </repositories>
 
