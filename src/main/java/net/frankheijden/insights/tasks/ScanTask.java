@@ -173,7 +173,11 @@ public class ScanTask implements Runnable {
 
     public boolean removeFirst() {
         if (chunkLocations.size() > 0) {
-            chunkLocations.remove(0);
+            if (chunkLocations.size() != 1) {
+                chunkLocations.remove(0);
+            } else {
+                chunkLocations = new ArrayList<>();
+            }
         } else {
             stop();
             return false;
