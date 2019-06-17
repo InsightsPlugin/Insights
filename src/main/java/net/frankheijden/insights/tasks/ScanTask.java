@@ -333,13 +333,15 @@ public class ScanTask implements Runnable {
                 isBossBar = true;
 
                 plugin.bossBarUtils.scanBossBarPlayers.put(uuid, plugin.bossBarUtils.defaultBossBar);
-                plugin.bossBarUtils.scanBossBarPlayers.get(uuid).addPlayer(player);
+                if (player != null) {
+                    plugin.bossBarUtils.scanBossBarPlayers.get(uuid).addPlayer(player);
+                }
                 plugin.bossBarUtils.scanBossBarPlayers.get(uuid).setVisible(true);
             }
 
             message = plugin.messages.getString("messages.scan_notification");
             if (message != null && !message.isEmpty()) {
-                this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 10);
+                this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 1);
             } else {
                 System.err.println("[Insights] Missing locale in messages.yml at path 'messages.scan_notification'!");
                 if (player != null) {

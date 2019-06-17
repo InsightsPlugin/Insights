@@ -420,7 +420,7 @@ public class Utils {
         String d_ = "day";
         String ds_ = "days";
 
-        String and_ = "en";
+        String and_ = "and";
 
         if (seconds < 60) {
             if (seconds == 1) {
