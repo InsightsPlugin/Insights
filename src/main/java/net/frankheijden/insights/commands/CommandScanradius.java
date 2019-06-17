@@ -3,7 +3,9 @@ package net.frankheijden.insights.commands;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.entities.ChunkLocation;
 import net.frankheijden.insights.tasks.ScanTask;
-import org.bukkit.*;
+import org.bukkit.Chunk;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -225,7 +227,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     }
                                 }
 
-                                ScanTask test = new ScanTask(plugin, world, player, "messages.scanradius.custom", chunkLocations, materials, entityTypes, null);
+                                ScanTask test = new ScanTask(plugin, world, player.getUniqueId(), "messages.scanradius.custom", chunkLocations, materials, entityTypes, null);
                                 test.start(startTime);
                                 return true;
                             } else {

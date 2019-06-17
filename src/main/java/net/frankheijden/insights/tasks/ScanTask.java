@@ -6,7 +6,6 @@ import net.frankheijden.insights.api.entities.ChunkLocation;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.api.interfaces.ScanCompleteEventListener;
 import org.bukkit.*;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -20,7 +19,8 @@ import java.util.concurrent.ExecutionException;
 public class ScanTask implements Runnable {
     private Insights plugin;
     private World world;
-    private CommandSender sender;
+    private UUID uuid;
+    private boolean isConsole = false;
     private String path;
     private transient List<ChunkLocation> chunkLocations;
     private transient List<Material> materials;
@@ -42,10 +42,15 @@ public class ScanTask implements Runnable {
         this(plugin, world, null, null, chunkLocations, materials, entityTypes, listener);
     }
 
-    public ScanTask(Insights plugin, World world, CommandSender sender, String path, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, ScanCompleteEventListener listener) {
+    public ScanTask(Insights plugin, World world, String path, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, ScanCompleteEventListener listener) {
+        this(plugin, world, null, path, chunkLocations, materials, entityTypes, listener);
+        isConsole = true;
+    }
+
+    public ScanTask(Insights plugin, World world, UUID uuid, String path, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, ScanCompleteEventListener listener) {
         this.plugin = plugin;
         this.world = world;
-        this.sender = sender;
+        this.uuid = uuid;
         this.path = path;
         this.chunkLocations = chunkLocations;
         this.materials = (materials != null && materials.isEmpty()) ? null : materials;
@@ -57,19 +62,19 @@ public class ScanTask implements Runnable {
         this.startTime = startTime;
 
         this.totalChunks = chunkLocations.size();
-        plugin.utils.sendMessage(sender, path + ".start", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", world.getName());
+        plugin.utils.sendMessage(isConsole ? Bukkit.getConsoleSender() : uuid, path + ".start", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", world.getName());
         pendingChunks = new HashMap<>();
         taskID = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
 
         scanRunnable = new ScanRunnable();
         scanRunnable.start();
 
-        if (sender != null && sender instanceof Player) {
-            Player player = (Player) sender;
-            plugin.playerScanTasks.put(player.getUniqueId(), this);
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null) {
+            plugin.playerScanTasks.put(uuid, this);
 
             if (plugin.config.GENERAL_SCAN_NOTIFICATION) {
-                scanNotificationTask = new ScanNotificationTask(player);
+                scanNotificationTask = new ScanNotificationTask(uuid);
                 scanNotificationTask.start();
             }
         }
@@ -216,23 +221,23 @@ public class ScanTask implements Runnable {
         private void stop() {
             Bukkit.getScheduler().cancelTask(taskID);
 
-            long totalCount = 0;
-            if (counts.size() > 0) {
-                plugin.utils.sendMessage(sender, path + ".end.header");
-                for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-                    totalCount = totalCount + entry.getValue();
-                    String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
-                    plugin.utils.sendMessage(sender, path + ".end.format", "%entry%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
-                }
-                plugin.utils.sendMessage(sender, path + ".end.total", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%blocks%", NumberFormat.getIntegerInstance().format(totalChunks * 16 * 16 * 256), "%time%", plugin.utils.getDHMS(startTime), "%world%", world.getName());
-                plugin.utils.sendMessage(sender, path + ".end.footer");
-            } else {
-                plugin.utils.sendMessage(sender, path + ".end.no_entries");
-            }
+            plugin.playerScanTasks.remove(uuid);
 
-            if (sender != null && sender instanceof Player) {
-                Player player = (Player) sender;
-                plugin.playerScanTasks.remove(player.getUniqueId());
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null || isConsole) {
+                long totalCount = 0;
+                if (counts.size() > 0) {
+                    plugin.utils.sendMessage(isConsole ? Bukkit.getConsoleSender() : uuid, path + ".end.header");
+                    for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+                        totalCount = totalCount + entry.getValue();
+                        String name = plugin.utils.capitalizeName(entry.getKey().toLowerCase());
+                        plugin.utils.sendMessage(isConsole ? Bukkit.getConsoleSender() : uuid, path + ".end.format", "%entry%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
+                    }
+                    plugin.utils.sendMessage(isConsole ? Bukkit.getConsoleSender() : uuid, path + ".end.total", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%blocks%", NumberFormat.getIntegerInstance().format(totalChunks * 16 * 16 * 256), "%time%", plugin.utils.getDHMS(startTime), "%world%", world.getName());
+                    plugin.utils.sendMessage(isConsole ? Bukkit.getConsoleSender() : uuid, path + ".end.footer");
+                } else {
+                    plugin.utils.sendMessage(isConsole ? Bukkit.getConsoleSender() : uuid, path + ".end.no_entries");
+                }
 
                 if (scanNotificationTask != null) {
                     scanNotificationTask.stop();
@@ -253,7 +258,7 @@ public class ScanTask implements Runnable {
             if (now > lastProgressMessage + 10000) {
                 lastProgressMessage = System.currentTimeMillis();
                 if (chunksDone > 0) {
-                    plugin.utils.sendMessage(sender, path + ".progress", "%count%", NumberFormat.getIntegerInstance().format(chunksDone), "%total%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", world.getName());
+                    plugin.utils.sendMessage(isConsole ? Bukkit.getConsoleSender() : uuid, path + ".progress", "%count%", NumberFormat.getIntegerInstance().format(chunksDone), "%total%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", world.getName());
                 }
             }
 
@@ -313,23 +318,24 @@ public class ScanTask implements Runnable {
     }
 
     public class ScanNotificationTask implements Runnable {
-        private Player player;
+        private UUID uuid;
         private String message;
 
         private boolean isBossBar = false;
         private int taskID;
 
-        public ScanNotificationTask(Player player) {
-            this.player = player;
+        public ScanNotificationTask(UUID uuid) {
+            this.uuid = uuid;
         }
 
         public void start() {
+            Player player = Bukkit.getPlayer(uuid);
             if (plugin.config.GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
                 isBossBar = true;
 
-                plugin.bossBarUtils.scanBossBarPlayers.put(player, plugin.bossBarUtils.defaultBossBar);
-                plugin.bossBarUtils.scanBossBarPlayers.get(player).addPlayer(player);
-                plugin.bossBarUtils.scanBossBarPlayers.get(player).setVisible(true);
+                plugin.bossBarUtils.scanBossBarPlayers.put(uuid, plugin.bossBarUtils.defaultBossBar);
+                plugin.bossBarUtils.scanBossBarPlayers.get(uuid).addPlayer(player);
+                plugin.bossBarUtils.scanBossBarPlayers.get(uuid).setVisible(true);
             }
 
             message = plugin.messages.getString("messages.scan_notification");
@@ -337,16 +343,18 @@ public class ScanTask implements Runnable {
                 this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 10);
             } else {
                 System.err.println("[Insights] Missing locale in messages.yml at path 'messages.scan_notification'!");
-                player.sendMessage("[Insights] Missing locale in messages.yml at path 'messages.scan_notification'!");
+                if (player != null) {
+                    player.sendMessage("[Insights] Missing locale in messages.yml at path 'messages.scan_notification'!");
+                }
             }
         }
 
         public void stop() {
             Bukkit.getServer().getScheduler().cancelTask(this.taskID);
             if (isBossBar) {
-                plugin.bossBarUtils.scanBossBarPlayers.get(player).setVisible(false);
-                plugin.bossBarUtils.scanBossBarPlayers.get(player).removePlayer(player);
-                plugin.bossBarUtils.scanBossBarPlayers.remove(player);
+                plugin.bossBarUtils.scanBossBarPlayers.get(uuid).setVisible(false);
+                plugin.bossBarUtils.scanBossBarPlayers.get(uuid).removeAll();
+                plugin.bossBarUtils.scanBossBarPlayers.remove(uuid);
             }
         }
 
@@ -370,12 +378,15 @@ public class ScanTask implements Runnable {
         }
 
         private void updateBossBar(String message, double progress) {
-            plugin.bossBarUtils.scanBossBarPlayers.get(player).setProgress(progress);
-            plugin.bossBarUtils.scanBossBarPlayers.get(player).setTitle(message);
+            plugin.bossBarUtils.scanBossBarPlayers.get(uuid).setProgress(progress);
+            plugin.bossBarUtils.scanBossBarPlayers.get(uuid).setTitle(message);
         }
 
         private void updateActionBar(String message) {
-            plugin.utils.sendActionbar(player, message);
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                plugin.utils.sendActionbar(player, message);
+            }
         }
     }
 }

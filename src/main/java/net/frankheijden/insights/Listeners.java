@@ -6,9 +6,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 public class Listeners implements Listener {
     private Insights plugin;
@@ -97,6 +99,16 @@ public class Listeners implements Listener {
                 if (progress > 1) progress = 1;
                 plugin.utils.sendSpecialMessage(player, "messages.realtime_check", progress, "%tile_count%", String.valueOf(current));
             }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+        if (plugin.bossBarUtils != null && plugin.bossBarUtils.scanBossBarPlayers.containsKey(uuid)) {
+            plugin.bossBarUtils.scanBossBarPlayers.get(uuid).removeAll();
+            plugin.bossBarUtils.scanBossBarPlayers.get(uuid).addPlayer(player);
         }
     }
 

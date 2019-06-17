@@ -133,7 +133,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                     List<ChunkLocation> chunkLocations = Collections.singletonList(new ChunkLocation(player.getLocation().getChunk()));
 
-                    ScanTask task = new ScanTask(plugin, player.getWorld(), player, "messages.scan.custom", chunkLocations, materials, entityTypes, null);
+                    ScanTask task = new ScanTask(plugin, player.getWorld(), player.getUniqueId(), "messages.scan.custom", chunkLocations, materials, entityTypes, null);
                     task.start(startTime);
                     return true;
                 }

@@ -12,11 +12,12 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class BossBarUtils {
     private Insights plugin;
 
-    public HashMap<Player, BossBar> scanBossBarPlayers;
+    public HashMap<UUID, BossBar> scanBossBarPlayers;
 
     public HashMap<Player, BossBar> bossBarPlayers;
     public HashMap<Player, Long> bossBarDurationPlayers;

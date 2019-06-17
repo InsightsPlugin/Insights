@@ -287,17 +287,30 @@ public class Utils {
         return build.substring(0, build.length() - 1);
     }
 
+    public void sendMessage(Object object, String path, String... placeholders) {
+        if (object instanceof UUID) {
+            sendMessage((UUID) object, path, placeholders);
+        } else if (object instanceof CommandSender) {
+            sendMessage((CommandSender) object, path, placeholders);
+        }
+    }
+
+    public void sendMessage(UUID uuid, String path, String... placeholders) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null) {
+            sendMessage(player, path, placeholders);
+        }
+    }
+
     public void sendMessage(CommandSender sender, String path, String... placeholders) {
-        if (sender != null && path != null) {
-            String message = plugin.messages.getString(path);
-            if (message != null && !message.isEmpty()) {
-                for (int i = 0; i < placeholders.length; i++, i++) {
-                    message = message.replace(placeholders[i], placeholders[i + 1]);
-                }
-                sender.sendMessage(color(message));
-            } else {
-                System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
+        String message = plugin.messages.getString(path);
+        if (message != null && !message.isEmpty()) {
+            for (int i = 0; i < placeholders.length; i++, i++) {
+                message = message.replace(placeholders[i], placeholders[i + 1]);
             }
+            sender.sendMessage(color(message));
+        } else {
+            System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
         }
     }
 
