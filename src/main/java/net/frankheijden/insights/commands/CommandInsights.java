@@ -1,10 +1,6 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.api.InsightsAPI;
-import net.frankheijden.insights.api.entities.ChunkLocation;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

@@ -42,11 +42,6 @@ public class ScanTask implements Runnable {
         this(plugin, world, null, null, chunkLocations, materials, entityTypes, listener);
     }
 
-    public ScanTask(Insights plugin, World world, String path, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, ScanCompleteEventListener listener) {
-        this(plugin, world, null, path, chunkLocations, materials, entityTypes, listener);
-        isConsole = true;
-    }
-
     public ScanTask(Insights plugin, World world, UUID uuid, String path, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, ScanCompleteEventListener listener) {
         this.plugin = plugin;
         this.world = world;
@@ -56,6 +51,10 @@ public class ScanTask implements Runnable {
         this.materials = (materials != null && materials.isEmpty()) ? null : materials;
         this.entityTypes = (entityTypes != null && entityTypes.isEmpty()) ? null : entityTypes;
         this.listener = listener;
+    }
+
+    public void setConsole(boolean console) {
+        isConsole = console;
     }
 
     public void start(long startTime) {

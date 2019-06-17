@@ -217,6 +217,11 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                     }
                                 }
 
+                                if (plugin.playerScanTasks.containsKey(player.getUniqueId())) {
+                                    plugin.utils.sendMessage(sender, "messages.already_scanning");
+                                    return true;
+                                }
+
                                 World world = player.getWorld();
                                 int x = player.getLocation().getChunk().getX();
                                 int z = player.getLocation().getChunk().getZ();

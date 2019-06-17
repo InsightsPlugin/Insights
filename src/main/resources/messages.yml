@@ -29,6 +29,9 @@ messages:
   # %progress%
   scan_notification: "&3Progress: &b%progress%"
 
+  # Message if the player is already scanning chunks
+  already_scanning: "&cYou are already scanning for chunks!"
+
   # Command messages below
 
   # Messages send when a user executed /insights help

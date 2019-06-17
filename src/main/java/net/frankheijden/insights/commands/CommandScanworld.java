@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
 import java.text.NumberFormat;
@@ -185,7 +186,19 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                             chunkLocations.add(new ChunkLocation(chunk));
                         }
 
-                        ScanTask task = new ScanTask(plugin, world, "messages.scanworld.custom", chunkLocations, materials, entityTypes, null);
+                        ScanTask task;
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            if (plugin.playerScanTasks.containsKey(player.getUniqueId())) {
+                                plugin.utils.sendMessage(sender, "messages.already_scanning");
+                                return true;
+                            }
+
+                            task = new ScanTask(plugin, world, player.getUniqueId(), "messages.scanworld.custom", chunkLocations, materials, entityTypes, null);
+                        } else {
+                            task = new ScanTask(plugin, world, null, "messages.scanworld.custom", chunkLocations, materials, entityTypes, null);
+                            task.setConsole(true);
+                        }
                         task.start(startTime);
                     } else {
                         plugin.utils.sendMessage(sender, "messages.scanworld.invalid_world");
