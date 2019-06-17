@@ -40,13 +40,6 @@
         <url>https://ci.frankheijden.net/job/Insights</url>
     </ciManagement>
 
-    <distributionManagement>
-        <repository>
-            <id>frankheijden</id>
-            <url>https://repo.frankheijden.net/repository/minecraft/</url>
-        </repository>
-    </distributionManagement>
-
     <build>
         <finalName>${project.name}-${project.version}</finalName>
         <resources>
