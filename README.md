@@ -81,12 +81,12 @@ public class MyClass extends JavaPlugin {
         List<EntityType> entityTypes = Collections.singletonList(EntityType.CREEPER);
 
         // Let the scan begin!
-        CompletableFuture<TreeMap<String, Integer>> completableFuture = insightsAPI.scan(world, chunkLocations, materials, entityTypes);
+        CompletableFuture<ScanCompleteEvent> completableFuture = insightsAPI.scan(world, chunkLocations, materials, entityTypes);
 
         // When the scan has been completed, execute:
-        completableFuture.whenCompleteAsync((counts, error) -> {
+        completableFuture.whenCompleteAsync((event, error) -> {
             // Print them in the console!
-            System.out.println(counts.toString());
+            System.out.println(event.getCounts().toString());
         });
     }
 }
