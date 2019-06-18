@@ -1,5 +1,7 @@
 package net.frankheijden.insights;
 
+import net.frankheijden.insights.tasks.UpdateCheckerTask;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -109,6 +111,12 @@ public class Listeners implements Listener {
         if (plugin.getBossBarUtils() != null && plugin.getBossBarUtils().scanBossBarPlayers.containsKey(uuid)) {
             plugin.getBossBarUtils().scanBossBarPlayers.get(uuid).removeAll();
             plugin.getBossBarUtils().scanBossBarPlayers.get(uuid).addPlayer(player);
+        }
+
+        if (plugin.getConfiguration().GENERAL_CHECK_UPDATES) {
+            if (player.hasPermission("insights.notification.update")) {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, new UpdateCheckerTask(plugin, player));
+            }
         }
     }
 

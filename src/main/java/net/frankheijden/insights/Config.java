@@ -13,6 +13,7 @@ public class Config {
     private Insights plugin;
     private YamlConfiguration config;
 
+    public boolean GENERAL_CHECK_UPDATES = true;
     public int GENERAL_LIMIT = 256;
     public List<String> GENERAL_WORLDS = Arrays.asList("world", "world_nether", "world_the_end");
     public String GENERAL_NOTIFICATION_TYPE = "BOSSBAR";
@@ -39,6 +40,8 @@ public class Config {
             plugin.saveDefaultConfig();
         }
         config = YamlConfiguration.loadConfiguration(configFile);
+
+        GENERAL_CHECK_UPDATES = config.getBoolean("general.check_updates");
 
         int generalLimit = config.getInt("general.limit");
         if (generalLimit > -1) {
