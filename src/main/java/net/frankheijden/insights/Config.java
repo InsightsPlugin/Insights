@@ -14,7 +14,7 @@ public class Config {
     private YamlConfiguration config;
 
     public boolean GENERAL_CHECK_UPDATES = true;
-    public int GENERAL_LIMIT = 256;
+    public int GENERAL_LIMIT = -1;
     public List<String> GENERAL_WORLDS = Arrays.asList("world", "world_nether", "world_the_end");
     public String GENERAL_NOTIFICATION_TYPE = "BOSSBAR";
     private List<String> GENERAL_NOTIFICATION_TYPE_VALUES = Arrays.asList("BOSSBAR", "ACTIONBAR");
@@ -27,6 +27,7 @@ public class Config {
     public int GENERAL_NOTIFICATION_BOSSBAR_DURATION = 60;
     public int GENERAL_SCANRADIUS_DEFAULT = 5;
     public boolean GENERAL_SCAN_NOTIFICATION = true;
+    public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
     public Map<Material, Integer> GENERAL_MATERIALS;
 
     public Config(Insights plugin) {
@@ -67,6 +68,7 @@ public class Config {
         updateInt("general.scanradius_default", 1);
 
         GENERAL_SCAN_NOTIFICATION = config.getBoolean("general.scan_notification");
+        GENERAL_ALWAYS_SHOW_NOTIFICATION = config.getBoolean("general.always_show_notification");
 
         GENERAL_MATERIALS = new HashMap<>();
         MemorySection materials = (MemorySection) config.get("general.materials");

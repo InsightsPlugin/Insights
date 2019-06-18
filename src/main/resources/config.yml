@@ -45,6 +45,11 @@ general:
   # Send notification when scanning in actionbar/bossbar
   scan_notification: true
 
+  # If limit is disabled (= -1), should we still show the bossbar/actionbar
+  # for tile entities? If set to false, this will still show the bossbar or
+  # actionbar for custom defined blocks.
+  always_show_notification: true
+
   # Scanradius default radius (which will appear in tabcomplete)
   # Default: 5
   scanradius_default: 5

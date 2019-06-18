@@ -16,7 +16,9 @@ messages:
   # Message send when a user has the permission insights.check.realtime and places a tile
   # Special placeholders:
   # %tile_count%
-  realtime_check: "&3Tiles: &b%tile_count%&3/&b256"
+  # %limit%
+  realtime_check: "&3Tiles: &b%tile_count%&3/&b%limit%"
+  realtime_check_no_limit: "&3Tiles: &b%tile_count%"
 
   # Message send when a user has the permission insights.check.realtime and places a custom defined block
   # Special placeholders:

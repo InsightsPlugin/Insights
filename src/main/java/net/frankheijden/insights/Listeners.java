@@ -11,6 +11,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -36,19 +37,26 @@ public class Listeners implements Listener {
 
             if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
                 double progress = ((double) current)/((double) limit);
-                if (progress > 1) progress = 1;
-                plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", String.valueOf(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
+                if (progress > 1 || progress < 0) progress = 1;
+                plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
             }
             return;
         }
 
         if (plugin.getUtils().isTile(event.getBlock())) {
-            if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
-                int limit = plugin.getConfiguration().GENERAL_LIMIT;
-                double progress = ((double) current)/((double) limit);
-                if (progress > 1) progress = 1;
-                plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check", progress, "%tile_count%", String.valueOf(current));
+            int limit = plugin.getConfiguration().GENERAL_LIMIT;
+            if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || limit > -1) {
+                if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
+                    int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
+                    double progress = ((double) current)/((double) limit);
+                    if (progress > 1 || progress < 0) progress = 1;
+
+                    if (limit > -1) {
+                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check", progress, "%tile_count%", NumberFormat.getIntegerInstance().format(current), "%limit%", NumberFormat.getIntegerInstance().format(limit));
+                    } else {
+                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_no_limit", progress, "%tile_count%", NumberFormat.getIntegerInstance().format(current));
+                    }
+                }
             }
         }
     }
@@ -73,15 +81,15 @@ public class Listeners implements Listener {
                     plugin.getChunkSnapshots().put(n, ms);
                     current = current - 1;
 
-                    plugin.getUtils().sendMessage(event.getPlayer(), "messages.limit_reached_custom", "%limit%", String.valueOf(limit), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()));
+                    plugin.getUtils().sendMessage(event.getPlayer(), "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()));
                     event.setCancelled(true);
                 }
             }
 
             if (event.getPlayer().hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
                 double progress = ((double) current)/((double) limit);
-                if (progress > 1) progress = 1;
-                plugin.getUtils().sendSpecialMessage(event.getPlayer(), "messages.realtime_check_custom", progress, "%count%", String.valueOf(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", String.valueOf(limit));
+                if (progress > 1 || progress < 0) progress = 1;
+                plugin.getUtils().sendSpecialMessage(event.getPlayer(), "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
             }
             return;
         }
@@ -92,14 +100,21 @@ public class Listeners implements Listener {
             if (limit > -1 && current >= limit) {
                 if (!player.hasPermission("insights.bypass")) {
                     event.setCancelled(true);
-                    plugin.getUtils().sendMessage(player, "messages.limit_reached", "%limit%", String.valueOf(limit));
+                    plugin.getUtils().sendMessage(player, "messages.limit_reached", "%limit%", NumberFormat.getIntegerInstance().format(limit));
                 }
             }
 
-            if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                double progress = ((double) current)/((double) limit);
-                if (progress > 1) progress = 1;
-                plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check", progress, "%tile_count%", String.valueOf(current));
+            if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || limit > -1) {
+                if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
+                    double progress = ((double) current)/((double) limit);
+                    if (progress > 1 || progress < 0) progress = 1;
+
+                    if (limit > -1) {
+                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check", progress, "%tile_count%", NumberFormat.getIntegerInstance().format(current), "%limit%", NumberFormat.getIntegerInstance().format(limit));
+                    } else {
+                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_no_limit", progress, "%tile_count%", NumberFormat.getIntegerInstance().format(current));
+                    }
+                }
             }
         }
     }
