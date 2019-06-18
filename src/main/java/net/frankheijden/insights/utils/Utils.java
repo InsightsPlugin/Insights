@@ -360,7 +360,9 @@ public class Utils {
 
             BossBar bossBar = plugin.getBossBarUtils().bossBarPlayers.get(player);
             if (bossBar == null) {
-                bossBar = plugin.getBossBarUtils().defaultBossBar;
+                bossBar = plugin.getBossBarUtils().createNewBossBar();
+            }
+            if (!bossBar.getPlayers().contains(player)) {
                 bossBar.addPlayer(player);
             }
             bossBar.setTitle(message);

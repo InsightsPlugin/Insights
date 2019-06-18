@@ -60,7 +60,7 @@ public class Insights extends JavaPlugin {
 
         if (PaperLib.getMinecraftVersion() >= 9) {
             bossBarUtils = new BossBarUtils(this);
-            bossBarUtils.setupDefaultBossBar();
+            bossBarUtils.setupBossBarUtils();
             bossBarUtils.setupBossBarRunnable();
         }
     }
@@ -119,7 +119,7 @@ public class Insights extends JavaPlugin {
         setupConfiguration();
 
         if (PaperLib.getMinecraftVersion() >= 9) {
-            bossBarUtils.setupDefaultBossBar();
+            bossBarUtils.setupBossBarUtils();
         }
     }
 

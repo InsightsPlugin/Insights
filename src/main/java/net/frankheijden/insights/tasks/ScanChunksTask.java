@@ -107,7 +107,7 @@ public class ScanChunksTask implements Runnable {
         if (loadChunksTask.getPlugin().getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
             isBossBar = true;
 
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.put(loadChunksTask.getUuid(), loadChunksTask.getPlugin().getBossBarUtils().defaultBossBar);
+            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.put(loadChunksTask.getUuid(), loadChunksTask.getPlugin().getBossBarUtils().createNewBossBar());
             if (player != null) {
                 loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).addPlayer(player);
             }
