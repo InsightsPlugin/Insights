@@ -2,6 +2,7 @@ package net.frankheijden.insights;
 
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,9 +11,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.text.NumberFormat;
-import java.util.HashMap;
 import java.util.UUID;
 
 public class Listeners implements Listener {
@@ -33,13 +35,17 @@ public class Listeners implements Listener {
         Material material = event.getBlock().getType();
         if (plugin.getConfiguration().GENERAL_MATERIALS.keySet().contains(material)) {
             int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(material);
-            int current = plugin.getUtils().updateCachedAmountInChunk(event.getBlock().getChunk(), material, true);
-
-            if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                double progress = ((double) current)/((double) limit);
-                if (progress > 1 || progress < 0) progress = 1;
-                plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
-            }
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    int current = plugin.getUtils().getAmountInChunk(event.getBlock().getChunk(), material);
+                    if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
+                        double progress = ((double) current)/((double) limit);
+                        if (progress > 1 || progress < 0) progress = 1;
+                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
+                    }
+                }
+            }.runTaskAsynchronously(plugin);
             return;
         }
 
@@ -72,25 +78,33 @@ public class Listeners implements Listener {
         Material material = event.getBlock().getType();
         if (plugin.getConfiguration().GENERAL_MATERIALS.keySet().contains(material)) {
             int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(material);
-            int current = plugin.getUtils().updateCachedAmountInChunk(event.getBlockPlaced().getChunk(), material, false);
-            if (current > limit) {
-                if (!player.hasPermission("insights.bypass." + material.name())) {
-                    String n = event.getBlockPlaced().getChunk().getX() + "_" + event.getBlockPlaced().getChunk().getZ();
-                    HashMap<Material, Integer> ms = plugin.getChunkSnapshots().get(n);
-                    ms.put(material, limit);
-                    plugin.getChunkSnapshots().put(n, ms);
-                    current = current - 1;
 
-                    plugin.getUtils().sendMessage(event.getPlayer(), "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()));
-                    event.setCancelled(true);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    int current = plugin.getUtils().getAmountInChunk(event.getBlock().getChunk(), material);
+                    if (current > limit) {
+                        if (!player.hasPermission("insights.bypass." + material.name())) {
+                            plugin.getUtils().sendMessage(event.getPlayer(), "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()));
+                            if (player.getGameMode() != GameMode.CREATIVE) {
+                                player.getInventory().addItem(new ItemStack(event.getItemInHand()).asOne());
+                            }
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    event.getBlock().setType(Material.AIR);
+                                }
+                            }.runTask(plugin);
+                        }
+                    }
+
+                    if (event.getPlayer().hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
+                        double progress = ((double) current)/((double) limit);
+                        if (progress > 1 || progress < 0) progress = 1;
+                        plugin.getUtils().sendSpecialMessage(event.getPlayer(), "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
+                    }
                 }
-            }
-
-            if (event.getPlayer().hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                double progress = ((double) current)/((double) limit);
-                if (progress > 1 || progress < 0) progress = 1;
-                plugin.getUtils().sendSpecialMessage(event.getPlayer(), "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
-            }
+            }.runTaskAsynchronously(plugin);
             return;
         }
 
