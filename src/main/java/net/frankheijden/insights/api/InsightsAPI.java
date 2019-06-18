@@ -1,15 +1,17 @@
 package net.frankheijden.insights.api;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.api.builders.ScanTaskBuilder;
 import net.frankheijden.insights.api.entities.ChunkLocation;
-import net.frankheijden.insights.tasks.ScanTask;
+import net.frankheijden.insights.api.enums.ScanType;
+import net.frankheijden.insights.api.events.ScanCompleteEvent;
+import net.frankheijden.insights.tasks.LoadChunksTask;
 import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 
 import java.util.List;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,9 +40,9 @@ public class InsightsAPI {
      *
      * @param world World in which we should scan
      * @param chunkLocations List of ChunkLocation to scan in
-     * @return CompletableFuture which supplies the counts.
+     * @return CompletableFuture which supplies the ScanCompleteEvent
      */
-    public CompletableFuture<TreeMap<String, Integer>> scan(World world, List<ChunkLocation> chunkLocations) {
+    public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations) {
         return scan(world, chunkLocations, null, null);
     }
 
@@ -51,26 +53,31 @@ public class InsightsAPI {
      * @param chunkLocations List of ChunkLocation to scan in
      * @param materials List of Material to scan for, null if none
      * @param entityTypes List of EntityType to scan for, null if none
-     * @return CompletableFuture which supplies the counts.
+     * @return CompletableFuture which supplies the ScanCompleteEvent
      */
-    public CompletableFuture<TreeMap<String, Integer>> scan(World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
+    public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
         return CompletableFuture.supplyAsync(() -> {
             Object LOCK = new Object();
 
             String k = RandomStringUtils.randomAlphanumeric(16);
-            while (getInstance().countsMap.containsKey(k)) {
+            while (getInstance().getCountsMap().containsKey(k)) {
                 k = RandomStringUtils.randomAlphanumeric(16);
             }
             final String key = k;
 
-            ScanTask scanTask = new ScanTask(getInstance(), world, chunkLocations, materials, entityTypes, (event) -> {
-                getInstance().countsMap.put(key, event.getCounts());
+            ScanTaskBuilder builder = new ScanTaskBuilder(getInstance(), ScanType.CUSTOM, world, chunkLocations)
+                    .setMaterials(materials)
+                    .setEntityTypes(entityTypes)
+                    .setScanCompleteEventListener((event) -> {
+                        getInstance().getCountsMap().put(key, event);
 
-                synchronized (LOCK) {
-                    LOCK.notify();
-                }
-            });
-            scanTask.start(System.currentTimeMillis());
+                        synchronized (LOCK) {
+                            LOCK.notify();
+                        }
+                    });
+
+            LoadChunksTask loadChunksTask = builder.build();
+            loadChunksTask.start(System.currentTimeMillis());
 
             synchronized (LOCK) {
                 try {
@@ -80,7 +87,7 @@ public class InsightsAPI {
                 }
             }
 
-            return getInstance().countsMap.get(key);
+            return getInstance().getCountsMap().get(key);
         });
     }
 
@@ -91,7 +98,7 @@ public class InsightsAPI {
      * @param uuid UUID of player
      */
     public void toggleCheck(UUID uuid) {
-        getInstance().sqLite.toggleRealtimeCheck(uuid);
+        getInstance().getSqLite().toggleRealtimeCheck(uuid);
     }
 
     /**
@@ -102,7 +109,7 @@ public class InsightsAPI {
      * @param enabled boolean enabled
      */
     public void setToggleCheck(UUID uuid, boolean enabled) {
-        getInstance().sqLite.setRealtimeCheck(uuid, enabled);
+        getInstance().getSqLite().setRealtimeCheck(uuid, enabled);
     }
 
     /**
@@ -112,7 +119,7 @@ public class InsightsAPI {
      * @return boolean scanning
      */
     public boolean isScanningChunks(UUID uuid) {
-        return getInstance().playerScanTasks.containsKey(uuid);
+        return getInstance().getPlayerScanTasks().containsKey(uuid);
     }
 
     /**
@@ -123,10 +130,10 @@ public class InsightsAPI {
      * @return double progress, or null if no ScanTask.
      */
     public Double getScanProgress(UUID uuid) {
-        ScanTask task = getInstance().playerScanTasks.get(uuid);
-        if (task != null) {
-            double total = (double) task.getTotalChunks();
-            double done = (double) task.getScanRunnable().getChunksDone();
+        LoadChunksTask loadChunksTask = getInstance().getPlayerScanTasks().get(uuid);
+        if (loadChunksTask != null) {
+            double total = (double) loadChunksTask.getTotalChunks();
+            double done = (double) loadChunksTask.getScanChunksTask().getChunksDone();
             double progress = done/total;
             if (progress < 0) {
                 progress = 0;
@@ -145,9 +152,9 @@ public class InsightsAPI {
      * @return String time elapsed, or null if no ScanTask.
      */
     public String getTimeElapsedOfScan(UUID uuid) {
-        ScanTask task = getInstance().playerScanTasks.get(uuid);
-        if (task != null) {
-            return getInstance().utils.getDHMS(task.getStartTime());
+        LoadChunksTask loadChunksTask = getInstance().getPlayerScanTasks().get(uuid);
+        if (loadChunksTask != null) {
+            return getInstance().getUtils().getDHMS(loadChunksTask.getStartTime());
         }
         return null;
     }

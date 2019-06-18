@@ -13,17 +13,17 @@ public class BossBarTask implements Runnable {
 
     @Override
     public void run() {
-        for (Player player : plugin.bossBarUtils.bossBarDurationPlayers.keySet()) {
-            if (System.currentTimeMillis() >= plugin.bossBarUtils.bossBarDurationPlayers.get(player)) {
+        for (Player player : plugin.getBossBarUtils().bossBarDurationPlayers.keySet()) {
+            if (System.currentTimeMillis() >= plugin.getBossBarUtils().bossBarDurationPlayers.get(player)) {
                 removePlayer(player);
             }
         }
     }
 
     private void removePlayer(Player player) {
-        plugin.bossBarUtils.bossBarDurationPlayers.remove(player);
+        plugin.getBossBarUtils().bossBarDurationPlayers.remove(player);
 
-        BossBar bossBar = plugin.bossBarUtils.bossBarPlayers.get(player);
+        BossBar bossBar = plugin.getBossBarUtils().bossBarPlayers.get(player);
         if (bossBar != null) {
             bossBar.setVisible(false);
         }

@@ -22,11 +22,11 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(new String[]{
-                    plugin.utils.color("&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------"),
-                    plugin.utils.color("&b Plugin version: &7" + plugin.getDescription().getVersion()),
-                    plugin.utils.color("&b Plugin author: &7https://www.spigotmc.org/members/213966/"),
-                    plugin.utils.color("&b Plugin link: &7https://www.spigotmc.org/resources/56489/"),
-                    plugin.utils.color("&8&m-------------------------------------------------")
+                    plugin.getUtils().color("&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------"),
+                    plugin.getUtils().color("&b Plugin version: &7" + plugin.getDescription().getVersion()),
+                    plugin.getUtils().color("&b Plugin author: &7https://www.spigotmc.org/members/213966/"),
+                    plugin.getUtils().color("&b Plugin link: &7https://www.spigotmc.org/resources/56489/"),
+                    plugin.getUtils().color("&8&m-------------------------------------------------")
             });
             return true;
         } else if (args.length == 1) {
@@ -35,19 +35,19 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     try {
                         plugin.reload();
                     } catch (Exception ex) {
-                        plugin.utils.sendMessage(sender, "messages.reload_failed");
+                        plugin.getUtils().sendMessage(sender, "messages.reload_failed");
                         return true;
                     }
 
-                    plugin.utils.sendMessage(sender, "messages.reload");
+                    plugin.getUtils().sendMessage(sender, "messages.reload");
                 } else {
-                    plugin.utils.sendMessage(sender, "messages.no_permission");
+                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
                 }
                 return true;
             }
         }
 
-        plugin.utils.sendMessage(sender, "messages.help");
+        plugin.getUtils().sendMessage(sender, "messages.help");
         return true;
     }
 

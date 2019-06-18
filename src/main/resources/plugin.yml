@@ -25,6 +25,7 @@ commands:
        /<command> entity
        /<command> custom DIAMOND_ORE
        /<command> custom DIAMOND_ORE COW
+       /<command> all
 
   scanradius:
     usage: |-
@@ -34,6 +35,7 @@ commands:
        /<command> <radius> entity
        /<command> <radius> custom DIAMOND_ORE
        /<command> <radius> custom DIAMOND_ORE COW
+       /<command> <radius> all
 
   scanworld:
     usage: |-
@@ -43,39 +45,43 @@ commands:
        /<command> <world> entity
        /<command> <world> custom DIAMOND_ORE
        /<command> <world> custom DIAMOND_ORE COW
+       /<command> <world> all
 
   togglecheck:
     usage: 'Usage: /<command>'
 
 permissions:
-  blocklimiter.*:
+  insights.*:
     children:
-      blocklimiter.check.realtime: true
-      blocklimiter.reload: true
-      blocklimiter.check: true
-      blocklimiter.checkworlds: true
-      blocklimiter.scan.*: true
-      blocklimiter.scanradius.*: true
-      blocklimiter.scanworlds.*: true
-      blocklimiter.togglecheck.*: true
+      insights.check.realtime: true
+      insights.reload: true
+      insights.check: true
+      insights.checkworlds: true
+      insights.scan.*: true
+      insights.scanradius.*: true
+      insights.scanworlds.*: true
+      insights.togglecheck.*: true
 
-  blocklimiter.scan.*:
+  insights.scan.*:
     children:
-      blocklimiter.scan.tile: true
-      blocklimiter.scan.entity: true
-      blocklimiter.scan.custom.*: true
-      blocklimiter.scan.tab: true
+      insights.scan.tile: true
+      insights.scan.entity: true
+      insights.scan.custom.*: true
+      insights.scan.all: true
+      insights.scan.tab: true
 
-  blocklimiter.scanradius.*:
+  insights.scanradius.*:
     children:
-      blocklimiter.scanradius.tile: true
-      blocklimiter.scanradius.entity: true
-      blocklimiter.scanradius.custom.*: true
-      blocklimiter.scanradius.tab: true
+      insights.scanradius.tile: true
+      insights.scanradius.entity: true
+      insights.scanradius.custom.*: true
+      insights.scanradius.all: true
+      insights.scanradius.tab: true
 
-  blocklimiter.scanworld.*:
+  insights.scanworld.*:
     children:
-      blocklimiter.scanworld.tile: true
-      blocklimiter.scanworld.entity: true
-      blocklimiter.scanworld.custom.*: true
-      blocklimiter.scanworld.tab: true
+      insights.scanworld.tile: true
+      insights.scanworld.entity: true
+      insights.scanworld.custom.*: true
+      insights.scanworld.all: true
+      insights.scanworld.tab: true

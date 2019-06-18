@@ -31,7 +31,7 @@ general:
       # Bossbar flags
       # Possible values are "DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG"
       # Default: []
-      flags: [] # Remove [] to add values
+      flags: [] # Remove [] to addCompletableFuture values
       #  - "DARKEN_SKY"
       #  - "PLAY_BOSS_MUSIC"
 

@@ -41,17 +41,17 @@ public class BossBarUtils {
         bossBarPlayers = new HashMap<>();
         bossBarDurationPlayers = new HashMap<>();
 
-        if (plugin.config.GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR")) {
-            BarColor barColor = BarColor.valueOf(plugin.config.GENERAL_NOTIFICATION_BOSSBAR_COLOR);
-            BarStyle barStyle = BarStyle.valueOf(plugin.config.GENERAL_NOTIFICATION_BOSSBAR_STYLE);
+        if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR")) {
+            BarColor barColor = BarColor.valueOf(plugin.getConfiguration().GENERAL_NOTIFICATION_BOSSBAR_COLOR);
+            BarStyle barStyle = BarStyle.valueOf(plugin.getConfiguration().GENERAL_NOTIFICATION_BOSSBAR_STYLE);
 
             List<BarFlag> barFlags = new ArrayList<>();
-            for (String barFlagString : plugin.config.GENERAL_NOTIFICATION_BOSSBAR_FLAGS) {
+            for (String barFlagString : plugin.getConfiguration().GENERAL_NOTIFICATION_BOSSBAR_FLAGS) {
                 barFlags.add(BarFlag.valueOf(barFlagString));
             }
 
             defaultBossBar = Bukkit.createBossBar("", barColor, barStyle, barFlags.toArray(new BarFlag[0]));
-            bossBarDuration = plugin.config.GENERAL_NOTIFICATION_BOSSBAR_DURATION * 50; // ticks * 50 = milliseconds
+            bossBarDuration = plugin.getConfiguration().GENERAL_NOTIFICATION_BOSSBAR_DURATION * 50; // ticks * 50 = milliseconds
         }
     }
 }

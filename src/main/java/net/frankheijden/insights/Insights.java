@@ -2,9 +2,10 @@ package net.frankheijden.insights;
 
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.api.InsightsAPI;
+import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
-import net.frankheijden.insights.tasks.ScanTask;
+import net.frankheijden.insights.tasks.LoadChunksTask;
 import net.frankheijden.insights.utils.BossBarUtils;
 import net.frankheijden.insights.utils.Utils;
 import org.bukkit.Bukkit;
@@ -14,7 +15,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 public class Insights extends JavaPlugin {
     private static Insights insights;
@@ -24,20 +28,21 @@ public class Insights extends JavaPlugin {
 
     public Insights(){}
 
-    public FileConfiguration messages;
+    private FileConfiguration messages;
 
-    public String nms;
-    public boolean oldActionBar = false;
-    public boolean useNewAPI = true;
+    private String nms;
+    private boolean oldActionBar = false;
+    private boolean newAPI = true;
 
-    public Config config;
-    public Utils utils;
-    public SQLite sqLite;
-    public BossBarUtils bossBarUtils;
+    private Config config;
+    private Utils utils;
+    private SQLite sqLite;
+    private BossBarUtils bossBarUtils;
 
-    public Map<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
-    public Map<UUID, ScanTask> playerScanTasks = new HashMap<>();
-    public Map<String, TreeMap<String, Integer>> countsMap = new HashMap<>();
+    private Map<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
+    private Map<UUID, LoadChunksTask> playerScanTasks = new HashMap<>();
+    private boolean consoleScanning = false;
+    private Map<String, ScanCompleteEvent> countsMap = new HashMap<>();
 
     private InsightsAPI insightsAPI;
 
@@ -95,7 +100,7 @@ public class Insights extends JavaPlugin {
         }
 
         if (nms.startsWith("v1_12_") || nms.startsWith("v1_11_") || nms.startsWith("v1_10_") || nms.startsWith("v1_9_") || nms.startsWith("v1_8_")) {
-            useNewAPI = false;
+            newAPI = false;
         }
         Bukkit.getLogger().info("[Insights] NMS version '"+nms+"' detected!");
     }
@@ -110,15 +115,67 @@ public class Insights extends JavaPlugin {
         }
     }
 
-    public InsightsAPI getInsightsAPI() {
-        return insightsAPI;
-    }
-
     public void reload() {
         setupConfiguration();
 
         if (PaperLib.getMinecraftVersion() >= 9) {
             bossBarUtils.setupDefaultBossBar();
         }
+    }
+
+    public InsightsAPI getInsightsAPI() {
+        return insightsAPI;
+    }
+
+    public FileConfiguration getMessages() {
+        return messages;
+    }
+
+    public String getNms() {
+        return nms;
+    }
+
+    public boolean shouldUseOldActionBar() {
+        return oldActionBar;
+    }
+
+    public boolean shouldUseNewAPI() {
+        return newAPI;
+    }
+
+    public Config getConfiguration() {
+        return config;
+    }
+
+    public Utils getUtils() {
+        return utils;
+    }
+
+    public SQLite getSqLite() {
+        return sqLite;
+    }
+
+    public BossBarUtils getBossBarUtils() {
+        return bossBarUtils;
+    }
+
+    public Map<String, HashMap<Material, Integer>> getChunkSnapshots() {
+        return chunkSnapshotHashMap;
+    }
+
+    public Map<UUID, LoadChunksTask> getPlayerScanTasks() {
+        return playerScanTasks;
+    }
+
+    public Map<String, ScanCompleteEvent> getCountsMap() {
+        return countsMap;
+    }
+
+    public boolean isConsoleScanning() {
+        return consoleScanning;
+    }
+
+    public void setConsoleScanning(boolean consoleScanning) {
+        this.consoleScanning = consoleScanning;
     }
 }

@@ -26,9 +26,9 @@ public class CommandCheck implements CommandExecutor, TabExecutor {
 
             if (player.hasPermission("insights.check")) {
                 Chunk chunk = player.getLocation().getChunk();
-                plugin.utils.sendMessage(player, "messages.check", "%tile_count%", NumberFormat.getIntegerInstance().format(chunk.getTileEntities().length), "%entity_count%", NumberFormat.getIntegerInstance().format(chunk.getEntities().length));
+                plugin.getUtils().sendMessage(player, "messages.check", "%tile_count%", NumberFormat.getIntegerInstance().format(chunk.getTileEntities().length), "%entity_count%", NumberFormat.getIntegerInstance().format(chunk.getEntities().length));
             } else {
-                plugin.utils.sendMessage(player, "messages.no_permission");
+                plugin.getUtils().sendMessage(player, "messages.no_permission");
             }
         } else {
             sender.sendMessage("This command cannot be executed from console!");

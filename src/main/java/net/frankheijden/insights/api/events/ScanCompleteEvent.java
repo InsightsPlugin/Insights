@@ -1,6 +1,7 @@
 package net.frankheijden.insights.api.events;
 
 import net.frankheijden.insights.api.entities.ChunkLocation;
+import net.frankheijden.insights.tasks.LoadChunksTask;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
@@ -19,18 +20,14 @@ public class ScanCompleteEvent {
      * Event which is called when a scan has been completed and the listener
      * class confirms to the ScanCompleteEventListener interface.
      *
-     * @param counts Key = Material and EntityType, Value = Integer count
-     * @param world World in which we scanned
-     * @param chunkLocations ChunkLocations which have been scanned
-     * @param materials Materials which have been scanned
-     * @param entityTypes EntityTypes which have been scanned
+     * @param loadChunksTask LoadChunksTask
      */
-    public ScanCompleteEvent(TreeMap<String, Integer> counts, World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
-        this.counts = counts;
-        this.world = world;
-        this.chunkLocations = chunkLocations;
-        this.materials = materials;
-        this.entityTypes = entityTypes;
+    public ScanCompleteEvent(LoadChunksTask loadChunksTask) {
+        this.counts = loadChunksTask.getScanChunksTask().getCounts();
+        this.world = loadChunksTask.getWorld();
+        this.chunkLocations = loadChunksTask.getChunkLocations();
+        this.materials = loadChunksTask.getMaterials();
+        this.entityTypes = loadChunksTask.getEntityTypes();
     }
 
     /**

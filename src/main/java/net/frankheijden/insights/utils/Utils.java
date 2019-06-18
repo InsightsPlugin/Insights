@@ -2,6 +2,7 @@ package net.frankheijden.insights.utils;
 
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.api.entities.ChunkLocation;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -71,6 +72,26 @@ public class Utils {
         return count;
     }
 
+    public List<ChunkLocation> getChunkLocations(Chunk[] chunks) {
+        ArrayList<ChunkLocation> chunkLocations = new ArrayList<>();
+        for (Chunk chunk : chunks) {
+            chunkLocations.add(new ChunkLocation(chunk));
+        }
+        return chunkLocations;
+    }
+
+    public List<ChunkLocation> getChunkLocations(Chunk chunk, int radius) {
+        int x = chunk.getX();
+        int z = chunk.getZ();
+        ArrayList<ChunkLocation> chunkLocations = new ArrayList<>();
+        for (int xc = x-radius; xc <= x+radius; xc++) {
+            for (int zc = z - radius; zc <= z + radius; zc++) {
+                chunkLocations.add(new ChunkLocation(xc, zc));
+            }
+        }
+        return chunkLocations;
+    }
+
     public int getAmountInChunk(Chunk chunk, Material material) {
         ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
 
@@ -90,9 +111,9 @@ public class Utils {
     public int updateCachedAmountInChunk(Chunk chunk, Material material, boolean isBreak) {
         String chunkName = chunk.getX() + "_" + chunk.getZ();
 
-        if (plugin.chunkSnapshotHashMap.containsKey(chunkName)) {
-            if (plugin.chunkSnapshotHashMap.get(chunkName).containsKey(material)) {
-                HashMap<Material, Integer> materials = plugin.chunkSnapshotHashMap.get(chunkName);
+        if (plugin.getChunkSnapshots().containsKey(chunkName)) {
+            if (plugin.getChunkSnapshots().get(chunkName).containsKey(material)) {
+                HashMap<Material, Integer> materials = plugin.getChunkSnapshots().get(chunkName);
                 Integer i = materials.get(material);
                 int newCount = (i == null) ? 0 : i;
                 if (isBreak) {
@@ -102,7 +123,7 @@ public class Utils {
                 }
 
                 materials.put(material, newCount);
-                plugin.chunkSnapshotHashMap.put(chunkName, materials);
+                plugin.getChunkSnapshots().put(chunkName, materials);
 
                 return newCount;
             }
@@ -114,13 +135,13 @@ public class Utils {
         }
 
         HashMap<Material, Integer> materials;
-        if (plugin.chunkSnapshotHashMap.containsKey(chunkName)) {
-            materials = plugin.chunkSnapshotHashMap.get(chunkName);
+        if (plugin.getChunkSnapshots().containsKey(chunkName)) {
+            materials = plugin.getChunkSnapshots().get(chunkName);
         } else {
             materials = new HashMap<>();
         }
         materials.put(material, count);
-        plugin.chunkSnapshotHashMap.put(chunkName, materials);
+        plugin.getChunkSnapshots().put(chunkName, materials);
 
         return count;
     }
@@ -165,7 +186,7 @@ public class Utils {
         try {
             Class<?> chunkSnapshotClass = Class.forName("org.bukkit.ChunkSnapshot");
             Object chunkSnap = chunkSnapshotClass.cast(chunkSnapshot);
-            if (plugin.useNewAPI) {
+            if (plugin.shouldUseNewAPI()) {
                 Method m = chunkSnapshotClass.getDeclaredMethod("getBlockType", int.class, int.class, int.class);
                 return (Material) m.invoke(chunkSnap, x, y, z);
             } else {
@@ -303,7 +324,7 @@ public class Utils {
     }
 
     public void sendMessage(CommandSender sender, String path, String... placeholders) {
-        String message = plugin.messages.getString(path);
+        String message = plugin.getMessages().getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++, i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
@@ -320,7 +341,7 @@ public class Utils {
     }
 
     public void sendSpecialMessage(Player player, String path, double progress, String... placeholders) {
-        String messageType = plugin.config.GENERAL_NOTIFICATION_TYPE;
+        String messageType = plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE;
         if (messageType == null) messageType = "ACTIONBAR";
         if (messageType.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
             sendBossBar(player, path, progress, placeholders);
@@ -330,31 +351,31 @@ public class Utils {
     }
 
     private void sendBossBar(Player player, String path, double progress, String... placeholders) {
-        String message = plugin.messages.getString(path);
+        String message = plugin.getMessages().getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++,i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
             }
             message = color(message);
 
-            BossBar bossBar = plugin.bossBarUtils.bossBarPlayers.get(player);
+            BossBar bossBar = plugin.getBossBarUtils().bossBarPlayers.get(player);
             if (bossBar == null) {
-                bossBar = plugin.bossBarUtils.defaultBossBar;
+                bossBar = plugin.getBossBarUtils().defaultBossBar;
                 bossBar.addPlayer(player);
             }
             bossBar.setTitle(message);
             bossBar.setProgress(progress);
             bossBar.setVisible(true);
 
-            plugin.bossBarUtils.bossBarPlayers.put(player, bossBar);
-            plugin.bossBarUtils.bossBarDurationPlayers.put(player, System.currentTimeMillis() + plugin.bossBarUtils.bossBarDuration);
+            plugin.getBossBarUtils().bossBarPlayers.put(player, bossBar);
+            plugin.getBossBarUtils().bossBarDurationPlayers.put(player, System.currentTimeMillis() + plugin.getBossBarUtils().bossBarDuration);
         } else {
             System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
         }
     }
 
     private void sendActionBar(Player player, String path, String... placeholders) {
-        String message = plugin.messages.getString(path);
+        String message = plugin.getMessages().getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++,i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
@@ -369,22 +390,22 @@ public class Utils {
 
     public void sendActionbar(Player player, String message) {
         try {
-            Class<?> craftPlayerClass = Class.forName("org.bukkit.craftbukkit." + plugin.nms + ".entity.CraftPlayer");
+            Class<?> craftPlayerClass = Class.forName("org.bukkit.craftbukkit." + plugin.getNms() + ".entity.CraftPlayer");
             Object craftPlayer = craftPlayerClass.cast(player);
             Object packet;
-            Class<?> packetPlayOutChatClass = Class.forName("net.minecraft.server." + plugin.nms + ".PacketPlayOutChat");
-            Class<?> packetClass = Class.forName("net.minecraft.server." + plugin.nms + ".Packet");
-            if (plugin.oldActionBar) {
-                Class<?> chatSerializerClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatSerializer");
-                Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + plugin.nms + ".IChatBaseComponent");
+            Class<?> packetPlayOutChatClass = Class.forName("net.minecraft.server." + plugin.getNms() + ".PacketPlayOutChat");
+            Class<?> packetClass = Class.forName("net.minecraft.server." + plugin.getNms() + ".Packet");
+            if (plugin.shouldUseOldActionBar()) {
+                Class<?> chatSerializerClass = Class.forName("net.minecraft.server." + plugin.getNms() + ".ChatSerializer");
+                Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + plugin.getNms() + ".IChatBaseComponent");
                 Method m3 = chatSerializerClass.getDeclaredMethod("a", String.class);
                 Object cbc = iChatBaseComponentClass.cast(m3.invoke(chatSerializerClass, "{\"text\": \"" + message + "\"}"));
                 packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(cbc, (byte) 2);
             } else {
-                Class<?> chatComponentTextClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatComponentText");
-                Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + plugin.nms + ".IChatBaseComponent");
+                Class<?> chatComponentTextClass = Class.forName("net.minecraft.server." + plugin.getNms() + ".ChatComponentText");
+                Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + plugin.getNms() + ".IChatBaseComponent");
                 try {
-                    Class<?> chatMessageTypeClass = Class.forName("net.minecraft.server." + plugin.nms + ".ChatMessageType");
+                    Class<?> chatMessageTypeClass = Class.forName("net.minecraft.server." + plugin.getNms() + ".ChatMessageType");
                     Object[] chatMessageTypes = chatMessageTypeClass.getEnumConstants();
                     Object chatMessageType = null;
                     for (Object obj : chatMessageTypes) {

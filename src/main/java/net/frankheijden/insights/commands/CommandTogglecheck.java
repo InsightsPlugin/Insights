@@ -22,19 +22,18 @@ public class CommandTogglecheck implements CommandExecutor, TabExecutor {
         if (sender.hasPermission("insights.togglecheck")) {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
-                plugin.sqLite.toggleRealtimeCheck(player.getUniqueId());
+                plugin.getSqLite().toggleRealtimeCheck(player.getUniqueId());
 
-                boolean hasRealtimeCheckEnabled = plugin.sqLite.hasRealtimeCheckEnabled(player);
-                if (hasRealtimeCheckEnabled) {
-                    plugin.utils.sendMessage(player, "messages.togglecheck.enabled", "%name%", player.getPlayerListName());
+                if (plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
+                    plugin.getUtils().sendMessage(player, "messages.togglecheck.enabled", "%name%", player.getPlayerListName());
                 } else {
-                    plugin.utils.sendMessage(player, "messages.togglecheck.disabled", "%name%", player.getPlayerListName());
+                    plugin.getUtils().sendMessage(player, "messages.togglecheck.disabled", "%name%", player.getPlayerListName());
                 }
             } else {
                 sender.sendMessage("This command cannot be executed from console!");
             }
         } else {
-            plugin.utils.sendMessage(sender, "messages.no_permission");
+            plugin.getUtils().sendMessage(sender, "messages.no_permission");
         }
         return true;
     }

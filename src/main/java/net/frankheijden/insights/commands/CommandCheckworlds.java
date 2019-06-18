@@ -25,7 +25,7 @@ public class CommandCheckworlds implements CommandExecutor, TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (sender.hasPermission("insights.checkworlds")) {
-            plugin.utils.sendMessage(sender, "messages.checkworlds.header");
+            plugin.getUtils().sendMessage(sender, "messages.checkworlds.header");
 
             int totalTileCount = 0;
             int totalEntityCount = 0;
@@ -44,20 +44,20 @@ public class CommandCheckworlds implements CommandExecutor, TabExecutor {
                     worldTileCount = worldTileCount + chunk.getTileEntities().length;
                 }
 
-                plugin.utils.sendMessage(sender, "messages.checkworlds.format", "%world%", worldName, "%entities%", NumberFormat.getIntegerInstance().format(worldEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(worldTileCount));
+                plugin.getUtils().sendMessage(sender, "messages.checkworlds.format", "%world%", worldName, "%entities%", NumberFormat.getIntegerInstance().format(worldEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(worldTileCount));
 
                 totalTileCount = totalTileCount + worldTileCount;
                 totalEntityCount = totalEntityCount + worldEntityCount;
             }
 
             if (totalTileCount > 0 || totalEntityCount > 0) {
-                plugin.utils.sendMessage(sender, "messages.checkworlds.total", "%entities%", NumberFormat.getIntegerInstance().format(totalEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(totalTileCount));
+                plugin.getUtils().sendMessage(sender, "messages.checkworlds.total", "%entities%", NumberFormat.getIntegerInstance().format(totalEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(totalTileCount));
             } else {
-                plugin.utils.sendMessage(sender, "messages.checkworlds.none");
+                plugin.getUtils().sendMessage(sender, "messages.checkworlds.none");
             }
-            plugin.utils.sendMessage(sender, "messages.checkworlds.footer");
+            plugin.getUtils().sendMessage(sender, "messages.checkworlds.footer");
         } else {
-            plugin.utils.sendMessage(sender, "messages.no_permission");
+            plugin.getUtils().sendMessage(sender, "messages.no_permission");
         }
         return true;
     }
