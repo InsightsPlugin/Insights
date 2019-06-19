@@ -36,7 +36,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                     long startTime = System.currentTimeMillis();
 
-                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.BOTH, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getChunk())))
+                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.BOTH, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getLocation().getChunk())))
                             .setUUIDAndPath(player.getUniqueId(), "messages.scan");
                     builder.build().start(startTime);
                 } else {
@@ -53,7 +53,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                         long startTime = System.currentTimeMillis();
 
-                        ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.ENTITY, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getChunk())))
+                        ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.ENTITY, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getLocation().getChunk())))
                                 .setUUIDAndPath(player.getUniqueId(), "messages.scan");
                         builder.build().start(startTime);
                     } else {
@@ -69,7 +69,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                         long startTime = System.currentTimeMillis();
 
-                        ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.TILE, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getChunk())))
+                        ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.TILE, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getLocation().getChunk())))
                                 .setUUIDAndPath(player.getUniqueId(), "messages.scan");
                         builder.build().start(startTime);
                     } else {
@@ -85,7 +85,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
                         long startTime = System.currentTimeMillis();
 
-                        ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.ALL, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getChunk())))
+                        ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.ALL, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getLocation().getChunk())))
                                 .setUUIDAndPath(player.getUniqueId(), "messages.scan");
                         builder.build().start(startTime);
                     } else {
@@ -127,7 +127,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                         return true;
                     }
 
-                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.CUSTOM, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getChunk())))
+                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.CUSTOM, player.getWorld(), Collections.singletonList(new ChunkLocation(player.getLocation().getChunk())))
                             .setUUIDAndPath(player.getUniqueId(), "messages.scan")
                             .setMaterials(materials)
                             .setEntityTypes(entityTypes);

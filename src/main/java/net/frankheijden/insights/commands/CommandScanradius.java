@@ -42,7 +42,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
 
                                 long startTime = System.currentTimeMillis();
 
-                                ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.BOTH, player.getWorld(), plugin.getUtils().getChunkLocations(player.getChunk(), radius))
+                                ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.BOTH, player.getWorld(), plugin.getUtils().getChunkLocations(player.getLocation().getChunk(), radius))
                                         .setUUIDAndPath(player.getUniqueId(), "messages.scanradius");
                                 builder.build().start(startTime);
                                 return true;
@@ -69,7 +69,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
 
                                     long startTime = System.currentTimeMillis();
 
-                                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.ENTITY, player.getWorld(), plugin.getUtils().getChunkLocations(player.getChunk(), radius))
+                                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.ENTITY, player.getWorld(), plugin.getUtils().getChunkLocations(player.getLocation().getChunk(), radius))
                                             .setUUIDAndPath(player.getUniqueId(), "messages.scanradius");
                                     builder.build().start(startTime);
                                     return true;
@@ -85,7 +85,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
 
                                     long startTime = System.currentTimeMillis();
 
-                                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.TILE, player.getWorld(), plugin.getUtils().getChunkLocations(player.getChunk(), radius))
+                                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.TILE, player.getWorld(), plugin.getUtils().getChunkLocations(player.getLocation().getChunk(), radius))
                                             .setUUIDAndPath(player.getUniqueId(), "messages.scanradius");
                                     builder.build().start(startTime);
                                     return true;
@@ -101,7 +101,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
 
                                     long startTime = System.currentTimeMillis();
 
-                                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.ALL, player.getWorld(), plugin.getUtils().getChunkLocations(player.getChunk(), radius))
+                                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.ALL, player.getWorld(), plugin.getUtils().getChunkLocations(player.getLocation().getChunk(), radius))
                                             .setUUIDAndPath(player.getUniqueId(), "messages.scan");
                                     builder.build().start(startTime);
                                 } else {
@@ -153,7 +153,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                                         return true;
                                     }
 
-                                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.CUSTOM, player.getWorld(), plugin.getUtils().getChunkLocations(player.getChunk(), radius))
+                                    ScanTaskBuilder builder = new ScanTaskBuilder(plugin, ScanType.CUSTOM, player.getWorld(), plugin.getUtils().getChunkLocations(player.getLocation().getChunk(), radius))
                                             .setUUIDAndPath(player.getUniqueId(), "messages.scanradius")
                                             .setMaterials(materials)
                                             .setEntityTypes(entityTypes);
