@@ -161,7 +161,7 @@ public class SQLite {
         PreparedStatement ps = null;
         try {
             connection = setupConnection();
-            ps = connection.prepareStatement("DELETE FROM players_autoscan WHERE uuid = " + uuid + ";");
+            ps = connection.prepareStatement("DELETE FROM `players_autoscan` WHERE uuid='" + uuid.toString() + "';");
             ps.executeUpdate();
 
             cached_autoscan.remove(uuidString);

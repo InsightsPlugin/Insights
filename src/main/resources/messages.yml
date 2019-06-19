@@ -96,7 +96,7 @@ messages:
     # Special placeholders:
     # %argument%
     invalid_argument: "&cThe argument '%argument%' is not a valid entity or material."
-    disable: "&3Autoscan has been disabled."
+    disabled: "&3Autoscan has been disabled."
     not_enabled: "&cYou do not have autoscan enabled!"
     # Message send when entering a chunk
     # Special placeholders:

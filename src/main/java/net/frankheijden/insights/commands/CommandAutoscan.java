@@ -45,7 +45,9 @@ public class CommandAutoscan implements CommandExecutor, TabExecutor {
                         plugin.getUtils().sendMessage(sender, "messages.autoscan.invalid_argument", "%argument%", args[1]);
                     }
                     return true;
-                } else if (args[0].equalsIgnoreCase("disable")) {
+                }
+            } else if (args.length == 1) {
+                if (args[0].equalsIgnoreCase("disable")) {
                     if (plugin.getSqLite().getAutoscan(player) != null) {
                         plugin.getSqLite().disableAutoScan(player.getUniqueId());
                         plugin.getUtils().sendMessage(sender, "messages.autoscan.disabled");
