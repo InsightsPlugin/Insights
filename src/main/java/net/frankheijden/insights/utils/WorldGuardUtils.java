@@ -39,6 +39,18 @@ public class WorldGuardUtils {
         return null;
     }
 
+    public ProtectedRegion isInRegionBlocks(Player player) {
+        ApplicableRegionSet regionSet = getApplicableRegionSet(player.getLocation());
+        if (regionSet != null) {
+            for (ProtectedRegion region : regionSet.getRegions()) {
+                if (plugin.getConfiguration().GENERAL_REGION_BLOCKS_WHITELIST.containsKey(region.getId())) {
+                    return region;
+                }
+            }
+        }
+        return null;
+    }
+
     public ApplicableRegionSet getApplicableRegionSet(Location location) {
         if (isNewWG) {
             RegionManager regionManager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(location.getWorld()));

@@ -17,6 +17,10 @@ public class Config {
     public int GENERAL_LIMIT = -1;
     public boolean GENERAL_WORLDS_WHITELIST = true;
     public List<String> GENERAL_WORLDS_LIST = Arrays.asList("world", "world_nether", "world_the_end");
+    public boolean GENERAL_REGIONS_WHITELIST = false;
+    public List<String> GENERAL_REGIONS_LIST;
+    public Map<String, Boolean> GENERAL_REGION_BLOCKS_WHITELIST;
+    public Map<String, List<Material>> GENERAL_REGION_BLOCKS_LIST;
     public String GENERAL_NOTIFICATION_TYPE = "BOSSBAR";
     private List<String> GENERAL_NOTIFICATION_TYPE_VALUES = Arrays.asList("BOSSBAR", "ACTIONBAR");
     public String GENERAL_NOTIFICATION_BOSSBAR_COLOR = "BLUE";
@@ -30,8 +34,6 @@ public class Config {
     public boolean GENERAL_SCAN_NOTIFICATION = true;
     public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
     public Map<Material, Integer> GENERAL_MATERIALS;
-    public boolean GENERAL_REGIONS_WHITELIST = false;
-    public List<String> GENERAL_REGIONS_LIST;
 
     public Config(Insights plugin) {
         this.plugin = plugin;
@@ -55,6 +57,29 @@ public class Config {
         }
         GENERAL_WORLDS_WHITELIST = config.getBoolean("general.worlds.whitelist");
         GENERAL_WORLDS_LIST = config.getStringList("general.worlds.list");
+
+        GENERAL_REGION_BLOCKS_WHITELIST = new HashMap<>();
+        GENERAL_REGION_BLOCKS_LIST = new HashMap<>();
+        MemorySection regions = (MemorySection) config.get("general.region_blocks");
+        if (regions != null) {
+            for (String region : regions.getKeys(false)) {
+                GENERAL_REGION_BLOCKS_WHITELIST.put(region, regions.getBoolean(region + ".whitelist"));
+                List<Material> materials = new ArrayList<>();
+                for (String materialString : regions.getStringList(region + ".list")) {
+                    Material material;
+                    try {
+                        material = Material.valueOf(materialString);
+                    } catch (Exception ex) {
+                        System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.region_blocks.list', invalid material '" + materialString + "'!");
+                        continue;
+                    }
+                    materials.add(material);
+                }
+                GENERAL_REGION_BLOCKS_LIST.put(region, materials);
+            }
+        } else {
+            System.err.println("[Insights/Config] Configuration section in config.yml not found at path 'general.region_blocks'!");
+        }
 
         updateString("general.notification.type", GENERAL_NOTIFICATION_TYPE_VALUES);
         updateString("general.notification.bossbar.color", GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES);

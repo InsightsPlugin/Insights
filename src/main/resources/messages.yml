@@ -37,6 +37,9 @@ messages:
   # Message if the player is already scanning chunks
   already_scanning: "&cYou are already scanning for chunks!"
 
+  # Message send when a user places a block which he is not allowed to place in a region
+  region_disallowed_block: "&cYou do not have permission to place that block in this region!"
+
   # Command messages below
 
   # Messages send when a user executed /insights help

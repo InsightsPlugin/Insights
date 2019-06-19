@@ -93,6 +93,12 @@ public class Listeners implements Listener {
         Player player = event.getPlayer();
         Material material = event.getBlock().getType();
 
+        if (!canPlace(player, material) && !player.hasPermission("insights.regions.bypass." + material.name())) {
+            plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
+            event.setCancelled(true);
+            return;
+        }
+
         if (!isScanningEnabledInWorld(player.getWorld())) {
             return;
         }
@@ -137,6 +143,23 @@ public class Listeners implements Listener {
                 }
             }
         }
+    }
+
+    private boolean canPlace(Player player, Material material) {
+        if (plugin.getWorldGuardUtils() != null) {
+            ProtectedRegion region = plugin.getWorldGuardUtils().isInRegionBlocks(player);
+            if (region != null) {
+                Boolean whitelist = plugin.getConfiguration().GENERAL_REGION_BLOCKS_WHITELIST.get(region.getId());
+                if (whitelist != null) {
+                    if (whitelist) {
+                        return plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(material);
+                    } else {
+                        return !plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(material);
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     private boolean isScanningEnabledInWorld(World world) {

@@ -24,6 +24,21 @@ general:
     list:
       - "region1"
 
+  # Customize the blocks which may be placed inside regions!
+  region_blocks:
+    # This will disallow DIAMOND_ORE placements inside region 'region1'
+    region1:
+      # Blacklist mode = false
+      # Whitelist mode = true
+      whitelist: false
+      list:
+        - "DIAMOND_ORE"
+    # This will only allow DIAMOND_ORE placements inside region 'region2'
+    region2:
+      whitelist: true
+      list:
+        - "DIAMOND_ORE"
+
   notification:
     # How we inform the player about the live-tile count
     # Possible values are "ACTIONBAR", "BOSSBAR"
