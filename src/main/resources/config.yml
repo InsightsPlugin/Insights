@@ -6,11 +6,23 @@ general:
   # A chunk is defined as width x length x height blocks (16 x 16 x 256).
   limit: 256
 
-  # Worlds in which the live-tile-scanning feature should be enabled
+  # Worlds in which the live-tile-scanning feature should be enabled/disabled
   worlds:
-    - "world"
-    - "world_nether"
-    - "world_the_end"
+    # Blacklist mode = false
+    # Whitelist mode = true
+    whitelist: true
+    list:
+      - "world"
+      - "world_nether"
+      - "world_the_end"
+
+  # Regions in which the live-tile-scanning feature should be enabled/disabled
+  regions:
+    # Blacklist mode = false
+    # Whitelist mode = true
+    whitelist: false
+    list:
+      - "region1"
 
   notification:
     # How we inform the player about the live-tile count

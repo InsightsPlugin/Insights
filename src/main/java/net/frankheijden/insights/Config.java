@@ -15,7 +15,8 @@ public class Config {
 
     public boolean GENERAL_CHECK_UPDATES = true;
     public int GENERAL_LIMIT = -1;
-    public List<String> GENERAL_WORLDS = Arrays.asList("world", "world_nether", "world_the_end");
+    public boolean GENERAL_WORLDS_WHITELIST = true;
+    public List<String> GENERAL_WORLDS_LIST = Arrays.asList("world", "world_nether", "world_the_end");
     public String GENERAL_NOTIFICATION_TYPE = "BOSSBAR";
     private List<String> GENERAL_NOTIFICATION_TYPE_VALUES = Arrays.asList("BOSSBAR", "ACTIONBAR");
     public String GENERAL_NOTIFICATION_BOSSBAR_COLOR = "BLUE";
@@ -29,6 +30,8 @@ public class Config {
     public boolean GENERAL_SCAN_NOTIFICATION = true;
     public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
     public Map<Material, Integer> GENERAL_MATERIALS;
+    public boolean GENERAL_REGIONS_WHITELIST = false;
+    public List<String> GENERAL_REGIONS_LIST;
 
     public Config(Insights plugin) {
         this.plugin = plugin;
@@ -50,7 +53,8 @@ public class Config {
         } else {
             System.out.println("[Insights/Config] Chunk tile limit was chosen not to be enabled.");
         }
-        GENERAL_WORLDS = config.getStringList("general.worlds");
+        GENERAL_WORLDS_WHITELIST = config.getBoolean("general.worlds.whitelist");
+        GENERAL_WORLDS_LIST = config.getStringList("general.worlds.list");
 
         updateString("general.notification.type", GENERAL_NOTIFICATION_TYPE_VALUES);
         updateString("general.notification.bossbar.color", GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES);
@@ -92,6 +96,9 @@ public class Config {
         } else {
             System.err.println("[Insights/Config] Configuration section in config.yml not found at path 'general.materials'!");
         }
+
+        GENERAL_REGIONS_WHITELIST = config.getBoolean("general.regions.whitelist");
+        GENERAL_REGIONS_LIST = config.getStringList("general.regions.list");
     }
 
     private void updateInt(String path, int min) {

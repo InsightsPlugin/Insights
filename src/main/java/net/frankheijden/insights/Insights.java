@@ -8,6 +8,7 @@ import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 import net.frankheijden.insights.utils.BossBarUtils;
 import net.frankheijden.insights.utils.Utils;
+import net.frankheijden.insights.utils.WorldGuardUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -38,6 +39,7 @@ public class Insights extends JavaPlugin {
     private Utils utils;
     private SQLite sqLite;
     private BossBarUtils bossBarUtils;
+    private WorldGuardUtils worldGuardUtils = null;
 
     private Map<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
     private Map<UUID, LoadChunksTask> playerScanTasks = new HashMap<>();
@@ -79,6 +81,9 @@ public class Insights extends JavaPlugin {
 
     private void setupClasses() {
         utils = new Utils(this);
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
+            worldGuardUtils = new WorldGuardUtils(this);
+        }
         sqLite = new SQLite(this);
         sqLite.load();
 
@@ -157,6 +162,10 @@ public class Insights extends JavaPlugin {
 
     public BossBarUtils getBossBarUtils() {
         return bossBarUtils;
+    }
+
+    public WorldGuardUtils getWorldGuardUtils() {
+        return worldGuardUtils;
     }
 
     public Map<String, HashMap<Material, Integer>> getChunkSnapshots() {

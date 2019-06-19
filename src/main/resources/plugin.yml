@@ -2,7 +2,7 @@ name: Insights
 main: net.frankheijden.insights.Insights
 dev-url: https://www.spigotmc.org/resources/56489/
 version: ${project.version}
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI, WorldGuard]
 api-version: "1.13"
 
 commands:
