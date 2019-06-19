@@ -65,7 +65,7 @@ public class ScanChunksTask implements Runnable {
             loadChunksTask.getPlugin().getPlayerScanTasks().remove(loadChunksTask.getUuid());
         }
 
-        if (loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()) != null && loadChunksTask.getPlugin().getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
+        if (loadChunksTask.getPlugin().getBossBarUtils() != null && loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()) != null && loadChunksTask.getPlugin().getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
             loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).setVisible(false);
             loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).removeAll();
             loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.remove(loadChunksTask.getUuid());
