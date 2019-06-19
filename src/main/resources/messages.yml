@@ -83,6 +83,30 @@ messages:
     footer: "&8&m-------------------------------------------------"
     none: "&cThe server has no loaded entities or tiles."
 
+  autoscan:
+    # Special placeholders:
+    # %material%
+    enabled_material: "&3Successfully enabled automatic scanning for Material &b%material%&3."
+    # Special placeholders:
+    # %entity%
+    enabled_entity: "&3Successfully enabled automatic scanning for Entity &b%entity%&3."
+    # Special placeholders:
+    # %argument%
+    invalid_argument: "&cThe argument '%argument%' is not a valid entity or material."
+    disable: "&3Autoscan has been disabled."
+    not_enabled: "&cYou do not have autoscan enabled!"
+    # Message send when entering a chunk
+    # Special placeholders:
+    # %key%
+    # %count%
+    message: "&3%key%: &b%count%"
+    # Message send when a limit has been setup for the block
+    # Special placeholders:
+    # %key%
+    # %count%
+    # %limit%
+    message_limit: "&3%key%: &b%count%&3/&b%limit%"
+
   # Messages send when a user executes /scan <entity|tile>
   scan:
     # Special placeholders:

@@ -88,6 +88,7 @@ public class Insights extends JavaPlugin {
         sqLite.load();
 
         Bukkit.getPluginManager().registerEvents(new Listeners(this), this);
+        Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan(this));
         Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights(this));
         Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck(this));
         Objects.requireNonNull(this.getCommand("checkworlds")).setExecutor(new CommandCheckworlds(this));

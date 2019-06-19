@@ -9,6 +9,7 @@ import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.text.NumberFormat;
@@ -90,6 +91,23 @@ public class ScanChunksTask implements Runnable {
                     loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.footer");
                 } else {
                     loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.no_entries");
+                }
+            }
+        }
+
+        if (loadChunksTask.getScanType() == ScanType.CUSTOM) {
+            if (loadChunksTask.getMaterials() != null) {
+                for (Material material : loadChunksTask.getMaterials()) {
+                    if (!counts.containsKey(material.name())) {
+                        counts.put(material.name(), 0);
+                    }
+                }
+            }
+            if (loadChunksTask.getEntityTypes() != null) {
+                for (EntityType entityType : loadChunksTask.getEntityTypes()) {
+                    if (!counts.containsKey(entityType.name())) {
+                        counts.put(entityType.name(), 0);
+                    }
                 }
             }
         }

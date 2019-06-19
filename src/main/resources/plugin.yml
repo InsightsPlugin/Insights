@@ -6,6 +6,14 @@ softdepend: [PlaceholderAPI, WorldGuard]
 api-version: "1.13"
 
 commands:
+  autoscan:
+    usage: |-
+      Usage: /<command> [enable|disable]
+      Examples:
+       /<command> enable DIAMOND_ORE
+       /<command> enable CREEPER
+       /<command> disable
+
   insights:
     usage: 'Usage: /<command>'
     aliases:
@@ -19,7 +27,7 @@ commands:
 
   scan:
     usage: |-
-      Usage: /<command> [tile|entity|individual]
+      Usage: /<command> [all|custom|entity|tile]
       Examples:
        /<command> tile
        /<command> entity
@@ -29,7 +37,7 @@ commands:
 
   scanradius:
     usage: |-
-      Usage: /<command> <radius> [tile|entity|individual]
+      Usage: /<command> <radius> [all|custom|entity|tile]
       Examples:
        /<command> <radius> tile
        /<command> <radius> entity
@@ -39,7 +47,7 @@ commands:
 
   scanworld:
     usage: |-
-      Usage: /<command> <world> [tile|entity|individual]
+      Usage: /<command> <world> [all|custom|entity|tile]
       Examples:
        /<command> <world> tile
        /<command> <world> entity

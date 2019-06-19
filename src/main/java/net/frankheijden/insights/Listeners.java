@@ -1,21 +1,27 @@
 package net.frankheijden.insights;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import net.frankheijden.insights.api.events.PlayerChunkMoveEvent;
+import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.text.NumberFormat;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class Listeners implements Listener {
     private Insights plugin;
@@ -209,5 +215,61 @@ public class Listeners implements Listener {
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         plugin.getChunkSnapshots().remove(event.getChunk().getX() + "_" + event.getChunk().getZ());
+    }
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Chunk fromChunk = event.getFrom().getChunk();
+        Chunk toChunk = event.getTo().getChunk();
+        if (fromChunk != toChunk) {
+            PlayerChunkMoveEvent chunkEnterEvent = new PlayerChunkMoveEvent(event.getPlayer(), fromChunk, toChunk);
+            Bukkit.getPluginManager().callEvent(chunkEnterEvent);
+            if (chunkEnterEvent.isCancelled()) {
+                event.setTo(event.getFrom());
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerChunkMove(PlayerChunkMoveEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        String string = plugin.getSqLite().getAutoscan(player);
+        if (string != null) {
+            Material material = Material.getMaterial(string);
+            EntityType entityType = plugin.getUtils().getEntityType(string);
+
+            CompletableFuture<ScanCompleteEvent> completableFuture = null;
+            if (material != null) {
+                completableFuture = plugin.getInsightsAPI().scanSingleChunk(event.getToChunk(), material);
+            } else if (entityType != null) {
+                completableFuture = plugin.getInsightsAPI().scanSingleChunk(event.getToChunk(), entityType);
+            }
+
+            if (completableFuture != null) {
+                completableFuture.whenCompleteAsync((e, error) -> {
+                    Map.Entry<String, Integer> entry = e.getCounts().firstEntry();
+                    if (material != null) {
+                        if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(material)) {
+                            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(material);
+                            double progress = ((double) entry.getValue())/((double) limit);
+                            if (progress > 1 || progress < 0) progress = 1;
+                            plugin.getUtils().sendSpecialMessage(player, "messages.autoscan.message_limit", progress,
+                                    "%key%", plugin.getUtils().capitalizeName(entry.getKey()),
+                                    "%count%", NumberFormat.getInstance().format(entry.getValue()),
+                                    "%limit%", NumberFormat.getInstance().format(limit));
+                            return;
+                        }
+                    }
+
+                    plugin.getUtils().sendSpecialMessage(player, "messages.autoscan.message", 1.0,
+                            "%key%", plugin.getUtils().capitalizeName(entry.getKey()),
+                            "%count%", NumberFormat.getInstance().format(entry.getValue()));
+                });
+            }
+        }
     }
 }

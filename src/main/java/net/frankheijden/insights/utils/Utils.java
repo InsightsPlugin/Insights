@@ -302,7 +302,7 @@ public class Utils {
     public String capitalizeName(String name) {
         StringBuilder stringBuilder = new StringBuilder();
         for (String entry : name.split("_")) {
-            stringBuilder.append(StringUtils.capitalize(entry)).append(" ");
+            stringBuilder.append(StringUtils.capitalize(entry.toLowerCase())).append(" ");
         }
         String build = stringBuilder.toString();
         return build.substring(0, build.length() - 1);

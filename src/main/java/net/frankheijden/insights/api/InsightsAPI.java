@@ -7,10 +7,12 @@ import net.frankheijden.insights.api.enums.ScanType;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 import org.apache.commons.lang.RandomStringUtils;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -44,6 +46,28 @@ public class InsightsAPI {
      */
     public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations) {
         return scan(world, chunkLocations, null, null);
+    }
+
+    /**
+     * Scans a single chunk for a single material
+     *
+     * @param chunk Chunk to scan
+     * @param material Material to scan for
+     * @return CompletableFuture which supplies the ScanCompleteEvent
+     */
+    public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, Material material) {
+        return scan(chunk.getWorld(), Collections.singletonList(new ChunkLocation(chunk)), Collections.singletonList(material), null);
+    }
+
+    /**
+     * Scans a single chunk for a single entity
+     *
+     * @param chunk Chunk to scan
+     * @param entityType Entity to scan for
+     * @return CompletableFuture which supplies the ScanCompleteEvent
+     */
+    public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, EntityType entityType) {
+        return scan(chunk.getWorld(), Collections.singletonList(new ChunkLocation(chunk)), null, Collections.singletonList(entityType));
     }
 
     /**
