@@ -10,7 +10,6 @@ import net.frankheijden.insights.utils.BossBarUtils;
 import net.frankheijden.insights.utils.Utils;
 import net.frankheijden.insights.utils.WorldGuardUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -41,7 +40,6 @@ public class Insights extends JavaPlugin {
     private BossBarUtils bossBarUtils;
     private WorldGuardUtils worldGuardUtils = null;
 
-    private Map<String, HashMap<Material, Integer>> chunkSnapshotHashMap = new HashMap<>();
     private Map<UUID, LoadChunksTask> playerScanTasks = new HashMap<>();
     private boolean consoleScanning = false;
     private Map<String, ScanCompleteEvent> countsMap = new HashMap<>();
@@ -167,10 +165,6 @@ public class Insights extends JavaPlugin {
 
     public WorldGuardUtils getWorldGuardUtils() {
         return worldGuardUtils;
-    }
-
-    public Map<String, HashMap<Material, Integer>> getChunkSnapshots() {
-        return chunkSnapshotHashMap;
     }
 
     public Map<UUID, LoadChunksTask> getPlayerScanTasks() {

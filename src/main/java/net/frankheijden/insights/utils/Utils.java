@@ -6,19 +6,18 @@ import net.frankheijden.insights.api.entities.ChunkLocation;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class Utils {
     private Insights plugin;
@@ -33,43 +32,6 @@ public class Utils {
         } catch (ClassNotFoundException ignored) {
             isPaper = false;
         }
-    }
-
-    public Set<Map.Entry<String, Integer>> getEntitiesInChunk(Chunk chunk) {
-        TreeMap<String, Integer> entryTreeMap = new TreeMap<>();
-        for (Entity entity : chunk.getEntities()) {
-            entryTreeMap.merge(entity.getType().name(), 1, Integer::sum);
-        }
-        return entryTreeMap.entrySet();
-    }
-
-    public Set<Map.Entry<String, Integer>> getTilesInChunk(Chunk chunk) {
-        TreeMap<String, Integer> entryTreeMap = new TreeMap<>();
-        for (BlockState bs : chunk.getTileEntities()) {
-            entryTreeMap.merge(bs.getType().name(), 1, Integer::sum);
-        }
-        return entryTreeMap.entrySet();
-    }
-
-    public Set<Map.Entry<String, Integer>> getEntitiesAndTilesInChunk(Chunk chunk) {
-        TreeMap<String, Integer> entryTreeMap = new TreeMap<>();
-        for (Entity entity : chunk.getEntities()) {
-            entryTreeMap.merge(entity.getType().name(), 1, Integer::sum);
-        }
-        for (BlockState bs : chunk.getTileEntities()) {
-            entryTreeMap.merge(bs.getType().name(), 1, Integer::sum);
-        }
-        return entryTreeMap.entrySet();
-    }
-
-    public int getAmountInChunk(Chunk chunk, EntityType entityType) {
-        int count = 0;
-        for (Entity entity : chunk.getEntities()) {
-            if (entity.getType() == entityType) {
-                count++;
-            }
-        }
-        return count;
     }
 
     public List<ChunkLocation> getChunkLocations(Chunk[] chunks) {
@@ -107,75 +69,12 @@ public class Utils {
         }
         return count;
     }
-
-    public int updateCachedAmountInChunk(Chunk chunk, Material material, boolean isBreak) {
-        String chunkName = chunk.getX() + "_" + chunk.getZ();
-
-        if (plugin.getChunkSnapshots().containsKey(chunkName)) {
-            if (plugin.getChunkSnapshots().get(chunkName).containsKey(material)) {
-                HashMap<Material, Integer> materials = plugin.getChunkSnapshots().get(chunkName);
-                Integer i = materials.get(material);
-                int newCount = (i == null) ? 0 : i;
-                if (isBreak) {
-                    newCount--;
-                } else {
-                    newCount++;
-                }
-
-                materials.put(material, newCount);
-                plugin.getChunkSnapshots().put(chunkName, materials);
-
-                return newCount;
-            }
-        }
-
-        int count = getAmountInChunk(chunk, material);
-        if (isBreak) {
-            count--;
-        }
-
-        HashMap<Material, Integer> materials;
-        if (plugin.getChunkSnapshots().containsKey(chunkName)) {
-            materials = plugin.getChunkSnapshots().get(chunkName);
-        } else {
-            materials = new HashMap<>();
-        }
-        materials.put(material, count);
-        plugin.getChunkSnapshots().put(chunkName, materials);
-
-        return count;
-    }
     
     public EntityType getEntityType(String entityType) {
         try {
             return EntityType.valueOf(entityType);
         } catch (IllegalArgumentException ignored) {
             //
-        }
-        return null;
-    }
-
-    public <T> CompletableFuture<List<T>> allOf(List<CompletableFuture<T>> futuresList) {
-        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
-        return allFuturesResult.thenApply(v -> futuresList.stream().map(CompletableFuture::join).collect(Collectors.toList()));
-    }
-
-    public CompletableFuture<Chunk> getChunk(World world, int x, int z) {
-        try {
-            if (isPaper) {
-                Class<?> worldClass = Class.forName("org.bukkit.World");
-                Object worldObject = worldClass.cast(world);
-                Method m = worldClass.getDeclaredMethod("getChunkAtAsync", int.class, int.class);
-                Object mObject = m.invoke(worldObject, x, z);
-                if (mObject instanceof CompletableFuture) {
-                    return (CompletableFuture<Chunk>) mObject;
-                }
-            } else {
-                Chunk chunk = world.getChunkAt(x, z);
-                return CompletableFuture.supplyAsync(() -> chunk);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
         }
         return null;
     }
