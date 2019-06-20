@@ -27,6 +27,7 @@ public class LoadChunksTask implements Runnable {
     private transient List<Material> materials;
     private transient List<EntityType> entityTypes;
     private boolean console;
+    private boolean saveWorld;
     private ScanCompleteEventListener listener;
 
     private transient Map<CompletableFuture<Chunk>, ChunkLocation> pendingChunks;
@@ -38,7 +39,7 @@ public class LoadChunksTask implements Runnable {
     private long startTime;
     private int totalChunks;
 
-    public LoadChunksTask(Insights plugin, ScanType scanType, World world, List<ChunkLocation> chunkLocations, UUID uuid, String path, List<Material> materials, List<EntityType> entityTypes, boolean console, ScanCompleteEventListener listener) {
+    public LoadChunksTask(Insights plugin, ScanType scanType, World world, List<ChunkLocation> chunkLocations, UUID uuid, String path, List<Material> materials, List<EntityType> entityTypes, boolean console, boolean saveWorld, ScanCompleteEventListener listener) {
         this.plugin = plugin;
         this.scanType = scanType;
         this.world = world;
@@ -48,6 +49,7 @@ public class LoadChunksTask implements Runnable {
         this.materials = (materials != null && materials.isEmpty()) ? null : materials;
         this.entityTypes = (entityTypes != null && entityTypes.isEmpty()) ? null : entityTypes;
         this.console = console;
+        this.saveWorld = saveWorld;
         this.listener = listener;
     }
 
@@ -85,6 +87,10 @@ public class LoadChunksTask implements Runnable {
 
     public boolean isConsole() {
         return console;
+    }
+
+    public boolean shouldSaveWorld() {
+        return saveWorld;
     }
 
     public ScanCompleteEventListener getListener() {
@@ -172,7 +178,9 @@ public class LoadChunksTask implements Runnable {
         cancelled = true;
         run = false;
         Bukkit.getScheduler().cancelTask(taskID);
-        world.save();
+        if (saveWorld) {
+            world.save();
+        }
     }
 
     @Override

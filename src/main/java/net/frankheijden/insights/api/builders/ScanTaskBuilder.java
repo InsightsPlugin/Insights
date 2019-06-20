@@ -24,6 +24,7 @@ public class ScanTaskBuilder {
     private List<Material> materials = null;
     private List<EntityType> entityTypes = null;
     private boolean console = false;
+    private boolean saveWorld = false;
     private ScanCompleteEventListener listener = null;
 
     public ScanTaskBuilder(Insights plugin, ScanType scanType, World world, List<ChunkLocation> chunkLocations) {
@@ -68,6 +69,11 @@ public class ScanTaskBuilder {
         return this;
     }
 
+    public ScanTaskBuilder setSaveWorld(boolean saveWorld) {
+        this.saveWorld = saveWorld;
+        return this;
+    }
+
     public ScanTaskBuilder setScanCompleteEventListener(ScanCompleteEventListener listener) {
         this.listener = listener;
         return this;
@@ -77,6 +83,6 @@ public class ScanTaskBuilder {
         if (((materials == null || materials.isEmpty()) && (entityTypes == null || entityTypes.isEmpty())) && scanType == ScanType.CUSTOM) {
             scanType = ScanType.ALL;
         }
-        return new LoadChunksTask(plugin, scanType, world, chunkLocations, uuid, path, materials, entityTypes, console, listener);
+        return new LoadChunksTask(plugin, scanType, world, chunkLocations, uuid, path, materials, entityTypes, console, saveWorld, listener);
     }
 }
