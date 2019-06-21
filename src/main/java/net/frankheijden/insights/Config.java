@@ -13,7 +13,8 @@ public class Config {
     private Insights plugin;
     private YamlConfiguration config;
 
-    public boolean GENERAL_CHECK_UPDATES = true;
+    public boolean GENERAL_UPDATES_CHECK = true;
+    public boolean GENERAL_UPDATES_DOWNLOAD = true;
     public int GENERAL_LIMIT = -1;
     public boolean GENERAL_WORLDS_WHITELIST = true;
     public List<String> GENERAL_WORLDS_LIST = Arrays.asList("world", "world_nether", "world_the_end");
@@ -47,7 +48,8 @@ public class Config {
         }
         config = YamlConfiguration.loadConfiguration(configFile);
 
-        GENERAL_CHECK_UPDATES = config.getBoolean("general.check_updates");
+        GENERAL_UPDATES_CHECK = config.getBoolean("general.updates.check");
+        GENERAL_UPDATES_DOWNLOAD = config.getBoolean("general.updates.download");
 
         int generalLimit = config.getInt("general.limit");
         if (generalLimit > -1) {

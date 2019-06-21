@@ -1,6 +1,9 @@
 general:
   # Should the plugin check for updates?
-  check_updates: true
+  updates:
+    check: true
+    # Automatically download & install?
+    download: true
 
   # Max tiles in a chunk (Default: 256) -1 to disable
   # A chunk is defined as width x length x height blocks (16 x 16 x 256).

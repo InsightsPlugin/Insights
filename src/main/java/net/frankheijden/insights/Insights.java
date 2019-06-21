@@ -12,13 +12,11 @@ import net.frankheijden.insights.utils.WorldGuardUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class Insights extends JavaPlugin {
     private static Insights insights;
@@ -43,6 +41,10 @@ public class Insights extends JavaPlugin {
     private Map<UUID, LoadChunksTask> playerScanTasks = new HashMap<>();
     private boolean consoleScanning = false;
     private Map<String, ScanCompleteEvent> countsMap = new HashMap<>();
+
+    private String versionQueued = null;
+    private boolean download = false;
+    private List<Player> notifyPlayers = new ArrayList<>();
 
     private InsightsAPI insightsAPI;
 
@@ -181,5 +183,33 @@ public class Insights extends JavaPlugin {
 
     public void setConsoleScanning(boolean consoleScanning) {
         this.consoleScanning = consoleScanning;
+    }
+
+    public String getVersionQueued() {
+        return versionQueued;
+    }
+
+    public void setVersionQueued(String versionQueued) {
+        this.versionQueued = versionQueued;
+    }
+
+    public boolean isDownloading() {
+        return download;
+    }
+
+    public void setDownloading(boolean download) {
+        this.download = download;
+    }
+
+    public void addNotifyPlayer(Player player) {
+        this.notifyPlayers.add(player);
+    }
+
+    public List<Player> getNotifyPlayers() {
+        return notifyPlayers;
+    }
+
+    public void clearNotifyPlayers() {
+        this.notifyPlayers.clear();
     }
 }

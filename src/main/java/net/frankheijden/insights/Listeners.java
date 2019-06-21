@@ -227,7 +227,7 @@ public class Listeners implements Listener {
             plugin.getBossBarUtils().scanBossBarPlayers.get(uuid).addPlayer(player);
         }
 
-        if (plugin.getConfiguration().GENERAL_CHECK_UPDATES) {
+        if (plugin.getConfiguration().GENERAL_UPDATES_CHECK) {
             if (player.hasPermission("insights.notification.update")) {
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, new UpdateCheckerTask(plugin, player));
             }

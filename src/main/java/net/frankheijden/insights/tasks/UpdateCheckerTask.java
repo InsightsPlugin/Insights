@@ -2,11 +2,8 @@ package net.frankheijden.insights.tasks;
 
 import net.frankheijden.insights.Insights;
 import org.bukkit.entity.Player;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
+import org.inventivetalent.update.spiget.SpigetUpdate;
+import org.inventivetalent.update.spiget.UpdateCallback;
 
 public class UpdateCheckerTask implements Runnable {
     private Insights plugin;
@@ -19,16 +16,47 @@ public class UpdateCheckerTask implements Runnable {
 
     @Override
     public void run() {
-        try {
-            URL url = new URL("https://api.spigotmc.org/legacy/update.php?resource=56489");
-            URLConnection urlConnection = url.openConnection();
-            String versionAvailable = new BufferedReader(new InputStreamReader(urlConnection.getInputStream())).readLine();
-            String versionInstalled = plugin.getDescription().getVersion();
-            if (!versionInstalled.equals(versionAvailable)) {
-                plugin.getUtils().sendMessage(player, "messages.update_available", "%old%", versionInstalled, "%new%", versionAvailable);
+        SpigetUpdate spigetUpdate = new SpigetUpdate(plugin, 56489);
+        spigetUpdate.checkForUpdate(new UpdateCallback() {
+            @Override
+            public void updateAvailable(String versionAvailable, String downloadUrl, boolean hasDirectDownload) {
+                String versionInstalled = plugin.getDescription().getVersion();
+                if (plugin.getConfiguration().GENERAL_UPDATES_DOWNLOAD) {
+                    if (plugin.getVersionQueued() != null) {
+                        if (plugin.getVersionQueued().equalsIgnoreCase(versionAvailable)) {
+                            plugin.getUtils().sendMessage(player, "messages.update.downloaded", "%old%", versionInstalled, "%new%", versionAvailable);
+                            return;
+                        }
+                    }
+
+                    if (plugin.isDownloading()) {
+                        plugin.addNotifyPlayer(player);
+                        return;
+                    }
+
+                    String path = null;
+                    if (hasDirectDownload) {
+                        if (spigetUpdate.downloadUpdate()) {
+                            path = "messages.update.downloaded";
+                            plugin.setVersionQueued(versionAvailable);
+                        }
+                    }
+
+                    if (path == null) path = "messages.update.download_failed";
+
+                    final String path_ = path;
+                    plugin.getUtils().sendMessage(player, path, "%old%", versionInstalled, "%new%", versionAvailable);
+                    plugin.getNotifyPlayers().forEach((p) -> plugin.getUtils().sendMessage(player, path_, "%old%", versionInstalled, "%new%", versionAvailable));
+                    plugin.clearNotifyPlayers();
+                } else {
+                    plugin.getUtils().sendMessage(player, "messages.update.available", "%old%", versionInstalled, "%new%", versionAvailable);
+                }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+
+            @Override
+            public void upToDate() {
+                //
+            }
+        });
     }
 }

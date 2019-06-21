@@ -1,6 +1,9 @@
 messages:
   # Update checker
-  update_available: "&3A new version of Insights is available! Your are currently on &b%old% &3while version &b%new% &3is available for download!"
+  update:
+    available: "&3A new version of Insights is available! Your are currently on &b%old% &3while version &b%new% &3is available for download!"
+    downloaded: "&3A new version of Insights has been downloaded! Version &b%old% &3will be updated to &b%new% &3on the next restart!"
+    download_failed: "&cFailed to download version %new% of Insights."
 
   # Message send when a user tries to place more tiles than the above value
   # Special placeholders:
