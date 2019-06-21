@@ -36,6 +36,7 @@ public class UpdateCheckerTask implements Runnable {
 
                     String path = null;
                     if (hasDirectDownload) {
+                        plugin.setDownloading(true);
                         if (spigetUpdate.downloadUpdate()) {
                             path = "messages.update.downloaded";
                             plugin.setVersionQueued(versionAvailable);
@@ -48,6 +49,7 @@ public class UpdateCheckerTask implements Runnable {
                     plugin.getUtils().sendMessage(player, path, "%old%", versionInstalled, "%new%", versionAvailable);
                     plugin.getNotifyPlayers().forEach((p) -> plugin.getUtils().sendMessage(player, path_, "%old%", versionInstalled, "%new%", versionAvailable));
                     plugin.clearNotifyPlayers();
+                    plugin.setDownloading(false);
                 } else {
                     plugin.getUtils().sendMessage(player, "messages.update.available", "%old%", versionInstalled, "%new%", versionAvailable);
                 }
