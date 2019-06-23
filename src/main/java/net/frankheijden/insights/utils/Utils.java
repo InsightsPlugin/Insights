@@ -54,9 +54,7 @@ public class Utils {
         return chunkLocations;
     }
 
-    public int getAmountInChunk(Chunk chunk, Material material) {
-        ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
-
+    public int getAmountInChunk(ChunkSnapshot chunkSnapshot, Material material) {
         int count = 0;
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {

@@ -74,10 +74,11 @@ public class Listeners implements Listener {
     }
 
     private void sendBreakMessage(Player player, Chunk chunk, Material material, int limit) {
+        ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
         new BukkitRunnable() {
             @Override
             public void run() {
-                int current = plugin.getUtils().getAmountInChunk(chunk, material);
+                int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, material);
                 if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
                     double progress = ((double) current)/((double) limit);
                     if (progress > 1 || progress < 0) progress = 1;
@@ -188,10 +189,11 @@ public class Listeners implements Listener {
     }
 
     private void handleBlockPlace(Player player, Block block, Material material, ItemStack itemInHand, int limit) {
+        ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
         new BukkitRunnable() {
             @Override
             public void run() {
-                int current = plugin.getUtils().getAmountInChunk(block.getChunk(), material);
+                int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, material);
                 if (current > limit) {
                     if (!player.hasPermission("insights.bypass." + material.name())) {
                         plugin.getUtils().sendMessage(player, "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()));
