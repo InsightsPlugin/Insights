@@ -80,6 +80,20 @@ public class InsightsAPI {
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
     public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
+        return scan(world, chunkLocations, materials, entityTypes, false);
+    }
+
+    /**
+     * Scans chunks for Materials and EntityTypes.
+     *
+     * @param world World in which we should scan
+     * @param chunkLocations List of ChunkLocation to scan in
+     * @param materials List of Material to scan for, null if none
+     * @param entityTypes List of EntityType to scan for, null if none
+     * @param saveWorld Boolean if we should save the world when the chunk generations have been completed (plugin induced saveworld)
+     * @return CompletableFuture which supplies the ScanCompleteEvent
+     */
+    public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, boolean saveWorld) {
         return CompletableFuture.supplyAsync(() -> {
             Object LOCK = new Object();
 
@@ -92,6 +106,7 @@ public class InsightsAPI {
             ScanTaskBuilder builder = new ScanTaskBuilder(getInstance(), ScanType.CUSTOM, world, chunkLocations)
                     .setMaterials(materials)
                     .setEntityTypes(entityTypes)
+                    .setSaveWorld(saveWorld)
                     .setScanCompleteEventListener((event) -> {
                         getInstance().getCountsMap().put(key, event);
 

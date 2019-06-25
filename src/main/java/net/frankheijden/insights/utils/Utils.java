@@ -21,17 +21,9 @@ import java.util.concurrent.TimeUnit;
 
 public class Utils {
     private Insights plugin;
-    private boolean isPaper;
 
     public Utils(Insights plugin) {
         this.plugin = plugin;
-
-        try {
-            Class.forName("com.destroystokyo.paper.event.server.PaperServerListPingEvent");
-            isPaper = true;
-        } catch (ClassNotFoundException ignored) {
-            isPaper = false;
-        }
     }
 
     public List<ChunkLocation> getChunkLocations(Chunk[] chunks) {
