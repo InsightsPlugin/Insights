@@ -27,8 +27,13 @@ public class ScanChunksTaskSyncHelper implements Runnable {
     }
 
     public void stop() {
-        Bukkit.getScheduler().cancelTask(this.taskID);
-        this.cancelled = true;
+        Bukkit.getScheduler().scheduleSyncDelayedTask(scanChunksTask.getLoadChunksTask().getPlugin(), new Runnable() {
+            @Override
+            public void run() {
+                Bukkit.getScheduler().cancelTask(taskID);
+                cancelled = true;
+            }
+        }, 20);
     }
 
     public boolean isCancelled() {

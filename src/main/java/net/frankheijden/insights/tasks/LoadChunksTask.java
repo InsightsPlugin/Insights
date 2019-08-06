@@ -28,6 +28,7 @@ public class LoadChunksTask implements Runnable {
     private transient List<EntityType> entityTypes;
     private boolean console;
     private boolean saveWorld;
+    private boolean debug;
     private ScanCompleteEventListener listener;
 
     private transient Map<CompletableFuture<Chunk>, ChunkLocation> pendingChunks;
@@ -39,7 +40,9 @@ public class LoadChunksTask implements Runnable {
     private long startTime;
     private int totalChunks;
 
-    public LoadChunksTask(Insights plugin, ScanType scanType, World world, List<ChunkLocation> chunkLocations, UUID uuid, String path, List<Material> materials, List<EntityType> entityTypes, boolean console, boolean saveWorld, ScanCompleteEventListener listener) {
+    private int internalTaskID;
+
+    public LoadChunksTask(Insights plugin, ScanType scanType, World world, List<ChunkLocation> chunkLocations, UUID uuid, String path, List<Material> materials, List<EntityType> entityTypes, boolean console, boolean saveWorld, boolean debug, ScanCompleteEventListener listener) {
         this.plugin = plugin;
         this.scanType = scanType;
         this.world = world;
@@ -50,6 +53,7 @@ public class LoadChunksTask implements Runnable {
         this.entityTypes = (entityTypes != null && entityTypes.isEmpty()) ? null : entityTypes;
         this.console = console;
         this.saveWorld = saveWorld;
+        this.debug = debug;
         this.listener = listener;
     }
 
@@ -93,6 +97,10 @@ public class LoadChunksTask implements Runnable {
         return saveWorld;
     }
 
+    public boolean shouldPrintDebug() {
+        return debug;
+    }
+
     public ScanCompleteEventListener getListener() {
         return listener;
     }
@@ -113,12 +121,22 @@ public class LoadChunksTask implements Runnable {
         return cancelled;
     }
 
+    public int getInternalTaskID() {
+        return internalTaskID;
+    }
+
     public void start(long startTime) {
         this.startTime = startTime;
         this.totalChunks = chunkLocations.size();
         this.pendingChunks = new HashMap<>();
         this.taskID = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
 
+        plugin.addScanTask(this);
+        internalTaskID = plugin.getTaskID(this);
+
+        if (debug) {
+            plugin.sendDebug(internalTaskID, "Started scan for " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + "...");
+        }
         sendMessage( path + ".start", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", world.getName());
 
         scanChunksTask = new ScanChunksTask(this);
@@ -175,6 +193,10 @@ public class LoadChunksTask implements Runnable {
     }
 
     public void stop() {
+        if (debug) {
+            plugin.sendDebug(internalTaskID, "Finished loading and generating " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + ", saving world and continuing scan...");
+        }
+
         cancelled = true;
         run = false;
         Bukkit.getScheduler().cancelTask(taskID);

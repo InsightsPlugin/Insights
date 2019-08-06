@@ -76,6 +76,9 @@ public class ScanChunksTask implements Runnable {
             scanChunksTaskSyncHelper.stop();
         }
 
+        String chunksDoneString = NumberFormat.getIntegerInstance().format(chunksDone);
+        String totalChunksString = NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks());
+
         if (loadChunksTask.getUuid() != null) {
             Player player = Bukkit.getPlayer(loadChunksTask.getUuid());
             if (player != null || loadChunksTask.isConsole()) {
@@ -87,7 +90,7 @@ public class ScanChunksTask implements Runnable {
                         String name = loadChunksTask.getPlugin().getUtils().capitalizeName(entry.getKey().toLowerCase());
                         loadChunksTask.sendMessage( loadChunksTask.getPath() + ".end.format", "%entry%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
                     }
-                    loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.total", "%chunks%", NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks()), "%blocks%", NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks() * 16 * 16 * 256), "%time%", loadChunksTask.getPlugin().getUtils().getDHMS(loadChunksTask.getStartTime()), "%world%", loadChunksTask.getWorld().getName());
+                    loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.total", "%chunks%", chunksDoneString, "%blocks%", NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks() * 16 * 16 * 256), "%time%", loadChunksTask.getPlugin().getUtils().getDHMS(loadChunksTask.getStartTime()), "%world%", loadChunksTask.getWorld().getName());
                     loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.footer");
                 } else {
                     loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.no_entries");
@@ -115,6 +118,10 @@ public class ScanChunksTask implements Runnable {
         if (loadChunksTask.getListener() != null) {
             ScanCompleteEvent scanCompleteEvent = new ScanCompleteEvent(loadChunksTask);
             loadChunksTask.getListener().onScanComplete(scanCompleteEvent);
+        }
+
+        if (loadChunksTask.shouldPrintDebug()) {
+            loadChunksTask.getPlugin().sendDebug(loadChunksTask.getInternalTaskID(), "Finished scanning " + chunksDoneString + "/" + totalChunksString + " " + (loadChunksTask.getTotalChunks() == 1 ? "chunk" : "chunks") + ".");
         }
 
         System.gc();
@@ -204,7 +211,20 @@ public class ScanChunksTask implements Runnable {
         if (now > lastProgressMessage + 10000) {
             lastProgressMessage = System.currentTimeMillis();
             if (chunksDone > 0) {
-                loadChunksTask.sendMessage(loadChunksTask.getPath() + ".progress", "%count%", NumberFormat.getIntegerInstance().format(chunksDone), "%total%", NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks()), "%world%", loadChunksTask.getWorld().getName());
+                String chunksDoneScanningString = NumberFormat.getIntegerInstance().format(chunksDone);
+                int chunksDoneLoading = loadChunksTask.getTotalChunks() - loadChunksTask.getChunkLocations().size();
+                String totalChunksString = NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks());
+
+                if (loadChunksTask.shouldPrintDebug()) {
+                    if (chunksDoneLoading != loadChunksTask.getTotalChunks()) {
+                        String chunksDoneLoadingString = NumberFormat.getIntegerInstance().format(chunksDoneLoading);
+                        loadChunksTask.getPlugin().sendDebug(loadChunksTask.getInternalTaskID(), "Loaded " + chunksDoneLoadingString + "/" + totalChunksString + " and scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (loadChunksTask.getTotalChunks() == 1 ? "chunk" : "chunks") + "...");
+                    } else {
+                        loadChunksTask.getPlugin().sendDebug(loadChunksTask.getInternalTaskID(), "Scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (loadChunksTask.getTotalChunks() == 1 ? "chunk" : "chunks") + "...");
+                    }
+                }
+
+                loadChunksTask.sendMessage(loadChunksTask.getPath() + ".progress", "%count%", chunksDoneScanningString, "%total%", totalChunksString, "%world%", loadChunksTask.getWorld().getName());
             }
         }
 
@@ -220,6 +240,7 @@ public class ScanChunksTask implements Runnable {
                 chunk = completableFuture.get();
             } catch (InterruptedException | ExecutionException ex) {
                 ex.printStackTrace();
+                chunksDone++; // prevents freezing
                 continue;
             }
 

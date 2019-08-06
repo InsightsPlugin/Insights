@@ -263,9 +263,9 @@ public class Listeners implements Listener {
 
             CompletableFuture<ScanCompleteEvent> completableFuture = null;
             if (material != null) {
-                completableFuture = plugin.getInsightsAPI().scanSingleChunk(event.getToChunk(), material);
+                completableFuture = plugin.getInsightsAPI().scanSingleChunk(event.getToChunk(), material, false);
             } else if (entityType != null) {
-                completableFuture = plugin.getInsightsAPI().scanSingleChunk(event.getToChunk(), entityType);
+                completableFuture = plugin.getInsightsAPI().scanSingleChunk(event.getToChunk(), entityType, false);
             }
 
             if (completableFuture != null) {

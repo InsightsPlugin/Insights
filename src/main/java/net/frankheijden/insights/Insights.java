@@ -38,6 +38,8 @@ public class Insights extends JavaPlugin {
     private BossBarUtils bossBarUtils;
     private WorldGuardUtils worldGuardUtils = null;
 
+    private List<LoadChunksTask> scanTasks = new ArrayList<>();
+
     private Map<UUID, LoadChunksTask> playerScanTasks = new HashMap<>();
     private boolean consoleScanning = false;
     private Map<String, ScanCompleteEvent> countsMap = new HashMap<>();
@@ -118,6 +120,23 @@ public class Insights extends JavaPlugin {
             } else {
                 Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
             }
+        }
+    }
+
+    public void addScanTask(LoadChunksTask loadChunksTask) {
+        scanTasks.add(loadChunksTask);
+    }
+
+    public int getTaskID(LoadChunksTask loadChunksTask) {
+        if (scanTasks.contains(loadChunksTask)) {
+            return scanTasks.indexOf(loadChunksTask) + 1;
+        }
+        return -1;
+    }
+
+    public void sendDebug(int taskID, String message) {
+        if (config.GENERAL_DEBUG) {
+            Bukkit.getLogger().info("[Insights] [DEBUG] [TASK #" + taskID + "] " + message);
         }
     }
 

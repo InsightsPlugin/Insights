@@ -5,6 +5,9 @@ general:
     # Automatically download & install?
     download: false
 
+  # Should the plugin output some useful information when scanning for blocks?
+  debug: false
+
   # Max tiles in a chunk (Default: 256) -1 to disable
   # A chunk is defined as width x length x height blocks (16 x 16 x 256).
   limit: 256
