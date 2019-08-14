@@ -98,6 +98,7 @@ public class Insights extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("scanradius")).setExecutor(new CommandScanradius(this));
         Objects.requireNonNull(this.getCommand("scanworld")).setExecutor(new CommandScanworld(this));
         Objects.requireNonNull(this.getCommand("togglecheck")).setExecutor(new CommandTogglecheck(this));
+        Objects.requireNonNull(this.getCommand("cancelscan")).setExecutor(new CommandCancelscan(this));
     }
 
     private void setupNMS() {

@@ -209,5 +209,10 @@ messages:
     # %name%
     disabled: "&3Realtime checking has been &bdisabled &3for &b%name%&3."
 
+  # Messages send when a user executes /cancelscan
+  cancelscan:
+    success: "&3Scan has been successfully cancelled."
+    not_scanning: "&cYou don't have a scan running!"
+
   # Message send when a user does not have a permission
   no_permission: "&cYou don't have permission to execute that command!"

@@ -58,6 +58,9 @@ commands:
   togglecheck:
     usage: 'Usage: /<command>'
 
+  cancelscan:
+    usage: 'Usage: /<command>'
+
 permissions:
   insights.*:
     children:

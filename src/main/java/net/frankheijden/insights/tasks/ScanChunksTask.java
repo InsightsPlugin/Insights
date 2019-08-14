@@ -60,21 +60,7 @@ public class ScanChunksTask implements Runnable {
     }
 
     private void stop() {
-        Bukkit.getScheduler().cancelTask(this.taskID);
-
-        if (loadChunksTask.getUuid() != null) {
-            loadChunksTask.getPlugin().getPlayerScanTasks().remove(loadChunksTask.getUuid());
-        }
-
-        if (loadChunksTask.getPlugin().getBossBarUtils() != null && loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()) != null && loadChunksTask.getPlugin().getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).setVisible(false);
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).removeAll();
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.remove(loadChunksTask.getUuid());
-        }
-
-        if (scanChunksTaskSyncHelper != null) {
-            scanChunksTaskSyncHelper.stop();
-        }
+        forceStop();
 
         String chunksDoneString = NumberFormat.getIntegerInstance().format(chunksDone);
         String totalChunksString = NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks());
@@ -125,6 +111,24 @@ public class ScanChunksTask implements Runnable {
         }
 
         System.gc();
+    }
+
+    public void forceStop() {
+        Bukkit.getScheduler().cancelTask(this.taskID);
+
+        if (loadChunksTask.getUuid() != null) {
+            loadChunksTask.getPlugin().getPlayerScanTasks().remove(loadChunksTask.getUuid());
+        }
+
+        if (loadChunksTask.getPlugin().getBossBarUtils() != null && loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()) != null && loadChunksTask.getPlugin().getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
+            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).setVisible(false);
+            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).removeAll();
+            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.remove(loadChunksTask.getUuid());
+        }
+
+        if (scanChunksTaskSyncHelper != null) {
+            scanChunksTaskSyncHelper.stop();
+        }
     }
 
     public void setupNotification(Player player) {

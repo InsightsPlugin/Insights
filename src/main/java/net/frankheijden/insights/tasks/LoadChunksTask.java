@@ -205,6 +205,18 @@ public class LoadChunksTask implements Runnable {
         }
     }
 
+    public void forceStop() {
+        cancelled = true;
+        run = false;
+        Bukkit.getScheduler().cancelTask(taskID);
+
+        scanChunksTask.forceStop();
+
+        if (debug) {
+            plugin.sendDebug(internalTaskID, "Task has been forcefully stopped.");
+        }
+    }
+
     @Override
     public void run() {
         // Check if loop has finished, if not, return
