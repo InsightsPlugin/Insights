@@ -27,11 +27,13 @@ public class BossBarUtils {
 
     public BossBarUtils(Insights plugin) {
         this.plugin = plugin;
+
+        scanBossBarPlayers = new HashMap<>();
+        bossBarPlayers = new HashMap<>();
+        bossBarDurationPlayers = new HashMap<>();
     }
 
     public void setupBossBarRunnable() {
-        scanBossBarPlayers = new HashMap<>();
-
         bossBarTask = new BossBarTask(plugin);
         bossBarTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, bossBarTask, 0, 1);
     }
@@ -49,9 +51,6 @@ public class BossBarUtils {
     }
 
     public void setupBossBarUtils() {
-        bossBarPlayers = new HashMap<>();
-        bossBarDurationPlayers = new HashMap<>();
-
         if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR")) {
             bossBarDuration = plugin.getConfiguration().GENERAL_NOTIFICATION_BOSSBAR_DURATION * 50; // ticks * 50 = milliseconds
         }
