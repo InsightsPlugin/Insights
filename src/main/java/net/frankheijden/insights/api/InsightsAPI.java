@@ -5,6 +5,7 @@ import net.frankheijden.insights.api.builders.ScanTaskBuilder;
 import net.frankheijden.insights.api.entities.ChunkLocation;
 import net.frankheijden.insights.api.enums.ScanType;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
+import net.frankheijden.insights.hooks.HookManager;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.Chunk;
@@ -236,5 +237,14 @@ public class InsightsAPI {
             return getInstance().getUtils().getDHMS(loadChunksTask.getStartTime());
         }
         return null;
+    }
+
+    /**
+     * Retrieves the HookManager instance
+     *
+     * @return HookManager instance
+     */
+    public HookManager getHookManager() {
+        return getInstance().getHookManager();
     }
 }

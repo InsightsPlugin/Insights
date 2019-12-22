@@ -43,30 +43,44 @@ messages:
   # Message send when a user places a block which he is not allowed to place in a region
   region_disallowed_block: "&cYou do not have permission to place that block in this region!"
 
+  #
   # Command messages below
+  #
 
-  # Messages send when a user executed /insights help
-  help: |-
-    &8&m---------------=&r&8[&b&l Insights Help&r &8]&m=----------------
-    &b /insights &f| &7Displays information about this plugin.
-    &b /insights help &f| &7Displays this message.
-    &b /insights reload &f| &7Reloads the plugin.
-    &b /check &f| &7Displays the amount of entities & tiles in this chunk.
-    &b /checkworlds &f| &7Displays the amount of entities & tiles in the server.
-    &b /scan [entity|tile|all] &f| &7Displays a detailed scan of this chunk.
-    &b /scan custom [entity1] [material2] ... &f| &7Scan this chunk.
-    &b /scanradius [entity|tile|all] &f| &7Displays a detailed scan of chunks.
-    &b /scanradius custom [entity1] [material2] ... &f| &7Scan chunks in a radius.
-    &b /scanworld <world> [entity|tile|all] &f| &7Displays a detailed scan of a world.
-    &b /scanworld <world> custom [entity1] [material2] ... &f| &7Scan a world.
-    &b /togglecheck &f| &7Toggles realtime info in actionbar.
-    &8&m-------------------------------------------------
+  # Messages send when a user executed /insights
+  insights:
+    # Messages send when a user executed /insights help
+    help: |-
+      &8&m---------------=&r&8[&b&l Insights Help&r &8]&m=----------------
+      &b /insights &f| &7Displays information about this plugin.
+      &b /insights help &f| &7Displays this message.
+      &b /insights hooks &f| &7Shows plugin hooks.
+      &b /insights reload &f| &7Reloads the plugin.
+      &b /check &f| &7Displays the amount of entities & tiles in this chunk.
+      &b /checkworlds &f| &7Displays the amount of entities & tiles in the server.
+      &b /scan [entity|tile|all] &f| &7Displays a detailed scan of this chunk.
+      &b /scan custom [entity1] [material2] ... &f| &7Scan this chunk.
+      &b /scanradius [entity|tile|all] &f| &7Displays a detailed scan of chunks.
+      &b /scanradius custom [entity1] [material2] ... &f| &7Scan chunks in a radius.
+      &b /scanworld <world> [entity|tile|all] &f| &7Displays a detailed scan of a world.
+      &b /scanworld <world> custom [entity1] [material2] ... &f| &7Scan a world.
+      &b /togglecheck &f| &7Toggles realtime info in actionbar.
+      &8&m-------------------------------------------------
 
-  # Message send when the plugin has been successfully reloaded
-  reload: "&3Insights has been successfully reloaded!"
+    # Messages send when a user executed /insights hooks
+    hooks:
+      header: "&8&m---------------=&r&8[&b&l Insights Hooks&r &8]&m=---------------"
+      # Special placeholders:
+      # %plugin%
+      format: "&a&l✔ &r&a%plugin%"
+      footer: "&8&m-------------------------------------------------"
+      none: "&cInsights has no hooks enabled."
 
-  # Message send when the plugin has been successfully reloaded
-  reload_failed: "&cInsights failed to reload the config. Please check the console and report this error."
+    # Message send when the plugin has been successfully reloaded
+    reload: "&3Insights has been successfully reloaded!"
+
+    # Message send when the plugin had an error reloading config
+    reload_failed: "&cInsights failed to reload the config. Please check the console and report this error."
 
   # Message send when a user executes /check
   # Special placeholders:

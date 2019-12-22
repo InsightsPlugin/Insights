@@ -35,11 +35,34 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     try {
                         plugin.reload();
                     } catch (Exception ex) {
-                        plugin.getUtils().sendMessage(sender, "messages.reload_failed");
+                        plugin.getUtils().sendMessage(sender, "messages.insights.reload_failed");
                         return true;
                     }
 
-                    plugin.getUtils().sendMessage(sender, "messages.reload");
+                    plugin.getUtils().sendMessage(sender, "messages.insights.reload");
+                } else {
+                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                }
+                return true;
+            } else if (args[0].equalsIgnoreCase("hooks")) {
+                if (sender.hasPermission("insights.hooks")) {
+                    List<String> plugins = new ArrayList<>();
+                    plugin.getHookManager().getHooks().forEach(hook -> plugins.add(hook.getPlugin().getName()));
+
+                    if (plugin.hasPlaceholderAPIHook()) {
+                        plugins.add("PlaceHolderAPI");
+                    }
+                    if (plugin.getWorldGuardUtils() != null) {
+                        plugins.add("WorldGuard");
+                    }
+
+                    if (plugins.size() > 0) {
+                        plugin.getUtils().sendMessage(sender, "messages.insights.hooks.header");
+                        plugins.forEach(pl -> plugin.getUtils().sendMessage(sender, "messages.insights.hooks.format", "%plugin%", pl));
+                        plugin.getUtils().sendMessage(sender, "messages.insights.hooks.footer");
+                    } else {
+                        plugin.getUtils().sendMessage(sender, "messages.insights.hooks.none");
+                    }
                 } else {
                     plugin.getUtils().sendMessage(sender, "messages.no_permission");
                 }
@@ -47,7 +70,7 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
             }
         }
 
-        plugin.getUtils().sendMessage(sender, "messages.help");
+        plugin.getUtils().sendMessage(sender, "messages.insights.help");
         return true;
     }
 
@@ -58,6 +81,9 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
             List<String> list = new ArrayList<>(Collections.singletonList("help"));
             if (sender.hasPermission("insights.reload")) {
                 list.add("reload");
+            }
+            if (sender.hasPermission("insights.hooks")) {
+                list.add("hooks");
             }
             return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
         }

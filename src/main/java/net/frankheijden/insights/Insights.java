@@ -4,6 +4,8 @@ import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
+import net.frankheijden.insights.hooks.HookManager;
+import net.frankheijden.insights.hooks.WildStackerHook;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 import net.frankheijden.insights.utils.BossBarUtils;
@@ -38,6 +40,9 @@ public class Insights extends JavaPlugin {
     private BossBarUtils bossBarUtils;
     private WorldGuardUtils worldGuardUtils = null;
 
+    private HookManager hookManager;
+    private boolean placeholderAPIHook = false;
+
     private List<LoadChunksTask> scanTasks = new ArrayList<>();
 
     private Map<UUID, LoadChunksTask> playerScanTasks = new HashMap<>();
@@ -61,6 +66,7 @@ public class Insights extends JavaPlugin {
         setupClasses();
         setupNMS();
         setupPlaceholderAPIHook();
+        setupPluginHooks();
 
         if (PaperLib.getMinecraftVersion() >= 9) {
             bossBarUtils = new BossBarUtils(this);
@@ -85,6 +91,7 @@ public class Insights extends JavaPlugin {
         utils = new Utils(this);
         if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
             worldGuardUtils = new WorldGuardUtils(this);
+            Bukkit.getLogger().info("[Insights] Successfully hooked into WorldGuard!");
         }
         sqLite = new SQLite(this);
         sqLite.load();
@@ -117,11 +124,19 @@ public class Insights extends JavaPlugin {
     private void setupPlaceholderAPIHook() {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             if (new InsightsPlaceholderAPIExpansion(this).register()) {
+                placeholderAPIHook = true;
                 Bukkit.getLogger().info("[Insights] Successfully hooked into PlaceholderAPI!");
             } else {
                 Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
             }
         }
+    }
+
+    private void setupPluginHooks() {
+        hookManager = new HookManager(this);
+
+        // Pre-defined hooks
+        hookManager.tryHook("WildStacker", new WildStackerHook(this));
     }
 
     public void addScanTask(LoadChunksTask loadChunksTask) {
@@ -187,6 +202,14 @@ public class Insights extends JavaPlugin {
 
     public WorldGuardUtils getWorldGuardUtils() {
         return worldGuardUtils;
+    }
+
+    public HookManager getHookManager() {
+        return hookManager;
+    }
+
+    public boolean hasPlaceholderAPIHook() {
+        return placeholderAPIHook;
     }
 
     public Map<UUID, LoadChunksTask> getPlayerScanTasks() {

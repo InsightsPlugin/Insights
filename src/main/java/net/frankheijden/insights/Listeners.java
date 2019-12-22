@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -88,8 +89,10 @@ public class Listeners implements Listener {
         }.runTaskAsynchronously(plugin);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onBlockPlace(BlockPlaceEvent event) {
+        if (plugin.getHookManager().shouldCancel(event.getBlock())) return;
+
         Player player = event.getPlayer();
         Material material = event.getBlock().getType();
 

@@ -8,8 +8,6 @@
 [releaseImg]: https://img.shields.io/github/release/FrankHeijden/Insights.svg?label=github%20release
 [license]: https://github.com/FrankHeijden/Insights/blob/master/LICENSE
 [licenseImg]: https://img.shields.io/github/license/FrankHeijden/Insights.svg
-[ci]: https://ci.frankheijden.net/job/Insights/
-[ciImg]: https://ci.frankheijden.net/job/Insights/badge/icon
 [bugReports]: https://github.com/FrankHeijden/Insights/issues?q=is%3Aissue+is%3Aopen+label%3Abug
 [bugReportsImg]: https://img.shields.io/github/issues/FrankHeijden/Insights/bug.svg?label=bug%20reports
 [reportBug]: https://github.com/FrankHeijden/Insights/issues/new?labels=bug&template=bug.md
@@ -25,13 +23,14 @@ Insights
 
 For the description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
 
-[![ciImg]][ci] [![releaseImg]][release] [![licenseImg]][license]
+[![](https://jitpack.io/v/FrankHeijden/Insights.svg)](https://jitpack.io/#FrankHeijden/Insights) [![releaseImg]][release] [![licenseImg]][license]
 
 [![featureRequestsImg]][featureRequests] [![bugReportsImg]][bugReports]
 [![spigotRatingImg]][spigot] [![spigotDownloadsImg]][spigot]
 
 Developer API
 ------
+Example scan:
 ```java
 package net.frankheijden.insights;
 
@@ -88,6 +87,40 @@ public class MyClass extends JavaPlugin {
             // Print them in the console!
             System.out.println(event.getCounts().toString());
         });
+    }
+}
+```
+
+Example Hook:
+```java
+import net.frankheijden.insights.api.entities.Hook;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.plugin.Plugin;
+
+public class MyInsightsHook extends Hook {
+    public MyInsightsHook(Plugin plugin) {
+       super(plugin);
+    }
+
+    @Override
+    public boolean shouldCancel(Block block) {
+       // Cancel Insights for all Dirt blocks
+       return block.getType() == Material.DIRT;
+    }
+}
+```
+```java
+import net.frankheijden.insights.api.InsightsAPI;
+
+public class MyPlugin extends JavaPlugin {
+    @Override
+    public void onEnable() {
+       super.onEnable();
+
+       InsightsAPI insightsAPI = new InsightsAPI();
+       // Add hook
+       insightsAPI.getHookManager().addHook(new MyInsightsHook(this));
     }
 }
 ```
