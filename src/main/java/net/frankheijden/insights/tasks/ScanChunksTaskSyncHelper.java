@@ -28,7 +28,9 @@ public class ScanChunksTaskSyncHelper implements Runnable {
     }
 
     public void addChunk(Chunk chunk) {
-        this.chunks.add(chunk);
+        synchronized (chunks) {
+            this.chunks.add(chunk);
+        }
     }
 
     @Override

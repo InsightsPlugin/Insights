@@ -189,11 +189,15 @@ public class ScanChunksTask implements Runnable {
     }
 
     public void addCompletableFuture(CompletableFuture<Chunk> completableFuture) {
-        completableFutures.add(completableFuture);
+        synchronized (completableFutures) {
+            completableFutures.add(completableFuture);
+        }
     }
 
     public void addBlockStates(BlockState[] blockStates) {
-        blockStatesList.add(blockStates);
+        synchronized (blockStatesList) {
+            blockStatesList.add(blockStates);
+        }
     }
 
     @Override
