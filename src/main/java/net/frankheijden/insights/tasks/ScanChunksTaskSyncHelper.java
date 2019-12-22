@@ -5,62 +5,46 @@ import org.bukkit.Chunk;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 public class ScanChunksTaskSyncHelper implements Runnable {
     private ScanChunksTask scanChunksTask;
-    private transient List<Chunk> chunks;
-    private transient List<Chunk> chunksToAdd;
+    private final Vector<Chunk> chunks;
 
     private int taskID;
-    private boolean run;
-    private boolean cancelled;
+    private int counter;
 
     public ScanChunksTaskSyncHelper(ScanChunksTask scanChunksTask) {
         this.scanChunksTask = scanChunksTask;
-        this.chunks = new ArrayList<>();
-        this.chunksToAdd = new ArrayList<>();
+        this.chunks = new Vector<>();
     }
 
     public void start() {
         this.taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(scanChunksTask.getLoadChunksTask().getPlugin(), this, 0, 1);
-        this.run = true;
     }
 
     public void stop() {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(scanChunksTask.getLoadChunksTask().getPlugin(), new Runnable() {
-            @Override
-            public void run() {
-                Bukkit.getScheduler().cancelTask(taskID);
-                cancelled = true;
-            }
-        }, 20);
-    }
-
-    public boolean isCancelled() {
-        return cancelled;
+        Bukkit.getScheduler().scheduleSyncDelayedTask(scanChunksTask.getLoadChunksTask().getPlugin(), () -> Bukkit.getScheduler().cancelTask(taskID), 20);
     }
 
     public void addChunk(Chunk chunk) {
-        this.chunksToAdd.add(chunk);
+        this.chunks.add(chunk);
     }
 
     @Override
     public void run() {
-        if (!this.run) {
-            return;
+        synchronized (chunks) {
+            List<Chunk> chunksToRemove = new ArrayList<>();
+            for (Chunk chunk : chunks) {
+                scanChunksTask.addBlockStates(chunk.getTileEntities());
+                chunksToRemove.add(chunk);
+                counter++;
+            }
+            chunks.removeAll(chunksToRemove);
         }
-        this.run = false;
 
-        List<Chunk> chunksToRemove = new ArrayList<>();
-        for (Chunk chunk : chunks) {
-            scanChunksTask.addBlockStates(chunk.getTileEntities());
-            chunksToRemove.add(chunk);
+        if (counter == scanChunksTask.getLoadChunksTask().getTotalChunks()) {
+            stop();
         }
-
-        chunks.removeAll(chunksToRemove);
-        chunks.addAll(chunksToAdd);
-        chunksToAdd.clear();
-
-        this.run = true;
     }
 }

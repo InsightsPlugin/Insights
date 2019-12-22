@@ -13,26 +13,21 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class ScanChunksTask implements Runnable {
     private LoadChunksTask loadChunksTask;
     private transient TreeMap<String, Integer> counts;
-    private transient List<CompletableFuture<Chunk>> completableFutures;
-    private transient List<CompletableFuture<Chunk>> completableFuturesToAdd;
+    private transient Vector<CompletableFuture<Chunk>> completableFutures;
 
     private int taskID;
     private int chunksDone;
     private boolean run;
 
     private ScanChunksTaskSyncHelper scanChunksTaskSyncHelper = null;
-    private transient List<BlockState[]> blockStatesList;
-    private transient List<BlockState[]> blockStatesListToAdd;
+    private final transient Vector<BlockState[]> blockStatesList;
 
     private long lastProgressMessage;
     private boolean isBossBar;
@@ -42,10 +37,8 @@ public class ScanChunksTask implements Runnable {
     public ScanChunksTask(LoadChunksTask loadChunksTask) {
         this.loadChunksTask = loadChunksTask;
         this.counts = new TreeMap<>();
-        this.completableFutures = new ArrayList<>();
-        this.completableFuturesToAdd = new ArrayList<>();
-        this.blockStatesList = new ArrayList<>();
-        this.blockStatesListToAdd = new ArrayList<>();
+        this.completableFutures = new Vector<>();
+        this.blockStatesList = new Vector<>();
         this.chunksDone = 0;
     }
 
@@ -196,11 +189,11 @@ public class ScanChunksTask implements Runnable {
     }
 
     public void addCompletableFuture(CompletableFuture<Chunk> completableFuture) {
-        completableFuturesToAdd.add(completableFuture);
+        completableFutures.add(completableFuture);
     }
 
     public void addBlockStates(BlockState[] blockStates) {
-        blockStatesListToAdd.add(blockStates);
+        blockStatesList.add(blockStates);
     }
 
     @Override
@@ -244,7 +237,6 @@ public class ScanChunksTask implements Runnable {
                 chunk = completableFuture.get();
             } catch (InterruptedException | ExecutionException ex) {
                 ex.printStackTrace();
-                chunksDone++; // prevents freezing
                 continue;
             }
 
@@ -281,21 +273,19 @@ public class ScanChunksTask implements Runnable {
         }
 
         completableFutures.removeAll(removeableCompletableFutures);
-        completableFutures.addAll(completableFuturesToAdd);
-        completableFuturesToAdd.clear();
 
         if (loadChunksTask.getScanType() == ScanType.TILE || loadChunksTask.getScanType() == ScanType.BOTH) {
-            List<BlockState[]> blockStatesListToRemove = new ArrayList<>();
-            for (BlockState[] blockStates : blockStatesList) {
-                for (BlockState blockState : blockStates) {
-                    counts.merge(blockState.getType().name(), 1, Integer::sum);
+            synchronized (blockStatesList) {
+                List<BlockState[]> blockStatesListToRemove = new ArrayList<>();
+                for (BlockState[] blockStates : blockStatesList) {
+                    for (BlockState blockState : blockStates) {
+                        counts.merge(blockState.getType().name(), 1, Integer::sum);
+                    }
+                    blockStatesListToRemove.add(blockStates);
+                    chunksDone++;
                 }
-                blockStatesListToRemove.add(blockStates);
-                chunksDone++;
+                blockStatesList.removeAll(blockStatesListToRemove);
             }
-            blockStatesList.removeAll(blockStatesListToRemove);
-            blockStatesList.addAll(blockStatesListToAdd);
-            blockStatesListToAdd.clear();
         }
 
         if (loadChunksTask.isCancelled() && completableFutures.isEmpty() && (scanChunksTaskSyncHelper == null || (chunksDone == loadChunksTask.getTotalChunks()))) {
