@@ -212,8 +212,8 @@ public class InsightsAPI {
     public Double getScanProgress(UUID uuid) {
         LoadChunksTask loadChunksTask = getInstance().getPlayerScanTasks().get(uuid);
         if (loadChunksTask != null) {
-            double total = (double) loadChunksTask.getTotalChunks();
-            double done = (double) loadChunksTask.getScanChunksTask().getChunksDone();
+            double total = loadChunksTask.getTotalChunks();
+            double done = loadChunksTask.getScanChunksTask().getChunksDone();
             double progress = done/total;
             if (progress < 0) {
                 progress = 0;

@@ -19,15 +19,15 @@ import java.util.concurrent.ExecutionException;
 
 public class ScanChunksTask implements Runnable {
     private LoadChunksTask loadChunksTask;
-    private transient TreeMap<String, Integer> counts;
-    private transient Vector<CompletableFuture<Chunk>> completableFutures;
+    private TreeMap<String, Integer> counts;
+    private final Vector<CompletableFuture<Chunk>> completableFutures;
 
     private int taskID;
     private int chunksDone;
     private boolean run;
 
     private ScanChunksTaskSyncHelper scanChunksTaskSyncHelper = null;
-    private final transient Vector<BlockState[]> blockStatesList;
+    private final Vector<BlockState[]> blockStatesList;
 
     private long lastProgressMessage;
     private boolean isBossBar;
@@ -155,7 +155,7 @@ public class ScanChunksTask implements Runnable {
         } else if (progressDouble > 1) {
             progressDouble = 1;
         }
-        String progress = (int) (progressDouble*100) + "%";
+        String progress = String.format("%.2f", progressDouble*100) + "%";
         String message = loadChunksTask.getPlugin().getUtils().color(progressMessage.replace("%done%", done).replace("%total%", total).replace("%progress%", progress));
         if (isBossBar) {
             updateBossBar(message, progressDouble);
@@ -230,49 +230,50 @@ public class ScanChunksTask implements Runnable {
         }
         this.run = false;
 
-        List<CompletableFuture<Chunk>> removeableCompletableFutures = new ArrayList<>();
-        for (CompletableFuture<Chunk> completableFuture : completableFutures) {
-            Chunk chunk;
-            try {
-                chunk = completableFuture.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                ex.printStackTrace();
-                continue;
-            }
+        synchronized (completableFutures) {
+            List<CompletableFuture<Chunk>> removeableCompletableFutures = new ArrayList<>();
+            for (CompletableFuture<Chunk> completableFuture : completableFutures) {
+                Chunk chunk;
+                try {
+                    chunk = completableFuture.get();
+                } catch (InterruptedException | ExecutionException ex) {
+                    ex.printStackTrace();
+                    continue;
+                }
 
-            if ((loadChunksTask.getScanType() == ScanType.CUSTOM && loadChunksTask.getEntityTypes() != null) || loadChunksTask.getScanType() == ScanType.ALL || loadChunksTask.getScanType() == ScanType.ENTITY || loadChunksTask.getScanType() == ScanType.BOTH) {
-                for (Entity entity : chunk.getEntities()) {
-                    if ((loadChunksTask.getEntityTypes() != null && loadChunksTask.getEntityTypes().contains(entity.getType())) || loadChunksTask.getScanType() == ScanType.ALL || loadChunksTask.getScanType() == ScanType.ENTITY || loadChunksTask.getScanType() == ScanType.BOTH) {
-                        counts.merge(entity.getType().name(), 1, Integer::sum);
+                if ((loadChunksTask.getScanType() == ScanType.CUSTOM && loadChunksTask.getEntityTypes() != null) || loadChunksTask.getScanType() == ScanType.ALL || loadChunksTask.getScanType() == ScanType.ENTITY || loadChunksTask.getScanType() == ScanType.BOTH) {
+                    for (Entity entity : chunk.getEntities()) {
+                        if ((loadChunksTask.getEntityTypes() != null && loadChunksTask.getEntityTypes().contains(entity.getType())) || loadChunksTask.getScanType() == ScanType.ALL || loadChunksTask.getScanType() == ScanType.ENTITY || loadChunksTask.getScanType() == ScanType.BOTH) {
+                            counts.merge(entity.getType().name(), 1, Integer::sum);
+                        }
                     }
                 }
-            }
 
-            if (loadChunksTask.getScanType() == ScanType.TILE || loadChunksTask.getScanType() == ScanType.BOTH) {
-                scanChunksTaskSyncHelper.addChunk(chunk);
-            } else if ((loadChunksTask.getScanType() == ScanType.CUSTOM && loadChunksTask.getMaterials() != null) || loadChunksTask.getScanType() == ScanType.ALL) {
-                ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
-                for (int x = 0; x < 16; x++) {
-                    for (int y = 0; y < loadChunksTask.getWorld().getMaxHeight(); y++) {
-                        for (int z = 0; z < 16; z++) {
-                            Material material = loadChunksTask.getPlugin().getUtils().getMaterial(chunkSnapshot, x,y,z);
-                            if (material != null) {
-                                if ((loadChunksTask.getMaterials() != null && loadChunksTask.getMaterials().contains(material)) || loadChunksTask.getScanType() == ScanType.ALL) {
-                                    counts.merge(material.name(), 1, Integer::sum);
+                if (loadChunksTask.getScanType() == ScanType.TILE || loadChunksTask.getScanType() == ScanType.BOTH) {
+                    scanChunksTaskSyncHelper.addChunk(chunk);
+                } else if ((loadChunksTask.getScanType() == ScanType.CUSTOM && loadChunksTask.getMaterials() != null) || loadChunksTask.getScanType() == ScanType.ALL) {
+                    ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
+                    for (int x = 0; x < 16; x++) {
+                        for (int y = 0; y < loadChunksTask.getWorld().getMaxHeight(); y++) {
+                            for (int z = 0; z < 16; z++) {
+                                Material material = loadChunksTask.getPlugin().getUtils().getMaterial(chunkSnapshot, x,y,z);
+                                if (material != null) {
+                                    if ((loadChunksTask.getMaterials() != null && loadChunksTask.getMaterials().contains(material)) || loadChunksTask.getScanType() == ScanType.ALL) {
+                                        counts.merge(material.name(), 1, Integer::sum);
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            removeableCompletableFutures.add(completableFuture);
-            if (loadChunksTask.getScanType() != ScanType.TILE && loadChunksTask.getScanType() != ScanType.BOTH) {
-                chunksDone++;
+                removeableCompletableFutures.add(completableFuture);
+                if (loadChunksTask.getScanType() != ScanType.TILE && loadChunksTask.getScanType() != ScanType.BOTH) {
+                    chunksDone++;
+                }
             }
+            completableFutures.removeAll(removeableCompletableFutures);
         }
-
-        completableFutures.removeAll(removeableCompletableFutures);
 
         if (loadChunksTask.getScanType() == ScanType.TILE || loadChunksTask.getScanType() == ScanType.BOTH) {
             synchronized (blockStatesList) {

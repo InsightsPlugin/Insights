@@ -24,9 +24,7 @@ public class BossBarTask implements Runnable {
             }
         }
 
-        playersToRemove.forEach((player) -> {
-            plugin.getBossBarUtils().bossBarDurationPlayers.remove(player);
-        });
+        playersToRemove.forEach((player) -> plugin.getBossBarUtils().bossBarDurationPlayers.remove(player));
     }
 
     private void removePlayer(Player player) {
