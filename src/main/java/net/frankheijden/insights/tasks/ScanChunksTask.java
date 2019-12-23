@@ -1,6 +1,9 @@
 package net.frankheijden.insights.tasks;
 
 import io.papermc.lib.PaperLib;
+import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.api.entities.ScanOptions;
+import net.frankheijden.insights.api.entities.ScanResult;
 import net.frankheijden.insights.api.enums.ScanType;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import org.bukkit.Bukkit;
@@ -9,45 +12,58 @@ import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 
 public class ScanChunksTask implements Runnable {
-    private LoadChunksTask loadChunksTask;
-    private TreeMap<String, Integer> counts;
-    private final Vector<CompletableFuture<Chunk>> completableFutures;
+    private Insights plugin;
+    private ScanOptions scanOptions;
+    private ScanResult scanResult;
 
+    private final Queue<CompletableFuture<Chunk>> chunkQueue;
+
+    private long startTime;
     private int taskID;
     private int chunksDone;
-    private boolean run;
+    private boolean run = true;
+
+    private LoadChunksTask loadChunksTask;
 
     private ScanChunksTaskSyncHelper scanChunksTaskSyncHelper = null;
-    private final Vector<BlockState[]> blockStatesList;
+    private final Queue<BlockState[]> blockStatesList;
 
     private long lastProgressMessage;
     private boolean isBossBar;
     private String progressMessage;
     private boolean canSendProgressMessage = false;
 
-    public ScanChunksTask(LoadChunksTask loadChunksTask) {
+    public ScanChunksTask(Insights plugin, ScanOptions scanOptions, LoadChunksTask loadChunksTask) {
+        this.plugin = plugin;
+        this.scanOptions = scanOptions;
         this.loadChunksTask = loadChunksTask;
-        this.counts = new TreeMap<>();
-        this.completableFutures = new Vector<>();
-        this.blockStatesList = new Vector<>();
+        if (scanOptions.getScanType() == ScanType.CUSTOM) {
+            this.scanResult = new ScanResult(scanOptions.getMaterials(), scanOptions.getEntityTypes());
+        } else {
+            this.scanResult = new ScanResult();
+        }
+
+        this.chunkQueue = new ConcurrentLinkedQueue<>();
+        this.blockStatesList = new ConcurrentLinkedQueue<>();
         this.chunksDone = 0;
     }
 
-    public void start() {
-        this.run = true;
-        this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(loadChunksTask.getPlugin(), this, 0, 1);
+    public void start(long startTime) {
+        this.startTime = startTime;
+        this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 1); // TODO: find non-deprecated method
 
-        if (loadChunksTask.getScanType() == ScanType.TILE || loadChunksTask.getScanType() == ScanType.BOTH) {
-            scanChunksTaskSyncHelper = new ScanChunksTaskSyncHelper(this);
+        if (scanOptions.getScanType() == ScanType.TILE || scanOptions.getScanType() == ScanType.BOTH) {
+            scanChunksTaskSyncHelper = new ScanChunksTaskSyncHelper(plugin,scanOptions, this);
             scanChunksTaskSyncHelper.start();
         }
     }
@@ -55,52 +71,37 @@ public class ScanChunksTask implements Runnable {
     private void stop() {
         forceStop();
 
-        String chunksDoneString = NumberFormat.getIntegerInstance().format(chunksDone);
-        String totalChunksString = NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks());
+        if (scanOptions.getUUID() != null) {
+            Player player = Bukkit.getPlayer(scanOptions.getUUID());
+            if (player != null || scanOptions.isConsole()) {
+                if (scanResult.getSize() > 0) {
+                    sendMessage(scanOptions.getPath() + ".end.header");
 
-        if (loadChunksTask.getUuid() != null) {
-            Player player = Bukkit.getPlayer(loadChunksTask.getUuid());
-            if (player != null || loadChunksTask.isConsole()) {
-                long totalCount = 0;
-                if (counts.size() > 0) {
-                    loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.header");
-                    for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+                    long totalCount = 0;
+                    for (Map.Entry<String, Integer> entry : scanResult) {
                         totalCount = totalCount + entry.getValue();
-                        String name = loadChunksTask.getPlugin().getUtils().capitalizeName(entry.getKey().toLowerCase());
-                        loadChunksTask.sendMessage( loadChunksTask.getPath() + ".end.format", "%entry%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
+                        String name = plugin.getUtils().capitalizeName(entry.getKey().toLowerCase());
+                        sendMessage( scanOptions.getPath() + ".end.format",
+                                "%entry%", name,
+                                "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
                     }
-                    loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.total", "%chunks%", chunksDoneString, "%blocks%", NumberFormat.getIntegerInstance().format(chunksDone * 16 * 16 * 256), "%time%", loadChunksTask.getPlugin().getUtils().getDHMS(loadChunksTask.getStartTime()), "%world%", loadChunksTask.getWorld().getName());
-                    loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.footer");
+
+                    sendMessage(scanOptions.getPath() + ".end.total",
+                            "%chunks%", NumberFormat.getIntegerInstance().format(chunksDone),
+                            "%blocks%", NumberFormat.getIntegerInstance().format(chunksDone * 16 * 16 * 256),
+                            "%time%", plugin.getUtils().getDHMS(startTime),
+                            "%world%", scanOptions.getWorld().getName());
+
+                    sendMessage(scanOptions.getPath() + ".end.footer");
                 } else {
-                    loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.no_entries");
+                    sendMessage(scanOptions.getPath() + ".end.no_entries");
                 }
             }
         }
 
-        if (loadChunksTask.getScanType() == ScanType.CUSTOM) {
-            if (loadChunksTask.getMaterials() != null) {
-                for (Material material : loadChunksTask.getMaterials()) {
-                    if (!counts.containsKey(material.name())) {
-                        counts.put(material.name(), 0);
-                    }
-                }
-            }
-            if (loadChunksTask.getEntityTypes() != null) {
-                for (EntityType entityType : loadChunksTask.getEntityTypes()) {
-                    if (!counts.containsKey(entityType.name())) {
-                        counts.put(entityType.name(), 0);
-                    }
-                }
-            }
-        }
-
-        if (loadChunksTask.getListener() != null) {
-            ScanCompleteEvent scanCompleteEvent = new ScanCompleteEvent(loadChunksTask);
-            loadChunksTask.getListener().onScanComplete(scanCompleteEvent);
-        }
-
-        if (loadChunksTask.shouldPrintDebug()) {
-            loadChunksTask.getPlugin().sendDebug(loadChunksTask.getInternalTaskID(), "Finished scanning " + chunksDoneString + "/" + totalChunksString + " " + (loadChunksTask.getTotalChunks() == 1 ? "chunk" : "chunks") + ".");
+        if (scanOptions.getListener() != null) {
+            ScanCompleteEvent scanCompleteEvent = new ScanCompleteEvent(scanOptions, scanResult);
+            scanOptions.getListener().onScanComplete(scanCompleteEvent);
         }
 
         System.gc();
@@ -109,14 +110,14 @@ public class ScanChunksTask implements Runnable {
     public void forceStop() {
         Bukkit.getScheduler().cancelTask(this.taskID);
 
-        if (loadChunksTask.getUuid() != null) {
-            loadChunksTask.getPlugin().getPlayerScanTasks().remove(loadChunksTask.getUuid());
+        if (scanOptions.getUUID() != null) {
+            plugin.getPlayerScanTasks().remove(scanOptions.getUUID());
         }
 
-        if (loadChunksTask.getPlugin().getBossBarUtils() != null && loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()) != null && loadChunksTask.getPlugin().getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).setVisible(false);
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).removeAll();
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.remove(loadChunksTask.getUuid());
+        if (plugin.getBossBarUtils() != null && plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()) != null && plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
+            plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setVisible(false);
+            plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).removeAll();
+            plugin.getBossBarUtils().scanBossBarPlayers.remove(scanOptions.getUUID());
         }
 
         if (scanChunksTaskSyncHelper != null) {
@@ -124,19 +125,27 @@ public class ScanChunksTask implements Runnable {
         }
     }
 
+    private void sendMessage(String path, String... placeholders) {
+        if (scanOptions.isConsole()) {
+            plugin.getUtils().sendMessage(Bukkit.getConsoleSender(), path, placeholders);
+        } else if (scanOptions.hasUUID()) {
+            plugin.getUtils().sendMessage(scanOptions.getUUID(), path, placeholders);
+        }
+    }
+
     public void setupNotification(Player player) {
         canSendProgressMessage = true;
-        if (loadChunksTask.getPlugin().getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
+        if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
             isBossBar = true;
 
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.put(loadChunksTask.getUuid(), loadChunksTask.getPlugin().getBossBarUtils().createNewBossBar());
+            plugin.getBossBarUtils().scanBossBarPlayers.put(scanOptions.getUUID(), plugin.getBossBarUtils().createNewBossBar());
             if (player != null) {
-                loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).addPlayer(player);
+                plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).addPlayer(player);
             }
-            loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).setVisible(true);
+            plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setVisible(true);
         }
 
-        progressMessage = loadChunksTask.getPlugin().getMessages().getString("messages.scan_notification");
+        progressMessage = plugin.getMessages().getString("messages.scan_notification");
         if (progressMessage == null || progressMessage.isEmpty()) {
             System.err.println("[Insights] Missing locale in messages.yml at path 'messages.scan_notification'!");
             if (player != null) {
@@ -148,15 +157,15 @@ public class ScanChunksTask implements Runnable {
 
     private void sendNotification() {
         String done = NumberFormat.getIntegerInstance().format(chunksDone);
-        String total = NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks());
-        double progressDouble = ((double) chunksDone)/((double) loadChunksTask.getTotalChunks());
+        String total = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
+        double progressDouble = ((double) chunksDone)/((double) scanOptions.getChunkCount());
         if (progressDouble < 0) {
             progressDouble = 0;
         } else if (progressDouble > 1) {
             progressDouble = 1;
         }
         String progress = String.format("%.2f", progressDouble*100) + "%";
-        String message = loadChunksTask.getPlugin().getUtils().color(progressMessage.replace("%done%", done).replace("%total%", total).replace("%progress%", progress));
+        String message = plugin.getUtils().color(progressMessage.replace("%done%", done).replace("%total%", total).replace("%progress%", progress));
         if (isBossBar) {
             updateBossBar(message, progressDouble);
         } else {
@@ -165,39 +174,27 @@ public class ScanChunksTask implements Runnable {
     }
 
     private void updateBossBar(String message, double progress) {
-        loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).setProgress(progress);
-        loadChunksTask.getPlugin().getBossBarUtils().scanBossBarPlayers.get(loadChunksTask.getUuid()).setTitle(message);
+        plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setProgress(progress);
+        plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setTitle(message);
     }
 
     private void updateActionBar(String message) {
-        Player player = Bukkit.getPlayer(loadChunksTask.getUuid());
+        Player player = Bukkit.getPlayer(scanOptions.getUUID());
         if (player != null) {
-            loadChunksTask.getPlugin().getUtils().sendActionbar(player, message);
+            plugin.getUtils().sendActionbar(player, message);
         }
-    }
-
-    public LoadChunksTask getLoadChunksTask() {
-        return loadChunksTask;
-    }
-
-    public TreeMap<String, Integer> getCounts() {
-        return counts;
     }
 
     public int getChunksDone() {
         return chunksDone;
     }
 
-    public void addCompletableFuture(CompletableFuture<Chunk> completableFuture) {
-        synchronized (completableFutures) {
-            completableFutures.add(completableFuture);
-        }
+    public void addChunk(CompletableFuture<Chunk> completableFuture) {
+        chunkQueue.add(completableFuture);
     }
 
     public void addBlockStates(BlockState[] blockStates) {
-        synchronized (blockStatesList) {
-            blockStatesList.add(blockStates);
-        }
+        blockStatesList.add(blockStates);
     }
 
     @Override
@@ -213,19 +210,22 @@ public class ScanChunksTask implements Runnable {
             lastProgressMessage = System.currentTimeMillis();
             if (chunksDone > 0) {
                 String chunksDoneScanningString = NumberFormat.getIntegerInstance().format(chunksDone);
-                int chunksDoneLoading = loadChunksTask.getTotalChunks() - loadChunksTask.getChunkLocations().size();
-                String totalChunksString = NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks());
+                int chunksDoneLoading = scanOptions.getChunkCount() - scanOptions.getChunkLocations().size();
+                String totalChunksString = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
 
-                if (loadChunksTask.shouldPrintDebug()) {
-                    if (chunksDoneLoading != loadChunksTask.getTotalChunks()) {
+                if (scanOptions.isDebug()) {
+                    if (chunksDoneLoading != scanOptions.getChunkCount()) {
                         String chunksDoneLoadingString = NumberFormat.getIntegerInstance().format(chunksDoneLoading);
-                        loadChunksTask.getPlugin().sendDebug(loadChunksTask.getInternalTaskID(), "Loaded " + chunksDoneLoadingString + "/" + totalChunksString + " and scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (loadChunksTask.getTotalChunks() == 1 ? "chunk" : "chunks") + "...");
+                        plugin.sendDebug(loadChunksTask.getInternalTaskID(), "Loaded " + chunksDoneLoadingString + "/" + totalChunksString + " and scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...");
                     } else {
-                        loadChunksTask.getPlugin().sendDebug(loadChunksTask.getInternalTaskID(), "Scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (loadChunksTask.getTotalChunks() == 1 ? "chunk" : "chunks") + "...");
+                        plugin.sendDebug(loadChunksTask.getInternalTaskID(), "Scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...");
                     }
                 }
 
-                loadChunksTask.sendMessage(loadChunksTask.getPath() + ".progress", "%count%", chunksDoneScanningString, "%total%", totalChunksString, "%world%", loadChunksTask.getWorld().getName());
+                sendMessage(scanOptions.getPath() + ".progress",
+                        "%count%", chunksDoneScanningString,
+                        "%total%", totalChunksString,
+                        "%world%", scanOptions.getWorld().getName());
             }
         }
 
@@ -234,66 +234,58 @@ public class ScanChunksTask implements Runnable {
         }
         this.run = false;
 
-        synchronized (completableFutures) {
-            List<CompletableFuture<Chunk>> removeableCompletableFutures = new ArrayList<>();
-            for (CompletableFuture<Chunk> completableFuture : completableFutures) {
-                Chunk chunk;
-                try {
-                    chunk = completableFuture.get();
-                } catch (InterruptedException | ExecutionException ex) {
-                    ex.printStackTrace();
-                    continue;
-                }
+        while (!chunkQueue.isEmpty()) {
+            Chunk chunk;
+            try {
+                chunk = chunkQueue.peek().get();
+            } catch (InterruptedException | ExecutionException ex) {
+                ex.printStackTrace();
+                continue;
+            }
 
-                if ((loadChunksTask.getScanType() == ScanType.CUSTOM && loadChunksTask.getEntityTypes() != null) || loadChunksTask.getScanType() == ScanType.ALL || loadChunksTask.getScanType() == ScanType.ENTITY || loadChunksTask.getScanType() == ScanType.BOTH) {
-                    for (Entity entity : chunk.getEntities()) {
-                        if ((loadChunksTask.getEntityTypes() != null && loadChunksTask.getEntityTypes().contains(entity.getType())) || loadChunksTask.getScanType() == ScanType.ALL || loadChunksTask.getScanType() == ScanType.ENTITY || loadChunksTask.getScanType() == ScanType.BOTH) {
-                            counts.merge(entity.getType().name(), 1, Integer::sum);
-                        }
+            if ((scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getEntityTypes() != null) || scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY || scanOptions.getScanType() == ScanType.BOTH) {
+                for (Entity entity : chunk.getEntities()) {
+                    if ((scanOptions.getEntityTypes() != null && scanOptions.getEntityTypes().contains(entity.getType())) || scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY || scanOptions.getScanType() == ScanType.BOTH) {
+                        scanResult.increment(entity);
                     }
                 }
+            }
 
-                if (loadChunksTask.getScanType() == ScanType.TILE || loadChunksTask.getScanType() == ScanType.BOTH) {
-                    scanChunksTaskSyncHelper.addChunk(chunk);
-                } else if ((loadChunksTask.getScanType() == ScanType.CUSTOM && loadChunksTask.getMaterials() != null) || loadChunksTask.getScanType() == ScanType.ALL) {
-                    ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
-                    for (int x = 0; x < 16; x++) {
-                        for (int y = 0; y < loadChunksTask.getWorld().getMaxHeight(); y++) {
-                            for (int z = 0; z < 16; z++) {
-                                Material material = loadChunksTask.getPlugin().getUtils().getMaterial(chunkSnapshot, x,y,z);
-                                if (material != null) {
-                                    if ((loadChunksTask.getMaterials() != null && loadChunksTask.getMaterials().contains(material)) || loadChunksTask.getScanType() == ScanType.ALL) {
-                                        counts.merge(material.name(), 1, Integer::sum);
-                                    }
+            if (scanOptions.getScanType() == ScanType.TILE || scanOptions.getScanType() == ScanType.BOTH) {
+                scanChunksTaskSyncHelper.addChunk(chunk);
+            } else if ((scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getMaterials() != null) || scanOptions.getScanType() == ScanType.ALL) {
+                ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
+                for (int x = 0; x < 16; x++) {
+                    for (int y = 0; y < scanOptions.getWorld().getMaxHeight(); y++) {
+                        for (int z = 0; z < 16; z++) {
+                            Material material = plugin.getUtils().getMaterial(chunkSnapshot, x,y,z);
+                            if (material != null) {
+                                if ((scanOptions.getMaterials() != null && scanOptions.getMaterials().contains(material)) || scanOptions.getScanType() == ScanType.ALL) {
+                                    scanResult.increment(material);
                                 }
                             }
                         }
                     }
                 }
-
-                removeableCompletableFutures.add(completableFuture);
-                if (loadChunksTask.getScanType() != ScanType.TILE && loadChunksTask.getScanType() != ScanType.BOTH) {
-                    chunksDone++;
-                }
             }
-            completableFutures.removeAll(removeableCompletableFutures);
-        }
 
-        if (loadChunksTask.getScanType() == ScanType.TILE || loadChunksTask.getScanType() == ScanType.BOTH) {
-            synchronized (blockStatesList) {
-                List<BlockState[]> blockStatesListToRemove = new ArrayList<>();
-                for (BlockState[] blockStates : blockStatesList) {
-                    for (BlockState blockState : blockStates) {
-                        counts.merge(blockState.getType().name(), 1, Integer::sum);
-                    }
-                    blockStatesListToRemove.add(blockStates);
-                    chunksDone++;
-                }
-                blockStatesList.removeAll(blockStatesListToRemove);
+            chunkQueue.poll();
+
+            if (scanOptions.getScanType() != ScanType.TILE && scanOptions.getScanType() != ScanType.BOTH) {
+                chunksDone++;
             }
         }
 
-        if (loadChunksTask.isCancelled() && completableFutures.isEmpty() && (scanChunksTaskSyncHelper == null || (chunksDone == loadChunksTask.getTotalChunks()))) {
+        if (scanOptions.getScanType() == ScanType.TILE || scanOptions.getScanType() == ScanType.BOTH) {
+            while (!blockStatesList.isEmpty()) {
+                for (BlockState blockState : blockStatesList.poll()) {
+                    scanResult.increment(blockState.getType());
+                }
+                chunksDone++;
+            }
+        }
+
+        if (loadChunksTask.isCancelled() && chunkQueue.isEmpty() && (scanChunksTaskSyncHelper == null || (chunksDone == scanOptions.getChunkCount()))) {
             this.stop();
         }
 

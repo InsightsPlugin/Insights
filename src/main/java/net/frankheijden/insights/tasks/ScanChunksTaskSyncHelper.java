@@ -1,51 +1,49 @@
 package net.frankheijden.insights.tasks;
 
+import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.api.entities.ScanOptions;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ScanChunksTaskSyncHelper implements Runnable {
+    private Insights plugin;
+    private ScanOptions scanOptions;
     private ScanChunksTask scanChunksTask;
-    private final Vector<Chunk> chunks;
+    private final Queue<Chunk> chunks;
 
     private int taskID;
     private int counter;
 
-    public ScanChunksTaskSyncHelper(ScanChunksTask scanChunksTask) {
+    public ScanChunksTaskSyncHelper(Insights plugin, ScanOptions scanOptions, ScanChunksTask scanChunksTask) {
+        this.plugin = plugin;
+        this.scanOptions = scanOptions;
         this.scanChunksTask = scanChunksTask;
-        this.chunks = new Vector<>();
+        this.chunks = new ConcurrentLinkedQueue<>();
     }
 
     public void start() {
-        this.taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(scanChunksTask.getLoadChunksTask().getPlugin(), this, 0, 1);
+        this.taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
     }
 
     public void stop() {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(scanChunksTask.getLoadChunksTask().getPlugin(), () -> Bukkit.getScheduler().cancelTask(taskID), 20);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> Bukkit.getScheduler().cancelTask(taskID), 20);
     }
 
     public void addChunk(Chunk chunk) {
-        synchronized (chunks) {
-            this.chunks.add(chunk);
-        }
+        this.chunks.add(chunk);
     }
 
     @Override
     public void run() {
-        synchronized (chunks) {
-            List<Chunk> chunksToRemove = new ArrayList<>();
-            for (Chunk chunk : chunks) {
-                scanChunksTask.addBlockStates(chunk.getTileEntities());
-                chunksToRemove.add(chunk);
-                counter++;
-            }
-            chunks.removeAll(chunksToRemove);
+        while (!chunks.isEmpty()) {
+            scanChunksTask.addBlockStates(chunks.poll().getTileEntities());
+            counter++;
         }
 
-        if (counter == scanChunksTask.getLoadChunksTask().getTotalChunks()) {
+        if (counter == scanOptions.getChunkCount()) {
             stop();
         }
     }

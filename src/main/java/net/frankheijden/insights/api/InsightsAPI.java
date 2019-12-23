@@ -13,9 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class InsightsAPI {
@@ -46,6 +44,17 @@ public class InsightsAPI {
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
     public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations) {
+        return scan(world, new LinkedList<>(chunkLocations), null, null);
+    }
+
+    /**
+     * Scans chunks for all Materials and EntityTypes.
+     *
+     * @param world World in which we should scan
+     * @param chunkLocations Queue of ChunkLocation to scan in
+     * @return CompletableFuture which supplies the ScanCompleteEvent
+     */
+    public CompletableFuture<ScanCompleteEvent> scan(World world, Queue<ChunkLocation> chunkLocations) {
         return scan(world, chunkLocations, null, null);
     }
 
@@ -57,7 +66,7 @@ public class InsightsAPI {
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
     public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, Material material) {
-        return scan(chunk.getWorld(), Collections.singletonList(new ChunkLocation(chunk)), Collections.singletonList(material), null);
+        return scan(chunk.getWorld(), new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))), Collections.singletonList(material), null);
     }
 
     /**
@@ -69,7 +78,7 @@ public class InsightsAPI {
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
     public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, Material material, boolean debug) {
-        return scan(chunk.getWorld(), Collections.singletonList(new ChunkLocation(chunk)), Collections.singletonList(material), null, debug);
+        return scan(chunk.getWorld(), new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))), Collections.singletonList(material), null, debug);
     }
 
     /**
@@ -80,7 +89,7 @@ public class InsightsAPI {
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
     public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, EntityType entityType) {
-        return scan(chunk.getWorld(), Collections.singletonList(new ChunkLocation(chunk)), null, Collections.singletonList(entityType));
+        return scan(chunk.getWorld(), new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))), null, Collections.singletonList(entityType));
     }
 
     /**
@@ -92,7 +101,7 @@ public class InsightsAPI {
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
     public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, EntityType entityType, boolean debug) {
-        return scan(chunk.getWorld(), Collections.singletonList(new ChunkLocation(chunk)), null, Collections.singletonList(entityType), debug);
+        return scan(chunk.getWorld(), new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))), null, Collections.singletonList(entityType), debug);
     }
 
     /**
@@ -104,7 +113,7 @@ public class InsightsAPI {
      * @param entityTypes List of EntityType to scan for, null if none
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
-    public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
+    public CompletableFuture<ScanCompleteEvent> scan(World world, Queue<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
         return scan(world, chunkLocations, materials, entityTypes, false, true);
     }
 
@@ -118,7 +127,7 @@ public class InsightsAPI {
      * @param debug Boolean if we should debug this scan
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
-    public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, boolean debug) {
+    public CompletableFuture<ScanCompleteEvent> scan(World world, Queue<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, boolean debug) {
         return scan(world, chunkLocations, materials, entityTypes, false, debug);
     }
 
@@ -133,9 +142,9 @@ public class InsightsAPI {
      * @param debug Boolean if we should debug this scan
      * @return CompletableFuture which supplies the ScanCompleteEvent
      */
-    public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, boolean saveWorld, boolean debug) {
+    public CompletableFuture<ScanCompleteEvent> scan(World world, Queue<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, boolean saveWorld, boolean debug) {
         return CompletableFuture.supplyAsync(() -> {
-            Object LOCK = new Object();
+            final Object LOCK = new Object();
 
             String k = RandomStringUtils.randomAlphanumeric(16);
             while (getInstance().getCountsMap().containsKey(k)) {

@@ -18,12 +18,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Utils {
     private Insights plugin;
 
     public Utils(Insights plugin) {
         this.plugin = plugin;
+    }
+
+    private List<String> scannableMaterials = null;
+    public List<String> getScannableMaterials() {
+        if (scannableMaterials == null) {
+            scannableMaterials = Stream.concat(
+                    Arrays.stream(Material.values())
+                            .filter(Material::isBlock)
+                            .map(Enum::name),
+                    Arrays.stream(EntityType.values())
+                            .map(Enum::name)
+            ).sorted().collect(Collectors.toList());
+        }
+        return scannableMaterials;
     }
 
     public List<ChunkLocation> getChunkLocations(Chunk[] chunks) {

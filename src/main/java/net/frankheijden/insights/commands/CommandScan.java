@@ -13,7 +13,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class CommandScan implements CommandExecutor, TabExecutor {
     private Insights plugin;
@@ -149,14 +152,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                 List<String> list = Arrays.asList("all", "custom", "entity", "tile");
                 return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
             } else if (args.length > 1 && args[0].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
-                TreeSet<String> list = new TreeSet<>();
-                for (Material material : Material.values()) {
-                    list.add(material.name());
-                }
-                for (EntityType entityType : EntityType.values()) {
-                    list.add(entityType.name());
-                }
-                return StringUtil.copyPartialMatches(args[args.length-1], list, new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());
             }
         }
         return Collections.emptyList();

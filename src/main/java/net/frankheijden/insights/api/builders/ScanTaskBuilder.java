@@ -2,6 +2,7 @@ package net.frankheijden.insights.api.builders;
 
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.entities.ChunkLocation;
+import net.frankheijden.insights.api.entities.ScanOptions;
 import net.frankheijden.insights.api.enums.ScanType;
 import net.frankheijden.insights.api.interfaces.ScanCompleteEventListener;
 import net.frankheijden.insights.tasks.LoadChunksTask;
@@ -11,14 +12,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 
 public class ScanTaskBuilder {
     private Insights plugin;
     private ScanType scanType;
     private World world;
-    private List<ChunkLocation> chunkLocations;
+    private Queue<ChunkLocation> chunkLocations;
     private UUID uuid = null;
     private String path = null;
     private List<Material> materials = null;
@@ -28,11 +31,15 @@ public class ScanTaskBuilder {
     private boolean debug = true;
     private ScanCompleteEventListener listener = null;
 
-    public ScanTaskBuilder(Insights plugin, ScanType scanType, World world, List<ChunkLocation> chunkLocations) {
+    public ScanTaskBuilder(Insights plugin, ScanType scanType, World world, Queue<ChunkLocation> chunkLocations) {
         this.plugin = plugin;
         this.scanType = scanType;
         this.world = world;
         this.chunkLocations = chunkLocations;
+    }
+
+    public ScanTaskBuilder(Insights plugin, ScanType scanType, World world, List<ChunkLocation> chunkLocations) {
+        this(plugin, scanType, world, (Queue<ChunkLocation>) new LinkedList<>(chunkLocations));
     }
 
     public ScanTaskBuilder setCommandSenderAndPath(CommandSender sender, String path) {
@@ -89,6 +96,6 @@ public class ScanTaskBuilder {
         if (((materials == null || materials.isEmpty()) && (entityTypes == null || entityTypes.isEmpty())) && scanType == ScanType.CUSTOM) {
             scanType = ScanType.ALL;
         }
-        return new LoadChunksTask(plugin, scanType, world, chunkLocations, uuid, path, materials, entityTypes, console, saveWorld, debug, listener);
+        return new LoadChunksTask(plugin, new ScanOptions(scanType, world, chunkLocations, uuid, path, materials, entityTypes, console, saveWorld, debug, listener));
     }
 }

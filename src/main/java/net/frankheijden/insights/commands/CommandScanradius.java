@@ -12,7 +12,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class CommandScanradius implements CommandExecutor, TabExecutor {
     private Insights plugin;
@@ -33,7 +36,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                 if (args.length == 1) {
                     if (entityPerm && tilePerm) {
                         if (args[0].matches("-?(0|[1-9]\\d*)")) {
-                            int radius = Integer.valueOf(args[0]);
+                            int radius = Integer.parseInt(args[0]);
                             if (radius >= 1 && radius <= 25) {
                                 if (plugin.getPlayerScanTasks().containsKey(player.getUniqueId())) {
                                     plugin.getUtils().sendMessage(sender, "messages.already_scanning");
@@ -59,7 +62,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                     return true;
                 } else if (args.length == 2) {
                     if (args[0].matches("-?(0|[1-9]\\d*)")) {
-                        int radius = Integer.valueOf(args[0]);
+                        int radius = Integer.parseInt(args[0]);
                         if (radius >= 1 && radius <= 25) {
                             if (args[1].equalsIgnoreCase("entity")) {
                                 if (entityPerm) {
@@ -121,7 +124,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                     }
                 } else if (args.length > 2) {
                     if (args[0].matches("-?(0|[1-9]\\d*)")) {
-                        int radius = Integer.valueOf(args[0]);
+                        int radius = Integer.parseInt(args[0]);
                         if (radius <= 25) {
                             if (radius >= 1) {
                                 if (args[1].equalsIgnoreCase("custom")) {
@@ -197,14 +200,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                 List<String> list = Arrays.asList("all", "custom", "entity", "tile");
                 return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
             } else if (args.length > 2 && args[1].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
-                TreeSet<String> list = new TreeSet<>();
-                for (Material material : Material.values()) {
-                    list.add(material.name());
-                }
-                for (EntityType entityType : EntityType.values()) {
-                    list.add(entityType.name());
-                }
-                return StringUtil.copyPartialMatches(args[args.length-1], list, new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());
             }
         }
         return Collections.emptyList();

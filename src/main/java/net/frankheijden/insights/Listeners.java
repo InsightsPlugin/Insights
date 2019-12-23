@@ -272,8 +272,8 @@ public class Listeners implements Listener {
             }
 
             if (completableFuture != null) {
-                completableFuture.whenCompleteAsync((e, error) -> {
-                    Map.Entry<String, Integer> entry = e.getCounts().firstEntry();
+                completableFuture.whenCompleteAsync((ev, error) -> {
+                    Map.Entry<String, Integer> entry = ev.getScanResult().getCounts().firstEntry();
                     if (material != null) {
                         if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(material)) {
                             int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(material);
