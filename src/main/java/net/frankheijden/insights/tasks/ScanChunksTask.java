@@ -69,7 +69,7 @@ public class ScanChunksTask implements Runnable {
                         String name = loadChunksTask.getPlugin().getUtils().capitalizeName(entry.getKey().toLowerCase());
                         loadChunksTask.sendMessage( loadChunksTask.getPath() + ".end.format", "%entry%", name, "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
                     }
-                    loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.total", "%chunks%", chunksDoneString, "%blocks%", NumberFormat.getIntegerInstance().format(loadChunksTask.getTotalChunks() * 16 * 16 * 256), "%time%", loadChunksTask.getPlugin().getUtils().getDHMS(loadChunksTask.getStartTime()), "%world%", loadChunksTask.getWorld().getName());
+                    loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.total", "%chunks%", chunksDoneString, "%blocks%", NumberFormat.getIntegerInstance().format(chunksDone * 16 * 16 * 256), "%time%", loadChunksTask.getPlugin().getUtils().getDHMS(loadChunksTask.getStartTime()), "%world%", loadChunksTask.getWorld().getName());
                     loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.footer");
                 } else {
                     loadChunksTask.sendMessage(loadChunksTask.getPath() + ".end.no_entries");
