@@ -33,7 +33,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        Material material = event.getBlock().getType();
+        String materialString = event.getBlock().getType().name();
 
         if (!isScanningEnabledInWorld(player.getWorld())) {
             return;
@@ -50,9 +50,9 @@ public class Listeners implements Listener {
             }
         }
 
-        if (plugin.getConfiguration().GENERAL_MATERIALS.keySet().contains(material)) {
-            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(material);
-            sendBreakMessage(player, event.getBlock().getChunk(), material, limit);
+        if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(materialString)) {
+            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(materialString);
+            sendBreakMessage(player, event.getBlock().getChunk(), materialString, limit);
             return;
         }
 
@@ -60,7 +60,7 @@ public class Listeners implements Listener {
             int limit = plugin.getConfiguration().GENERAL_LIMIT;
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || limit > -1) {
                 if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                    int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
+                    int current = event.getBlock().getLocation().getChunk().getTileEntities().length;
                     double progress = ((double) current)/((double) limit);
                     if (progress > 1 || progress < 0) progress = 1;
 
@@ -74,16 +74,16 @@ public class Listeners implements Listener {
         }
     }
 
-    private void sendBreakMessage(Player player, Chunk chunk, Material material, int limit) {
+    private void sendBreakMessage(Player player, Chunk chunk, String materialString, int limit) {
         ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
         new BukkitRunnable() {
             @Override
             public void run() {
-                int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, material);
+                int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, materialString) - 1;
                 if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
                     double progress = ((double) current)/((double) limit);
                     if (progress > 1 || progress < 0) progress = 1;
-                    plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
+                    plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
                 }
             }
         }.runTaskAsynchronously(plugin);
@@ -94,9 +94,9 @@ public class Listeners implements Listener {
         if (plugin.getHookManager().shouldCancel(event.getBlock())) return;
 
         Player player = event.getPlayer();
-        Material material = event.getBlock().getType();
+        String materialString = event.getBlock().getType().name();
 
-        if (!canPlace(player, material) && !player.hasPermission("insights.regions.bypass." + material.name())) {
+        if (!canPlace(player, materialString) && !player.hasPermission("insights.regions.bypass." + materialString)) {
             plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
             event.setCancelled(true);
             return;
@@ -117,14 +117,14 @@ public class Listeners implements Listener {
             }
         }
 
-        if (plugin.getConfiguration().GENERAL_MATERIALS.keySet().contains(material)) {
-            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(material);
-            handleBlockPlace(player, event.getBlock(), material, event.getItemInHand(), limit);
+        if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(materialString)) {
+            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(materialString);
+            handleBlockPlace(player, event.getBlock(), materialString, event.getItemInHand(), limit);
             return;
         }
 
         if (plugin.getUtils().isTile(event.getBlockPlaced())) {
-            int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
+            int current = event.getBlock().getLocation().getChunk().getTileEntities().length;
             int limit = plugin.getConfiguration().GENERAL_LIMIT;
             if (limit > -1 && current >= limit) {
                 if (!player.hasPermission("insights.bypass")) {
@@ -148,16 +148,16 @@ public class Listeners implements Listener {
         }
     }
 
-    private boolean canPlace(Player player, Material material) {
+    private boolean canPlace(Player player, String materialString) {
         if (plugin.getWorldGuardUtils() != null) {
             ProtectedRegion region = plugin.getWorldGuardUtils().isInRegionBlocks(player);
             if (region != null) {
                 Boolean whitelist = plugin.getConfiguration().GENERAL_REGION_BLOCKS_WHITELIST.get(region.getId());
                 if (whitelist != null) {
                     if (whitelist) {
-                        return plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(material);
+                        return plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(materialString);
                     } else {
-                        return !plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(material);
+                        return !plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(materialString);
                     }
                 }
             }
@@ -191,15 +191,15 @@ public class Listeners implements Listener {
         return true;
     }
 
-    private void handleBlockPlace(Player player, Block block, Material material, ItemStack itemInHand, int limit) {
+    private void handleBlockPlace(Player player, Block block, String materialString, ItemStack itemInHand, int limit) {
         ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
         new BukkitRunnable() {
             @Override
             public void run() {
-                int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, material);
+                int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, materialString);
                 if (current > limit) {
-                    if (!player.hasPermission("insights.bypass." + material.name())) {
-                        plugin.getUtils().sendMessage(player, "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()));
+                    if (!player.hasPermission("insights.bypass." + materialString)) {
+                        plugin.getUtils().sendMessage(player, "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()));
                         if (player.getGameMode() != GameMode.CREATIVE) {
                             ItemStack itemStack = new ItemStack(itemInHand);
                             itemStack.setAmount(1);
@@ -217,7 +217,7 @@ public class Listeners implements Listener {
                 if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
                     double progress = ((double) current)/((double) limit);
                     if (progress > 1 || progress < 0) progress = 1;
-                    plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(material.name().toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
+                    plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
                 }
             }
         }.runTaskAsynchronously(plugin);

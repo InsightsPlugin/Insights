@@ -1,7 +1,6 @@
 package net.frankheijden.insights;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -22,7 +21,7 @@ public class Config {
     public boolean GENERAL_REGIONS_WHITELIST = false;
     public List<String> GENERAL_REGIONS_LIST;
     public Map<String, Boolean> GENERAL_REGION_BLOCKS_WHITELIST;
-    public Map<String, List<Material>> GENERAL_REGION_BLOCKS_LIST;
+    public Map<String, List<String>> GENERAL_REGION_BLOCKS_LIST;
     public String GENERAL_NOTIFICATION_TYPE = "BOSSBAR";
     private List<String> GENERAL_NOTIFICATION_TYPE_VALUES = Arrays.asList("BOSSBAR", "ACTIONBAR");
     public String GENERAL_NOTIFICATION_BOSSBAR_COLOR = "BLUE";
@@ -35,7 +34,7 @@ public class Config {
     public int GENERAL_SCANRADIUS_DEFAULT = 5;
     public boolean GENERAL_SCAN_NOTIFICATION = true;
     public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
-    public Map<Material, Integer> GENERAL_MATERIALS;
+    public Map<String, Integer> GENERAL_MATERIALS;
 
     public Config(Insights plugin) {
         this.plugin = plugin;
@@ -68,17 +67,14 @@ public class Config {
         if (regions != null) {
             for (String region : regions.getKeys(false)) {
                 GENERAL_REGION_BLOCKS_WHITELIST.put(region, regions.getBoolean(region + ".whitelist"));
-                List<Material> materials = new ArrayList<>();
-                for (String materialString : regions.getStringList(region + ".list")) {
-                    Material material;
-                    try {
-                        material = Material.valueOf(materialString);
-                    } catch (Exception ex) {
-                        System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.region_blocks.list', invalid material '" + materialString + "'!");
-                        continue;
-                    }
-                    materials.add(material);
-                }
+                //                    Material material;
+                //                    try {
+                //                        material = Material.valueOf(materialString);
+                //                    } catch (Exception ex) {
+                //                        System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.region_blocks.list', invalid material '" + materialString + "'!");
+                //                        continue;
+                //                    }
+                List<String> materials = new ArrayList<>(regions.getStringList(region + ".list"));
                 GENERAL_REGION_BLOCKS_LIST.put(region, materials);
             }
         } else {
@@ -90,11 +86,7 @@ public class Config {
         updateString("general.notification.bossbar.style", GENERAL_NOTIFICATION_BOSSBAR_STYLE_VALUES);
 
         List<String> bossbarFlags = config.getStringList("general.notification.bossbar.flags");
-        for (String flag : bossbarFlags) {
-            if (!GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES.contains(flag.toUpperCase())) {
-                bossbarFlags.remove(flag);
-            }
-        }
+        bossbarFlags.removeIf(flag -> !GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES.contains(flag.toUpperCase()));
         GENERAL_NOTIFICATION_BOSSBAR_FLAGS = bossbarFlags;
 
         updateInt("general.notification.bossbar.duration", 1);
@@ -107,17 +99,17 @@ public class Config {
         MemorySection materials = (MemorySection) config.get("general.materials");
         if (materials != null) {
             for (String materialString : materials.getKeys(false)) {
-                Material material;
-                try {
-                    material = Material.valueOf(materialString);
-                } catch (Exception ex) {
-                    System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.materials', invalid material '" + materialString + "'!");
-                    continue;
-                }
+//                Material material;
+//                try {
+//                    material = Material.valueOf(materialString);
+//                } catch (Exception ex) {
+//                    System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.materials', invalid material '" + materialString + "'!");
+//                    continue;
+//                }
 
                 int value = materials.getInt(materialString);
                 if (value >= 0) {
-                    GENERAL_MATERIALS.put(material, value);
+                    GENERAL_MATERIALS.put(materialString, value);
                 } else {
                     System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.materials." + materialString + "', value must be at least 0!");
                 }

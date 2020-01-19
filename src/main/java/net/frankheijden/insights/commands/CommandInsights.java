@@ -5,6 +5,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
@@ -67,6 +69,20 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     plugin.getUtils().sendMessage(sender, "messages.no_permission");
                 }
                 return true;
+            } else if (args[0].equalsIgnoreCase("block")) {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("This command cannot be executed from console!");
+                    return true;
+                }
+
+                if (sender.hasPermission("insights.block")) {
+                    ItemStack item = ((Player) sender).getInventory().getItemInHand();
+                    String name = item.getType().name();
+                    plugin.getUtils().sendMessage(sender, "messages.insights.block", "%block%", name);
+                } else {
+                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                }
+                return true;
             }
         }
 
@@ -79,11 +95,14 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 1) {
             List<String> list = new ArrayList<>(Collections.singletonList("help"));
-            if (sender.hasPermission("insights.reload")) {
-                list.add("reload");
+            if (sender.hasPermission("insights.block")) {
+                list.add("block");
             }
             if (sender.hasPermission("insights.hooks")) {
                 list.add("hooks");
+            }
+            if (sender.hasPermission("insights.reload")) {
+                list.add("reload");
             }
             return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
         }

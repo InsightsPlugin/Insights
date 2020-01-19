@@ -76,6 +76,11 @@ messages:
       footer: "&8&m-------------------------------------------------"
       none: "&cInsights has no hooks enabled."
 
+    # Message send when a user executed /insights block
+    # Special placeholders:
+    # %block%
+    block: "&3The block in your hand is a(n) \"&b%block%&3\"."
+
     # Message send when the plugin has been successfully reloaded
     reload: "&3Insights has been successfully reloaded!"
 

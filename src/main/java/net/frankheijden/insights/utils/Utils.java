@@ -62,12 +62,12 @@ public class Utils {
         return chunkLocations;
     }
 
-    public int getAmountInChunk(ChunkSnapshot chunkSnapshot, Material material) {
+    public int getAmountInChunk(ChunkSnapshot chunkSnapshot, String materialString) {
         int count = 0;
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = 0; y < 256; y++) {
-                    if (material == getMaterial(chunkSnapshot,x,y,z)) {
+                    if (getMaterial(chunkSnapshot,x,y,z).name().equals(materialString)) {
                         count++;
                     }
                 }
