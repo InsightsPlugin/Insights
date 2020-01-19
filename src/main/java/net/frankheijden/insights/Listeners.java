@@ -60,7 +60,7 @@ public class Listeners implements Listener {
             int limit = plugin.getConfiguration().GENERAL_LIMIT;
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || limit > -1) {
                 if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                    int current = event.getBlock().getLocation().getChunk().getTileEntities().length;
+                    int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
                     double progress = ((double) current)/((double) limit);
                     if (progress > 1 || progress < 0) progress = 1;
 
@@ -124,7 +124,7 @@ public class Listeners implements Listener {
         }
 
         if (plugin.getUtils().isTile(event.getBlockPlaced())) {
-            int current = event.getBlock().getLocation().getChunk().getTileEntities().length;
+            int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
             int limit = plugin.getConfiguration().GENERAL_LIMIT;
             if (limit > -1 && current >= limit) {
                 if (!player.hasPermission("insights.bypass")) {
@@ -192,6 +192,9 @@ public class Listeners implements Listener {
     }
 
     private void handleBlockPlace(Player player, Block block, String materialString, ItemStack itemInHand, int limit) {
+        ItemStack itemStack = new ItemStack(itemInHand);
+        itemStack.setAmount(1);
+
         ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
         new BukkitRunnable() {
             @Override
@@ -201,8 +204,6 @@ public class Listeners implements Listener {
                     if (!player.hasPermission("insights.bypass." + materialString)) {
                         plugin.getUtils().sendMessage(player, "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()));
                         if (player.getGameMode() != GameMode.CREATIVE) {
-                            ItemStack itemStack = new ItemStack(itemInHand);
-                            itemStack.setAmount(1);
                             player.getInventory().addItem(itemStack);
                         }
                         new BukkitRunnable() {
