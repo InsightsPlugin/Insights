@@ -94,3 +94,14 @@ general:
     # MATERIAL: LIMIT
     DIAMOND_ORE: 128
     ENCHANTING_TABLE: 16 # If on < 1.13 use "ENCHANTMENT_TABLE"
+
+  # Set a limit to custom blocks in a chunk for certain groups
+  # Please note that this will override the global materials limit.
+  groups:
+    # Please replace dots in your permissions with {dot}.
+    # The following permission will be parsed as insights.group.1
+    "insights{dot}group{dot}1":
+      ENCHANTING_TABLE: 32
+
+    "insights{dot}group{dot}2":
+      DIAMOND_ORE: 128

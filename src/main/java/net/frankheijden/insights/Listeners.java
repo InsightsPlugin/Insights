@@ -50,6 +50,16 @@ public class Listeners implements Listener {
             }
         }
 
+        for (String permission : plugin.getConfiguration().GENERAL_GROUPS.keySet()) {
+            if (player.hasPermission(permission)) {
+                if (plugin.getConfiguration().GENERAL_GROUPS.get(permission).containsKey(materialString)) {
+                    int limit = plugin.getConfiguration().GENERAL_GROUPS.get(permission).get(materialString);
+                    sendBreakMessage(player, event.getBlock().getChunk(), materialString, limit);
+                    return;
+                }
+            }
+        }
+
         if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(materialString)) {
             int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(materialString);
             sendBreakMessage(player, event.getBlock().getChunk(), materialString, limit);
@@ -113,6 +123,16 @@ public class Listeners implements Listener {
                     if (!isScanningEnabledInRegion(region.getId())) {
                         return;
                     }
+                }
+            }
+        }
+
+        for (String permission : plugin.getConfiguration().GENERAL_GROUPS.keySet()) {
+            if (player.hasPermission(permission)) {
+                if (plugin.getConfiguration().GENERAL_GROUPS.get(permission).containsKey(materialString)) {
+                    int limit = plugin.getConfiguration().GENERAL_GROUPS.get(permission).get(materialString);
+                    handleBlockPlace(player, event.getBlock(), materialString, event.getItemInHand(), limit);
+                    return;
                 }
             }
         }

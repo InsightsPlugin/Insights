@@ -35,6 +35,7 @@ public class Config {
     public boolean GENERAL_SCAN_NOTIFICATION = true;
     public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
     public Map<String, Integer> GENERAL_MATERIALS;
+    public Map<String, Map<String, Integer>> GENERAL_GROUPS;
 
     public Config(Insights plugin) {
         this.plugin = plugin;
@@ -116,6 +117,28 @@ public class Config {
             }
         } else {
             System.err.println("[Insights/Config] Configuration section in config.yml not found at path 'general.materials'!");
+        }
+
+        GENERAL_GROUPS = new HashMap<>();
+        MemorySection groups = (MemorySection) config.get("general.groups");
+        if (groups != null) {
+            for (String permission : groups.getKeys(false)) {
+                HashMap<String, Integer> groupMap = new HashMap<>();
+
+                MemorySection group = (MemorySection) groups.get(permission);
+                for (String materialString : group.getKeys(false)) {
+                    int value = group.getInt(materialString);
+                    if (value >= 0) {
+                        groupMap.put(materialString, value);
+                    } else {
+                        System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.groups." + group + "." + materialString + "', value must be at least 0!");
+                    }
+                }
+
+                GENERAL_GROUPS.put(permission.replace("{dot}", "."), groupMap);
+            }
+        } else {
+            System.err.println("[Insights/Config] Configuration section in config.yml not found at path 'general.groups'!");
         }
 
         GENERAL_REGIONS_WHITELIST = config.getBoolean("general.regions.whitelist");
