@@ -99,7 +99,7 @@ public class Listeners implements Listener {
         }.runTaskAsynchronously(plugin);
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         if (plugin.getHookManager().shouldCancel(event.getBlock())) return;
 
