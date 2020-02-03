@@ -5,7 +5,6 @@ import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.hooks.HookManager;
-import net.frankheijden.insights.hooks.WildStackerHook;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 import net.frankheijden.insights.utils.BossBarUtils;
@@ -134,9 +133,6 @@ public class Insights extends JavaPlugin {
 
     private void setupPluginHooks() {
         hookManager = new HookManager(this);
-
-        // Pre-defined hooks
-        hookManager.tryHook("WildStacker", new WildStackerHook(this));
     }
 
     public void addScanTask(LoadChunksTask loadChunksTask) {
