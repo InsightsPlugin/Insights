@@ -145,7 +145,7 @@ public class Utils {
     private ArrayList<String> TILES_1_13_KEYWORDS = new ArrayList<>(Arrays.asList(
             "SIGN",
             "BANNER",
-            "BED",
+            "_BED",
             "CHEST",
             "ENDER_CHEST",
             "SPAWNER",
