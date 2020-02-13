@@ -78,6 +78,11 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                 if (sender.hasPermission("insights.block")) {
                     ItemStack item = ((Player) sender).getInventory().getItemInHand();
                     String name = item.getType().name();
+
+                    if (name.contains("_BOAT")) {
+                        name = "BOAT";
+                    }
+
                     plugin.getUtils().sendMessage(sender, "messages.insights.block", "%block%", name);
                 } else {
                     plugin.getUtils().sendMessage(sender, "messages.no_permission");

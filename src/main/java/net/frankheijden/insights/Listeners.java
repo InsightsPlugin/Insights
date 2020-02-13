@@ -6,13 +6,20 @@ import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -33,41 +40,13 @@ public class Listeners implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        String materialString = event.getBlock().getType().name();
+        String name = event.getBlock().getType().name();
 
-        if (!isScanningEnabledInWorld(player.getWorld())) {
-            return;
-        }
-
-        if (!plugin.getConfiguration().GENERAL_REGIONS_LIST.isEmpty()) {
-            if (plugin.getWorldGuardUtils() != null) {
-                ProtectedRegion region = plugin.getWorldGuardUtils().isInRegion(player);
-                if (region != null) {
-                    if (!isScanningEnabledInRegion(region.getId())) {
-                        return;
-                    }
-                }
-            }
-        }
-
-        for (String permission : plugin.getConfiguration().GENERAL_GROUPS.keySet()) {
-            if (player.hasPermission(permission)) {
-                if (plugin.getConfiguration().GENERAL_GROUPS.get(permission).containsKey(materialString)) {
-                    int limit = plugin.getConfiguration().GENERAL_GROUPS.get(permission).get(materialString);
-                    sendBreakMessage(player, event.getBlock().getChunk(), materialString, limit);
-                    return;
-                }
-            }
-        }
-
-        if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(materialString)) {
-            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(materialString);
-            sendBreakMessage(player, event.getBlock().getChunk(), materialString, limit);
-            return;
-        }
-
-        if (plugin.getUtils().isTile(event.getBlock())) {
-            int limit = plugin.getConfiguration().GENERAL_LIMIT;
+        int limit = getLimit(player, name);
+        if (limit > -1) {
+            sendBreakMessage(player, event.getBlock().getChunk(), name, limit);
+        } else if (plugin.getUtils().isTile(event.getBlock())) {
+            limit = plugin.getConfiguration().GENERAL_LIMIT;
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || limit > -1) {
                 if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
                     int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
@@ -75,9 +54,12 @@ public class Listeners implements Listener {
                     if (progress > 1 || progress < 0) progress = 1;
 
                     if (limit > -1) {
-                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check", progress, "%tile_count%", NumberFormat.getIntegerInstance().format(current), "%limit%", NumberFormat.getIntegerInstance().format(limit));
+                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check", progress,
+                                "%tile_count%", NumberFormat.getIntegerInstance().format(current),
+                                "%limit%", NumberFormat.getIntegerInstance().format(limit));
                     } else {
-                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_no_limit", progress, "%tile_count%", NumberFormat.getIntegerInstance().format(current));
+                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_no_limit", progress,
+                                "%tile_count%", NumberFormat.getIntegerInstance().format(current));
                     }
                 }
             }
@@ -100,20 +82,43 @@ public class Listeners implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        if (plugin.getHookManager().shouldCancel(event.getBlock())) return;
+    public void onEntityDeath(EntityDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+        String name = entity.getType().name();
 
-        Player player = event.getPlayer();
-        String materialString = event.getBlock().getType().name();
-
-        if (!canPlace(player, materialString) && !player.hasPermission("insights.regions.bypass." + materialString)) {
-            plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
-            event.setCancelled(true);
-            return;
+        if (name.contains("_BOAT")) {
+            name = "BOAT";
         }
 
+        EntityDamageEvent entityDamageEvent = event.getEntity().getLastDamageCause();
+        if (entityDamageEvent instanceof EntityDamageByEntityEvent) {
+            EntityDamageByEntityEvent damageEvent = (EntityDamageByEntityEvent) entityDamageEvent;
+            if (damageEvent.getDamager() instanceof Player) {
+                Player player = (Player) damageEvent.getDamager();
+
+                int limit = getLimit(player, name);
+                if (limit < 0) return;
+                int current = getEntityCount(entity.getChunk(), name) - 1;
+
+                sendMessage(player, name, current, limit);
+            }
+        }
+    }
+
+    private void sendMessage(Player player, String name, int current, int limit) {
+        if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
+            double progress = ((double) current)/((double) limit);
+            if (progress > 1 || progress < 0) progress = 1;
+            plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress,
+                    "%count%", NumberFormat.getIntegerInstance().format(current),
+                    "%material%", plugin.getUtils().capitalizeName(name.toLowerCase()),
+                    "%limit%", NumberFormat.getIntegerInstance().format(limit));
+        }
+    }
+
+    private int getLimit(Player player, String name) {
         if (!isScanningEnabledInWorld(player.getWorld())) {
-            return;
+            return -1;
         }
 
         if (!plugin.getConfiguration().GENERAL_REGIONS_LIST.isEmpty()) {
@@ -121,7 +126,7 @@ public class Listeners implements Listener {
                 ProtectedRegion region = plugin.getWorldGuardUtils().isInRegion(player);
                 if (region != null) {
                     if (!isScanningEnabledInRegion(region.getId())) {
-                        return;
+                        return -1;
                     }
                 }
             }
@@ -129,23 +134,78 @@ public class Listeners implements Listener {
 
         for (String permission : plugin.getConfiguration().GENERAL_GROUPS.keySet()) {
             if (player.hasPermission(permission)) {
-                if (plugin.getConfiguration().GENERAL_GROUPS.get(permission).containsKey(materialString)) {
-                    int limit = plugin.getConfiguration().GENERAL_GROUPS.get(permission).get(materialString);
-                    handleBlockPlace(player, event.getBlock(), materialString, event.getItemInHand(), limit);
-                    return;
+                if (plugin.getConfiguration().GENERAL_GROUPS.get(permission).containsKey(name)) {
+                    return plugin.getConfiguration().GENERAL_GROUPS.get(permission).get(name);
                 }
             }
         }
 
-        if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(materialString)) {
-            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(materialString);
-            handleBlockPlace(player, event.getBlock(), materialString, event.getItemInHand(), limit);
+        if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(name)) {
+            return plugin.getConfiguration().GENERAL_MATERIALS.get(name);
+        }
+        return -1;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getItem() == null || event.getClickedBlock() == null) return;
+
+        Player player = event.getPlayer();
+        String name = event.getItem().getType().name();
+
+        if (name.contains("_BOAT")) {
+            name = "BOAT";
+        }
+
+        if (!canPlace(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
+            plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
+            event.setCancelled(true);
             return;
         }
 
-        if (plugin.getUtils().isTile(event.getBlockPlaced())) {
+        int limit = getLimit(player, name);
+        if (limit < 0) return;
+        int current = getEntityCount(event.getClickedBlock().getChunk(), name) + 1;
+
+        if (current > limit) {
+            event.setCancelled(true);
+            plugin.getUtils().sendMessage(player, "messages.limit_reached_custom",
+                    "%limit%", NumberFormat.getIntegerInstance().format(limit),
+                    "%material%", plugin.getUtils().capitalizeName(name.toLowerCase()));
+            return;
+        }
+
+        sendMessage(player, name, current, limit);
+    }
+
+    private int getEntityCount(Chunk chunk, String entityType) {
+        int count = 0;
+        for (Entity entity : chunk.getEntities()) {
+            if (entity.getType().name().equals(entityType)) count++;
+        }
+        return count;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if (plugin.getHookManager().shouldCancel(event.getBlock())) return;
+
+        Player player = event.getPlayer();
+        String name = event.getBlock().getType().name();
+
+        if (!canPlace(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
+            plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
+            event.setCancelled(true);
+            return;
+        }
+
+        int limit = getLimit(player, name);
+        if (limit > -1) {
+            handleBlockPlace(player, event.getBlock(), name, event.getItemInHand(), limit);
+        } else if (plugin.getUtils().isTile(event.getBlockPlaced())) {
             int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
-            int limit = plugin.getConfiguration().GENERAL_LIMIT;
+            limit = plugin.getConfiguration().GENERAL_LIMIT;
             if (limit > -1 && current >= limit) {
                 if (!player.hasPermission("insights.bypass")) {
                     event.setCancelled(true);
@@ -168,16 +228,16 @@ public class Listeners implements Listener {
         }
     }
 
-    private boolean canPlace(Player player, String materialString) {
+    private boolean canPlace(Player player, String itemString) {
         if (plugin.getWorldGuardUtils() != null) {
             ProtectedRegion region = plugin.getWorldGuardUtils().isInRegionBlocks(player);
             if (region != null) {
                 Boolean whitelist = plugin.getConfiguration().GENERAL_REGION_BLOCKS_WHITELIST.get(region.getId());
                 if (whitelist != null) {
                     if (whitelist) {
-                        return plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(materialString);
+                        return plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(itemString);
                     } else {
-                        return !plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(materialString);
+                        return !plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(itemString);
                     }
                 }
             }
