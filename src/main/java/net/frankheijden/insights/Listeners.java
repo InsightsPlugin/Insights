@@ -8,20 +8,19 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.entity.EntityPlaceEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -72,37 +71,33 @@ public class Listeners implements Listener {
             @Override
             public void run() {
                 int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, materialString) - 1;
-                if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                    double progress = ((double) current)/((double) limit);
-                    if (progress > 1 || progress < 0) progress = 1;
-                    plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
-                }
+                sendMessage(player, materialString, current, limit);
             }
         }.runTaskAsynchronously(plugin);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEntityDeath(EntityDeathEvent event) {
-        LivingEntity entity = event.getEntity();
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+        Entity remover = event.getRemover();
+        if (!(remover instanceof Player)) return;
+        handleEntityDestroy((Player) remover, event.getEntity());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVehicleDestroy(VehicleDestroyEvent event) {
+        Entity remover = event.getAttacker();
+        if (!(remover instanceof Player)) return;
+        handleEntityDestroy((Player) remover, event.getVehicle());
+    }
+
+    public void handleEntityDestroy(Player player, Entity entity) {
         String name = entity.getType().name();
 
-        if (name.contains("_BOAT")) {
-            name = "BOAT";
-        }
+        int limit = getLimit(player, name);
+        if (limit < 0) return;
+        int current = getEntityCount(entity.getChunk(), name) - 1;
 
-        EntityDamageEvent entityDamageEvent = event.getEntity().getLastDamageCause();
-        if (entityDamageEvent instanceof EntityDamageByEntityEvent) {
-            EntityDamageByEntityEvent damageEvent = (EntityDamageByEntityEvent) entityDamageEvent;
-            if (damageEvent.getDamager() instanceof Player) {
-                Player player = (Player) damageEvent.getDamager();
-
-                int limit = getLimit(player, name);
-                if (limit < 0) return;
-                int current = getEntityCount(entity.getChunk(), name) - 1;
-
-                sendMessage(player, name, current, limit);
-            }
-        }
+        sendMessage(player, name, current, limit);
     }
 
     private void sendMessage(Player player, String name, int current, int limit) {
@@ -147,29 +142,33 @@ public class Listeners implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getItem() == null || event.getClickedBlock() == null) return;
-
+    public void onEntityPlace(EntityPlaceEvent event) {
         Player player = event.getPlayer();
-        String name = event.getItem().getType().name();
+        if (player == null) return;
+        handleEntityPlace(event, player, event.getEntity().getChunk(), event.getEntityType().name());
+    }
 
-        if (name.contains("_BOAT")) {
-            name = "BOAT";
-        }
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onHangingPlace(HangingPlaceEvent event) {
+        Player player = event.getPlayer();
+        Entity entity = event.getEntity();
+        String name = entity.getType().name();
+        handleEntityPlace(event, player, entity.getChunk(), name);
+    }
 
+    public void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
         if (!canPlace(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
             plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
-            event.setCancelled(true);
+            cancellable.setCancelled(true);
             return;
         }
 
         int limit = getLimit(player, name);
         if (limit < 0) return;
-        int current = getEntityCount(event.getClickedBlock().getChunk(), name) + 1;
+        int current = getEntityCount(chunk, name) + 1;
 
         if (current > limit) {
-            event.setCancelled(true);
+            cancellable.setCancelled(true);
             plugin.getUtils().sendMessage(player, "messages.limit_reached_custom",
                     "%limit%", NumberFormat.getIntegerInstance().format(limit),
                     "%material%", plugin.getUtils().capitalizeName(name.toLowerCase()));
@@ -295,11 +294,7 @@ public class Listeners implements Listener {
                     }
                 }
 
-                if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                    double progress = ((double) current)/((double) limit);
-                    if (progress > 1 || progress < 0) progress = 1;
-                    plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress, "%count%", NumberFormat.getIntegerInstance().format(current), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()), "%limit%", NumberFormat.getIntegerInstance().format(limit));
-                }
+                sendMessage(player, materialString, current, limit);
             }
         }.runTaskAsynchronously(plugin);
     }
@@ -356,8 +351,8 @@ public class Listeners implements Listener {
                 completableFuture.whenCompleteAsync((ev, error) -> {
                     Map.Entry<String, Integer> entry = ev.getScanResult().getCounts().firstEntry();
                     if (material != null) {
-                        if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(material)) {
-                            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(material);
+                        if (plugin.getConfiguration().GENERAL_MATERIALS.containsKey(material.name())) {
+                            int limit = plugin.getConfiguration().GENERAL_MATERIALS.get(material.name());
                             double progress = ((double) entry.getValue())/((double) limit);
                             if (progress > 1 || progress < 0) progress = 1;
                             plugin.getUtils().sendSpecialMessage(player, "messages.autoscan.message_limit", progress,

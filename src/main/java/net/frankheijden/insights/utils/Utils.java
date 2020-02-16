@@ -13,19 +13,23 @@ import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Utils {
     private Insights plugin;
+    private Map<String, String> entityMap;
 
     public Utils(Insights plugin) {
         this.plugin = plugin;
+        this.entityMap = new HashMap<>();
+        this.entityMap.put("CHEST_MINECART", "MINECART_CHEST");
+        this.entityMap.put("FURNACE_MINECART", "MINECART_FURNACE");
+        this.entityMap.put("TNT_MINECART", "MINECART_TNT");
+        this.entityMap.put("HOPPER_MINECART", "MINECART_HOPPER");
+        this.entityMap.put("_BOAT", "BOAT");
     }
 
     private List<String> scannableMaterials = null;
@@ -104,6 +108,19 @@ public class Utils {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getValidEntry(String name) {
+        Material m = Material.getMaterial(name);
+        if (m != null && m.isBlock()) {
+            return name;
+        }
+        for (String key : entityMap.keySet()) {
+            if (name.contains(key)) {
+                return entityMap.get(key);
+            }
         }
         return null;
     }
