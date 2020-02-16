@@ -167,7 +167,7 @@ public class Listeners implements Listener {
         if (limit < 0) return;
         int current = getEntityCount(chunk, name) + 1;
 
-        if (current > limit) {
+        if (current > limit && !player.hasPermission("insights.bypass." + name)) {
             cancellable.setCancelled(true);
             plugin.getUtils().sendMessage(player, "messages.limit_reached_custom",
                     "%limit%", NumberFormat.getIntegerInstance().format(limit),
