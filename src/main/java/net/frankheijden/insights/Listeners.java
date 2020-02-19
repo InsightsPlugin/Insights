@@ -201,7 +201,7 @@ public class Listeners implements Listener {
 
         int limit = getLimit(player, name);
         if (limit > -1) {
-            handleBlockPlace(player, event.getBlock(), name, event.getItemInHand(), limit);
+            handleBlockPlace(event, player, event.getBlock(), name, event.getItemInHand(), limit);
         } else if (plugin.getUtils().isTile(event.getBlockPlaced())) {
             int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
             limit = plugin.getConfiguration().GENERAL_LIMIT;
@@ -270,33 +270,20 @@ public class Listeners implements Listener {
         return true;
     }
 
-    private void handleBlockPlace(Player player, Block block, String materialString, ItemStack itemInHand, int limit) {
+    private void handleBlockPlace(Cancellable event, Player player, Block block, String materialString, ItemStack itemInHand, int limit) {
         ItemStack itemStack = new ItemStack(itemInHand);
         itemStack.setAmount(1);
 
         ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, materialString);
-                if (current > limit) {
-                    if (!player.hasPermission("insights.bypass." + materialString)) {
-                        plugin.getUtils().sendMessage(player, "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()));
-                        if (player.getGameMode() != GameMode.CREATIVE) {
-                            player.getInventory().addItem(itemStack);
-                        }
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                block.setType(Material.AIR);
-                            }
-                        }.runTask(plugin);
-                    }
-                }
-
-                sendMessage(player, materialString, current, limit);
+        int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, materialString);
+        if (current > limit) {
+            if (!player.hasPermission("insights.bypass." + materialString)) {
+                plugin.getUtils().sendMessage(player, "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()));
+                event.setCancelled(true);
             }
-        }.runTaskAsynchronously(plugin);
+        } else {
+            sendMessage(player, materialString, current, limit);
+        }
     }
 
     @EventHandler
