@@ -216,9 +216,9 @@ public class ScanChunksTask implements Runnable {
                 if (scanOptions.isDebug()) {
                     if (chunksDoneLoading != scanOptions.getChunkCount()) {
                         String chunksDoneLoadingString = NumberFormat.getIntegerInstance().format(chunksDoneLoading);
-                        plugin.sendDebug(loadChunksTask.getInternalTaskID(), "Loaded " + chunksDoneLoadingString + "/" + totalChunksString + " and scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...");
+                        plugin.log(Insights.LogType.DEBUG, "Loaded " + chunksDoneLoadingString + "/" + totalChunksString + " and scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...", loadChunksTask.getInternalTaskID());
                     } else {
-                        plugin.sendDebug(loadChunksTask.getInternalTaskID(), "Scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...");
+                        plugin.log(Insights.LogType.DEBUG, "Scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...", loadChunksTask.getInternalTaskID());
                     }
                 }
 

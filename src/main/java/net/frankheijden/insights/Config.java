@@ -16,6 +16,7 @@ public class Config {
     public boolean GENERAL_UPDATES_DOWNLOAD = true;
     public boolean GENERAL_DEBUG = false;
     public int GENERAL_LIMIT = -1;
+    public boolean GENERAL_SCAN_ASYNC = true;
     public boolean GENERAL_WORLDS_WHITELIST = true;
     public List<String> GENERAL_WORLDS_LIST = Arrays.asList("world", "world_nether", "world_the_end");
     public boolean GENERAL_REGIONS_WHITELIST = false;
@@ -59,6 +60,9 @@ public class Config {
         } else {
             System.out.println("[Insights/Config] Chunk tile limit was chosen not to be enabled.");
         }
+
+        GENERAL_SCAN_ASYNC = config.getBoolean("general.scan_async");
+
         GENERAL_WORLDS_WHITELIST = config.getBoolean("general.worlds.whitelist");
         GENERAL_WORLDS_LIST = config.getStringList("general.worlds.list");
 

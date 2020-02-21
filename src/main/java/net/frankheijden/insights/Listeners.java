@@ -25,6 +25,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -32,8 +34,11 @@ import java.util.concurrent.CompletableFuture;
 public class Listeners implements Listener {
     private Insights plugin;
 
+    private List<Location> blockLocations;
+
     Listeners(Insights plugin) {
         this.plugin = plugin;
+        this.blockLocations = new ArrayList<>();
     }
 
     @EventHandler
@@ -193,6 +198,12 @@ public class Listeners implements Listener {
         Player player = event.getPlayer();
         String name = event.getBlock().getType().name();
 
+        if (isNextToForbiddenLocation(event.getBlock().getLocation())) {
+            event.setCancelled(true);
+            plugin.log(Insights.LogType.WARNING, "Player " + player.getPlayerListName() + " placed block '" + name + "' too fast nearby a limited block.");
+            return;
+        }
+
         if (!canPlace(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
             plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
             event.setCancelled(true);
@@ -225,6 +236,22 @@ public class Listeners implements Listener {
                 }
             }
         }
+    }
+
+    private boolean isNextToForbiddenLocation(Location location) {
+        for (Location loc : blockLocations) {
+            if (isEqual(loc, location, -1, 0, 0)
+                    || isEqual(loc, location, 1, 0, 0)
+                    || isEqual(loc, location, 0, -1, 0)
+                    || isEqual(loc, location, 0, 1, 0)
+                    || isEqual(loc, location, 0, 0, -1)
+                    || isEqual(loc, location, 0, 0, 1)) return true;
+        }
+        return false;
+    }
+
+    private boolean isEqual(Location loc1, Location loc2, int x, int y, int z) {
+        return loc1.clone().add(x, y, z).equals(loc2);
     }
 
     private boolean canPlace(Player player, String itemString) {
@@ -271,19 +298,53 @@ public class Listeners implements Listener {
     }
 
     private void handleBlockPlace(Cancellable event, Player player, Block block, String materialString, ItemStack itemInHand, int limit) {
-        ItemStack itemStack = new ItemStack(itemInHand);
-        itemStack.setAmount(1);
-
         ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
+
+        boolean async = plugin.getConfiguration().GENERAL_SCAN_ASYNC;
+        if (async) {
+            ItemStack itemStack = new ItemStack(itemInHand);
+            itemStack.setAmount(1);
+
+            if (!player.hasPermission("insights.bypass." + materialString)) {
+                blockLocations.add(block.getLocation());
+            }
+
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    handleBlockPlace(event, player, block, chunkSnapshot, materialString, itemStack, async, limit);
+                }
+            }.runTaskAsynchronously(plugin);
+        } else {
+            handleBlockPlace(event, player, block, chunkSnapshot, materialString, null, async, limit);
+        }
+    }
+
+    private void handleBlockPlace(Cancellable event, Player player, Block block, ChunkSnapshot chunkSnapshot, String materialString, ItemStack itemStack, boolean async, int limit) {
         int current = plugin.getUtils().getAmountInChunk(chunkSnapshot, materialString);
         if (current > limit) {
             if (!player.hasPermission("insights.bypass." + materialString)) {
                 plugin.getUtils().sendMessage(player, "messages.limit_reached_custom", "%limit%", NumberFormat.getIntegerInstance().format(limit), "%material%", plugin.getUtils().capitalizeName(materialString.toLowerCase()));
-                event.setCancelled(true);
+                if (async) {
+                    if (player.getGameMode() != GameMode.CREATIVE) {
+                        player.getInventory().addItem(itemStack);
+                    }
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            block.setType(Material.AIR);
+                            blockLocations.remove(block.getLocation());
+                        }
+                    }.runTask(plugin);
+                    return;
+                } else {
+                    event.setCancelled(true);
+                }
             }
         } else {
             sendMessage(player, materialString, current, limit);
         }
+        blockLocations.remove(block.getLocation());
     }
 
     @EventHandler

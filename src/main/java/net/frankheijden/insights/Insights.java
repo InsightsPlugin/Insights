@@ -146,10 +146,21 @@ public class Insights extends JavaPlugin {
         return -1;
     }
 
-    public void sendDebug(int taskID, String message) {
-        if (config.GENERAL_DEBUG) {
-            Bukkit.getLogger().info("[Insights] [DEBUG] [TASK #" + taskID + "] " + message);
+    public enum LogType {
+        INFO,
+        WARNING,
+        DEBUG
+    }
+
+    public void log(LogType logType, String message) {
+        log(logType, message, null);
+    }
+
+    public void log(LogType logType, String message, Integer taskID) {
+        if (logType == LogType.DEBUG && !config.GENERAL_DEBUG) {
+            return;
         }
+        Bukkit.getLogger().info("[Insights] [" + logType.name() + "] " + ((taskID != null) ? ("[TASK #" + taskID + "] ") : "") + message);
     }
 
     public void reload() {

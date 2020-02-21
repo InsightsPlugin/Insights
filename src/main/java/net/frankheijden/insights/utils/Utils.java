@@ -211,14 +211,37 @@ public class Utils {
             "BELL"
     ));
 
+    private ArrayList<String> STACKABLE_BLOCKS = new ArrayList<>(Arrays.asList(
+            "CACTUS",
+            "BAMBOO",
+            "SUGAR_CANE",
+            "KELP"
+    ));
+
+    private ArrayList<String> STACKABLE_BLOCKS_KEYWORDS = new ArrayList<>(Arrays.asList(
+            "CARPET",
+            "SIGN"
+    ));
+
+    public boolean isDupeable(Block block) {
+        String name = block.getType().name();
+        if (STACKABLE_BLOCKS.contains(name)) return true;
+        return matches(name, STACKABLE_BLOCKS_KEYWORDS);
+    }
+
     public boolean isTile(Block block) {
         String name = block.getType().name();
-        for (String key : TILES_1_13_KEYWORDS) {
+        if (matches(name, TILES_1_13_KEYWORDS)) return true;
+        return TILES_1_8.contains(name) || TILES_1_13.contains(name);
+    }
+
+    private boolean matches(String name, List<String> keywords) {
+        for (String key : keywords) {
             if (name.contains(key)) {
                 return true;
             }
         }
-        return TILES_1_8.contains(name) || TILES_1_13.contains(name);
+        return false;
     }
 
     public String capitalizeName(String name) {

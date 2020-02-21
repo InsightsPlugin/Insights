@@ -74,7 +74,7 @@ public class LoadChunksTask implements Runnable {
         internalTaskID = plugin.getTaskID(this);
 
         if (scanOptions.isDebug()) {
-            plugin.sendDebug(internalTaskID, "Started scan for " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + "...");
+            plugin.log(Insights.LogType.DEBUG, "Started scan for " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + "...", internalTaskID);
         }
         sendMessage( scanOptions.getPath() + ".start", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", scanOptions.getWorld().getName());
 
@@ -119,7 +119,7 @@ public class LoadChunksTask implements Runnable {
 
     public void stop() {
         if (scanOptions.isDebug()) {
-            plugin.sendDebug(internalTaskID, "Finished loading and generating " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + ", saving world and continuing scan...");
+            plugin.log(Insights.LogType.DEBUG, "Finished loading and generating " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + ", saving world and continuing scan...", internalTaskID);
         }
 
         cancelled = true;
@@ -138,7 +138,7 @@ public class LoadChunksTask implements Runnable {
         scanChunksTask.forceStop();
 
         if (scanOptions.isDebug()) {
-            plugin.sendDebug(internalTaskID, "Task has been forcefully stopped.");
+            plugin.log(Insights.LogType.DEBUG, "Task has been forcefully stopped.", internalTaskID);
         }
     }
 

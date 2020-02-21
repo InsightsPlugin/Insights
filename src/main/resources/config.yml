@@ -12,6 +12,11 @@ general:
   # A chunk is defined as width x length x height blocks (16 x 16 x 256).
   limit: 256
 
+  # Should we scan custom defined block limits asynchronously?
+  # Please note: there may be bugs when enabling this feature; test thoroughly!
+  # Support is enabled for this feature, if you come across any incompatibility, please report!
+  scan_async: true
+
   # Worlds in which the live-tile-scanning feature should be enabled/disabled
   worlds:
     # Blacklist mode = false
