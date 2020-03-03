@@ -5,6 +5,9 @@ import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.hooks.HookManager;
+import net.frankheijden.insights.listeners.MainListener;
+import net.frankheijden.insights.listeners.Post1_13Listeners;
+import net.frankheijden.insights.listeners.Pre1_13Listeners;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 import net.frankheijden.insights.utils.BossBarUtils;
@@ -62,8 +65,8 @@ public class Insights extends JavaPlugin {
         PaperLib.suggestPaper(this);
 
         setupConfiguration();
-        setupClasses();
         setupNMS();
+        setupClasses();
         setupPlaceholderAPIHook();
         setupPluginHooks();
 
@@ -95,7 +98,13 @@ public class Insights extends JavaPlugin {
         sqLite = new SQLite(this);
         sqLite.load();
 
-        Bukkit.getPluginManager().registerEvents(new Listeners(this), this);
+        MainListener mainListener = new MainListener(this);
+        Bukkit.getPluginManager().registerEvents(mainListener, this);
+        if (newAPI) {
+            Bukkit.getPluginManager().registerEvents(new Post1_13Listeners(mainListener), this);
+        } else {
+            Bukkit.getPluginManager().registerEvents(new Pre1_13Listeners(mainListener), this);
+        }
         Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan(this));
         Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights(this));
         Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck(this));

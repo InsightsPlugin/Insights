@@ -1,6 +1,7 @@
-package net.frankheijden.insights;
+package net.frankheijden.insights.listeners;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.events.PlayerChunkMoveEvent;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
@@ -15,7 +16,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -31,12 +31,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class Listeners implements Listener {
+public class MainListener implements Listener {
     private Insights plugin;
 
     private List<Location> blockLocations;
 
-    Listeners(Insights plugin) {
+    public MainListener(Insights plugin) {
         this.plugin = plugin;
         this.blockLocations = new ArrayList<>();
     }
@@ -100,7 +100,7 @@ public class Listeners implements Listener {
 
         int limit = getLimit(player, name);
         if (limit < 0) return;
-        int current = getEntityCount(entity.getChunk(), name) - 1;
+        int current = getEntityCount(entity.getLocation().getChunk(), name) - 1;
 
         sendMessage(player, name, current, limit);
     }
@@ -147,18 +147,11 @@ public class Listeners implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEntityPlace(EntityPlaceEvent event) {
-        Player player = event.getPlayer();
-        if (player == null) return;
-        handleEntityPlace(event, player, event.getEntity().getChunk(), event.getEntityType().name());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onHangingPlace(HangingPlaceEvent event) {
         Player player = event.getPlayer();
         Entity entity = event.getEntity();
         String name = entity.getType().name();
-        handleEntityPlace(event, player, entity.getChunk(), name);
+        handleEntityPlace(event, player, entity.getLocation().getChunk(), name);
     }
 
     public void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
@@ -193,6 +186,7 @@ public class Listeners implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
+        System.out.println(event.getBlock().getType().name());
         if (plugin.getHookManager().shouldCancel(event.getBlock())) return;
 
         Player player = event.getPlayer();
