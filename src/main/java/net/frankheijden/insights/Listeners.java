@@ -336,14 +336,14 @@ public class Listeners implements Listener {
                             blockLocations.remove(block.getLocation());
                         }
                     }.runTask(plugin);
-                    return;
                 } else {
+                    blockLocations.remove(block.getLocation());
                     event.setCancelled(true);
                 }
+                return;
             }
-        } else {
-            sendMessage(player, materialString, current, limit);
         }
+        sendMessage(player, materialString, current, limit);
         blockLocations.remove(block.getLocation());
     }
 
