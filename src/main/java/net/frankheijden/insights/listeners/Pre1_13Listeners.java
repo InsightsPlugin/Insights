@@ -35,6 +35,8 @@ public class Pre1_13Listeners implements Listener {
                 continue;
             }
 
+            if (!loc.getWorld().equals(location.getWorld())) continue;
+
             if (location.distance(loc) <= 1.5) {
                 locationsToRemove.add(loc);
                 return interactLocations.get(loc);
