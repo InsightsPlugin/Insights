@@ -15,6 +15,7 @@
 [featureRequestsImg]: https://img.shields.io/github/issues/FrankHeijden/Insights/enhancement.svg?label=feature%20requests&color=informational
 [requestFeature]: https://github.com/FrankHeijden/Insights/issues/new?labels=enhancement&template=feature.md
 [config]: https://github.com/FrankHeijden/Insights/blob/master/resources/config.yml
+[gradleInstall]: https://gradle.org/install/
 <!-- End of variables block -->
 
 
@@ -27,6 +28,11 @@ For the description of this plugin, please refer to SpigotMC: https://www.spigot
 
 [![featureRequestsImg]][featureRequests] [![bugReportsImg]][bugReports]
 [![spigotRatingImg]][spigot] [![spigotDownloadsImg]][spigot]
+
+How to run the project?
+------
+1. Make sure you have [gradle][gradleInstall] installed.
+2. Run the project with `gradle shadowJar` to compile it with dependencies.
 
 Developer API
 ------

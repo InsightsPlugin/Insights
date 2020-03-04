@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+}
+
+group = 'net.frankheijden'
+version = '2.10.5'
+description = 'Insights'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'https://papermc.io/repo/repository/maven-public/'
+    }
+
+    maven {
+        url = 'http://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+
+    maven {
+        url = 'https://repo.frankheijden.net/repository/minecraft/'
+    }
+
+    maven {
+        url = 'https://maven.sk89q.com/repo/'
+    }
+
+    maven {
+        url = 'https://jitpack.io'
+    }
+
+    maven {
+        url = 'http://repo.maven.apache.org/maven2'
+    }
+}
+
+dependencies {
+    implementation 'io.papermc:paperlib:1.0.2'
+    compileOnly 'com.destroystokyo.paper:paper-api:1.15.2-R0.1-SNAPSHOT'
+    compileOnly 'me.clip:placeholderapi:2.10.4'
+    compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.1.0'
+    compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.2'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
