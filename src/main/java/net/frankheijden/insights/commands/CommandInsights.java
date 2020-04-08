@@ -1,17 +1,13 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
+import net.frankheijden.insights.utils.PlayerUtils;
+import org.bukkit.block.Block;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class CommandInsights implements CommandExecutor, TabExecutor {
     private Insights plugin;
@@ -76,10 +72,10 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                 }
 
                 if (sender.hasPermission("insights.block")) {
-                    ItemStack item = ((Player) sender).getInventory().getItemInHand();
-                    String name = plugin.getUtils().getValidEntry(item.getType().name());
-                    if (name != null) {
-                        plugin.getUtils().sendMessage(sender, "messages.insights.block", "%block%", name);
+                    Block target = PlayerUtils.getTargetBlock((Player) sender, 100);
+                    if (target != null) {
+                        plugin.getUtils().sendMessage(sender, "messages.insights.block",
+                                "%block%", target.getType().name());
                     } else {
                         plugin.getUtils().sendMessage(sender, "messages.insights.invalid_block");
                     }

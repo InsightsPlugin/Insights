@@ -91,10 +91,10 @@ messages:
     # Message send when a user executed /insights block
     # Special placeholders:
     # %block%
-    block: "&3The block in your hand is a(n) \"&b%block%&3\"."
+    block: "&3The block you're looking at is \"&b%block%&3\"."
 
-    # Message send when a user executed /insights block with an invalid block
-    invalid_block: "&cInsights currently doesn't support the block in your hand, please report this if you think this is in error."
+    # Message send when a user executed /insights block looks at a block which is too far away
+    invalid_block: "&cThat block is too far away."
 
     # Message send when the plugin has been successfully reloaded
     reload: "&3Insights has been successfully reloaded!"
