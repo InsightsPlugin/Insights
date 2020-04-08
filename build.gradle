@@ -52,6 +52,13 @@ publishing {
     }
 }
 
+processResources {
+    from('src/main/resources') {
+        include 'plugin.yml'
+        expand(version: project.version)
+    }
+}
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
