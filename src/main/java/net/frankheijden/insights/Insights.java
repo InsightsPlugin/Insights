@@ -5,18 +5,15 @@ import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.hooks.HookManager;
-import net.frankheijden.insights.listeners.MainListener;
-import net.frankheijden.insights.listeners.Post1_13Listeners;
-import net.frankheijden.insights.listeners.Pre1_13Listeners;
+import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.LoadChunksTask;
-import net.frankheijden.insights.utils.BossBarUtils;
-import net.frankheijden.insights.utils.Utils;
-import net.frankheijden.insights.utils.WorldGuardUtils;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -91,7 +88,7 @@ public class Insights extends JavaPlugin {
 
     private void setupClasses() {
         utils = new Utils(this);
-        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
+        if (isAvailable("WorldGuard")) {
             worldGuardUtils = new WorldGuardUtils(this);
             Bukkit.getLogger().info("[Insights] Successfully hooked into WorldGuard!");
         }
@@ -114,6 +111,11 @@ public class Insights extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("scanworld")).setExecutor(new CommandScanworld(this));
         Objects.requireNonNull(this.getCommand("togglecheck")).setExecutor(new CommandTogglecheck(this));
         Objects.requireNonNull(this.getCommand("cancelscan")).setExecutor(new CommandCancelscan(this));
+    }
+
+    private boolean isAvailable(String pluginName) {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
+        return plugin != null && plugin.isEnabled();
     }
 
     private void setupNMS() {
