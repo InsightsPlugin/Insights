@@ -10,10 +10,7 @@ import org.bukkit.entity.Player;
 
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class LoadChunksTask implements Runnable {
@@ -66,7 +63,7 @@ public class LoadChunksTask implements Runnable {
 
     public void start(long startTime) {
         this.startTime = startTime;
-        this.totalChunks = scanOptions.getChunkLocations().size();
+        this.totalChunks = scanOptions.getChunkCount();
         this.pendingChunks = new HashMap<>();
         this.taskID = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
 

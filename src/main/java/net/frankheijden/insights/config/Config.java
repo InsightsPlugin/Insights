@@ -1,5 +1,6 @@
-package net.frankheijden.insights;
+package net.frankheijden.insights.config;
 
+import net.frankheijden.insights.Insights;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -35,11 +36,12 @@ public class Config {
     public int GENERAL_SCANRADIUS_DEFAULT = 5;
     public boolean GENERAL_SCAN_NOTIFICATION = true;
     public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
-    public Map<String, Integer> GENERAL_MATERIALS;
-    public Map<String, Map<String, Integer>> GENERAL_GROUPS;
+
+    private Limits limits;
 
     public Config(Insights plugin) {
         this.plugin = plugin;
+        this.limits = new Limits(this);
     }
 
     public void reload() {
@@ -100,53 +102,18 @@ public class Config {
         GENERAL_SCAN_NOTIFICATION = config.getBoolean("general.scan_notification");
         GENERAL_ALWAYS_SHOW_NOTIFICATION = config.getBoolean("general.always_show_notification");
 
-        GENERAL_MATERIALS = new HashMap<>();
-        MemorySection materials = (MemorySection) config.get("general.materials");
-        if (materials != null) {
-            for (String materialString : materials.getKeys(false)) {
-//                Material material;
-//                try {
-//                    material = Material.valueOf(materialString);
-//                } catch (Exception ex) {
-//                    System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.materials', invalid material '" + materialString + "'!");
-//                    continue;
-//                }
-
-                int value = materials.getInt(materialString);
-                if (value >= 0) {
-                    GENERAL_MATERIALS.put(materialString, value);
-                } else {
-                    System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.materials." + materialString + "', value must be at least 0!");
-                }
-            }
-        } else {
-            System.err.println("[Insights/Config] Configuration section in config.yml not found at path 'general.materials'!");
-        }
-
-        GENERAL_GROUPS = new HashMap<>();
-        MemorySection groups = (MemorySection) config.get("general.groups");
-        if (groups != null) {
-            for (String permission : groups.getKeys(false)) {
-                HashMap<String, Integer> groupMap = new HashMap<>();
-
-                MemorySection group = (MemorySection) groups.get(permission);
-                for (String materialString : group.getKeys(false)) {
-                    int value = group.getInt(materialString);
-                    if (value >= 0) {
-                        groupMap.put(materialString, value);
-                    } else {
-                        System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.groups." + group + "." + materialString + "', value must be at least 0!");
-                    }
-                }
-
-                GENERAL_GROUPS.put(permission.replace("{dot}", "."), groupMap);
-            }
-        } else {
-            System.err.println("[Insights/Config] Configuration section in config.yml not found at path 'general.groups'!");
-        }
+        this.limits.reload();
 
         GENERAL_REGIONS_WHITELIST = config.getBoolean("general.regions.whitelist");
         GENERAL_REGIONS_LIST = config.getStringList("general.regions.list");
+    }
+
+    public Limits getLimits() {
+        return limits;
+    }
+
+    protected YamlConfiguration getConfig() {
+        return config;
     }
 
     private void updateInt(String path, int min) {

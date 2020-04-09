@@ -92,21 +92,72 @@ general:
   # Default: 5
   scanradius_default: 5
 
-  # Set a limit to custom blocks in a chunk
-  # Bypass with e.g. 'insights.bypass.DIAMOND_ORE' permission
-  materials:
-    # Format:
-    # MATERIAL: LIMIT
-    DIAMOND_ORE: 128
-    ENCHANTING_TABLE: 16 # If on < 1.13 use "ENCHANTMENT_TABLE"
+  limits:
 
-  # Set a limit to custom blocks in a chunk for certain groups
-  # Please note that this will override the global materials limit.
-  groups:
-    # Please replace dots in your permissions with {dot}.
-    # The following permission will be parsed as insights.group.1
-    "insights{dot}group{dot}1":
-      ENCHANTING_TABLE: 32
+    # This is a list in which order we should check limits
+    # The first in the list will be first checked, last in the list checked at last, etc.
+    priorities:
+      - "groups"
+      - "permissions"
+      - "materials"
+      - "entities"
 
-    "insights{dot}group{dot}2":
+    # Limits a single block in a chunk
+    materials:
+      # Format:
+      # BLOCK: LIMIT
       DIAMOND_ORE: 128
+      ENCHANTING_TABLE: 16 # If on < 1.13 use "ENCHANTMENT_TABLE"
+
+    # Limits entities per chunk
+    entities:
+      CREEPER: 4
+
+    # Set a limit to custom blocks in a chunk for certain material groups
+    # This group will act as a whole limit. All blocks will count towards the limit.
+    # Please note that this will override the global materials limit.
+    groups:
+
+      # Example of such a group, make sure the following line is unique!
+      my_redstone_group:
+        name: "Redstone"
+        limit: 50
+        # Bypass permission
+        permission: "insights.materialgroups.bypass.redstone"
+        materials:
+         - "REDSTONE_WIRE"
+         - "REDSTONE_BLOCK"
+         - "HOPPER"
+         - "DISPENSER"
+         - "DROPPER"
+         - "TRIPWIRE_HOOK"
+         - "REDSTONE_LAMP"
+         - "REDSTONE_LAMP_ON"
+         - "REDSTONE_LAMP_OFF"
+         - "STICKY_PISTON"
+         - "STICKY_PISTON_BASE"
+         - "PISTON"
+         - "PISTON_BASE"
+         - "REDSTONE_TORCH"
+         - "TNT"
+         - "NOTE_BLOCK"
+         - "LEVER"
+         - "REPEATER"
+         - "DIODE"
+         - "REDSTONE_COMPARATOR"
+         - "COMPARATOR"
+
+    # Set a limit to custom blocks in a chunk for certain groups
+    # Please note that this will override the global materials limit.
+    permissions:
+
+      # Example of such a group, make sure the following line is unique!
+      my_permission_group1:
+        name: "Permission Group"
+        # Bypass permission
+        permission: "insights.permissiongroups.group1"
+        materials:
+          DIAMOND_BLOCK: 256
+          ENCHANTING_TABLE: 32
+        entities:
+          CREEPER: 5

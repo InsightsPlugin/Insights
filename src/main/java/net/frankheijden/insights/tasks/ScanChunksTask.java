@@ -6,10 +6,7 @@ import net.frankheijden.insights.api.entities.ScanOptions;
 import net.frankheijden.insights.api.entities.ScanResult;
 import net.frankheijden.insights.api.enums.ScanType;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -17,9 +14,7 @@ import org.bukkit.entity.Player;
 import java.text.NumberFormat;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 
 public class ScanChunksTask implements Runnable {
     private Insights plugin;
@@ -62,7 +57,7 @@ public class ScanChunksTask implements Runnable {
         this.startTime = startTime;
         this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 1); // TODO: find non-deprecated method
 
-        if (scanOptions.getScanType() == ScanType.TILE || scanOptions.getScanType() == ScanType.BOTH) {
+        if (scanOptions.getScanType() == ScanType.TILE) {
             scanChunksTaskSyncHelper = new ScanChunksTaskSyncHelper(plugin,scanOptions, this);
             scanChunksTaskSyncHelper.start();
         }
@@ -156,6 +151,7 @@ public class ScanChunksTask implements Runnable {
     }
 
     private void sendNotification() {
+        if (scanOptions.getChunkCount() == 0) return;
         String done = NumberFormat.getIntegerInstance().format(chunksDone);
         String total = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
         double progressDouble = ((double) chunksDone)/((double) scanOptions.getChunkCount());
@@ -243,15 +239,15 @@ public class ScanChunksTask implements Runnable {
                 continue;
             }
 
-            if ((scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getEntityTypes() != null) || scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY || scanOptions.getScanType() == ScanType.BOTH) {
+            if ((scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getEntityTypes() != null) || scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY) {
                 for (Entity entity : chunk.getEntities()) {
-                    if ((scanOptions.getEntityTypes() != null && scanOptions.getEntityTypes().contains(entity.getType())) || scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY || scanOptions.getScanType() == ScanType.BOTH) {
-                        scanResult.increment(entity);
+                    if ((scanOptions.getEntityTypes() != null && scanOptions.getEntityTypes().contains(entity.getType().name())) || scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY) {
+                        scanResult.increment(entity.getType().name());
                     }
                 }
             }
 
-            if (scanOptions.getScanType() == ScanType.TILE || scanOptions.getScanType() == ScanType.BOTH) {
+            if (scanOptions.getScanType() == ScanType.TILE) {
                 scanChunksTaskSyncHelper.addChunk(chunk);
             } else if ((scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getMaterials() != null) || scanOptions.getScanType() == ScanType.ALL) {
                 ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
@@ -260,8 +256,8 @@ public class ScanChunksTask implements Runnable {
                         for (int z = 0; z < 16; z++) {
                             Material material = plugin.getUtils().getMaterial(chunkSnapshot, x,y,z);
                             if (material != null) {
-                                if ((scanOptions.getMaterials() != null && scanOptions.getMaterials().contains(material)) || scanOptions.getScanType() == ScanType.ALL) {
-                                    scanResult.increment(material);
+                                if ((scanOptions.getMaterials() != null && scanOptions.getMaterials().contains(material.name())) || scanOptions.getScanType() == ScanType.ALL) {
+                                    scanResult.increment(material.name());
                                 }
                             }
                         }
@@ -271,15 +267,15 @@ public class ScanChunksTask implements Runnable {
 
             chunkQueue.poll();
 
-            if (scanOptions.getScanType() != ScanType.TILE && scanOptions.getScanType() != ScanType.BOTH) {
+            if (scanOptions.getScanType() != ScanType.TILE) {
                 chunksDone++;
             }
         }
 
-        if (scanOptions.getScanType() == ScanType.TILE || scanOptions.getScanType() == ScanType.BOTH) {
+        if (scanOptions.getScanType() == ScanType.TILE) {
             while (!blockStatesList.isEmpty()) {
                 for (BlockState blockState : blockStatesList.poll()) {
-                    scanResult.increment(blockState.getType());
+                    scanResult.increment(blockState.getType().name());
                 }
                 chunksDone++;
             }

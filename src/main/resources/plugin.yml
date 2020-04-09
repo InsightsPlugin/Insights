@@ -10,8 +10,8 @@ commands:
     usage: |-
       Usage: /<command> [enable|disable]
       Examples:
-       /<command> enable DIAMOND_ORE
-       /<command> enable CREEPER
+       /<command> entries DIAMOND_ORE CREEPER
+       /<command> limit REDSTONE_WIRE
        /<command> disable
 
   insights:
@@ -27,33 +27,30 @@ commands:
 
   scan:
     usage: |-
-      Usage: /<command> [all|custom|entity|tile]
+      Usage: /<command> [custom|entity|tile]
       Examples:
        /<command> tile
        /<command> entity
        /<command> custom DIAMOND_ORE
        /<command> custom DIAMOND_ORE COW
-       /<command> all
 
   scanradius:
     usage: |-
-      Usage: /<command> <radius> [all|custom|entity|tile]
+      Usage: /<command> <radius> [custom|entity|tile]
       Examples:
        /<command> <radius> tile
        /<command> <radius> entity
        /<command> <radius> custom DIAMOND_ORE
        /<command> <radius> custom DIAMOND_ORE COW
-       /<command> <radius> all
 
   scanworld:
     usage: |-
-      Usage: /<command> <world> [all|custom|entity|tile]
+      Usage: /<command> <world> [custom|entity|tile]
       Examples:
        /<command> <world> tile
        /<command> <world> entity
        /<command> <world> custom DIAMOND_ORE
        /<command> <world> custom DIAMOND_ORE COW
-       /<command> <world> all
 
   togglecheck:
     usage: 'Usage: /<command>'

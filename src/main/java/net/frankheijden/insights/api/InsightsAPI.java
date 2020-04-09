@@ -1,20 +1,16 @@
 package net.frankheijden.insights.api;
 
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.api.builders.ScanTaskBuilder;
-import net.frankheijden.insights.api.entities.ChunkLocation;
-import net.frankheijden.insights.api.enums.ScanType;
-import net.frankheijden.insights.api.events.ScanCompleteEvent;
+import net.frankheijden.insights.config.*;
 import net.frankheijden.insights.hooks.HookManager;
 import net.frankheijden.insights.tasks.LoadChunksTask;
-import org.apache.commons.lang.RandomStringUtils;
-import org.bukkit.Chunk;
-import org.bukkit.Material;
+import net.frankheijden.insights.utils.WorldGuardUtils;
+import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.UUID;
 
 public class InsightsAPI {
     private Insights instance = null;
@@ -34,150 +30,6 @@ public class InsightsAPI {
             instance = Insights.getInstance();
         }
         return instance;
-    }
-
-    /**
-     * Scans chunks for all Materials and EntityTypes.
-     *
-     * @param world World in which we should scan
-     * @param chunkLocations List of ChunkLocation to scan in
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scan(World world, List<ChunkLocation> chunkLocations) {
-        return scan(world, new LinkedList<>(chunkLocations), null, null);
-    }
-
-    /**
-     * Scans chunks for all Materials and EntityTypes.
-     *
-     * @param world World in which we should scan
-     * @param chunkLocations Queue of ChunkLocation to scan in
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scan(World world, Queue<ChunkLocation> chunkLocations) {
-        return scan(world, chunkLocations, null, null);
-    }
-
-    /**
-     * Scans a single chunk for a single material
-     *
-     * @param chunk Chunk to scan
-     * @param material Material to scan for
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, Material material) {
-        return scan(chunk.getWorld(), new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))), Collections.singletonList(material), null);
-    }
-
-    /**
-     * Scans a single chunk for a single material
-     *
-     * @param chunk Chunk to scan
-     * @param material Material to scan for
-     * @param debug Boolean if we should debug this scan
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, Material material, boolean debug) {
-        return scan(chunk.getWorld(), new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))), Collections.singletonList(material), null, debug);
-    }
-
-    /**
-     * Scans a single chunk for a single entity
-     *
-     * @param chunk Chunk to scan
-     * @param entityType Entity to scan for
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, EntityType entityType) {
-        return scan(chunk.getWorld(), new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))), null, Collections.singletonList(entityType));
-    }
-
-    /**
-     * Scans a single chunk for a single entity
-     *
-     * @param chunk Chunk to scan
-     * @param entityType Entity to scan for
-     * @param debug Boolean if we should debug this scan
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scanSingleChunk(Chunk chunk, EntityType entityType, boolean debug) {
-        return scan(chunk.getWorld(), new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))), null, Collections.singletonList(entityType), debug);
-    }
-
-    /**
-     * Scans chunks for Materials and EntityTypes.
-     *
-     * @param world World in which we should scan
-     * @param chunkLocations List of ChunkLocation to scan in
-     * @param materials List of Material to scan for, null if none
-     * @param entityTypes List of EntityType to scan for, null if none
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scan(World world, Queue<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes) {
-        return scan(world, chunkLocations, materials, entityTypes, false, true);
-    }
-
-    /**
-     * Scans chunks for Materials and EntityTypes.
-     *
-     * @param world World in which we should scan
-     * @param chunkLocations List of ChunkLocation to scan in
-     * @param materials List of Material to scan for, null if none
-     * @param entityTypes List of EntityType to scan for, null if none
-     * @param debug Boolean if we should debug this scan
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scan(World world, Queue<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, boolean debug) {
-        return scan(world, chunkLocations, materials, entityTypes, false, debug);
-    }
-
-    /**
-     * Scans chunks for Materials and EntityTypes.
-     *
-     * @param world World in which we should scan
-     * @param chunkLocations List of ChunkLocation to scan in
-     * @param materials List of Material to scan for, null if none
-     * @param entityTypes List of EntityType to scan for, null if none
-     * @param saveWorld Boolean if we should save the world when the chunk generations have been completed (plugin induced saveworld)
-     * @param debug Boolean if we should debug this scan
-     * @return CompletableFuture which supplies the ScanCompleteEvent
-     */
-    public CompletableFuture<ScanCompleteEvent> scan(World world, Queue<ChunkLocation> chunkLocations, List<Material> materials, List<EntityType> entityTypes, boolean saveWorld, boolean debug) {
-        return CompletableFuture.supplyAsync(() -> {
-            final Object LOCK = new Object();
-
-            String k = RandomStringUtils.randomAlphanumeric(16);
-            while (getInstance().getCountsMap().containsKey(k)) {
-                k = RandomStringUtils.randomAlphanumeric(16);
-            }
-            final String key = k;
-
-            ScanTaskBuilder builder = new ScanTaskBuilder(getInstance(), ScanType.CUSTOM, world, chunkLocations)
-                    .setMaterials(materials)
-                    .setEntityTypes(entityTypes)
-                    .setSaveWorld(saveWorld)
-                    .setDebug(debug)
-                    .setScanCompleteEventListener((event) -> {
-                        getInstance().getCountsMap().put(key, event);
-
-                        synchronized (LOCK) {
-                            LOCK.notify();
-                        }
-                    });
-
-            LoadChunksTask loadChunksTask = builder.build();
-            loadChunksTask.start(System.currentTimeMillis());
-
-            synchronized (LOCK) {
-                try {
-                    LOCK.wait(10000000);
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-            }
-
-            return getInstance().getCountsMap().get(key);
-        });
     }
 
     /**
@@ -255,5 +107,56 @@ public class InsightsAPI {
      */
     public HookManager getHookManager() {
         return getInstance().getHookManager();
+    }
+
+    public boolean isLimitingEnabled(World world) {
+        Config config = Insights.getInstance().getConfiguration();
+        if (config.GENERAL_WORLDS_WHITELIST) {
+            if (!config.GENERAL_WORLDS_LIST.contains(world.getName())) {
+                return false;
+            }
+        } else if (config.GENERAL_WORLDS_LIST.contains(world.getName())) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isLimitingEnabled(String region) {
+        Config config = Insights.getInstance().getConfiguration();
+        if (config.GENERAL_REGIONS_WHITELIST) {
+            if (!config.GENERAL_REGIONS_LIST.contains(region)) {
+                return false;
+            }
+        } else if (config.GENERAL_REGIONS_LIST.contains(region)) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isInDisabledRegion(Location location) {
+        WorldGuardUtils wgUtils = Insights.getInstance().getWorldGuardUtils();
+        if (wgUtils != null) {
+            ProtectedRegion region = wgUtils.isInRegion(location);
+            if (region != null) {
+                return !isLimitingEnabled(region.getId());
+            }
+        }
+        return false;
+    }
+
+    public Limit getLimit(Player player, String str) {
+        return getLimit(player.getWorld(), player.getLocation(), str);
+    }
+
+    public Limit getLimit(World world, String str) {
+        return getLimit(world, null, str);
+    }
+
+    public Limit getLimit(World world, Location location, String str) {
+        if (!isLimitingEnabled(world)) return null;
+        if (location != null && isInDisabledRegion(location)) return null;
+
+        Limits limits = Insights.getInstance().getConfiguration().getLimits();
+        return limits.getLimit(str);
     }
 }

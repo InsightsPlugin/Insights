@@ -20,7 +20,7 @@ public class SQLite {
     }
 
     public String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS players (`uuid` varchar(128) NOT NULL, `realtime_check` bit NOT NULL, PRIMARY KEY (`uuid`));";
-    public String CREATE_TABLE_STATEMENT_AUTOSCAN = "CREATE TABLE IF NOT EXISTS players_autoscan (`uuid` varchar(128) NOT NULL, `autoscan` varchar(128) NOT NULL, PRIMARY KEY (`uuid`));";
+    public String CREATE_TABLE_STATEMENT_AUTOSCAN = "CREATE TABLE IF NOT EXISTS players_autoscan (`uuid` varchar(128) NOT NULL, `type` integer NOT NULL, `autoscan` varchar(512) NOT NULL, PRIMARY KEY (`uuid`));";
 
     public Connection setupConnection() {
         File dbFile = new File(plugin.getDataFolder(), db+".db");
@@ -48,6 +48,7 @@ public class SQLite {
 
     private HashMap<String, Boolean> cached = new HashMap<>();
     private HashMap<String, String> cached_autoscan = new HashMap<>();
+    private HashMap<String, Integer> cached_autoscan_types = new HashMap<>();
     public void load() {
         Bukkit.getLogger().info("[Insights] Setting up database connection...");
         setupConnection();
@@ -74,6 +75,7 @@ public class SQLite {
             ResultSet rs2 = ps2.executeQuery();
             while (rs2.next()) {
                 cached_autoscan.put(rs2.getString("uuid"), rs2.getString("autoscan"));
+                cached_autoscan_types.put(rs2.getString("uuid"), rs2.getInt("type"));
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -129,18 +131,20 @@ public class SQLite {
         setRealtimeCheck(uuid, value);
     }
 
-    public void setAutoScan(UUID uuid, String value) {
+    public void setAutoScan(UUID uuid, int type, String value) {
         String uuidString = uuid.toString();
 
         PreparedStatement ps = null;
         try {
             connection = setupConnection();
-            ps = connection.prepareStatement("REPLACE INTO players_autoscan (uuid,autoscan) VALUES(?,?)");
+            ps = connection.prepareStatement("REPLACE INTO players_autoscan (uuid,type,autoscan) VALUES(?,?,?)");
             ps.setString(1, uuidString);
-            ps.setString(2, value);
+            ps.setInt(2, type);
+            ps.setString(3, value);
             ps.executeUpdate();
 
             cached_autoscan.put(uuidString, value);
+            cached_autoscan_types.put(uuidString, type);
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
@@ -165,6 +169,7 @@ public class SQLite {
             ps.executeUpdate();
 
             cached_autoscan.remove(uuidString);
+            cached_autoscan_types.remove(uuidString);
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
@@ -190,5 +195,10 @@ public class SQLite {
     public String getAutoscan(Player player) {
         String uuid = player.getUniqueId().toString();
         return cached_autoscan.get(uuid);
+    }
+
+    public Integer getAutoscanType(Player player) {
+        String uuid = player.getUniqueId().toString();
+        return cached_autoscan_types.get(uuid);
     }
 }

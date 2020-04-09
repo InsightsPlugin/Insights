@@ -9,7 +9,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.frankheijden.insights.Insights;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 import java.lang.reflect.Method;
 
@@ -27,8 +26,8 @@ public class WorldGuardUtils {
         }
     }
 
-    public ProtectedRegion isInRegion(Player player) {
-        ApplicableRegionSet regionSet = getApplicableRegionSet(player.getLocation());
+    public ProtectedRegion isInRegion(Location location) {
+        ApplicableRegionSet regionSet = getApplicableRegionSet(location);
         if (regionSet != null) {
             for (ProtectedRegion region : regionSet.getRegions()) {
                 if (plugin.getConfiguration().GENERAL_REGIONS_LIST.contains(region.getId())) {
@@ -39,8 +38,8 @@ public class WorldGuardUtils {
         return null;
     }
 
-    public ProtectedRegion isInRegionBlocks(Player player) {
-        ApplicableRegionSet regionSet = getApplicableRegionSet(player.getLocation());
+    public ProtectedRegion isInRegionBlocks(Location location) {
+        ApplicableRegionSet regionSet = getApplicableRegionSet(location);
         if (regionSet != null) {
             for (ProtectedRegion region : regionSet.getRegions()) {
                 if (plugin.getConfiguration().GENERAL_REGION_BLOCKS_WHITELIST.containsKey(region.getId())) {

@@ -4,6 +4,7 @@ import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
+import net.frankheijden.insights.config.Config;
 import net.frankheijden.insights.hooks.HookManager;
 import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
@@ -95,7 +96,9 @@ public class Insights extends JavaPlugin {
         sqLite = new SQLite(this);
         sqLite.load();
 
-        MainListener mainListener = new MainListener(this);
+        InteractListener interactListener = new InteractListener();
+        Bukkit.getPluginManager().registerEvents(interactListener, this);
+        MainListener mainListener = new MainListener(this, interactListener);
         Bukkit.getPluginManager().registerEvents(mainListener, this);
         if (newAPI) {
             Bukkit.getPluginManager().registerEvents(new Post1_13Listeners(mainListener), this);
@@ -232,6 +235,14 @@ public class Insights extends JavaPlugin {
 
     public Map<UUID, LoadChunksTask> getPlayerScanTasks() {
         return playerScanTasks;
+    }
+
+    public boolean isPlayerScanning(Player player, boolean sendMessage) {
+        if (playerScanTasks.containsKey(player.getUniqueId())) {
+            if (sendMessage) utils.sendMessage(player, "messages.already_scanning");
+            return true;
+        }
+        return false;
     }
 
     public Map<String, ScanCompleteEvent> getCountsMap() {

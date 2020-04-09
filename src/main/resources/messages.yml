@@ -126,26 +126,28 @@ messages:
   autoscan:
     # Special placeholders:
     # %material%
-    enabled_material: "&3Successfully enabled automatic scanning for Material &b%material%&3."
-    # Special placeholders:
-    # %entity%
-    enabled_entity: "&3Successfully enabled automatic scanning for Entity &b%entity%&3."
-    # Special placeholders:
-    # %argument%
-    invalid_argument: "&cThe argument '%argument%' is not a valid entity or material."
+    enabled: "&3Successfully enabled automatic scanning."
     disabled: "&3Autoscan has been disabled."
     not_enabled: "&cYou do not have autoscan enabled!"
-    # Message send when entering a chunk
-    # Special placeholders:
-    # %key%
-    # %count%
-    message: "&3%key%: &b%count%"
-    # Message send when a limit has been setup for the block
+    # Message send when a user scans for a limit of a block
     # Special placeholders:
     # %key%
     # %count%
     # %limit%
-    message_limit: "&3%key%: &b%count%&3/&b%limit%"
+    limit_entry: "&3%key%: &b%count%&3/&b%limit%"
+    # Message send when entering a chunk with one autoscan entry
+    # Special placeholders:
+    # %key%
+    # %count%
+    single_entry: "&3%key%: &b%count%"
+    # Message send when autoscanning multiple entries
+    multiple_entries:
+      header: "&8&m--------------=&r&8[&b&l AutoScan Count&r &8]&m=---------------"
+      # Special placeholders:
+      # %entry%
+      # %count%
+      format: "&b %entry%&8: &7&l%count%"
+      footer: "&8&m-------------------------------------------------"
 
   # Messages send when a user executes /scan <entity|tile>
   scan:

@@ -3,13 +3,13 @@ package net.frankheijden.insights.utils;
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.entities.ChunkLocation;
+import net.frankheijden.insights.config.Limit;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -66,27 +66,32 @@ public class Utils {
         return chunkLocations;
     }
 
-    public int getAmountInChunk(ChunkSnapshot chunkSnapshot, String materialString) {
+    public int getAmountInChunk(Chunk chunk, ChunkSnapshot chunkSnapshot, Limit limit) {
         int count = 0;
-        for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
-                for (int y = 0; y < 256; y++) {
-                    if (getMaterial(chunkSnapshot,x,y,z).name().equals(materialString)) {
-                        count++;
+
+        List<String> materials = limit.getMaterials();
+        if (!materials.isEmpty()) {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    for (int y = 0; y < 256; y++) {
+                        if (materials.contains(getMaterial(chunkSnapshot,x,y,z).name())) {
+                            count++;
+                        }
                     }
                 }
             }
         }
-        return count;
-    }
-    
-    public EntityType getEntityType(String entityType) {
-        try {
-            return EntityType.valueOf(entityType);
-        } catch (IllegalArgumentException ignored) {
-            //
+
+        List<String> entities = limit.getEntities();
+        if (!entities.isEmpty()) {
+            for (Entity entity : chunk.getEntities()) {
+                if (entities.contains(entity.getType().name())) {
+                    count++;
+                }
+            }
         }
-        return null;
+
+        return count;
     }
 
     public Material getMaterial(ChunkSnapshot chunkSnapshot, int x, int y, int z) {
@@ -245,8 +250,9 @@ public class Utils {
     }
 
     public String capitalizeName(String name) {
+        name = name.toLowerCase();
         StringBuilder stringBuilder = new StringBuilder();
-        for (String entry : name.split("_")) {
+        for (String entry : name.split("[_ ]")) {
             stringBuilder.append(StringUtils.capitalize(entry.toLowerCase())).append(" ");
         }
         String build = stringBuilder.toString();

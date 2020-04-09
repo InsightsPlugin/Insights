@@ -1,13 +1,6 @@
 package net.frankheijden.insights.api.entities;
 
-import org.bukkit.Material;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class ScanResult implements Iterable<Map.Entry<String, Integer>> {
     private TreeMap<String, Integer> counts;
@@ -27,32 +20,19 @@ public class ScanResult implements Iterable<Map.Entry<String, Integer>> {
      * @param materials Scan materials
      * @param entityTypes Scan entities
      */
-    public ScanResult(List<Material> materials, List<EntityType> entityTypes) {
+    public ScanResult(List<String> materials, List<String> entityTypes) {
         this.counts = new TreeMap<>();
 
-        if (materials != null) {
-            for (Material material : materials) {
-                counts.put(material.name(), 0);
-            }
-        }
-
-        if (entityTypes != null) {
-            for (EntityType entityType : entityTypes) {
-                counts.put(entityType.name(), 0);
-            }
-        }
+        if (materials != null) initialize(materials);
+        if (entityTypes != null) initialize(entityTypes);
     }
 
-    public void increment(Material material) {
-        increment(material.name());
+    private void initialize(List<String> values) {
+        values.forEach(v -> counts.put(v, 0));
     }
 
-    public void increment(Entity entity) {
-        increment(entity.getType().name());
-    }
-
-    public void increment(String key) {
-        counts.merge(key, 1, Integer::sum);
+    public void increment(String str) {
+        counts.merge(str, 1, Integer::sum);
     }
 
     public TreeMap<String, Integer> getCounts() {
