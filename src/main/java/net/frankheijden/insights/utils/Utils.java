@@ -70,7 +70,7 @@ public class Utils {
         int count = 0;
 
         List<String> materials = limit.getMaterials();
-        if (!materials.isEmpty()) {
+        if (materials != null && !materials.isEmpty()) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     for (int y = 0; y < 256; y++) {
@@ -83,7 +83,7 @@ public class Utils {
         }
 
         List<String> entities = limit.getEntities();
-        if (!entities.isEmpty()) {
+        if (entities != null && !entities.isEmpty()) {
             for (Entity entity : chunk.getEntities()) {
                 if (entities.contains(entity.getType().name())) {
                     count++;
