@@ -38,60 +38,48 @@ Developer API
 ------
 Example scan:
 ```java
-package net.frankheijden.insights;
+import net.frankheijden.insights.api.builders.Scanner;
+import net.frankheijden.insights.api.entities.*;
+import net.frankheijden.insights.api.enums.ScanType;
+import org.bukkit.*;
 
-import net.frankheijden.insights.api.InsightsAPI;
-import net.frankheijden.insights.api.entities.ChunkLocation;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.entity.EntityType;
-import org.bukkit.plugin.java.JavaPlugin;
+public class APIExample {
+    
+    public void performScan() {
+        ScanOptions options = new ScanOptions();
+        options.setScanType(ScanType.CUSTOM);
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-
-public class MyClass extends JavaPlugin {
-    InsightsAPI insightsAPI;
-
-    @Override
-    public void onEnable() {
-        super.onEnable();
-
-        // Create a new InsightsAPI instance
-        insightsAPI = new InsightsAPI();
-
-        // Get a world to scan in
+        // Let's scan in world
         World world = Bukkit.getWorld("world");
+        options.setWorld(world);
 
-        // Get some chunklocations together
-        List<ChunkLocation> chunkLocations = new ArrayList<>();
+        // Let's scan the whole world
         for (Chunk chunk : world.getLoadedChunks()) {
-            ChunkLocation chunkLocation = new ChunkLocation(chunk.getX(), chunk.getZ());
-            chunkLocations.add(chunkLocation);
+            options.addChunkLocation(new ChunkLocation(chunk));
         }
 
-        // Lets scan for ores!
-        List<Material> materials = Arrays.asList(
-                Material.COAL_ORE,
-                Material.IRON_ORE,
-                Material.LAPIS_ORE,
-                Material.REDSTONE_ORE,
-                Material.EMERALD_ORE,
-                Material.DIAMOND_ORE
-        );
+        // Let's scan for ores!
+        options.addMaterial("DIAMOND_ORE");
+        options.addMaterial("EMERALD_ORE");
+        options.addMaterial("GOLD_ORE");
+        options.addMaterial("LAPIS_ORE");
+        options.addMaterial("IRON_ORE");
+        options.addMaterial("COAL_ORE");
 
-        // Lets also scan for Creepers ;-)
-        List<EntityType> entityTypes = Collections.singletonList(EntityType.CREEPER);
+        // Let's also scan for creepers and spiders!
+        options.addEntityType("CREEPER");
+        options.addEntityType("SPIDER");
 
-        // Let the scan begin!
-        CompletableFuture<ScanCompleteEvent> completableFuture = insightsAPI.scan(world, chunkLocations, materials, entityTypes);
-
-        // When the scan has been completed, execute:
-        completableFuture.whenCompleteAsync((event, error) -> {
-            // Print them in the console!
-            System.out.println(event.getCounts().toString());
+        // Let's scan!
+        Scanner.create(options).scan().whenComplete((event, err) -> {
+            // This block is called when the scan has completed
+            ScanResult result = event.getScanResult();
+            
+            // And print the result to the console
+            System.out.println("Scan Result:");
+            result.getCounts().forEach((key, value) -> {
+                System.out.println(key + ": " + value);
+            });
         });
     }
 }
@@ -130,3 +118,22 @@ public class MyPlugin extends JavaPlugin {
     }
 }
 ```
+
+Screenshots
+------
+#### Limit blocks per group
+![GroupLimit](screenshots/GroupLimit.png)
+#### Custom block limit per chunk
+![CustomLimit](screenshots/CustomLimit.png)
+#### Scan all blocks in a radius around you!
+![ScanRadius](screenshots/ScanRadius.png)
+#### Limit globally all tiles per chunk!
+![TileLimit](screenshots/TileLimit.png)
+#### Scan all tiles in chunks
+![TileScan](screenshots/TileScan.png)
+#### Scan with custom queries
+![CustomScan](screenshots/CustomScan.png)
+#### Automatically scan upon chunk entering
+![AutoScan](screenshots/AutoScan.png)
+#### Disable blocks in WorldGuard regions (Regex region match)
+![RegionDisallow](screenshots/RegionDisallow.png)
