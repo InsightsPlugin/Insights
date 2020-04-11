@@ -1,8 +1,8 @@
 package net.frankheijden.insights.config;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.utils.YamlUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -22,8 +22,7 @@ public class Config {
     public List<String> GENERAL_WORLDS_LIST = Arrays.asList("world", "world_nether", "world_the_end");
     public boolean GENERAL_REGIONS_WHITELIST = false;
     public List<String> GENERAL_REGIONS_LIST;
-    public Map<String, Boolean> GENERAL_REGION_BLOCKS_WHITELIST;
-    public Map<String, List<String>> GENERAL_REGION_BLOCKS_LIST;
+    public List<RegionBlocks> GENERAL_REGION_BLOCKS;
     public String GENERAL_NOTIFICATION_TYPE = "BOSSBAR";
     private List<String> GENERAL_NOTIFICATION_TYPE_VALUES = Arrays.asList("BOSSBAR", "ACTIONBAR");
     public String GENERAL_NOTIFICATION_BOSSBAR_COLOR = "BLUE";
@@ -68,24 +67,11 @@ public class Config {
         GENERAL_WORLDS_WHITELIST = config.getBoolean("general.worlds.whitelist");
         GENERAL_WORLDS_LIST = config.getStringList("general.worlds.list");
 
-        GENERAL_REGION_BLOCKS_WHITELIST = new HashMap<>();
-        GENERAL_REGION_BLOCKS_LIST = new HashMap<>();
-        MemorySection regions = (MemorySection) config.get("general.region_blocks");
-        if (regions != null) {
-            for (String region : regions.getKeys(false)) {
-                GENERAL_REGION_BLOCKS_WHITELIST.put(region, regions.getBoolean(region + ".whitelist"));
-                //                    Material material;
-                //                    try {
-                //                        material = Material.valueOf(materialString);
-                //                    } catch (Exception ex) {
-                //                        System.err.println("[Insights/Config] Invalid configuration in config.yml at path 'general.region_blocks.list', invalid material '" + materialString + "'!");
-                //                        continue;
-                //                    }
-                List<String> materials = new ArrayList<>(regions.getStringList(region + ".list"));
-                GENERAL_REGION_BLOCKS_LIST.put(region, materials);
-            }
-        } else {
-            System.err.println("[Insights/Config] Configuration section in config.yml not found at path 'general.region_blocks'!");
+        GENERAL_REGION_BLOCKS = new ArrayList<>();
+        for (String regionEntry : YamlUtils.getKeys(config, "general.region_blocks")) {
+            String regionPath = YamlUtils.getPath("general.region_blocks", regionEntry);
+            RegionBlocks regionBlocks = RegionBlocks.from(config, regionPath);
+            GENERAL_REGION_BLOCKS.add(regionBlocks);
         }
 
         updateString("general.notification.type", GENERAL_NOTIFICATION_TYPE_VALUES);

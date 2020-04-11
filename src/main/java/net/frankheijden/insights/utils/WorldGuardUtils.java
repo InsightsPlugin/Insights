@@ -7,10 +7,13 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.config.RegionBlocks;
 import org.bukkit.Location;
 import org.bukkit.World;
 
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class WorldGuardUtils {
     private Insights plugin;
@@ -26,11 +29,12 @@ public class WorldGuardUtils {
         }
     }
 
-    public ProtectedRegion isInRegion(Location location) {
+    public ProtectedRegion isInInsightsRegion(Location location) {
         ApplicableRegionSet regionSet = getApplicableRegionSet(location);
         if (regionSet != null) {
             for (ProtectedRegion region : regionSet.getRegions()) {
-                if (plugin.getConfiguration().GENERAL_REGIONS_LIST.contains(region.getId())) {
+                List<String> strs = plugin.getConfiguration().GENERAL_REGIONS_LIST;
+                if (StringUtils.matches(strs, region.getId())) {
                     return region;
                 }
             }
@@ -38,11 +42,14 @@ public class WorldGuardUtils {
         return null;
     }
 
-    public ProtectedRegion isInRegionBlocks(Location location) {
+    public ProtectedRegion isInRegionWithLimitedBlocks(Location location) {
         ApplicableRegionSet regionSet = getApplicableRegionSet(location);
         if (regionSet != null) {
             for (ProtectedRegion region : regionSet.getRegions()) {
-                if (plugin.getConfiguration().GENERAL_REGION_BLOCKS_WHITELIST.containsKey(region.getId())) {
+                List<String> strs = plugin.getConfiguration().GENERAL_REGION_BLOCKS.stream()
+                        .map(RegionBlocks::getRegex)
+                        .collect(Collectors.toList());
+                if (StringUtils.matches(strs, region.getId())) {
                     return region;
                 }
             }

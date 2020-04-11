@@ -10,6 +10,7 @@ import net.frankheijden.insights.api.enums.ScanType;
 import net.frankheijden.insights.api.events.PlayerChunkMoveEvent;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.config.Limit;
+import net.frankheijden.insights.config.RegionBlocks;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -141,7 +142,7 @@ public class MainListener implements Listener {
     }
 
     public void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
-        if (!canPlace(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
+        if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
             plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
             cancellable.setCancelled(true);
             return;
@@ -185,7 +186,7 @@ public class MainListener implements Listener {
             return;
         }
 
-        if (!canPlace(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
+        if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
             plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
             event.setCancelled(true);
             return;
@@ -239,21 +240,33 @@ public class MainListener implements Listener {
         return loc1.clone().add(x, y, z).equals(loc2);
     }
 
-    private boolean canPlace(Player player, String itemString) {
+    private boolean canPlaceInRegion(Player player, String str) {
         if (plugin.getWorldGuardUtils() != null) {
-            ProtectedRegion region = plugin.getWorldGuardUtils().isInRegionBlocks(player.getLocation());
+            ProtectedRegion region = plugin.getWorldGuardUtils().isInRegionWithLimitedBlocks(player.getLocation());
             if (region != null) {
-                Boolean whitelist = plugin.getConfiguration().GENERAL_REGION_BLOCKS_WHITELIST.get(region.getId());
-                if (whitelist != null) {
-                    if (whitelist) {
-                        return plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(itemString);
-                    } else {
-                        return !plugin.getConfiguration().GENERAL_REGION_BLOCKS_LIST.get(region.getId()).contains(itemString);
-                    }
-                }
+                return canPlaceInRegion(region.getId(), str);
             }
         }
         return true;
+    }
+
+    private boolean canPlaceInRegion(String region, String str) {
+        List<RegionBlocks> regionBlocks = plugin.getConfiguration().GENERAL_REGION_BLOCKS;
+
+        RegionBlocks matchedRegion = null;
+        for (RegionBlocks rg : regionBlocks) {
+            if (region.matches(rg.getRegex())) {
+                matchedRegion = rg;
+                break;
+            }
+        }
+
+        if (matchedRegion != null) {
+            List<String> strs = matchedRegion.getBlocks();
+            if (matchedRegion.isWhitelist()) return strs.contains(str);
+            else return !strs.contains(str);
+        }
+        return false;
     }
 
     private void handleBlockPlace(Cancellable event, Player player, Block block, ItemStack itemInHand, Limit limit) {

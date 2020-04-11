@@ -5,6 +5,7 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.config.*;
 import net.frankheijden.insights.hooks.HookManager;
 import net.frankheijden.insights.tasks.LoadChunksTask;
+import net.frankheijden.insights.utils.StringUtils;
 import net.frankheijden.insights.utils.WorldGuardUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -110,12 +111,13 @@ public class InsightsAPI {
     }
 
     public boolean isLimitingEnabled(World world) {
+        String name = world.getName();
         Config config = Insights.getInstance().getConfiguration();
         if (config.GENERAL_WORLDS_WHITELIST) {
-            if (!config.GENERAL_WORLDS_LIST.contains(world.getName())) {
+            if (!StringUtils.matches(config.GENERAL_WORLDS_LIST, name)) {
                 return false;
             }
-        } else if (config.GENERAL_WORLDS_LIST.contains(world.getName())) {
+        } else if (StringUtils.matches(config.GENERAL_WORLDS_LIST, name)) {
             return false;
         }
         return true;
@@ -124,10 +126,10 @@ public class InsightsAPI {
     public boolean isLimitingEnabled(String region) {
         Config config = Insights.getInstance().getConfiguration();
         if (config.GENERAL_REGIONS_WHITELIST) {
-            if (!config.GENERAL_REGIONS_LIST.contains(region)) {
+            if (!StringUtils.matches(config.GENERAL_REGIONS_LIST, region)) {
                 return false;
             }
-        } else if (config.GENERAL_REGIONS_LIST.contains(region)) {
+        } else if (StringUtils.matches(config.GENERAL_REGIONS_LIST, region)) {
             return false;
         }
         return true;
@@ -136,7 +138,7 @@ public class InsightsAPI {
     public boolean isInDisabledRegion(Location location) {
         WorldGuardUtils wgUtils = Insights.getInstance().getWorldGuardUtils();
         if (wgUtils != null) {
-            ProtectedRegion region = wgUtils.isInRegion(location);
+            ProtectedRegion region = wgUtils.isInInsightsRegion(location);
             if (region != null) {
                 return !isLimitingEnabled(region.getId());
             }

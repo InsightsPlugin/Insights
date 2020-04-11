@@ -18,6 +18,7 @@ general:
   scan_async: true
 
   # Worlds in which the live-tile-scanning feature should be enabled/disabled
+  # Values are regex matched
   worlds:
     # Blacklist mode = false
     # Whitelist mode = true
@@ -28,6 +29,7 @@ general:
       - "world_the_end"
 
   # Regions in which the live-tile-scanning feature should be enabled/disabled
+  # Values are regex matched
   regions:
     # Blacklist mode = false
     # Whitelist mode = true
@@ -37,16 +39,18 @@ general:
 
   # Customize the blocks which may be placed inside regions!
   region_blocks:
-    # This will disallow DIAMOND_ORE placements inside region 'region1'
-    region1:
+    # This will disallow DIAMOND_ORE placements inside region all regions starting with 'region-'
+    "region1":
       # Blacklist mode = false
       # Whitelist mode = true
       whitelist: false
+      regex: "region-.*"
       list:
         - "DIAMOND_ORE"
     # This will only allow DIAMOND_ORE placements inside region 'region2'
     region2:
       whitelist: true
+      regex: "region2"
       list:
         - "DIAMOND_ORE"
 
