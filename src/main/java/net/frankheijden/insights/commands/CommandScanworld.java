@@ -96,7 +96,7 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                 }
                 return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
             } else if (args.length == 2) {
-                List<String> list = Arrays.asList("all", "custom", "entity", "tile");
+                List<String> list = Arrays.asList("custom", "entity", "tile");
                 return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
             } else if (args.length > 2 && args[1].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
                 return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());

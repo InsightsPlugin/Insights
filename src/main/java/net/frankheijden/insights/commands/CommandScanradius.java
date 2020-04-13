@@ -110,7 +110,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
             if (args.length == 1) {
                 return StringUtil.copyPartialMatches(args[0], Collections.singletonList(String.valueOf(plugin.getConfiguration().GENERAL_SCANRADIUS_DEFAULT)), new ArrayList<>());
             } else if (args.length == 2) {
-                List<String> list = Arrays.asList("all", "custom", "entity", "tile");
+                List<String> list = Arrays.asList("custom", "entity", "tile");
                 return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
             } else if (args.length > 2 && args[1].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
                 return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());
