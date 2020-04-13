@@ -1,8 +1,8 @@
 package net.frankheijden.insights.config;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.utils.FileUtils;
 import net.frankheijden.insights.utils.YamlUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -44,11 +44,7 @@ public class Config {
     }
 
     public void reload() {
-        File configFile = new File(plugin.getDataFolder(), "config.yml");
-        if (!configFile.exists()) {
-            Bukkit.getLogger().info("[Insights] config.yml not found, creating!");
-            plugin.saveDefaultConfig();
-        }
+        File configFile = FileUtils.copyResourceIfNotExists("config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
 
         GENERAL_UPDATES_CHECK = config.getBoolean("general.updates.check");

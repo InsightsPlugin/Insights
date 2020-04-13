@@ -1,6 +1,7 @@
 package net.frankheijden.insights;
 
 import io.papermc.lib.PaperLib;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
@@ -18,6 +19,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.text.NumberFormat;
 import java.util.*;
 
 public class Insights extends JavaPlugin {
@@ -32,7 +34,7 @@ public class Insights extends JavaPlugin {
 
     private String nms;
     private boolean oldActionBar = false;
-    private boolean newAPI = true;
+    private boolean newAPI = false;
 
     private Config config;
     private Utils utils;
@@ -57,34 +59,36 @@ public class Insights extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        long start = System.currentTimeMillis();
         insights = this;
         insightsAPI = new InsightsAPI();
 
         PaperLib.suggestPaper(this);
 
         setupConfiguration();
+        setupSQLite();
         setupNMS();
         setupClasses();
         setupPlaceholderAPIHook();
         setupPluginHooks();
 
-        if (PaperLib.getMinecraftVersion() >= 9) {
-            bossBarUtils = new BossBarUtils(this);
-            bossBarUtils.setupBossBarUtils();
-            bossBarUtils.setupBossBarRunnable();
-        }
+        long end = System.currentTimeMillis();
+        long millis = end - start;
+        Bukkit.getLogger().info("[Insights] Enabled Insights in "
+                + NumberFormat.getInstance().format(millis) + "ms!");
     }
 
     private void setupConfiguration() {
         config = new Config(this);
         config.reload();
 
-        File messagesFile = new File(getDataFolder(), "messages.yml");
-        if (!messagesFile.exists()) {
-            Bukkit.getLogger().info("[Insights] messages.yml not found, creating!");
-            saveResource("messages.yml", false);
-        }
+        File messagesFile = FileUtils.copyResourceIfNotExists("messages.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
+    }
+
+    private void setupSQLite() {
+        sqLite = new SQLite(this);
+        sqLite.load();
     }
 
     private void setupClasses() {
@@ -93,8 +97,6 @@ public class Insights extends JavaPlugin {
             worldGuardUtils = new WorldGuardUtils(this);
             Bukkit.getLogger().info("[Insights] Successfully hooked into WorldGuard!");
         }
-        sqLite = new SQLite(this);
-        sqLite.load();
 
         InteractListener interactListener = new InteractListener();
         Bukkit.getPluginManager().registerEvents(interactListener, this);
@@ -124,22 +126,39 @@ public class Insights extends JavaPlugin {
     private void setupNMS() {
         nms = Bukkit.getServer().getClass().getPackage().getName();
         nms = nms.substring(nms.lastIndexOf(".") + 1);
-        if (nms.equalsIgnoreCase("v1_8_R1") || nms.startsWith("v1_7_")) {
+
+        if (PaperLib.getMinecraftVersion() <= 8) {
             oldActionBar = true;
         }
 
-        if (nms.startsWith("v1_12_") || nms.startsWith("v1_11_") || nms.startsWith("v1_10_") || nms.startsWith("v1_9_") || nms.startsWith("v1_8_")) {
-            newAPI = false;
+        if (PaperLib.getMinecraftVersion() >= 9) {
+            bossBarUtils = new BossBarUtils(this);
+            bossBarUtils.setupBossBarUtils();
+            bossBarUtils.setupBossBarRunnable();
         }
-        Bukkit.getLogger().info("[Insights] NMS version '"+nms+"' detected!");
+
+        if (PaperLib.getMinecraftVersion() >= 13) {
+            newAPI = true;
+        }
+
+        String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
+        if (PaperLib.getMinecraftVersion() <= 7) {
+            Bukkit.getLogger().warning("[Insights] Minecraft version '" + version + "' detected, "
+                    + "please note that Insights may not support this version!");
+        } else {
+            Bukkit.getLogger().info("[Insights] Minecraft version '" + version + "' detected!");
+        }
     }
 
     private void setupPlaceholderAPIHook() {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            if (new InsightsPlaceholderAPIExpansion(this).register()) {
-                placeholderAPIHook = true;
+            PlaceholderExpansion expansion = new InsightsPlaceholderAPIExpansion(this);
+            if (expansion.register()) {
                 Bukkit.getLogger().info("[Insights] Successfully hooked into PlaceholderAPI!");
-            } else {
+            }
+
+            placeholderAPIHook = expansion.isRegistered();
+            if (!placeholderAPIHook) {
                 Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
             }
         }
@@ -179,6 +198,8 @@ public class Insights extends JavaPlugin {
 
     public void reload() {
         setupConfiguration();
+        setupSQLite();
+        setupPlaceholderAPIHook();
 
         if (PaperLib.getMinecraftVersion() >= 9) {
             bossBarUtils.setupBossBarUtils();

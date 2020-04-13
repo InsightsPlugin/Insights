@@ -1,10 +1,9 @@
 package net.frankheijden.insights;
 
-import org.bukkit.Bukkit;
+import net.frankheijden.insights.utils.FileUtils;
 import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.UUID;
@@ -12,25 +11,18 @@ import java.util.UUID;
 public class SQLite {
     private Insights plugin;
 
-    public String db = "players";
+    public static final String DATABASE_NAME = "players";
     public Connection connection;
 
     public SQLite(Insights plugin) {
         this.plugin = plugin;
     }
 
-    public String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS players (`uuid` varchar(128) NOT NULL, `realtime_check` bit NOT NULL, PRIMARY KEY (`uuid`));";
-    public String CREATE_TABLE_STATEMENT_AUTOSCAN = "CREATE TABLE IF NOT EXISTS players_autoscan (`uuid` varchar(128) NOT NULL, `type` integer NOT NULL, `autoscan` varchar(512) NOT NULL, PRIMARY KEY (`uuid`));";
+    public static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS players (`uuid` varchar(128) NOT NULL, `realtime_check` bit NOT NULL, PRIMARY KEY (`uuid`));";
+    public static final String CREATE_TABLE_STATEMENT_AUTOSCAN = "CREATE TABLE IF NOT EXISTS players_autoscan (`uuid` varchar(128) NOT NULL, `type` integer NOT NULL, `autoscan` varchar(512) NOT NULL, PRIMARY KEY (`uuid`));";
 
     public Connection setupConnection() {
-        File dbFile = new File(plugin.getDataFolder(), db+".db");
-        if (!dbFile.exists()) {
-            try {
-                dbFile.createNewFile();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
+        File dbFile = FileUtils.createFileIfNotExists(DATABASE_NAME + ".db");
 
         try {
             if (connection != null && !connection.isClosed()){
@@ -50,7 +42,6 @@ public class SQLite {
     private HashMap<String, String> cached_autoscan = new HashMap<>();
     private HashMap<String, Integer> cached_autoscan_types = new HashMap<>();
     public void load() {
-        Bukkit.getLogger().info("[Insights] Setting up database connection...");
         setupConnection();
 
         try {
@@ -65,7 +56,7 @@ public class SQLite {
         PreparedStatement ps = null;
         PreparedStatement ps2 = null;
         try {
-            ps = connection.prepareStatement("SELECT * FROM " + db + ";");
+            ps = connection.prepareStatement("SELECT * FROM " + DATABASE_NAME + ";");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 cached.put(rs.getString("uuid"), rs.getBoolean("realtime_check"));
@@ -100,7 +91,7 @@ public class SQLite {
         PreparedStatement ps = null;
         try {
             connection = setupConnection();
-            ps = connection.prepareStatement("REPLACE INTO " + db + " (uuid,realtime_check) VALUES(?,?)");
+            ps = connection.prepareStatement("REPLACE INTO " + DATABASE_NAME + " (uuid,realtime_check) VALUES(?,?)");
             ps.setString(1, uuidString);
             ps.setBoolean(2, value);
             ps.executeUpdate();
