@@ -45,7 +45,7 @@ public class InsightsPlaceholderAPIExpansion extends PlaceholderExpansion {
         switch (identifier.toUpperCase()) {
             case "SCAN_PROGRESS": {
                 Double scanProgress = plugin.getInsightsAPI().getScanProgress(uuid);
-                return scanProgress == null ? "" : (int) (scanProgress*100) + "%";
+                return scanProgress == null ? "" : String.format("%.2f", scanProgress*100) + "%";
             }
             case "SCAN_TIME": {
                 String scanTime = plugin.getInsightsAPI().getTimeElapsedOfScan(uuid);
