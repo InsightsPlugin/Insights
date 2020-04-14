@@ -1,7 +1,6 @@
 package net.frankheijden.insights;
 
 import io.papermc.lib.PaperLib;
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
@@ -152,7 +151,7 @@ public class Insights extends JavaPlugin {
 
     private void setupPlaceholderAPIHook() {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            PlaceholderExpansion expansion = new InsightsPlaceholderAPIExpansion(this);
+            InsightsPlaceholderAPIExpansion expansion = new InsightsPlaceholderAPIExpansion(this);
             if (expansion.register()) {
                 Bukkit.getLogger().info("[Insights] Successfully hooked into PlaceholderAPI!");
             }
