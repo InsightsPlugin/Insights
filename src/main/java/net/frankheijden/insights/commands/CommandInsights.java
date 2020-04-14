@@ -4,6 +4,7 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.utils.PlayerUtils;
 import org.bukkit.block.Block;
 import org.bukkit.command.*;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
@@ -11,6 +12,9 @@ import java.util.*;
 
 public class CommandInsights implements CommandExecutor, TabExecutor {
     private Insights plugin;
+
+    public static final int DEFAULT_BLOCK_RANGE = 100;
+    public static final int DEFAULT_ENTITY_RANGE = 25;
 
     public CommandInsights(Insights plugin) {
         this.plugin = plugin;
@@ -26,6 +30,56 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     plugin.getUtils().color("&b Plugin link: &7https://www.spigotmc.org/resources/56489/"),
                     plugin.getUtils().color("&8&m-------------------------------------------------")
             });
+            return true;
+        } else if (args[0].equalsIgnoreCase("block") || args[0].equalsIgnoreCase("entity")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("This command cannot be executed from console!");
+                return true;
+            }
+            Player player = (Player) sender;
+
+            boolean isBlock = args[0].equalsIgnoreCase("block");
+            int range = -1;
+            if (args.length == 1) {
+                if (isBlock) {
+                    range = DEFAULT_BLOCK_RANGE;
+                } else {
+                    range = DEFAULT_ENTITY_RANGE;
+                }
+            } else if (args.length == 2) {
+                try {
+                    range = Integer.parseInt(args[1]);
+                } catch (NumberFormatException ex) {
+                    plugin.getUtils().sendMessage(player, "messages.insights.invalid_number");
+                    return true;
+                }
+            }
+
+            if (range < 0) {
+                return false;
+            }
+
+            if (player.hasPermission("insights." + args[0].toLowerCase())) {
+                if (isBlock) {
+                    Block target = PlayerUtils.getTargetBlock(player, range);
+                    if (target != null) {
+                        plugin.getUtils().sendMessage(player, "messages.insights.block",
+                                "%block%", target.getType().name());
+                    } else {
+                        plugin.getUtils().sendMessage(player, "messages.insights.invalid_block");
+                    }
+                } else {
+                    Entity target = PlayerUtils.getTargetEntity(player, range);
+                    if (target != null) {
+                        plugin.getUtils().sendMessage(player, "messages.insights.entity",
+                                "%entity%", target.getType().name());
+                    } else {
+                        plugin.getUtils().sendMessage(player, "messages.insights.invalid_entity");
+                    }
+                }
+            } else {
+                plugin.getUtils().sendMessage(player, "messages.no_permission");
+            }
             return true;
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("reload")) {
@@ -65,24 +119,6 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     plugin.getUtils().sendMessage(sender, "messages.no_permission");
                 }
                 return true;
-            } else if (args[0].equalsIgnoreCase("block")) {
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage("This command cannot be executed from console!");
-                    return true;
-                }
-
-                if (sender.hasPermission("insights.block")) {
-                    Block target = PlayerUtils.getTargetBlock((Player) sender, 100);
-                    if (target != null) {
-                        plugin.getUtils().sendMessage(sender, "messages.insights.block",
-                                "%block%", target.getType().name());
-                    } else {
-                        plugin.getUtils().sendMessage(sender, "messages.insights.invalid_block");
-                    }
-                } else {
-                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
-                }
-                return true;
             }
         }
 
@@ -91,12 +127,16 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
     }
 
 
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 1) {
             List<String> list = new ArrayList<>(Collections.singletonList("help"));
             if (sender.hasPermission("insights.block")) {
                 list.add("block");
+            }
+            if (sender.hasPermission("insights.entity")) {
+                list.add("entity");
             }
             if (sender.hasPermission("insights.hooks")) {
                 list.add("hooks");

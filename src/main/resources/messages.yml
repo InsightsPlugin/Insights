@@ -92,9 +92,18 @@ messages:
     # Special placeholders:
     # %block%
     block: "&3The block you're looking at is \"&b%block%&3\"."
-
-    # Message send when a user executed /insights block looks at a block which is too far away
+    # Message send when a user executed /insights block and looks at a block which is too far away
     invalid_block: "&cThat block is too far away."
+
+    # Message send when a user executed /insights entity
+    # Special placeholders:
+    # %entity%
+    entity: "&3The entity you're looking ar is \"&b%entity%&3\"."
+    # Message send when a user executed /insights entity and we couldn't find anything
+    invalid_entity: "&cThere is no entity there. Please try to stand 3-5 blocks from the entity and try again."
+
+    # Message send when we require a number, but the number is invalid.
+    invalid_number: "&cThat is not a valid number."
 
     # Message send when the plugin has been successfully reloaded
     reload: "&3Insights has been successfully reloaded!"

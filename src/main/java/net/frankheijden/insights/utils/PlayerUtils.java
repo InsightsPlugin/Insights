@@ -1,9 +1,12 @@
 package net.frankheijden.insights.utils;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BlockIterator;
+import org.bukkit.util.Vector;
 
 public class PlayerUtils {
 
@@ -18,5 +21,21 @@ public class PlayerUtils {
             break;
         }
         return lastBlock;
+    }
+
+    public static Entity getTargetEntity(Player player, int range) {
+        for (Entity entity : player.getNearbyEntities(range, range, range)) {
+            if (isLookingAt(player, entity)) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isLookingAt(Player player, Entity entity) {
+        Location eye = player.getEyeLocation();
+        Vector toEntity = entity.getBoundingBox().getCenter().subtract(eye.toVector());
+        double dotProduct = toEntity.normalize().dot(eye.getDirection());
+        return dotProduct > 0.99D;
     }
 }
