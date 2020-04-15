@@ -7,7 +7,7 @@ import java.util.*;
 
 public class Limits {
 
-    private Config config;
+    private final Config config;
 
     private List<String> PRIORITIES;
 

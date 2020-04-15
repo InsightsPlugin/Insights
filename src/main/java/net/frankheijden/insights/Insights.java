@@ -31,12 +31,12 @@ public class Insights extends JavaPlugin {
 
     private FileConfiguration messages;
 
-    private String nms;
+    public static String NMS;
     private boolean oldActionBar = false;
-    private boolean newAPI = false;
+    private boolean post1_9 = false;
+    private boolean post1_13 = false;
 
     private Config config;
-    private Utils utils;
     private SQLite sqLite;
     private BossBarUtils bossBarUtils;
     private WorldGuardUtils worldGuardUtils = null;
@@ -91,7 +91,6 @@ public class Insights extends JavaPlugin {
     }
 
     private void setupClasses() {
-        utils = new Utils(this);
         if (isAvailable("WorldGuard")) {
             worldGuardUtils = new WorldGuardUtils(this);
             Bukkit.getLogger().info("[Insights] Successfully hooked into WorldGuard!");
@@ -101,7 +100,7 @@ public class Insights extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(interactListener, this);
         MainListener mainListener = new MainListener(this, interactListener);
         Bukkit.getPluginManager().registerEvents(mainListener, this);
-        if (newAPI) {
+        if (post1_13) {
             Bukkit.getPluginManager().registerEvents(new Post1_13Listeners(mainListener), this);
         } else {
             Bukkit.getPluginManager().registerEvents(new Pre1_13Listeners(mainListener), this);
@@ -123,8 +122,8 @@ public class Insights extends JavaPlugin {
     }
 
     private void setupNMS() {
-        nms = Bukkit.getServer().getClass().getPackage().getName();
-        nms = nms.substring(nms.lastIndexOf(".") + 1);
+        NMS = Bukkit.getServer().getClass().getPackage().getName();
+        NMS = NMS.substring(NMS.lastIndexOf(".") + 1);
 
         if (PaperLib.getMinecraftVersion() <= 8) {
             oldActionBar = true;
@@ -134,10 +133,11 @@ public class Insights extends JavaPlugin {
             bossBarUtils = new BossBarUtils(this);
             bossBarUtils.setupBossBarUtils();
             bossBarUtils.setupBossBarRunnable();
+            post1_9 = true;
         }
 
         if (PaperLib.getMinecraftVersion() >= 13) {
-            newAPI = true;
+            post1_13 = true;
         }
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
@@ -213,24 +213,20 @@ public class Insights extends JavaPlugin {
         return messages;
     }
 
-    public String getNms() {
-        return nms;
-    }
-
     public boolean shouldUseOldActionBar() {
         return oldActionBar;
     }
 
-    public boolean shouldUseNewAPI() {
-        return newAPI;
+    public boolean isPost1_9() {
+        return post1_9;
+    }
+
+    public boolean isPost1_13() {
+        return post1_13;
     }
 
     public Config getConfiguration() {
         return config;
-    }
-
-    public Utils getUtils() {
-        return utils;
     }
 
     public SQLite getSqLite() {
@@ -259,7 +255,7 @@ public class Insights extends JavaPlugin {
 
     public boolean isPlayerScanning(Player player, boolean sendMessage) {
         if (playerScanTasks.containsKey(player.getUniqueId())) {
-            if (sendMessage) utils.sendMessage(player, "messages.already_scanning");
+            if (sendMessage) MessageUtils.sendMessage(player, "messages.already_scanning");
             return true;
         }
         return false;

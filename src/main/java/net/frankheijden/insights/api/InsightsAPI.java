@@ -5,8 +5,7 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.config.*;
 import net.frankheijden.insights.hooks.HookManager;
 import net.frankheijden.insights.tasks.LoadChunksTask;
-import net.frankheijden.insights.utils.StringUtils;
-import net.frankheijden.insights.utils.WorldGuardUtils;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -96,7 +95,7 @@ public class InsightsAPI {
     public String getTimeElapsedOfScan(UUID uuid) {
         LoadChunksTask loadChunksTask = getInstance().getPlayerScanTasks().get(uuid);
         if (loadChunksTask != null) {
-            return getInstance().getUtils().getDHMS(loadChunksTask.getStartTime());
+            return TimeUtils.getDHMS(loadChunksTask.getStartTime());
         }
         return null;
     }

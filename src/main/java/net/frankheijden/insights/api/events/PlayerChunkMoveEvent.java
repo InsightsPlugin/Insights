@@ -2,15 +2,13 @@ package net.frankheijden.insights.api.events;
 
 import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
+import org.bukkit.event.*;
 
 public class PlayerChunkMoveEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    private Player player;
-    private Chunk fromChunk;
-    private Chunk toChunk;
+    private final Player player;
+    private final Chunk fromChunk;
+    private final Chunk toChunk;
     private boolean cancel = false;
 
     public PlayerChunkMoveEvent(Player player, Chunk fromChunk, Chunk toChunk) {

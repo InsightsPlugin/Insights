@@ -4,11 +4,11 @@ import java.util.List;
 
 public class Limit {
 
-    private String name;
-    private String permission;
-    private int limit;
-    private List<String> materials;
-    private List<String> entities;
+    private final String name;
+    private final String permission;
+    private final int limit;
+    private final List<String> materials;
+    private final List<String> entities;
 
     public Limit(String name, String permission, int limit, List<String> materials, List<String> entities) {
         this.name = name;

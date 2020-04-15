@@ -3,7 +3,7 @@ package net.frankheijden.insights.api.entities;
 import java.util.*;
 
 public class ScanResult implements Iterable<Map.Entry<String, Integer>> {
-    private TreeMap<String, Integer> counts;
+    private final TreeMap<String, Integer> counts;
 
     /**
      * Initializes ScanResult with empty map

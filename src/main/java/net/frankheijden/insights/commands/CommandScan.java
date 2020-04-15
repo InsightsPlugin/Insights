@@ -5,6 +5,8 @@ import net.frankheijden.insights.api.builders.Scanner;
 import net.frankheijden.insights.api.entities.ChunkLocation;
 import net.frankheijden.insights.api.entities.ScanOptions;
 import net.frankheijden.insights.api.enums.ScanType;
+import net.frankheijden.insights.utils.MessageUtils;
+import net.frankheijden.insights.utils.Utils;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -12,7 +14,7 @@ import org.bukkit.util.StringUtil;
 import java.util.*;
 
 public class CommandScan implements CommandExecutor, TabExecutor {
-    private Insights plugin;
+    private final Insights plugin;
 
     public CommandScan(Insights plugin) {
         this.plugin = plugin;
@@ -34,7 +36,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                 if (player.hasPermission("insights.scan.all")) {
                     scanOptions.setScanType(ScanType.ALL);
                 } else {
-                    plugin.getUtils().sendMessage(player, "messages.no_permission");
+                    MessageUtils.sendMessage(player, "messages.no_permission");
                     return true;
                 }
             } else if (args.length == 1) {
@@ -42,14 +44,14 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                     if (player.hasPermission("insights.scan.entity")) {
                         scanOptions.setScanType(ScanType.ENTITY);
                     } else {
-                        plugin.getUtils().sendMessage(player, "messages.no_permission");
+                        MessageUtils.sendMessage(player, "messages.no_permission");
                         return true;
                     }
                 } else if (args[0].equalsIgnoreCase("tile")) {
                     if (player.hasPermission("insights.scan.tile")) {
                         scanOptions.setScanType(ScanType.TILE);
                     } else {
-                        plugin.getUtils().sendMessage(player, "messages.no_permission");
+                        MessageUtils.sendMessage(player, "messages.no_permission");
                         return true;
                     }
                 }
@@ -62,7 +64,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                     if (sender.hasPermission("insights.scan.custom." + str)) {
                         strings.add(str);
                     } else {
-                        plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                        MessageUtils.sendMessage(sender, "messages.no_permission");
                         return true;
                     }
                 }
@@ -86,7 +88,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
                 List<String> list = Arrays.asList("custom", "entity", "tile");
                 return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
             } else if (args.length > 1 && args[0].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
-                return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[args.length-1], Utils.SCANNABLE_MATERIALS, new ArrayList<>());
             }
         }
         return Collections.emptyList();

@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HookManager {
-    private Insights plugin;
-    private List<Hook> hooks;
+    private final Insights plugin;
+    private final List<Hook> hooks;
 
     public HookManager(Insights plugin) {
         this.plugin = plugin;

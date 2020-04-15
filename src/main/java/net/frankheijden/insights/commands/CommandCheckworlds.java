@@ -1,22 +1,15 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.World;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
+import net.frankheijden.insights.utils.MessageUtils;
+import org.bukkit.*;
+import org.bukkit.command.*;
 
 import java.text.NumberFormat;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.TreeSet;
+import java.util.*;
 
 public class CommandCheckworlds implements CommandExecutor, TabExecutor {
-    private Insights plugin;
+    private final Insights plugin;
 
     public CommandCheckworlds(Insights plugin) {
         this.plugin = plugin;
@@ -25,7 +18,7 @@ public class CommandCheckworlds implements CommandExecutor, TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (sender.hasPermission("insights.checkworlds")) {
-            plugin.getUtils().sendMessage(sender, "messages.checkworlds.header");
+            MessageUtils.sendMessage(sender, "messages.checkworlds.header");
 
             int totalTileCount = 0;
             int totalEntityCount = 0;
@@ -44,20 +37,20 @@ public class CommandCheckworlds implements CommandExecutor, TabExecutor {
                     worldTileCount = worldTileCount + chunk.getTileEntities().length;
                 }
 
-                plugin.getUtils().sendMessage(sender, "messages.checkworlds.format", "%world%", worldName, "%entities%", NumberFormat.getIntegerInstance().format(worldEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(worldTileCount));
+                MessageUtils.sendMessage(sender, "messages.checkworlds.format", "%world%", worldName, "%entities%", NumberFormat.getIntegerInstance().format(worldEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(worldTileCount));
 
                 totalTileCount = totalTileCount + worldTileCount;
                 totalEntityCount = totalEntityCount + worldEntityCount;
             }
 
             if (totalTileCount > 0 || totalEntityCount > 0) {
-                plugin.getUtils().sendMessage(sender, "messages.checkworlds.total", "%entities%", NumberFormat.getIntegerInstance().format(totalEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(totalTileCount));
+                MessageUtils.sendMessage(sender, "messages.checkworlds.total", "%entities%", NumberFormat.getIntegerInstance().format(totalEntityCount), "%tiles%", NumberFormat.getIntegerInstance().format(totalTileCount));
             } else {
-                plugin.getUtils().sendMessage(sender, "messages.checkworlds.none");
+                MessageUtils.sendMessage(sender, "messages.checkworlds.none");
             }
-            plugin.getUtils().sendMessage(sender, "messages.checkworlds.footer");
+            MessageUtils.sendMessage(sender, "messages.checkworlds.footer");
         } else {
-            plugin.getUtils().sendMessage(sender, "messages.no_permission");
+            MessageUtils.sendMessage(sender, "messages.no_permission");
         }
         return true;
     }

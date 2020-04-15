@@ -1,6 +1,8 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.utils.MessageUtils;
+import net.frankheijden.insights.utils.Utils;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -24,32 +26,32 @@ public class CommandAutoscan implements CommandExecutor, TabExecutor {
                     for (int i = 1; i < args.length; i++) {
                         String str = args[i];
                         if (!sender.hasPermission("insights.autoscan." + str)) {
-                            plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                            MessageUtils.sendMessage(sender, "messages.no_permission");
                             return true;
                         }
                         joiner.add(str);
                     }
 
                     plugin.getSqLite().setAutoScan(player.getUniqueId(), 0, joiner.toString());
-                    plugin.getUtils().sendMessage(sender, "messages.autoscan.enabled");
+                    MessageUtils.sendMessage(sender, "messages.autoscan.enabled");
                     return true;
                 } else if (args.length == 2 && args[0].equalsIgnoreCase("limit")) {
                     if (!sender.hasPermission("insights.autoscan.limit")) {
-                        plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                        MessageUtils.sendMessage(sender, "messages.no_permission");
                         return true;
                     }
 
                     plugin.getSqLite().setAutoScan(player.getUniqueId(), 1, args[1]);
-                    plugin.getUtils().sendMessage(sender, "messages.autoscan.enabled");
+                    MessageUtils.sendMessage(sender, "messages.autoscan.enabled");
                     return true;
                 }
             } else if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("disable")) {
                     if (plugin.getSqLite().getAutoscan(player) != null) {
                         plugin.getSqLite().disableAutoScan(player.getUniqueId());
-                        plugin.getUtils().sendMessage(sender, "messages.autoscan.disabled");
+                        MessageUtils.sendMessage(sender, "messages.autoscan.disabled");
                     } else {
-                        plugin.getUtils().sendMessage(sender, "messages.autoscan.not_enabled");
+                        MessageUtils.sendMessage(sender, "messages.autoscan.not_enabled");
                     }
                     return true;
                 }
@@ -68,9 +70,9 @@ public class CommandAutoscan implements CommandExecutor, TabExecutor {
                 List<String> list = Arrays.asList("disable", "entries", "limit");
                 return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
             } else if (args.length == 2 && args[0].equalsIgnoreCase("limit") && args[1].length() > 0) {
-                return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[args.length-1], Utils.SCANNABLE_MATERIALS, new ArrayList<>());
             } else if (args.length >= 2 && args[0].equalsIgnoreCase("entries") && args[args.length-1].length() > 0) {
-                return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[args.length-1], Utils.SCANNABLE_MATERIALS, new ArrayList<>());
             }
         }
         return Collections.emptyList();

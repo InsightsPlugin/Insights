@@ -7,7 +7,7 @@ import org.bukkit.OfflinePlayer;
 import java.util.UUID;
 
 public class InsightsPlaceholderAPIExpansion extends PlaceholderExpansion {
-    private Insights plugin;
+    private final Insights plugin;
 
     public InsightsPlaceholderAPIExpansion(Insights plugin) {
         this.plugin = plugin;

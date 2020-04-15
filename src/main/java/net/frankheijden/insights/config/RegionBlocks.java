@@ -7,9 +7,9 @@ import java.util.List;
 
 public class RegionBlocks {
 
-    private boolean whitelist;
-    private String regex;
-    private List<String> blocks;
+    private final boolean whitelist;
+    private final String regex;
+    private final List<String> blocks;
 
     public RegionBlocks(boolean whitelist, String regex, List<String> blocks) {
         this.whitelist = whitelist;

@@ -4,8 +4,8 @@ import net.frankheijden.insights.api.entities.ScanOptions;
 import net.frankheijden.insights.api.entities.ScanResult;
 
 public class ScanCompleteEvent {
-    private ScanOptions scanOptions;
-    private ScanResult scanResult;
+    private final ScanOptions scanOptions;
+    private final ScanResult scanResult;
 
     /**
      * Event which is called when an Insights Scan™ has been completed.

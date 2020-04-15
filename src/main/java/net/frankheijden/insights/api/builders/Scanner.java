@@ -9,8 +9,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Scanner {
-    private Insights plugin;
-    private ScanOptions scanOptions;
+    private final Insights plugin;
+    private final ScanOptions scanOptions;
 
     private Scanner(Insights plugin, ScanOptions scanOptions) {
         this.plugin = plugin;

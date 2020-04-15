@@ -1,10 +1,8 @@
 package net.frankheijden.insights.tasks;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,12 +15,11 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 
 public class UpdateCheckerTask implements Runnable {
-    private Insights plugin;
-    private Player player;
-    private String currentVersion;
+    private final Insights plugin;
+    private final Player player;
+    private final String currentVersion;
     private boolean downloading;
     private boolean downloaded;
-    private boolean error;
 
     private static String GITHUB_INSIGHTS_LINK = "https://api.github.com/repos/FrankHeijden/Insights/releases/latest";
 
@@ -32,7 +29,6 @@ public class UpdateCheckerTask implements Runnable {
         this.currentVersion = plugin.getDescription().getVersion();
         this.downloading = false;
         this.downloaded = false;
-        this.error = false;
     }
 
     @Override
@@ -54,8 +50,8 @@ public class UpdateCheckerTask implements Runnable {
         }
         if (isNewVersion(githubVersion)) {
             if (plugin.getConfiguration().GENERAL_UPDATES_DOWNLOAD) {
-                plugin.getUtils().sendMessage(player, "messages.update.downloading", "%old%", currentVersion, "%new%", githubVersion, "%info%", body);
-                if (downloading || (downloaded && currentVersion.equals(githubVersion) && !error)) {
+                MessageUtils.sendMessage(player, "messages.update.downloading", "%old%", currentVersion, "%new%", githubVersion, "%info%", body);
+                if (downloading || (downloaded && currentVersion.equals(githubVersion))) {
                     return;
                 }
                 downloaded = false;
@@ -77,7 +73,7 @@ public class UpdateCheckerTask implements Runnable {
                 downloading = false;
                 downloaded = true;
             } else {
-                plugin.getUtils().sendMessage(player, "messages.update.available", "%old%", currentVersion, "%new%", githubVersion, "%info%", body);
+                MessageUtils.sendMessage(player, "messages.update.available", "%old%", currentVersion, "%new%", githubVersion, "%info%", body);
             }
         }
     }
@@ -86,7 +82,7 @@ public class UpdateCheckerTask implements Runnable {
         final String path = "messages.update.download_" + (isError ? "failed" : "success");
         Bukkit.getOnlinePlayers().forEach((p) -> {
             if (p.hasPermission("insights.notification.update")) {
-                plugin.getUtils().sendMessage(player, path, "%new%", githubVersion);
+                MessageUtils.sendMessage(player, path, "%new%", githubVersion);
             }
         });
     }

@@ -9,9 +9,9 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ScanChunksTaskSyncHelper implements Runnable {
-    private Insights plugin;
-    private ScanOptions scanOptions;
-    private ScanChunksTask scanChunksTask;
+    private final Insights plugin;
+    private final ScanOptions scanOptions;
+    private final ScanChunksTask scanChunksTask;
     private final Queue<Chunk> chunks;
 
     private int taskID;

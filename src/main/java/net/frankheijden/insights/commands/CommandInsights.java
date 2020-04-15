@@ -1,6 +1,7 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.PlayerUtils;
 import org.bukkit.block.Block;
 import org.bukkit.command.*;
@@ -11,7 +12,7 @@ import org.bukkit.util.StringUtil;
 import java.util.*;
 
 public class CommandInsights implements CommandExecutor, TabExecutor {
-    private Insights plugin;
+    private final Insights plugin;
 
     public static final int DEFAULT_BLOCK_RANGE = 100;
     public static final int DEFAULT_ENTITY_RANGE = 25;
@@ -24,11 +25,11 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(new String[]{
-                    plugin.getUtils().color("&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------"),
-                    plugin.getUtils().color("&b Plugin version: &7" + plugin.getDescription().getVersion()),
-                    plugin.getUtils().color("&b Plugin author: &7https://www.spigotmc.org/members/213966/"),
-                    plugin.getUtils().color("&b Plugin link: &7https://www.spigotmc.org/resources/56489/"),
-                    plugin.getUtils().color("&8&m-------------------------------------------------")
+                    MessageUtils.color("&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------"),
+                    MessageUtils.color("&b Plugin version: &7" + plugin.getDescription().getVersion()),
+                    MessageUtils.color("&b Plugin author: &7https://www.spigotmc.org/members/213966/"),
+                    MessageUtils.color("&b Plugin link: &7https://www.spigotmc.org/resources/56489/"),
+                    MessageUtils.color("&8&m-------------------------------------------------")
             });
             return true;
         } else if (args[0].equalsIgnoreCase("block") || args[0].equalsIgnoreCase("entity")) {
@@ -50,7 +51,7 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                 try {
                     range = Integer.parseInt(args[1]);
                 } catch (NumberFormatException ex) {
-                    plugin.getUtils().sendMessage(player, "messages.insights.invalid_number");
+                    MessageUtils.sendMessage(player, "messages.insights.invalid_number");
                     return true;
                 }
             }
@@ -63,22 +64,22 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                 if (isBlock) {
                     Block target = PlayerUtils.getTargetBlock(player, range);
                     if (target != null) {
-                        plugin.getUtils().sendMessage(player, "messages.insights.block",
+                        MessageUtils.sendMessage(player, "messages.insights.block",
                                 "%block%", target.getType().name());
                     } else {
-                        plugin.getUtils().sendMessage(player, "messages.insights.invalid_block");
+                        MessageUtils.sendMessage(player, "messages.insights.invalid_block");
                     }
                 } else {
                     Entity target = PlayerUtils.getTargetEntity(player, range);
                     if (target != null) {
-                        plugin.getUtils().sendMessage(player, "messages.insights.entity",
+                        MessageUtils.sendMessage(player, "messages.insights.entity",
                                 "%entity%", target.getType().name());
                     } else {
-                        plugin.getUtils().sendMessage(player, "messages.insights.invalid_entity");
+                        MessageUtils.sendMessage(player, "messages.insights.invalid_entity");
                     }
                 }
             } else {
-                plugin.getUtils().sendMessage(player, "messages.no_permission");
+                MessageUtils.sendMessage(player, "messages.no_permission");
             }
             return true;
         } else if (args.length == 1) {
@@ -87,13 +88,13 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     try {
                         plugin.reload();
                     } catch (Exception ex) {
-                        plugin.getUtils().sendMessage(sender, "messages.insights.reload_failed");
+                        MessageUtils.sendMessage(sender, "messages.insights.reload_failed");
                         return true;
                     }
 
-                    plugin.getUtils().sendMessage(sender, "messages.insights.reload");
+                    MessageUtils.sendMessage(sender, "messages.insights.reload");
                 } else {
-                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                    MessageUtils.sendMessage(sender, "messages.no_permission");
                 }
                 return true;
             } else if (args[0].equalsIgnoreCase("hooks")) {
@@ -109,20 +110,20 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     }
 
                     if (plugins.size() > 0) {
-                        plugin.getUtils().sendMessage(sender, "messages.insights.hooks.header");
-                        plugins.forEach(pl -> plugin.getUtils().sendMessage(sender, "messages.insights.hooks.format", "%plugin%", pl));
-                        plugin.getUtils().sendMessage(sender, "messages.insights.hooks.footer");
+                        MessageUtils.sendMessage(sender, "messages.insights.hooks.header");
+                        plugins.forEach(pl -> MessageUtils.sendMessage(sender, "messages.insights.hooks.format", "%plugin%", pl));
+                        MessageUtils.sendMessage(sender, "messages.insights.hooks.footer");
                     } else {
-                        plugin.getUtils().sendMessage(sender, "messages.insights.hooks.none");
+                        MessageUtils.sendMessage(sender, "messages.insights.hooks.none");
                     }
                 } else {
-                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                    MessageUtils.sendMessage(sender, "messages.no_permission");
                 }
                 return true;
             }
         }
 
-        plugin.getUtils().sendMessage(sender, "messages.insights.help");
+        MessageUtils.sendMessage(sender, "messages.insights.help");
         return true;
     }
 

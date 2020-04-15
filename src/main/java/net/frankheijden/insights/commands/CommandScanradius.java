@@ -4,6 +4,7 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.builders.Scanner;
 import net.frankheijden.insights.api.entities.ScanOptions;
 import net.frankheijden.insights.api.enums.ScanType;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -11,7 +12,7 @@ import org.bukkit.util.StringUtil;
 import java.util.*;
 
 public class CommandScanradius implements CommandExecutor, TabExecutor {
-    private Insights plugin;
+    private final Insights plugin;
 
     private static final int MAX_SCAN_RADIUS = 25;
 
@@ -36,14 +37,14 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
             Integer radius = parseValidRadius(sender, args, 0);
             if (radius == null) return true;
 
-            scanOptions.setChunkLocations(new LinkedList<>(plugin.getUtils()
+            scanOptions.setChunkLocations(new LinkedList<>(ChunkUtils
                     .getChunkLocations(player.getLocation().getChunk(), radius)));
 
             if (args.length == 1) {
                 if (player.hasPermission("insights.scanradius.all")) {
                     scanOptions.setScanType(ScanType.ALL);
                 } else {
-                    plugin.getUtils().sendMessage(player, "messages.no_permission");
+                    MessageUtils.sendMessage(player, "messages.no_permission");
                     return true;
                 }
             } else if (args.length == 2) {
@@ -51,14 +52,14 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                     if (entityPerm) {
                         scanOptions.setScanType(ScanType.ENTITY);
                     } else {
-                        plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                        MessageUtils.sendMessage(sender, "messages.no_permission");
                         return true;
                     }
                 } else if (args[1].equalsIgnoreCase("tile")) {
                     if (tilePerm) {
                         scanOptions.setScanType(ScanType.TILE);
                     } else {
-                        plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                        MessageUtils.sendMessage(sender, "messages.no_permission");
                         return true;
                     }
                 }
@@ -71,7 +72,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                     if (sender.hasPermission("insights.scanradius.custom." + str)) {
                         strings.add(str);
                     } else {
-                        plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                        MessageUtils.sendMessage(sender, "messages.no_permission");
                         return true;
                     }
                 }
@@ -90,13 +91,13 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
 
     private Integer parseValidRadius(CommandSender sender, String[] args, int pos) {
         if (args.length < pos || !args[pos].matches("-?(0|[1-9]\\d*)")) {
-            plugin.getUtils().sendMessage(sender, "messages.scanradius.invalid_number");
+            MessageUtils.sendMessage(sender, "messages.scanradius.invalid_number");
         } else {
             int radius = Integer.parseInt(args[pos]);
             if (radius > MAX_SCAN_RADIUS) {
-                plugin.getUtils().sendMessage(sender, "messages.scanradius.radius_too_large");
+                MessageUtils.sendMessage(sender, "messages.scanradius.radius_too_large");
             } else if (radius < 1) {
-                plugin.getUtils().sendMessage(sender, "messages.scanradius.radius_too_small");
+                MessageUtils.sendMessage(sender, "messages.scanradius.radius_too_small");
             } else {
                 return radius;
             }
@@ -113,7 +114,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
                 List<String> list = Arrays.asList("custom", "entity", "tile");
                 return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
             } else if (args.length > 2 && args[1].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
-                return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[args.length-1], Utils.SCANNABLE_MATERIALS, new ArrayList<>());
             }
         }
         return Collections.emptyList();

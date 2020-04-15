@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 public class Config {
-    private Insights plugin;
+    private final Insights plugin;
     private YamlConfiguration config;
 
     public boolean GENERAL_UPDATES_CHECK = true;
@@ -36,7 +36,7 @@ public class Config {
     public boolean GENERAL_SCAN_NOTIFICATION = true;
     public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
 
-    private Limits limits;
+    private final Limits limits;
 
     public Config(Insights plugin) {
         this.plugin = plugin;

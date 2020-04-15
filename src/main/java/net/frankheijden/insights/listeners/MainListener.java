@@ -12,6 +12,7 @@ import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.config.Limit;
 import net.frankheijden.insights.config.RegionBlocks;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -32,11 +33,10 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public class MainListener implements Listener {
-    private Insights plugin;
-    private InteractListener interactListener;
-    private InsightsAPI api;
-
-    private List<Location> blockLocations;
+    private final Insights plugin;
+    private final InteractListener interactListener;
+    private final InsightsAPI api;
+    private final List<Location> blockLocations;
 
     public MainListener(Insights plugin, InteractListener interactListener) {
         this.plugin = plugin;
@@ -57,7 +57,7 @@ public class MainListener implements Listener {
         Limit limit = api.getLimit(player.getWorld(), name);
         if (limit != null) {
             sendBreakMessage(player, event.getBlock().getChunk(), limit);
-        } else if (plugin.getUtils().isTile(event.getBlock())) {
+        } else if (TileUtils.isTile(event.getBlock())) {
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || generalLimit > -1) {
                 if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
@@ -66,11 +66,11 @@ public class MainListener implements Listener {
                     if (progress > 1 || progress < 0) progress = 1;
 
                     if (generalLimit > -1) {
-                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check", progress,
+                        MessageUtils.sendSpecialMessage(player, "messages.realtime_check", progress,
                                 "%tile_count%", NumberFormat.getIntegerInstance().format(current),
                                 "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
                     } else {
-                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_no_limit", progress,
+                        MessageUtils.sendSpecialMessage(player, "messages.realtime_check_no_limit", progress,
                                 "%tile_count%", NumberFormat.getIntegerInstance().format(current));
                     }
                 }
@@ -83,7 +83,7 @@ public class MainListener implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                int current = plugin.getUtils().getAmountInChunk(chunk, chunkSnapshot, limit) - 1;
+                int current = ChunkUtils.getAmountInChunk(chunk, chunkSnapshot, limit) - 1;
                 sendMessage(player, limit.getName(), current, limit.getLimit());
             }
         }.runTaskAsynchronously(plugin);
@@ -117,9 +117,9 @@ public class MainListener implements Listener {
         if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
             double progress = ((double) current)/((double) limit);
             if (progress > 1 || progress < 0) progress = 1;
-            plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_custom", progress,
+            MessageUtils.sendSpecialMessage(player, "messages.realtime_check_custom", progress,
                     "%count%", NumberFormat.getIntegerInstance().format(current),
-                    "%material%", plugin.getUtils().capitalizeName(name),
+                    "%material%", StringUtils.capitalizeName(name),
                     "%limit%", NumberFormat.getIntegerInstance().format(limit));
         }
     }
@@ -143,7 +143,7 @@ public class MainListener implements Listener {
 
     public void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
         if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
-            plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
+            MessageUtils.sendMessage(player, "messages.region_disallowed_block");
             cancellable.setCancelled(true);
             return;
         }
@@ -156,9 +156,9 @@ public class MainListener implements Listener {
 
         if (current > l && !player.hasPermission(limit.getPermission())) {
             cancellable.setCancelled(true);
-            plugin.getUtils().sendMessage(player, "messages.limit_reached_custom",
+            MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                     "%limit%", NumberFormat.getIntegerInstance().format(l),
-                    "%material%", plugin.getUtils().capitalizeName(limit.getName()));
+                    "%material%", StringUtils.capitalizeName(limit.getName()));
             return;
         }
 
@@ -187,7 +187,7 @@ public class MainListener implements Listener {
         }
 
         if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
-            plugin.getUtils().sendMessage(player, "messages.region_disallowed_block");
+            MessageUtils.sendMessage(player, "messages.region_disallowed_block");
             event.setCancelled(true);
             return;
         }
@@ -195,13 +195,13 @@ public class MainListener implements Listener {
         Limit limit = api.getLimit(player.getWorld(), name);
         if (limit != null) {
             handleBlockPlace(event, player, event.getBlock(), event.getItemInHand(), limit);
-        } else if (plugin.getUtils().isTile(event.getBlockPlaced())) {
+        } else if (TileUtils.isTile(event.getBlockPlaced())) {
             int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
             if (generalLimit > -1 && current >= generalLimit) {
                 if (!player.hasPermission("insights.bypass")) {
                     event.setCancelled(true);
-                    plugin.getUtils().sendMessage(player, "messages.limit_reached",
+                    MessageUtils.sendMessage(player, "messages.limit_reached",
                             "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
                 }
             }
@@ -212,11 +212,11 @@ public class MainListener implements Listener {
                     if (progress > 1 || progress < 0) progress = 1;
 
                     if (generalLimit > -1) {
-                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check", progress,
+                        MessageUtils.sendSpecialMessage(player, "messages.realtime_check", progress,
                                 "%tile_count%", NumberFormat.getIntegerInstance().format(current),
                                 "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
                     } else {
-                        plugin.getUtils().sendSpecialMessage(player, "messages.realtime_check_no_limit", progress,
+                        MessageUtils.sendSpecialMessage(player, "messages.realtime_check_no_limit", progress,
                                 "%tile_count%", NumberFormat.getIntegerInstance().format(current));
                     }
                 }
@@ -293,13 +293,13 @@ public class MainListener implements Listener {
     }
 
     private void handleBlockPlace(Cancellable event, Player player, Block block, ChunkSnapshot chunkSnapshot, ItemStack itemStack, boolean async, Limit limit) {
-        int current = plugin.getUtils().getAmountInChunk(block.getChunk(), chunkSnapshot, limit);
+        int current = ChunkUtils.getAmountInChunk(block.getChunk(), chunkSnapshot, limit);
         int l = limit.getLimit();
         if (current > l) {
             if (!player.hasPermission(limit.getPermission())) {
-                plugin.getUtils().sendMessage(player, "messages.limit_reached_custom",
+                MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(l),
-                        "%material%", plugin.getUtils().capitalizeName(limit.getName()));
+                        "%material%", StringUtils.capitalizeName(limit.getName()));
                 if (async) {
                     if (player.getGameMode() != GameMode.CREATIVE) {
                         player.getInventory().addItem(itemStack);
@@ -383,12 +383,12 @@ public class MainListener implements Listener {
                     @Override
                     public void run() {
                         Limit limit = plugin.getConfiguration().getLimits().getLimit(string);
-                        int count = plugin.getUtils().getAmountInChunk(chunk, chunkSnapshot, limit);
+                        int count = ChunkUtils.getAmountInChunk(chunk, chunkSnapshot, limit);
 
                         double progress = ((double) count)/((double) limit.getLimit());
                         if (progress > 1 || progress < 0) progress = 1;
-                        plugin.getUtils().sendSpecialMessage(player, "messages.autoscan.limit_entry", progress,
-                                "%key%", plugin.getUtils().capitalizeName(limit.getName()),
+                        MessageUtils.sendSpecialMessage(player, "messages.autoscan.limit_entry", progress,
+                                "%key%", StringUtils.capitalizeName(limit.getName()),
                                 "%count%", NumberFormat.getInstance().format(count),
                                 "%limit%", NumberFormat.getInstance().format(limit.getLimit()));
                     }
@@ -402,17 +402,17 @@ public class MainListener implements Listener {
 
         if (counts.size() == 1) {
             Map.Entry<String, Integer> entry = counts.firstEntry();
-            plugin.getUtils().sendSpecialMessage(player, "messages.autoscan.single_entry", 1.0,
-                    "%key%", plugin.getUtils().capitalizeName(entry.getKey()),
+            MessageUtils.sendSpecialMessage(player, "messages.autoscan.single_entry", 1.0,
+                    "%key%", StringUtils.capitalizeName(entry.getKey()),
                     "%count%", NumberFormat.getInstance().format(entry.getValue()));
         } else {
-            plugin.getUtils().sendMessage(player, "messages.autoscan.multiple_entries.header");
+            MessageUtils.sendMessage(player, "messages.autoscan.multiple_entries.header");
             for (String str : counts.keySet()) {
-                plugin.getUtils().sendMessage(player, "messages.autoscan.multiple_entries.format",
-                        "%entry%", plugin.getUtils().capitalizeName(str),
+                MessageUtils.sendMessage(player, "messages.autoscan.multiple_entries.format",
+                        "%entry%", StringUtils.capitalizeName(str),
                         "%count%", NumberFormat.getInstance().format(counts.get(str)));
             }
-            plugin.getUtils().sendMessage(player, "messages.autoscan.multiple_entries.footer");
+            MessageUtils.sendMessage(player, "messages.autoscan.multiple_entries.footer");
         }
     }
 }

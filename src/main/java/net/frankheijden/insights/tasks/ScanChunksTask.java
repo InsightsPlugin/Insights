@@ -1,11 +1,11 @@
 package net.frankheijden.insights.tasks;
 
-import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.entities.ScanOptions;
 import net.frankheijden.insights.api.entities.ScanResult;
 import net.frankheijden.insights.api.enums.ScanType;
 import net.frankheijden.insights.api.events.ScanCompleteEvent;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
@@ -17,18 +17,16 @@ import java.util.Queue;
 import java.util.concurrent.*;
 
 public class ScanChunksTask implements Runnable {
-    private Insights plugin;
-    private ScanOptions scanOptions;
-    private ScanResult scanResult;
-
+    private final Insights plugin;
+    private final ScanOptions scanOptions;
+    private final ScanResult scanResult;
+    private final LoadChunksTask loadChunksTask;
     private final Queue<CompletableFuture<Chunk>> chunkQueue;
 
     private long startTime;
     private int taskID;
     private int chunksDone;
     private boolean run = true;
-
-    private LoadChunksTask loadChunksTask;
 
     private ScanChunksTaskSyncHelper scanChunksTaskSyncHelper = null;
     private final Queue<BlockState[]> blockStatesList;
@@ -75,7 +73,7 @@ public class ScanChunksTask implements Runnable {
                     long totalCount = 0;
                     for (Map.Entry<String, Integer> entry : scanResult) {
                         totalCount = totalCount + entry.getValue();
-                        String name = plugin.getUtils().capitalizeName(entry.getKey().toLowerCase());
+                        String name = StringUtils.capitalizeName(entry.getKey().toLowerCase());
                         sendMessage( scanOptions.getPath() + ".end.format",
                                 "%entry%", name,
                                 "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));
@@ -84,7 +82,7 @@ public class ScanChunksTask implements Runnable {
                     sendMessage(scanOptions.getPath() + ".end.total",
                             "%chunks%", NumberFormat.getIntegerInstance().format(chunksDone),
                             "%blocks%", NumberFormat.getIntegerInstance().format(chunksDone * 16 * 16 * 256),
-                            "%time%", plugin.getUtils().getDHMS(startTime),
+                            "%time%", TimeUtils.getDHMS(startTime),
                             "%world%", scanOptions.getWorld().getName());
 
                     sendMessage(scanOptions.getPath() + ".end.footer");
@@ -109,7 +107,7 @@ public class ScanChunksTask implements Runnable {
             plugin.getPlayerScanTasks().remove(scanOptions.getUUID());
         }
 
-        if (plugin.getBossBarUtils() != null && plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()) != null && plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
+        if (plugin.getBossBarUtils() != null && plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()) != null && plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && plugin.isPost1_9()) {
             plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setVisible(false);
             plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).removeAll();
             plugin.getBossBarUtils().scanBossBarPlayers.remove(scanOptions.getUUID());
@@ -122,15 +120,15 @@ public class ScanChunksTask implements Runnable {
 
     private void sendMessage(String path, String... placeholders) {
         if (scanOptions.isConsole()) {
-            plugin.getUtils().sendMessage(Bukkit.getConsoleSender(), path, placeholders);
+            MessageUtils.sendMessage(Bukkit.getConsoleSender(), path, placeholders);
         } else if (scanOptions.hasUUID()) {
-            plugin.getUtils().sendMessage(scanOptions.getUUID(), path, placeholders);
+            MessageUtils.sendMessage(scanOptions.getUUID(), path, placeholders);
         }
     }
 
     public void setupNotification(Player player) {
         canSendProgressMessage = true;
-        if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && PaperLib.getMinecraftVersion() >= 9) {
+        if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && plugin.isPost1_9()) {
             isBossBar = true;
 
             plugin.getBossBarUtils().scanBossBarPlayers.put(scanOptions.getUUID(), plugin.getBossBarUtils().createNewBossBar());
@@ -161,7 +159,7 @@ public class ScanChunksTask implements Runnable {
             progressDouble = 1;
         }
         String progress = String.format("%.2f", progressDouble*100) + "%";
-        String message = plugin.getUtils().color(progressMessage.replace("%done%", done).replace("%total%", total).replace("%progress%", progress));
+        String message = MessageUtils.color(progressMessage.replace("%done%", done).replace("%total%", total).replace("%progress%", progress));
         if (isBossBar) {
             updateBossBar(message, progressDouble);
         } else {
@@ -177,7 +175,7 @@ public class ScanChunksTask implements Runnable {
     private void updateActionBar(String message) {
         Player player = Bukkit.getPlayer(scanOptions.getUUID());
         if (player != null) {
-            plugin.getUtils().sendActionbar(player, message);
+            MessageUtils.sendActionbar(player, message);
         }
     }
 
@@ -254,7 +252,7 @@ public class ScanChunksTask implements Runnable {
                 for (int x = 0; x < 16; x++) {
                     for (int y = 0; y < scanOptions.getWorld().getMaxHeight(); y++) {
                         for (int z = 0; z < 16; z++) {
-                            Material material = plugin.getUtils().getMaterial(chunkSnapshot, x,y,z);
+                            Material material = ChunkUtils.getMaterial(chunkSnapshot, x,y,z);
                             if (material != null) {
                                 if ((scanOptions.getMaterials() != null && scanOptions.getMaterials().contains(material.name())) || scanOptions.getScanType() == ScanType.ALL) {
                                     scanResult.increment(material.name());

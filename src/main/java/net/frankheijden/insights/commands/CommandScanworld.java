@@ -4,6 +4,7 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.builders.Scanner;
 import net.frankheijden.insights.api.entities.ScanOptions;
 import net.frankheijden.insights.api.enums.ScanType;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.*;
@@ -13,7 +14,7 @@ import org.bukkit.util.StringUtil;
 import java.util.*;
 
 public class CommandScanworld implements CommandExecutor, TabExecutor {
-    private Insights plugin;
+    private final Insights plugin;
 
     public CommandScanworld(Insights plugin) {
         this.plugin = plugin;
@@ -27,7 +28,7 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
         if (args.length < 1) return false;
         World world = Bukkit.getWorld(args[0]);
         if (world == null) {
-            plugin.getUtils().sendMessage(sender, "messages.scanworld.invalid_world");
+            MessageUtils.sendMessage(sender, "messages.scanworld.invalid_world");
             return true;
         }
 
@@ -37,14 +38,14 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
 
         ScanOptions scanOptions = new ScanOptions();
         scanOptions.setWorld(world);
-        scanOptions.setChunkLocations(new LinkedList<>(plugin.getUtils().getChunkLocations(world.getLoadedChunks())));
+        scanOptions.setChunkLocations(new LinkedList<>(ChunkUtils.getChunkLocations(world.getLoadedChunks())));
         scanOptions.setCommandSenderAndPath(sender, "messages.scanworld");
 
         if (args.length == 1) {
             if (sender.hasPermission("insights.scanradius.all")) {
                 scanOptions.setScanType(ScanType.ALL);
             } else {
-                plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                MessageUtils.sendMessage(sender, "messages.no_permission");
                 return true;
             }
         } else if (args.length == 2) {
@@ -52,14 +53,14 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                 if (tilePerm) {
                     scanOptions.setScanType(ScanType.TILE);
                 } else {
-                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                    MessageUtils.sendMessage(sender, "messages.no_permission");
                     return true;
                 }
             } else if (args[1].equalsIgnoreCase("entity")) {
                 if (entityPerm) {
                     scanOptions.setScanType(ScanType.ENTITY);
                 } else {
-                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                    MessageUtils.sendMessage(sender, "messages.no_permission");
                     return true;
                 }
             }
@@ -72,7 +73,7 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                 if (sender.hasPermission("insights.scanworld.custom." + str)) {
                     strings.add(str);
                 } else {
-                    plugin.getUtils().sendMessage(sender, "messages.no_permission");
+                    MessageUtils.sendMessage(sender, "messages.no_permission");
                     return true;
                 }
             }
@@ -99,7 +100,7 @@ public class CommandScanworld implements CommandExecutor, TabExecutor {
                 List<String> list = Arrays.asList("custom", "entity", "tile");
                 return StringUtil.copyPartialMatches(args[1], list, new ArrayList<>());
             } else if (args.length > 2 && args[1].equalsIgnoreCase("custom") && args[args.length-1].length() > 0) {
-                return StringUtil.copyPartialMatches(args[args.length-1], plugin.getUtils().getScannableMaterials(), new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[args.length-1], Utils.SCANNABLE_MATERIALS, new ArrayList<>());
             }
         }
         return Collections.emptyList();

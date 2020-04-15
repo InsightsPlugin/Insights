@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BossBarTask implements Runnable {
-    private Insights plugin;
+    private final Insights plugin;
 
     public BossBarTask(Insights plugin) {
         this.plugin = plugin;

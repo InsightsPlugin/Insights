@@ -7,7 +7,7 @@ import org.bukkit.plugin.Plugin;
  * Interface for hooking into Insights.
  */
 public abstract class Hook {
-    private Plugin plugin;
+    private final Plugin plugin;
 
     /**
      * Initializes hook

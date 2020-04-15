@@ -1,17 +1,15 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
+import net.frankheijden.insights.utils.MessageUtils;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.List;
 
 public class CommandTogglecheck implements CommandExecutor, TabExecutor {
-    private Insights plugin;
+    private final Insights plugin;
 
     public CommandTogglecheck(Insights plugin) {
         this.plugin = plugin;
@@ -25,15 +23,15 @@ public class CommandTogglecheck implements CommandExecutor, TabExecutor {
                 plugin.getSqLite().toggleRealtimeCheck(player.getUniqueId());
 
                 if (plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                    plugin.getUtils().sendMessage(player, "messages.togglecheck.enabled", "%name%", player.getPlayerListName());
+                    MessageUtils.sendMessage(player, "messages.togglecheck.enabled", "%name%", player.getPlayerListName());
                 } else {
-                    plugin.getUtils().sendMessage(player, "messages.togglecheck.disabled", "%name%", player.getPlayerListName());
+                    MessageUtils.sendMessage(player, "messages.togglecheck.disabled", "%name%", player.getPlayerListName());
                 }
             } else {
                 sender.sendMessage("This command cannot be executed from console!");
             }
         } else {
-            plugin.getUtils().sendMessage(sender, "messages.no_permission");
+            MessageUtils.sendMessage(sender, "messages.no_permission");
         }
         return true;
     }

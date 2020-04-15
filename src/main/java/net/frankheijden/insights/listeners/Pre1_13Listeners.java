@@ -6,7 +6,7 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.vehicle.VehicleCreateEvent;
 
 public class Pre1_13Listeners implements Listener {
-    private MainListener mainListener;
+    private final MainListener mainListener;
 
     public Pre1_13Listeners(MainListener mainListener) {
         this.mainListener = mainListener;

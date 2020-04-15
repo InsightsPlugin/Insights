@@ -8,8 +8,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import java.util.*;
 
 public class InteractListener implements Listener {
-    private Map<Location, Player> interactLocations;
-    private Map<Location, Long> interactTimes;
+    private final Map<Location, Player> interactLocations;
+    private final Map<Location, Long> interactTimes;
 
     public InteractListener() {
         this.interactLocations = new HashMap<>();

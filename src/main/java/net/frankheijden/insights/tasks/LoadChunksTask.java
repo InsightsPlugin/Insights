@@ -4,6 +4,7 @@ import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.entities.ChunkLocation;
 import net.frankheijden.insights.api.entities.ScanOptions;
+import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
@@ -14,8 +15,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class LoadChunksTask implements Runnable {
-    private Insights plugin;
-    private ScanOptions scanOptions;
+    private final Insights plugin;
+    private final ScanOptions scanOptions;
 
     private transient Map<CompletableFuture<Chunk>, ChunkLocation> pendingChunks;
     private transient boolean run = true;
@@ -92,9 +93,9 @@ public class LoadChunksTask implements Runnable {
 
     private void sendMessage(String path, String... placeholders) {
         if (scanOptions.isConsole()) {
-            plugin.getUtils().sendMessage(Bukkit.getConsoleSender(), path, placeholders);
+            MessageUtils.sendMessage(Bukkit.getConsoleSender(), path, placeholders);
         } else if (scanOptions.hasUUID()) {
-            plugin.getUtils().sendMessage(scanOptions.getUUID(), path, placeholders);
+            MessageUtils.sendMessage(scanOptions.getUUID(), path, placeholders);
         }
     }
 

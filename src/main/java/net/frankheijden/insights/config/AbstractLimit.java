@@ -5,8 +5,8 @@ import java.util.Set;
 
 public abstract class AbstractLimit implements Limitable {
 
-    private String name;
-    private String permission;
+    private final String name;
+    private final String permission;
     private Map<String, Integer> materials;
     private Map<String, Integer> entities;
 

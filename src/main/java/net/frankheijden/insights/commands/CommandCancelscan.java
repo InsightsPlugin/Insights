@@ -2,17 +2,15 @@ package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.tasks.LoadChunksTask;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
+import net.frankheijden.insights.utils.MessageUtils;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.List;
 
 public class CommandCancelscan implements CommandExecutor, TabExecutor {
-    private Insights plugin;
+    private final Insights plugin;
 
     public CommandCancelscan(Insights plugin) {
         this.plugin = plugin;
@@ -26,9 +24,9 @@ public class CommandCancelscan implements CommandExecutor, TabExecutor {
                 if (plugin.getPlayerScanTasks().containsKey(player.getUniqueId())) {
                     LoadChunksTask loadChunksTask = plugin.getPlayerScanTasks().get(player.getUniqueId());
                     loadChunksTask.forceStop();
-                    plugin.getUtils().sendMessage(sender, "messages.cancelscan.success");
+                    MessageUtils.sendMessage(sender, "messages.cancelscan.success");
                 } else {
-                    plugin.getUtils().sendMessage(sender, "messages.cancelscan.not_scanning");
+                    MessageUtils.sendMessage(sender, "messages.cancelscan.not_scanning");
                 }
                 return true;
             } else {
