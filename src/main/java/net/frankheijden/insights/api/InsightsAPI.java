@@ -3,9 +3,10 @@ package net.frankheijden.insights.api;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.config.*;
-import net.frankheijden.insights.hooks.HookManager;
+import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.tasks.LoadChunksTask;
-import net.frankheijden.insights.utils.*;
+import net.frankheijden.insights.utils.StringUtils;
+import net.frankheijden.insights.utils.TimeUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -51,7 +52,7 @@ public class InsightsAPI {
      * @return boolean scanning
      */
     public static boolean isScanningChunks(UUID uuid) {
-        return getInstance().getPlayerScanTasks().containsKey(uuid);
+        return ScanManager.getInstance().isScanning(uuid);
     }
 
     /**
@@ -62,7 +63,7 @@ public class InsightsAPI {
      * @return double progress, or null if no ScanTask.
      */
     public static Double getScanProgress(UUID uuid) {
-        LoadChunksTask loadChunksTask = getInstance().getPlayerScanTasks().get(uuid);
+        LoadChunksTask loadChunksTask = ScanManager.getInstance().getTask(uuid);
         if (loadChunksTask != null) {
             double total = loadChunksTask.getTotalChunks();
             double done = loadChunksTask.getScanChunksTask().getChunksDone();
@@ -84,7 +85,7 @@ public class InsightsAPI {
      * @return String time elapsed, or null if no ScanTask.
      */
     public static String getTimeElapsedOfScan(UUID uuid) {
-        LoadChunksTask loadChunksTask = getInstance().getPlayerScanTasks().get(uuid);
+        LoadChunksTask loadChunksTask = ScanManager.getInstance().getTask(uuid);
         if (loadChunksTask != null) {
             return TimeUtils.getDHMS(loadChunksTask.getStartTime());
         }
@@ -126,9 +127,9 @@ public class InsightsAPI {
     }
 
     public static boolean isInDisabledRegion(Location location) {
-        WorldGuardUtils wgUtils = Insights.getInstance().getWorldGuardUtils();
-        if (wgUtils != null) {
-            ProtectedRegion region = wgUtils.isInInsightsRegion(location);
+        WorldGuardManager worldGuardManager = WorldGuardManager.getInstance();
+        if (worldGuardManager != null) {
+            ProtectedRegion region = worldGuardManager.getInsightsRegion(location);
             if (region != null) {
                 return !isLimitingEnabled(region.getId());
             }

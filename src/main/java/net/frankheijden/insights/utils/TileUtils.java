@@ -1,16 +1,14 @@
 package net.frankheijden.insights.utils;
 
-import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.managers.NMSManager;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
 public class TileUtils {
 
-    private static final Insights plugin = Insights.getInstance();
-
     public static boolean isTile(Block block) {
-        if (plugin.isPost1_13()) {
+        if (NMSManager.getInstance().isPost1_13()) {
             return Post1_13TileUtils.isTile(block);
         }
         return isTile(block.getWorld(), block.getLocation());

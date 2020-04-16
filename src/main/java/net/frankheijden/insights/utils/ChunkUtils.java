@@ -1,8 +1,8 @@
 package net.frankheijden.insights.utils;
 
-import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.config.Limit;
 import net.frankheijden.insights.entities.ChunkLocation;
+import net.frankheijden.insights.managers.NMSManager;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 
@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChunkUtils {
-
-    private static final Insights plugin = Insights.getInstance();
 
     public static List<ChunkLocation> getChunkLocations(Chunk[] chunks) {
         ArrayList<ChunkLocation> chunkLocations = new ArrayList<>();
@@ -68,7 +66,7 @@ public class ChunkUtils {
         try {
             Class<?> chunkSnapshotClass = Class.forName("org.bukkit.ChunkSnapshot");
             Object chunkSnap = chunkSnapshotClass.cast(chunkSnapshot);
-            if (plugin.isPost1_13()) {
+            if (NMSManager.getInstance().isPost1_13()) {
                 Method m = chunkSnapshotClass.getDeclaredMethod("getBlockType", int.class, int.class, int.class);
                 return (Material) m.invoke(chunkSnap, x, y, z);
             } else {

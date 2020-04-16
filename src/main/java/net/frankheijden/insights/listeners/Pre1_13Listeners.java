@@ -18,7 +18,7 @@ public class Pre1_13Listeners implements Listener {
         Player player = mainListener.getInteractListener().getPlayerWithinRadius(vehicle.getLocation());
 
         if (player != null) {
-            EntityListener.handleEntityEvent(event, player, vehicle);
+            EntityListener.handleEntityPlaceEvent(event, player, vehicle);
         }
     }
 
@@ -28,7 +28,7 @@ public class Pre1_13Listeners implements Listener {
         Player player = mainListener.getInteractListener().getPlayerWithinRadius(entity.getLocation());
 
         if (player != null) {
-            EntityListener.handleEntityEvent(event, player, entity);
+            EntityListener.handleEntityPlaceEvent(event, player, entity);
         }
     }
 }

@@ -3,8 +3,10 @@ package net.frankheijden.insights.tasks;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.ScanOptions;
 import net.frankheijden.insights.entities.ScanResult;
+import net.frankheijden.insights.enums.LogType;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.events.ScanCompleteEvent;
+import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
@@ -19,6 +21,9 @@ import java.util.concurrent.*;
 public class ScanChunksTask implements Runnable {
 
     private static final Insights plugin = Insights.getInstance();
+    private static final ScanManager scanManager = ScanManager.getInstance();
+    private static final BossBarManager bossBarManager = BossBarManager.getInstance();
+
     private final ScanOptions scanOptions;
     private final ScanResult scanResult;
     private final LoadChunksTask loadChunksTask;
@@ -103,14 +108,11 @@ public class ScanChunksTask implements Runnable {
     public void forceStop() {
         Bukkit.getScheduler().cancelTask(this.taskID);
 
-        if (scanOptions.getUUID() != null) {
-            plugin.getPlayerScanTasks().remove(scanOptions.getUUID());
-        }
-
-        if (plugin.getBossBarUtils() != null && plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()) != null && plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && plugin.isPost1_9()) {
-            plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setVisible(false);
-            plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).removeAll();
-            plugin.getBossBarUtils().scanBossBarPlayers.remove(scanOptions.getUUID());
+        if (scanOptions.hasUUID()) {
+            scanManager.remove(scanOptions.getUUID());
+            if (bossBarManager != null) {
+                bossBarManager.removePersistentBossBar(scanOptions.getUUID());
+            }
         }
 
         if (scanChunksTaskSyncHelper != null) {
@@ -128,14 +130,8 @@ public class ScanChunksTask implements Runnable {
 
     public void setupNotification(Player player) {
         canSendProgressMessage = true;
-        if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && plugin.isPost1_9()) {
+        if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && NMSManager.getInstance().isPost1_9()) {
             isBossBar = true;
-
-            plugin.getBossBarUtils().scanBossBarPlayers.put(scanOptions.getUUID(), plugin.getBossBarUtils().createNewBossBar());
-            if (player != null) {
-                plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).addPlayer(player);
-            }
-            plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setVisible(true);
         }
 
         progressMessage = plugin.getMessages().getString("messages.scan_notification");
@@ -148,7 +144,7 @@ public class ScanChunksTask implements Runnable {
         }
     }
 
-    private void sendNotification() {
+    private void sendNotification(Player player) {
         if (scanOptions.getChunkCount() == 0) return;
         String done = NumberFormat.getIntegerInstance().format(chunksDone);
         String total = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
@@ -161,20 +157,8 @@ public class ScanChunksTask implements Runnable {
         String progress = String.format("%.2f", progressDouble*100) + "%";
         String message = MessageUtils.color(progressMessage.replace("%done%", done).replace("%total%", total).replace("%progress%", progress));
         if (isBossBar) {
-            updateBossBar(message, progressDouble);
+            bossBarManager.displayPersistentBossBar(player, message, progressDouble);
         } else {
-            updateActionBar(message);
-        }
-    }
-
-    private void updateBossBar(String message, double progress) {
-        plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setProgress(progress);
-        plugin.getBossBarUtils().scanBossBarPlayers.get(scanOptions.getUUID()).setTitle(message);
-    }
-
-    private void updateActionBar(String message) {
-        Player player = Bukkit.getPlayer(scanOptions.getUUID());
-        if (player != null) {
             MessageUtils.sendActionbar(player, message);
         }
     }
@@ -194,8 +178,11 @@ public class ScanChunksTask implements Runnable {
     @Override
     public void run() {
         // Notify player about progress in actionbar/bossbar
-        if (canSendProgressMessage) {
-            sendNotification();
+        if (canSendProgressMessage && scanOptions.hasUUID()) {
+            Player player = Bukkit.getPlayer(scanOptions.getUUID());
+            if (player != null) {
+                sendNotification(player);
+            }
         }
 
         // Notify player about progress every 10 seconds in chat
@@ -210,9 +197,9 @@ public class ScanChunksTask implements Runnable {
                 if (scanOptions.isDebug()) {
                     if (chunksDoneLoading != scanOptions.getChunkCount()) {
                         String chunksDoneLoadingString = NumberFormat.getIntegerInstance().format(chunksDoneLoading);
-                        plugin.log(Insights.LogType.DEBUG, "Loaded " + chunksDoneLoadingString + "/" + totalChunksString + " and scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...", loadChunksTask.getInternalTaskID());
+                        LogManager.log(LogType.DEBUG, "Loaded " + chunksDoneLoadingString + "/" + totalChunksString + " and scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...", loadChunksTask.getTaskID());
                     } else {
-                        plugin.log(Insights.LogType.DEBUG, "Scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...", loadChunksTask.getInternalTaskID());
+                        LogManager.log(LogType.DEBUG, "Scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...", loadChunksTask.getTaskID());
                     }
                 }
 

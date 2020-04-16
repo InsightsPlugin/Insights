@@ -1,4 +1,4 @@
-package net.frankheijden.insights.hooks;
+package net.frankheijden.insights.managers;
 
 import net.frankheijden.insights.interfaces.Hook;
 import org.bukkit.Bukkit;
@@ -8,10 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HookManager {
+
+    private static HookManager instance;
     private final List<Hook> hooks;
 
     public HookManager() {
+        instance = this;
         this.hooks = new ArrayList<>();
+    }
+
+    public static HookManager getInstance() {
+        return instance;
     }
 
     public void addHook(Hook hook) {

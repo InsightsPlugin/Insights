@@ -4,6 +4,9 @@ import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.ChunkLocation;
 import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.enums.LogType;
+import net.frankheijden.insights.managers.LogManager;
+import net.frankheijden.insights.managers.ScanManager;
 import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -17,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 public class LoadChunksTask implements Runnable {
 
     private static final Insights plugin = Insights.getInstance();
+    private static final ScanManager scanManager = ScanManager.getInstance();
     private final ScanOptions scanOptions;
 
     private transient Map<CompletableFuture<Chunk>, ChunkLocation> pendingChunks;
@@ -28,14 +32,8 @@ public class LoadChunksTask implements Runnable {
     private long startTime;
     private int totalChunks;
 
-    private int internalTaskID;
-
     public LoadChunksTask(ScanOptions scanOptions) {
         this.scanOptions = scanOptions;
-    }
-
-    public Insights getPlugin() {
-        return plugin;
     }
 
     public ScanOptions getScanOptions() {
@@ -58,21 +56,14 @@ public class LoadChunksTask implements Runnable {
         return cancelled;
     }
 
-    public int getInternalTaskID() {
-        return internalTaskID;
-    }
-
     public void start() {
         this.startTime = System.currentTimeMillis();
         this.totalChunks = scanOptions.getChunkCount();
         this.pendingChunks = new HashMap<>();
         this.taskID = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
 
-        plugin.addScanTask(this);
-        internalTaskID = plugin.getTaskID(this);
-
         if (scanOptions.isDebug()) {
-            plugin.log(Insights.LogType.DEBUG, "Started scan for " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + "...", internalTaskID);
+            LogManager.log(LogType.DEBUG, "Started scan for " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + "...", taskID);
         }
         sendMessage( scanOptions.getPath() + ".start", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", scanOptions.getWorld().getName());
 
@@ -80,7 +71,7 @@ public class LoadChunksTask implements Runnable {
         scanChunksTask.start(startTime);
 
         if (scanOptions.hasUUID()) {
-            plugin.getPlayerScanTasks().put(scanOptions.getUUID(), this);
+            scanManager.putTask(scanOptions.getUUID(), this);
 
             Player player = Bukkit.getPlayer(scanOptions.getUUID());
             if (player != null) {
@@ -89,6 +80,10 @@ public class LoadChunksTask implements Runnable {
                 }
             }
         }
+    }
+
+    public int getTaskID() {
+        return taskID;
     }
 
     private void sendMessage(String path, String... placeholders) {
@@ -117,7 +112,7 @@ public class LoadChunksTask implements Runnable {
 
     public void stop() {
         if (scanOptions.isDebug()) {
-            plugin.log(Insights.LogType.DEBUG, "Finished loading and generating " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + ", saving world and continuing scan...", internalTaskID);
+            LogManager.log(LogType.DEBUG, "Finished loading and generating " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + ", saving world and continuing scan...", taskID);
         }
 
         cancelled = true;
@@ -136,7 +131,7 @@ public class LoadChunksTask implements Runnable {
         scanChunksTask.forceStop();
 
         if (scanOptions.isDebug()) {
-            plugin.log(Insights.LogType.DEBUG, "Task has been forcefully stopped.", internalTaskID);
+            LogManager.log(LogType.DEBUG, "Task has been forcefully stopped.", taskID);
         }
     }
 

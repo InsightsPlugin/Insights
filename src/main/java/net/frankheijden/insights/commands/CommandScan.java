@@ -1,10 +1,10 @@
 package net.frankheijden.insights.commands;
 
-import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.builders.Scanner;
 import net.frankheijden.insights.entities.ChunkLocation;
 import net.frankheijden.insights.entities.ScanOptions;
 import net.frankheijden.insights.enums.ScanType;
+import net.frankheijden.insights.managers.ScanManager;
 import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.Utils;
 import org.bukkit.command.*;
@@ -15,14 +15,12 @@ import java.util.*;
 
 public class CommandScan implements CommandExecutor, TabExecutor {
 
-    private static final Insights plugin = Insights.getInstance();
-
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
 
-            if (plugin.isPlayerScanning(player, true)) return true;
+            if (ScanManager.getInstance().isScanning(player)) return true;
 
             ScanOptions scanOptions = new ScanOptions();
             scanOptions.setWorld(player.getWorld());

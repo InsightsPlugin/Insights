@@ -1,6 +1,8 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.managers.HookManager;
+import net.frankheijden.insights.managers.WorldGuardManager;
 import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.PlayerUtils;
 import org.bukkit.block.Block;
@@ -96,14 +98,15 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
             } else if (args[0].equalsIgnoreCase("hooks")) {
                 if (sender.hasPermission("insights.hooks")) {
                     List<String> plugins = new ArrayList<>();
-                    plugin.getHookManager().getHooks().forEach(hook -> plugins.add(hook.getPlugin().getName()));
+                    HookManager.getInstance().getHooks().forEach(hook -> plugins.add(hook.getPlugin().getName()));
 
                     if (plugin.hasPlaceholderAPIHook()) {
                         plugins.add("PlaceHolderAPI");
                     }
-                    if (plugin.getWorldGuardUtils() != null) {
+                    if (WorldGuardManager.getInstance() != null) {
                         plugins.add("WorldGuard");
                     }
+                    Collections.sort(plugins);
 
                     if (plugins.size() > 0) {
                         MessageUtils.sendMessage(sender, "messages.insights.hooks.header");

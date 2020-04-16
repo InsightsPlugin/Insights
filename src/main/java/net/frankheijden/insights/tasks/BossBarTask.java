@@ -1,33 +1,40 @@
 package net.frankheijden.insights.tasks;
 
 import net.frankheijden.insights.Insights;
-import org.bukkit.boss.BossBar;
-import org.bukkit.entity.Player;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.frankheijden.insights.managers.BossBarManager;
+import org.bukkit.Bukkit;
 
 public class BossBarTask implements Runnable {
 
     private static final Insights plugin = Insights.getInstance();
 
-    @Override
-    public void run() {
-        List<Player> playersToRemove = new ArrayList<>();
-        for (Player player : plugin.getBossBarUtils().bossBarDurationPlayers.keySet()) {
-            if (System.currentTimeMillis() >= plugin.getBossBarUtils().bossBarDurationPlayers.get(player)) {
-                playersToRemove.add(player);
-                removePlayer(player);
-            }
-        }
+    private Integer taskID;
 
-        playersToRemove.forEach((player) -> plugin.getBossBarUtils().bossBarDurationPlayers.remove(player));
+    public BossBarTask() {
+        this.taskID = null;
     }
 
-    private void removePlayer(Player player) {
-        BossBar bossBar = plugin.getBossBarUtils().bossBarPlayers.get(player);
-        if (bossBar != null) {
-            bossBar.setVisible(false);
-        }
+    @Override
+    public void run() {
+        BossBarManager.getInstance().removeExpiredBossBars();
+    }
+
+    public void start() {
+        taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 5);
+    }
+
+    public void restart() {
+        if (isRunning()) stop();
+        start();
+    }
+
+    public boolean isRunning() {
+        return taskID != null;
+    }
+
+    public void stop() {
+        if (taskID == null) return;
+        Bukkit.getScheduler().cancelTask(taskID);
+        taskID = null;
     }
 }

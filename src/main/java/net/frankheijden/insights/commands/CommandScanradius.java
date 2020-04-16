@@ -4,6 +4,7 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.builders.Scanner;
 import net.frankheijden.insights.entities.ScanOptions;
 import net.frankheijden.insights.enums.ScanType;
+import net.frankheijden.insights.managers.ScanManager;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -24,7 +25,7 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
 
-            if (plugin.isPlayerScanning(player, true)) return true;
+            if (ScanManager.getInstance().isScanning(player)) return true;
 
             ScanOptions scanOptions = new ScanOptions();
             scanOptions.setWorld(player.getWorld());

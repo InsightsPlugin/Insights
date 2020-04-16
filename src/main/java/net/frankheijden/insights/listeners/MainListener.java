@@ -8,8 +8,10 @@ import net.frankheijden.insights.config.Limit;
 import net.frankheijden.insights.config.RegionBlocks;
 import net.frankheijden.insights.entities.ChunkLocation;
 import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.enums.LogType;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.events.*;
+import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.*;
@@ -19,10 +21,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -84,30 +84,6 @@ public class MainListener implements Listener {
         }.runTaskAsynchronously(plugin);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
-        Entity remover = event.getRemover();
-        if (!(remover instanceof Player)) return;
-        handleEntityDestroy((Player) remover, event.getEntity());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onVehicleDestroy(VehicleDestroyEvent event) {
-        Entity remover = event.getAttacker();
-        if (!(remover instanceof Player)) return;
-        handleEntityDestroy((Player) remover, event.getVehicle());
-    }
-
-    public void handleEntityDestroy(Player player, Entity entity) {
-        String name = entity.getType().name();
-
-        Limit limit = InsightsAPI.getLimit(player, name);
-        if (limit == null) return;
-        int current = getEntityCount(entity.getLocation().getChunk(), name) - 1;
-
-        sendMessage(player, limit.getName(), current, limit.getLimit());
-    }
-
     private void sendMessage(Player player, String name, int current, int limit) {
         if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
             double progress = ((double) current)/((double) limit);
@@ -123,7 +99,7 @@ public class MainListener implements Listener {
     public void onPlayerEntityPlace(PlayerEntityPlaceEvent event) {
         Player player = event.getPlayer();
         Entity entity = event.getEntity();
-        handleEntityPlace(event, player, entity.getChunk(), entity.getType().name());
+        handleEntityPlace(event, player, entity.getLocation().getChunk(), entity.getType().name());
     }
 
     private void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
@@ -147,7 +123,24 @@ public class MainListener implements Listener {
             return;
         }
 
-        sendMessage(player, name, current, l);
+        sendMessage(player, limit.getName(), current, l);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerEntityDestroy(PlayerEntityDestroyEvent event) {
+        handleEntityDestroy(event.getPlayer(), event.getEntity());
+    }
+
+    public void handleEntityDestroy(Player player, Entity entity) {
+        String name = entity.getType().name();
+
+        Limit limit = InsightsAPI.getLimit(player, name);
+        if (limit == null) return;
+        int l = limit.getLimit();
+        if (l < 0) return;
+        int current = getEntityCount(entity.getLocation().getChunk(), name) - 1;
+
+        sendMessage(player, limit.getName(), current, l);
     }
 
     private int getEntityCount(Chunk chunk, String entityType) {
@@ -160,14 +153,14 @@ public class MainListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (plugin.getHookManager().shouldCancel(event.getBlock())) return;
+        if (HookManager.getInstance().shouldCancel(event.getBlock())) return;
 
         Player player = event.getPlayer();
         String name = event.getBlock().getType().name();
 
         if (isNextToForbiddenLocation(event.getBlock().getLocation())) {
             event.setCancelled(true);
-            plugin.log(Insights.LogType.WARNING, "Player " + player.getPlayerListName() + " placed block '" + name + "' too fast nearby a limited block.");
+            LogManager.log(LogType.WARNING, "Player " + player.getPlayerListName() + " placed block '" + name + "' too fast nearby a limited block.");
             return;
         }
 
@@ -226,8 +219,9 @@ public class MainListener implements Listener {
     }
 
     private boolean canPlaceInRegion(Player player, String str) {
-        if (plugin.getWorldGuardUtils() != null) {
-            ProtectedRegion region = plugin.getWorldGuardUtils().isInRegionWithLimitedBlocks(player.getLocation());
+        WorldGuardManager worldGuardManager = WorldGuardManager.getInstance();
+        if (worldGuardManager != null) {
+            ProtectedRegion region = worldGuardManager.getRegionWithLimitedBlocks(player.getLocation());
             if (region != null) {
                 return canPlaceInRegion(region.getId(), str);
             }
@@ -310,10 +304,10 @@ public class MainListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-        if (plugin.getBossBarUtils() != null && plugin.getBossBarUtils().scanBossBarPlayers.containsKey(uuid)) {
-            plugin.getBossBarUtils().scanBossBarPlayers.get(uuid).removeAll();
-            plugin.getBossBarUtils().scanBossBarPlayers.get(uuid).addPlayer(player);
+
+        BossBarManager bossBarManager = BossBarManager.getInstance();
+        if (bossBarManager != null) {
+            bossBarManager.refreshPersistentBossBar(player);
         }
 
         if (plugin.getConfiguration().GENERAL_UPDATES_CHECK) {

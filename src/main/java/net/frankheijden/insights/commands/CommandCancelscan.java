@@ -1,6 +1,6 @@
 package net.frankheijden.insights.commands;
 
-import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.managers.ScanManager;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.command.*;
@@ -11,15 +11,13 @@ import java.util.List;
 
 public class CommandCancelscan implements CommandExecutor, TabExecutor {
 
-    private static final Insights plugin = Insights.getInstance();
-
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
-                if (plugin.getPlayerScanTasks().containsKey(player.getUniqueId())) {
-                    LoadChunksTask loadChunksTask = plugin.getPlayerScanTasks().get(player.getUniqueId());
+                if (ScanManager.getInstance().isScanning(player)) {
+                    LoadChunksTask loadChunksTask = ScanManager.getInstance().getTask(player);
                     loadChunksTask.forceStop();
                     MessageUtils.sendMessage(sender, "messages.cancelscan.success");
                 } else {

@@ -91,7 +91,7 @@ public class UpdateCheckerTask implements Runnable {
         try {
             Method method = JavaPlugin.class.getDeclaredMethod("getFile");
             method.setAccessible(true);
-            return (File) method.invoke(this.plugin);
+            return (File) method.invoke(plugin);
         } catch (ReflectiveOperationException ex) {
             throw new RuntimeException("Error retrieving current plugin file", ex);
         }

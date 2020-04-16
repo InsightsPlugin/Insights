@@ -13,6 +13,6 @@ public class Post1_13Listeners implements Listener {
         Entity entity = event.getEntity();
         if (player == null) return;
 
-        EntityListener.handleEntityEvent(event, player, entity);
+        EntityListener.handleEntityPlaceEvent(event, player, entity);
     }
 }
