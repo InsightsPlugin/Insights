@@ -104,7 +104,7 @@ public class MessageUtils {
             Object packet;
             Class<?> packetPlayOutChatClass = Class.forName("net.minecraft.server." + Insights.NMS + ".PacketPlayOutChat");
             Class<?> packetClass = Class.forName("net.minecraft.server." + Insights.NMS + ".Packet");
-            if (plugin.isPost1_13()) {
+            if (!plugin.isPost1_8_R1()) {
                 Class<?> chatSerializerClass = Class.forName("net.minecraft.server." + Insights.NMS + ".ChatSerializer");
                 Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + Insights.NMS + ".IChatBaseComponent");
                 Method m3 = chatSerializerClass.getDeclaredMethod("a", String.class);

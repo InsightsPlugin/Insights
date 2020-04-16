@@ -26,6 +26,7 @@ public class Insights extends JavaPlugin {
     private FileConfiguration messages;
 
     public static String NMS;
+    private boolean post1_8_R1 = false;
     private boolean post1_9 = false;
     private boolean post1_13 = false;
 
@@ -120,6 +121,10 @@ public class Insights extends JavaPlugin {
         NMS = Bukkit.getServer().getClass().getPackage().getName();
         NMS = NMS.substring(NMS.lastIndexOf(".") + 1);
 
+        if (PaperLib.getMinecraftVersion() >= 8 && !NMS.equalsIgnoreCase("v1_8_R1")) {
+            post1_8_R1 = true;
+        }
+
         if (PaperLib.getMinecraftVersion() >= 9) {
             bossBarUtils = new BossBarUtils();
             bossBarUtils.setupBossBarUtils();
@@ -198,6 +203,10 @@ public class Insights extends JavaPlugin {
 
     public FileConfiguration getMessages() {
         return messages;
+    }
+
+    public boolean isPost1_8_R1() {
+        return post1_8_R1;
     }
 
     public boolean isPost1_9() {
