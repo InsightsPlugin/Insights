@@ -24,10 +24,14 @@ Insights
 
 For the description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
 
-[![](https://jitpack.io/v/FrankHeijden/Insights.svg)](https://jitpack.io/#FrankHeijden/Insights) [![releaseImg]][release] [![licenseImg]][license]
-
-[![featureRequestsImg]][featureRequests] [![bugReportsImg]][bugReports]
-[![spigotRatingImg]][spigot] [![spigotDownloadsImg]][spigot]
+[![Java CI with Gradle](https://github.com/FrankHeijden/Insights/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=master)](https://github.com/FrankHeijden/Insights/actions)
+[![](https://jitpack.io/v/FrankHeijden/Insights.svg)](https://jitpack.io/#FrankHeijden/Insights)
+[![releaseImg]][release]
+[![licenseImg]][license]
+[![featureRequestsImg]][featureRequests]
+[![bugReportsImg]][bugReports]
+[![spigotRatingImg]][spigot]
+[![spigotDownloadsImg]][spigot]
 
 How to run the project?
 ------
