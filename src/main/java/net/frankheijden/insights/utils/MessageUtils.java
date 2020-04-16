@@ -13,6 +13,8 @@ import java.util.UUID;
 
 public class MessageUtils {
 
+    private static final Insights plugin = Insights.getInstance();
+
     public static void sendMessage(Object object, String path, String... placeholders) {
         if (object instanceof UUID) {
             sendMessage((UUID) object, path, placeholders);
@@ -29,7 +31,7 @@ public class MessageUtils {
     }
 
     public static void sendMessage(CommandSender sender, String path, String... placeholders) {
-        String message = Insights.getInstance().getMessages().getString(path);
+        String message = plugin.getMessages().getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++, i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
@@ -46,9 +48,9 @@ public class MessageUtils {
     }
 
     public static void sendSpecialMessage(Player player, String path, double progress, String... placeholders) {
-        String messageType = Insights.getInstance().getConfiguration().GENERAL_NOTIFICATION_TYPE;
+        String messageType = plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE;
         if (messageType == null) messageType = "ACTIONBAR";
-        if (messageType.toUpperCase().equals("BOSSBAR") && Insights.getInstance().isPost1_9()) {
+        if (messageType.toUpperCase().equals("BOSSBAR") && plugin.isPost1_9()) {
             sendBossBar(player, path, progress, placeholders);
         } else {
             sendActionBar(player, path, placeholders);
@@ -56,7 +58,6 @@ public class MessageUtils {
     }
 
     private static void sendBossBar(Player player, String path, double progress, String... placeholders) {
-        Insights plugin = Insights.getInstance();
         String message = plugin.getMessages().getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++,i++) {
@@ -83,7 +84,7 @@ public class MessageUtils {
     }
 
     private static void sendActionBar(Player player, String path, String... placeholders) {
-        String message = Insights.getInstance().getMessages().getString(path);
+        String message = plugin.getMessages().getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++,i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
@@ -103,7 +104,7 @@ public class MessageUtils {
             Object packet;
             Class<?> packetPlayOutChatClass = Class.forName("net.minecraft.server." + Insights.NMS + ".PacketPlayOutChat");
             Class<?> packetClass = Class.forName("net.minecraft.server." + Insights.NMS + ".Packet");
-            if (Insights.getInstance().isPost1_13()) {
+            if (plugin.isPost1_13()) {
                 Class<?> chatSerializerClass = Class.forName("net.minecraft.server." + Insights.NMS + ".ChatSerializer");
                 Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + Insights.NMS + ".IChatBaseComponent");
                 Method m3 = chatSerializerClass.getDeclaredMethod("a", String.class);

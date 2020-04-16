@@ -1,17 +1,12 @@
 package net.frankheijden.insights.placeholders;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.api.InsightsAPI;
 import org.bukkit.OfflinePlayer;
 
 import java.util.UUID;
 
 public class InsightsPlaceholderAPIExpansion extends PlaceholderExpansion {
-    private final Insights plugin;
-
-    public InsightsPlaceholderAPIExpansion(Insights plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public String getName() {
@@ -44,11 +39,11 @@ public class InsightsPlaceholderAPIExpansion extends PlaceholderExpansion {
 
         switch (identifier.toUpperCase()) {
             case "SCAN_PROGRESS": {
-                Double scanProgress = plugin.getInsightsAPI().getScanProgress(uuid);
+                Double scanProgress = InsightsAPI.getScanProgress(uuid);
                 return scanProgress == null ? "" : String.format("%.2f", scanProgress*100) + "%";
             }
             case "SCAN_TIME": {
-                String scanTime = plugin.getInsightsAPI().getTimeElapsedOfScan(uuid);
+                String scanTime = InsightsAPI.getTimeElapsedOfScan(uuid);
                 return scanTime == null ? "" : scanTime;
             }
             default: {

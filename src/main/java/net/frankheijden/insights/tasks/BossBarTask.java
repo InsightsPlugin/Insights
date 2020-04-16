@@ -8,11 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BossBarTask implements Runnable {
-    private final Insights plugin;
 
-    public BossBarTask(Insights plugin) {
-        this.plugin = plugin;
-    }
+    private static final Insights plugin = Insights.getInstance();
 
     @Override
     public void run() {

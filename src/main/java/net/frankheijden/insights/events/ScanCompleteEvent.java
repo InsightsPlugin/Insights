@@ -1,7 +1,7 @@
-package net.frankheijden.insights.api.events;
+package net.frankheijden.insights.events;
 
-import net.frankheijden.insights.api.entities.ScanOptions;
-import net.frankheijden.insights.api.entities.ScanResult;
+import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.entities.ScanResult;
 
 public class ScanCompleteEvent {
     private final ScanOptions scanOptions;

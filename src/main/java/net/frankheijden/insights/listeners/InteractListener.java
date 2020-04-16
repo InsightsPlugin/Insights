@@ -1,6 +1,7 @@
 package net.frankheijden.insights.listeners;
 
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -20,7 +21,9 @@ public class InteractListener implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getClickedBlock() == null) return;
 
-        Location loc = event.getClickedBlock().getLocation();
+        Block block = event.getClickedBlock().getRelative(event.getBlockFace());
+
+        Location loc = block.getLocation();
         interactLocations.put(loc, event.getPlayer());
         interactTimes.put(loc, System.currentTimeMillis());
     }

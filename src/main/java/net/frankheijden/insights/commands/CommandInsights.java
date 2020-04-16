@@ -12,14 +12,10 @@ import org.bukkit.util.StringUtil;
 import java.util.*;
 
 public class CommandInsights implements CommandExecutor, TabExecutor {
-    private final Insights plugin;
 
+    private static final Insights plugin = Insights.getInstance();
     public static final int DEFAULT_BLOCK_RANGE = 100;
     public static final int DEFAULT_ENTITY_RANGE = 25;
-
-    public CommandInsights(Insights plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

@@ -7,8 +7,10 @@ import org.bukkit.block.Block;
 
 public class TileUtils {
 
+    private static final Insights plugin = Insights.getInstance();
+
     public static boolean isTile(Block block) {
-        if (Insights.getInstance().isPost1_13()) {
+        if (plugin.isPost1_13()) {
             return Post1_13TileUtils.isTile(block);
         }
         return isTile(block.getWorld(), block.getLocation());

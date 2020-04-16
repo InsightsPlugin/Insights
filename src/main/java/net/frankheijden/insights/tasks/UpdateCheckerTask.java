@@ -15,16 +15,16 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 
 public class UpdateCheckerTask implements Runnable {
-    private final Insights plugin;
+
+    private static final Insights plugin = Insights.getInstance();
     private final Player player;
     private final String currentVersion;
     private boolean downloading;
     private boolean downloaded;
 
-    private static String GITHUB_INSIGHTS_LINK = "https://api.github.com/repos/FrankHeijden/Insights/releases/latest";
+    private static final String GITHUB_INSIGHTS_LINK = "https://api.github.com/repos/FrankHeijden/Insights/releases/latest";
 
-    public UpdateCheckerTask(Insights plugin, Player player) {
-        this.plugin = plugin;
+    public UpdateCheckerTask(Player player) {
         this.player = player;
         this.currentVersion = plugin.getDescription().getVersion();
         this.downloading = false;

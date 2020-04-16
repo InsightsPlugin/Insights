@@ -3,14 +3,13 @@ package net.frankheijden.insights.listeners;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.InsightsAPI;
-import net.frankheijden.insights.api.builders.Scanner;
-import net.frankheijden.insights.api.entities.ChunkLocation;
-import net.frankheijden.insights.api.entities.ScanOptions;
-import net.frankheijden.insights.api.enums.ScanType;
-import net.frankheijden.insights.api.events.PlayerChunkMoveEvent;
-import net.frankheijden.insights.api.events.ScanCompleteEvent;
+import net.frankheijden.insights.builders.Scanner;
 import net.frankheijden.insights.config.Limit;
 import net.frankheijden.insights.config.RegionBlocks;
+import net.frankheijden.insights.entities.ChunkLocation;
+import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.enums.ScanType;
+import net.frankheijden.insights.events.*;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.*;
@@ -20,9 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
-import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
@@ -33,15 +30,13 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public class MainListener implements Listener {
-    private final Insights plugin;
+
+    private static final Insights plugin = Insights.getInstance();
     private final InteractListener interactListener;
-    private final InsightsAPI api;
     private final List<Location> blockLocations;
 
-    public MainListener(Insights plugin, InteractListener interactListener) {
-        this.plugin = plugin;
+    public MainListener(InteractListener interactListener) {
         this.interactListener = interactListener;
-        this.api = new InsightsAPI();
         this.blockLocations = new ArrayList<>();
     }
 
@@ -54,7 +49,7 @@ public class MainListener implements Listener {
         Player player = event.getPlayer();
         String name = event.getBlock().getType().name();
 
-        Limit limit = api.getLimit(player.getWorld(), name);
+        Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
         if (limit != null) {
             sendBreakMessage(player, event.getBlock().getChunk(), limit);
         } else if (TileUtils.isTile(event.getBlock())) {
@@ -106,7 +101,7 @@ public class MainListener implements Listener {
     public void handleEntityDestroy(Player player, Entity entity) {
         String name = entity.getType().name();
 
-        Limit limit = api.getLimit(player, name);
+        Limit limit = InsightsAPI.getLimit(player, name);
         if (limit == null) return;
         int current = getEntityCount(entity.getLocation().getChunk(), name) - 1;
 
@@ -125,30 +120,20 @@ public class MainListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onHangingPlace(HangingPlaceEvent event) {
+    public void onPlayerEntityPlace(PlayerEntityPlaceEvent event) {
         Player player = event.getPlayer();
         Entity entity = event.getEntity();
-        String name = entity.getType().name();
-        handleEntityPlace(event, player, entity.getLocation().getChunk(), name);
+        handleEntityPlace(event, player, entity.getChunk(), entity.getType().name());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onCreatureSpawn(CreatureSpawnEvent event) {
-        Entity entity = event.getEntity();
-        Player player = interactListener.getPlayerWithinRadius(entity.getLocation());
-        if (player != null) {
-            handleEntityPlace(event, player, entity.getLocation().getChunk(), entity.getType().name());
-        }
-    }
-
-    public void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
+    private void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
         if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
             MessageUtils.sendMessage(player, "messages.region_disallowed_block");
             cancellable.setCancelled(true);
             return;
         }
 
-        Limit limit = api.getLimit(player, name);
+        Limit limit = InsightsAPI.getLimit(player, name);
         if (limit == null) return;
         int l = limit.getLimit();
         if (l < 0) return;
@@ -192,7 +177,7 @@ public class MainListener implements Listener {
             return;
         }
 
-        Limit limit = api.getLimit(player.getWorld(), name);
+        Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
         if (limit != null) {
             handleBlockPlace(event, player, event.getBlock(), event.getItemInHand(), limit);
         } else if (TileUtils.isTile(event.getBlockPlaced())) {
@@ -333,7 +318,7 @@ public class MainListener implements Listener {
 
         if (plugin.getConfiguration().GENERAL_UPDATES_CHECK) {
             if (player.hasPermission("insights.notification.update")) {
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, new UpdateCheckerTask(plugin, player));
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, new UpdateCheckerTask(player));
             }
         }
     }

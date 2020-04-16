@@ -9,14 +9,9 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class SQLite {
-    private Insights plugin;
 
     public static final String DATABASE_NAME = "players";
     public Connection connection;
-
-    public SQLite(Insights plugin) {
-        this.plugin = plugin;
-    }
 
     public static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS players (`uuid` varchar(128) NOT NULL, `realtime_check` bit NOT NULL, PRIMARY KEY (`uuid`));";
     public static final String CREATE_TABLE_STATEMENT_AUTOSCAN = "CREATE TABLE IF NOT EXISTS players_autoscan (`uuid` varchar(128) NOT NULL, `type` integer NOT NULL, `autoscan` varchar(512) NOT NULL, PRIMARY KEY (`uuid`));";

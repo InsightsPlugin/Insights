@@ -1,6 +1,5 @@
 package net.frankheijden.insights.commands;
 
-import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.*;
 import org.bukkit.command.*;
@@ -9,11 +8,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public class CommandCheckworlds implements CommandExecutor, TabExecutor {
-    private final Insights plugin;
-
-    public CommandCheckworlds(Insights plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

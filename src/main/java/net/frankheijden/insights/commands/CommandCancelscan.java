@@ -10,11 +10,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommandCancelscan implements CommandExecutor, TabExecutor {
-    private final Insights plugin;
 
-    public CommandCancelscan(Insights plugin) {
-        this.plugin = plugin;
-    }
+    private static final Insights plugin = Insights.getInstance();
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

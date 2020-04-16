@@ -16,12 +16,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class WorldGuardUtils {
-    private Insights plugin;
+    private static final Insights plugin = Insights.getInstance();
+
     private boolean isNewWG = false;
 
-    public WorldGuardUtils(Insights plugin) {
-        this.plugin = plugin;
-
+    public WorldGuardUtils() {
         try {
             Class.forName("com.sk89q.worldguard.bukkit.WGBukkit");
         } catch (ClassNotFoundException ex) {

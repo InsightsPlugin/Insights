@@ -2,8 +2,8 @@ package net.frankheijden.insights.tasks;
 
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.api.entities.ChunkLocation;
-import net.frankheijden.insights.api.entities.ScanOptions;
+import net.frankheijden.insights.entities.ChunkLocation;
+import net.frankheijden.insights.entities.ScanOptions;
 import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -15,7 +15,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class LoadChunksTask implements Runnable {
-    private final Insights plugin;
+
+    private static final Insights plugin = Insights.getInstance();
     private final ScanOptions scanOptions;
 
     private transient Map<CompletableFuture<Chunk>, ChunkLocation> pendingChunks;
@@ -29,8 +30,7 @@ public class LoadChunksTask implements Runnable {
 
     private int internalTaskID;
 
-    public LoadChunksTask(Insights plugin, ScanOptions scanOptions) {
-        this.plugin = plugin;
+    public LoadChunksTask(ScanOptions scanOptions) {
         this.scanOptions = scanOptions;
     }
 
@@ -62,8 +62,8 @@ public class LoadChunksTask implements Runnable {
         return internalTaskID;
     }
 
-    public void start(long startTime) {
-        this.startTime = startTime;
+    public void start() {
+        this.startTime = System.currentTimeMillis();
         this.totalChunks = scanOptions.getChunkCount();
         this.pendingChunks = new HashMap<>();
         this.taskID = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
@@ -76,7 +76,7 @@ public class LoadChunksTask implements Runnable {
         }
         sendMessage( scanOptions.getPath() + ".start", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", scanOptions.getWorld().getName());
 
-        scanChunksTask = new ScanChunksTask(plugin, scanOptions, this);
+        scanChunksTask = new ScanChunksTask(scanOptions, this);
         scanChunksTask.start(startTime);
 
         if (scanOptions.hasUUID()) {

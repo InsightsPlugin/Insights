@@ -1,6 +1,5 @@
 package net.frankheijden.insights.commands;
 
-import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.Chunk;
 import org.bukkit.command.*;
@@ -11,11 +10,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommandCheck implements CommandExecutor, TabExecutor {
-    private final Insights plugin;
-
-    public CommandCheck(Insights plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

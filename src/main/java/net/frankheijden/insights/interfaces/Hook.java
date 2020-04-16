@@ -1,4 +1,4 @@
-package net.frankheijden.insights.api.entities;
+package net.frankheijden.insights.interfaces;
 
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
@@ -6,24 +6,13 @@ import org.bukkit.plugin.Plugin;
 /**
  * Interface for hooking into Insights.
  */
-public abstract class Hook {
-    private final Plugin plugin;
-
-    /**
-     * Initializes hook
-     * @param plugin Initiator Plugin
-     */
-    public Hook(Plugin plugin) {
-        this.plugin = plugin;
-    }
+public interface Hook {
 
     /**
      * The plugin which initiated the hook
      * @return Plugin
      */
-    public Plugin getPlugin() {
-        return plugin;
-    }
+    Plugin getPlugin();
 
     /**
      * Whether or not Insights should cancel it's block place listener
@@ -34,5 +23,5 @@ public abstract class Hook {
      * @param block The block Insights calls it's listener on
      * @return True if Insights should cancel for the specified block.
      */
-    public abstract boolean shouldCancel(Block block);
+    boolean shouldCancel(Block block);
 }

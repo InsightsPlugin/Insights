@@ -1,10 +1,9 @@
 package net.frankheijden.insights;
 
 import io.papermc.lib.PaperLib;
-import net.frankheijden.insights.api.InsightsAPI;
-import net.frankheijden.insights.api.events.ScanCompleteEvent;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.config.Config;
+import net.frankheijden.insights.events.ScanCompleteEvent;
 import net.frankheijden.insights.hooks.HookManager;
 import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
@@ -23,16 +22,10 @@ import java.util.*;
 
 public class Insights extends JavaPlugin {
     private static Insights insights;
-    public static Insights getInstance() {
-        return insights;
-    }
-
-    public Insights(){}
 
     private FileConfiguration messages;
 
     public static String NMS;
-    private boolean oldActionBar = false;
     private boolean post1_9 = false;
     private boolean post1_13 = false;
 
@@ -44,23 +37,20 @@ public class Insights extends JavaPlugin {
     private HookManager hookManager;
     private boolean placeholderAPIHook = false;
 
-    private List<LoadChunksTask> scanTasks = new ArrayList<>();
+    private final List<LoadChunksTask> scanTasks = new ArrayList<>();
 
-    private Map<UUID, LoadChunksTask> playerScanTasks = new HashMap<>();
+    private final Map<UUID, LoadChunksTask> playerScanTasks = new HashMap<>();
     private boolean consoleScanning = false;
-    private Map<String, ScanCompleteEvent> countsMap = new HashMap<>();
+    private final Map<String, ScanCompleteEvent> countsMap = new HashMap<>();
 
     private String versionQueued = null;
     private boolean download = false;
-    private List<Player> notifyPlayers = new ArrayList<>();
-
-    private InsightsAPI insightsAPI;
+    private final List<Player> notifyPlayers = new ArrayList<>();
 
     @Override
     public void onEnable() {
         long start = System.currentTimeMillis();
         insights = this;
-        insightsAPI = new InsightsAPI();
 
         PaperLib.suggestPaper(this);
 
@@ -77,8 +67,12 @@ public class Insights extends JavaPlugin {
                 + NumberFormat.getInstance().format(millis) + "ms!");
     }
 
+    public static Insights getInstance() {
+        return insights;
+    }
+
     private void setupConfiguration() {
-        config = new Config(this);
+        config = new Config();
         config.reload();
 
         File messagesFile = FileUtils.copyResourceIfNotExists("messages.yml");
@@ -86,34 +80,35 @@ public class Insights extends JavaPlugin {
     }
 
     private void setupSQLite() {
-        sqLite = new SQLite(this);
+        sqLite = new SQLite();
         sqLite.load();
     }
 
     private void setupClasses() {
         if (isAvailable("WorldGuard")) {
-            worldGuardUtils = new WorldGuardUtils(this);
+            worldGuardUtils = new WorldGuardUtils();
             Bukkit.getLogger().info("[Insights] Successfully hooked into WorldGuard!");
         }
 
         InteractListener interactListener = new InteractListener();
         Bukkit.getPluginManager().registerEvents(interactListener, this);
-        MainListener mainListener = new MainListener(this, interactListener);
+        MainListener mainListener = new MainListener(interactListener);
         Bukkit.getPluginManager().registerEvents(mainListener, this);
+        Bukkit.getPluginManager().registerEvents(new EntityListener(mainListener), this);
         if (post1_13) {
-            Bukkit.getPluginManager().registerEvents(new Post1_13Listeners(mainListener), this);
+            Bukkit.getPluginManager().registerEvents(new Post1_13Listeners(), this);
         } else {
             Bukkit.getPluginManager().registerEvents(new Pre1_13Listeners(mainListener), this);
         }
-        Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan(this));
-        Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights(this));
-        Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck(this));
-        Objects.requireNonNull(this.getCommand("checkworlds")).setExecutor(new CommandCheckworlds(this));
-        Objects.requireNonNull(this.getCommand("scan")).setExecutor(new CommandScan(this));
-        Objects.requireNonNull(this.getCommand("scanradius")).setExecutor(new CommandScanradius(this));
-        Objects.requireNonNull(this.getCommand("scanworld")).setExecutor(new CommandScanworld(this));
-        Objects.requireNonNull(this.getCommand("togglecheck")).setExecutor(new CommandTogglecheck(this));
-        Objects.requireNonNull(this.getCommand("cancelscan")).setExecutor(new CommandCancelscan(this));
+        Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan());
+        Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights());
+        Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck());
+        Objects.requireNonNull(this.getCommand("checkworlds")).setExecutor(new CommandCheckworlds());
+        Objects.requireNonNull(this.getCommand("scan")).setExecutor(new CommandScan());
+        Objects.requireNonNull(this.getCommand("scanradius")).setExecutor(new CommandScanradius());
+        Objects.requireNonNull(this.getCommand("scanworld")).setExecutor(new CommandScanworld());
+        Objects.requireNonNull(this.getCommand("togglecheck")).setExecutor(new CommandTogglecheck());
+        Objects.requireNonNull(this.getCommand("cancelscan")).setExecutor(new CommandCancelscan());
     }
 
     private boolean isAvailable(String pluginName) {
@@ -125,12 +120,8 @@ public class Insights extends JavaPlugin {
         NMS = Bukkit.getServer().getClass().getPackage().getName();
         NMS = NMS.substring(NMS.lastIndexOf(".") + 1);
 
-        if (PaperLib.getMinecraftVersion() <= 8) {
-            oldActionBar = true;
-        }
-
         if (PaperLib.getMinecraftVersion() >= 9) {
-            bossBarUtils = new BossBarUtils(this);
+            bossBarUtils = new BossBarUtils();
             bossBarUtils.setupBossBarUtils();
             bossBarUtils.setupBossBarRunnable();
             post1_9 = true;
@@ -151,7 +142,7 @@ public class Insights extends JavaPlugin {
 
     private void setupPlaceholderAPIHook() {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            InsightsPlaceholderAPIExpansion expansion = new InsightsPlaceholderAPIExpansion(this);
+            InsightsPlaceholderAPIExpansion expansion = new InsightsPlaceholderAPIExpansion();
             if (expansion.register()) {
                 Bukkit.getLogger().info("[Insights] Successfully hooked into PlaceholderAPI!");
             }
@@ -164,7 +155,7 @@ public class Insights extends JavaPlugin {
     }
 
     private void setupPluginHooks() {
-        hookManager = new HookManager(this);
+        hookManager = new HookManager();
     }
 
     public void addScanTask(LoadChunksTask loadChunksTask) {
@@ -205,16 +196,8 @@ public class Insights extends JavaPlugin {
         }
     }
 
-    public InsightsAPI getInsightsAPI() {
-        return insightsAPI;
-    }
-
     public FileConfiguration getMessages() {
         return messages;
-    }
-
-    public boolean shouldUseOldActionBar() {
-        return oldActionBar;
     }
 
     public boolean isPost1_9() {

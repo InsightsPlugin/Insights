@@ -3,19 +3,14 @@ package net.frankheijden.insights.utils;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.tasks.BossBarTask;
 import org.bukkit.Bukkit;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarFlag;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
+import org.bukkit.boss.*;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class BossBarUtils {
-    private Insights plugin;
+
+    private static final Insights plugin = Insights.getInstance();
 
     public HashMap<UUID, BossBar> scanBossBarPlayers;
 
@@ -25,16 +20,14 @@ public class BossBarUtils {
     public BossBarTask bossBarTask;
     public int bossBarTaskID;
 
-    public BossBarUtils(Insights plugin) {
-        this.plugin = plugin;
-
+    public BossBarUtils() {
         scanBossBarPlayers = new HashMap<>();
         bossBarPlayers = new HashMap<>();
         bossBarDurationPlayers = new HashMap<>();
     }
 
     public void setupBossBarRunnable() {
-        bossBarTask = new BossBarTask(plugin);
+        bossBarTask = new BossBarTask();
         bossBarTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, bossBarTask, 0, 1);
     }
 

@@ -1,4 +1,4 @@
-package net.frankheijden.insights.api.enums;
+package net.frankheijden.insights.enums;
 
 public enum ScanType {
     ENTITY,

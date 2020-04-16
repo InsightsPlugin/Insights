@@ -10,11 +10,8 @@ import org.bukkit.util.StringUtil;
 import java.util.*;
 
 public class CommandAutoscan implements CommandExecutor, TabExecutor {
-    private Insights plugin;
 
-    public CommandAutoscan(Insights plugin) {
-        this.plugin = plugin;
-    }
+    private static final Insights plugin = Insights.getInstance();
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

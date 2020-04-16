@@ -1,10 +1,10 @@
 package net.frankheijden.insights.tasks;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.api.entities.ScanOptions;
-import net.frankheijden.insights.api.entities.ScanResult;
-import net.frankheijden.insights.api.enums.ScanType;
-import net.frankheijden.insights.api.events.ScanCompleteEvent;
+import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.entities.ScanResult;
+import net.frankheijden.insights.enums.ScanType;
+import net.frankheijden.insights.events.ScanCompleteEvent;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
@@ -17,7 +17,8 @@ import java.util.Queue;
 import java.util.concurrent.*;
 
 public class ScanChunksTask implements Runnable {
-    private final Insights plugin;
+
+    private static final Insights plugin = Insights.getInstance();
     private final ScanOptions scanOptions;
     private final ScanResult scanResult;
     private final LoadChunksTask loadChunksTask;
@@ -36,8 +37,7 @@ public class ScanChunksTask implements Runnable {
     private String progressMessage;
     private boolean canSendProgressMessage = false;
 
-    public ScanChunksTask(Insights plugin, ScanOptions scanOptions, LoadChunksTask loadChunksTask) {
-        this.plugin = plugin;
+    public ScanChunksTask(ScanOptions scanOptions, LoadChunksTask loadChunksTask) {
         this.scanOptions = scanOptions;
         this.loadChunksTask = loadChunksTask;
         if (scanOptions.getScanType() == ScanType.CUSTOM) {
@@ -56,7 +56,7 @@ public class ScanChunksTask implements Runnable {
         this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 1); // TODO: find non-deprecated method
 
         if (scanOptions.getScanType() == ScanType.TILE) {
-            scanChunksTaskSyncHelper = new ScanChunksTaskSyncHelper(plugin,scanOptions, this);
+            scanChunksTaskSyncHelper = new ScanChunksTaskSyncHelper(scanOptions, this);
             scanChunksTaskSyncHelper.start();
         }
     }

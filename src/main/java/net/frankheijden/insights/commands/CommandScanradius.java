@@ -1,9 +1,9 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.api.builders.Scanner;
-import net.frankheijden.insights.api.entities.ScanOptions;
-import net.frankheijden.insights.api.enums.ScanType;
+import net.frankheijden.insights.builders.Scanner;
+import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -12,13 +12,9 @@ import org.bukkit.util.StringUtil;
 import java.util.*;
 
 public class CommandScanradius implements CommandExecutor, TabExecutor {
-    private final Insights plugin;
 
+    private static final Insights plugin = Insights.getInstance();
     private static final int MAX_SCAN_RADIUS = 25;
-
-    public CommandScanradius(Insights plugin) {
-        this.plugin = plugin;
-    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

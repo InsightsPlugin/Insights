@@ -13,23 +13,14 @@ import org.bukkit.entity.Player;
 import java.util.UUID;
 
 public class InsightsAPI {
-    private Insights instance = null;
-
-    /**
-     * Initiates a new InsightsAPI instance.
-     */
-    public InsightsAPI() {}
 
     /**
      * Gets the instance of Insights.
      *
      * @return Insights Main class
      */
-    public Insights getInstance() {
-        if (instance == null) {
-            instance = Insights.getInstance();
-        }
-        return instance;
+    public static Insights getInstance() {
+        return Insights.getInstance();
     }
 
     /**
@@ -38,7 +29,7 @@ public class InsightsAPI {
      *
      * @param uuid UUID of player
      */
-    public void toggleCheck(UUID uuid) {
+    public static void toggleCheck(UUID uuid) {
         getInstance().getSqLite().toggleRealtimeCheck(uuid);
     }
 
@@ -49,7 +40,7 @@ public class InsightsAPI {
      * @param uuid UUID of player
      * @param enabled boolean enabled
      */
-    public void setToggleCheck(UUID uuid, boolean enabled) {
+    public static void setToggleCheck(UUID uuid, boolean enabled) {
         getInstance().getSqLite().setRealtimeCheck(uuid, enabled);
     }
 
@@ -59,7 +50,7 @@ public class InsightsAPI {
      * @param uuid UUID of player
      * @return boolean scanning
      */
-    public boolean isScanningChunks(UUID uuid) {
+    public static boolean isScanningChunks(UUID uuid) {
         return getInstance().getPlayerScanTasks().containsKey(uuid);
     }
 
@@ -70,7 +61,7 @@ public class InsightsAPI {
      * @param uuid UUID of player
      * @return double progress, or null if no ScanTask.
      */
-    public Double getScanProgress(UUID uuid) {
+    public static Double getScanProgress(UUID uuid) {
         LoadChunksTask loadChunksTask = getInstance().getPlayerScanTasks().get(uuid);
         if (loadChunksTask != null) {
             double total = loadChunksTask.getTotalChunks();
@@ -92,7 +83,7 @@ public class InsightsAPI {
      * @param uuid UUID of player
      * @return String time elapsed, or null if no ScanTask.
      */
-    public String getTimeElapsedOfScan(UUID uuid) {
+    public static String getTimeElapsedOfScan(UUID uuid) {
         LoadChunksTask loadChunksTask = getInstance().getPlayerScanTasks().get(uuid);
         if (loadChunksTask != null) {
             return TimeUtils.getDHMS(loadChunksTask.getStartTime());
@@ -105,11 +96,11 @@ public class InsightsAPI {
      *
      * @return HookManager instance
      */
-    public HookManager getHookManager() {
+    public static HookManager getHookManager() {
         return getInstance().getHookManager();
     }
 
-    public boolean isLimitingEnabled(World world) {
+    public static boolean isLimitingEnabled(World world) {
         String name = world.getName();
         Config config = Insights.getInstance().getConfiguration();
         if (config.GENERAL_WORLDS_WHITELIST) {
@@ -122,7 +113,7 @@ public class InsightsAPI {
         return true;
     }
 
-    public boolean isLimitingEnabled(String region) {
+    public static boolean isLimitingEnabled(String region) {
         Config config = Insights.getInstance().getConfiguration();
         if (config.GENERAL_REGIONS_WHITELIST) {
             if (!StringUtils.matches(config.GENERAL_REGIONS_LIST, region)) {
@@ -134,7 +125,7 @@ public class InsightsAPI {
         return true;
     }
 
-    public boolean isInDisabledRegion(Location location) {
+    public static boolean isInDisabledRegion(Location location) {
         WorldGuardUtils wgUtils = Insights.getInstance().getWorldGuardUtils();
         if (wgUtils != null) {
             ProtectedRegion region = wgUtils.isInInsightsRegion(location);
@@ -145,15 +136,15 @@ public class InsightsAPI {
         return false;
     }
 
-    public Limit getLimit(Player player, String str) {
+    public static Limit getLimit(Player player, String str) {
         return getLimit(player.getWorld(), player.getLocation(), str);
     }
 
-    public Limit getLimit(World world, String str) {
+    public static Limit getLimit(World world, String str) {
         return getLimit(world, null, str);
     }
 
-    public Limit getLimit(World world, Location location, String str) {
+    public static Limit getLimit(World world, Location location, String str) {
         if (!isLimitingEnabled(world)) return null;
         if (location != null && isInDisabledRegion(location)) return null;
 

@@ -1,9 +1,9 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.api.builders.Scanner;
-import net.frankheijden.insights.api.entities.ScanOptions;
-import net.frankheijden.insights.api.enums.ScanType;
+import net.frankheijden.insights.builders.Scanner;
+import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -14,11 +14,8 @@ import org.bukkit.util.StringUtil;
 import java.util.*;
 
 public class CommandScanworld implements CommandExecutor, TabExecutor {
-    private final Insights plugin;
 
-    public CommandScanworld(Insights plugin) {
-        this.plugin = plugin;
-    }
+    private static final Insights plugin = Insights.getInstance();
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

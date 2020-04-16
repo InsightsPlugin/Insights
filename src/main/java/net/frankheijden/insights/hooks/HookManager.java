@@ -1,7 +1,6 @@
 package net.frankheijden.insights.hooks;
 
-import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.api.entities.Hook;
+import net.frankheijden.insights.interfaces.Hook;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 
@@ -9,11 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HookManager {
-    private final Insights plugin;
     private final List<Hook> hooks;
 
-    public HookManager(Insights plugin) {
-        this.plugin = plugin;
+    public HookManager() {
         this.hooks = new ArrayList<>();
     }
 

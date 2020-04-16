@@ -1,4 +1,4 @@
-package net.frankheijden.insights.api.entities;
+package net.frankheijden.insights.entities;
 
 import java.util.*;
 

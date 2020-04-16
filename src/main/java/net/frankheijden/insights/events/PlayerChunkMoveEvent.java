@@ -1,24 +1,22 @@
-package net.frankheijden.insights.api.events;
+package net.frankheijden.insights.events;
 
 import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
-import org.bukkit.event.*;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 
-public class PlayerChunkMoveEvent extends Event implements Cancellable {
+public class PlayerChunkMoveEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    private final Player player;
     private final Chunk fromChunk;
     private final Chunk toChunk;
     private boolean cancel = false;
 
     public PlayerChunkMoveEvent(Player player, Chunk fromChunk, Chunk toChunk) {
+        super(player);
         this.player = player;
         this.fromChunk = fromChunk;
         this.toChunk = toChunk;
-    }
-
-    public Player getPlayer() {
-        return player;
     }
 
     public Chunk getFromChunk() {

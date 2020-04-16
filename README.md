@@ -38,13 +38,15 @@ Developer API
 ------
 Example scan:
 ```java
-import net.frankheijden.insights.api.builders.Scanner;
-import net.frankheijden.insights.api.entities.*;
-import net.frankheijden.insights.api.enums.ScanType;
+import net.frankheijden.insights.builders.Scanner;
+import net.frankheijden.insights.entities.*;
+import net.frankheijden.insights.enums.ScanType;
 import org.bukkit.*;
 
+import java.util.List;
+
 public class APIExample {
-    
+
     public void performScan() {
         ScanOptions options = new ScanOptions();
         options.setScanType(ScanType.CUSTOM);
@@ -54,9 +56,8 @@ public class APIExample {
         options.setWorld(world);
 
         // Let's scan the whole world
-        for (Chunk chunk : world.getLoadedChunks()) {
-            options.addChunkLocation(new ChunkLocation(chunk));
-        }
+        List<ChunkLocation> chunkLocations = ChunkLocation.from(world.getLoadedChunks());
+        options.setChunkLocations(chunkLocations);
 
         // Let's scan for ores!
         options.addMaterial("DIAMOND_ORE");
@@ -74,7 +75,7 @@ public class APIExample {
         Scanner.create(options).scan().whenComplete((event, err) -> {
             // This block is called when the scan has completed
             ScanResult result = event.getScanResult();
-            
+
             // And print the result to the console
             System.out.println("Scan Result:");
             result.getCounts().forEach((key, value) -> {
@@ -87,7 +88,7 @@ public class APIExample {
 
 Example Hook:
 ```java
-import net.frankheijden.insights.api.entities.Hook;
+import net.frankheijden.insights.interfaces.Hook;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
@@ -112,9 +113,8 @@ public class MyPlugin extends JavaPlugin {
     public void onEnable() {
        super.onEnable();
 
-       InsightsAPI insightsAPI = new InsightsAPI();
        // Add hook
-       insightsAPI.getHookManager().addHook(new MyInsightsHook(this));
+       InsightsAPI.getHookManager().addHook(new MyInsightsHook(this));
     }
 }
 ```

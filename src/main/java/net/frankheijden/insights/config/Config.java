@@ -1,6 +1,5 @@
 package net.frankheijden.insights.config;
 
-import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.utils.FileUtils;
 import net.frankheijden.insights.utils.YamlUtils;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -10,7 +9,6 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 public class Config {
-    private final Insights plugin;
     private YamlConfiguration config;
 
     public boolean GENERAL_UPDATES_CHECK = true;
@@ -38,8 +36,7 @@ public class Config {
 
     private final Limits limits;
 
-    public Config(Insights plugin) {
-        this.plugin = plugin;
+    public Config() {
         this.limits = new Limits(this);
     }
 

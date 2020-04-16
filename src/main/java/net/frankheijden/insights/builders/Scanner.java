@@ -1,24 +1,21 @@
-package net.frankheijden.insights.api.builders;
+package net.frankheijden.insights.builders;
 
-import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.api.entities.ScanOptions;
-import net.frankheijden.insights.api.events.ScanCompleteEvent;
+import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.events.ScanCompleteEvent;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Scanner {
-    private final Insights plugin;
     private final ScanOptions scanOptions;
 
-    private Scanner(Insights plugin, ScanOptions scanOptions) {
-        this.plugin = plugin;
+    private Scanner(ScanOptions scanOptions) {
         this.scanOptions = scanOptions;
     }
 
     public static Scanner create(ScanOptions scanOptions) {
-        return new Scanner(Insights.getInstance(), scanOptions);
+        return new Scanner(scanOptions);
     }
 
     public CompletableFuture<ScanCompleteEvent> scan() {
@@ -34,8 +31,8 @@ public class Scanner {
                 }
             });
 
-            LoadChunksTask task = new LoadChunksTask(plugin, scanOptions);
-            task.start(System.currentTimeMillis());
+            LoadChunksTask task = new LoadChunksTask(scanOptions);
+            task.start();
 
             synchronized (LOCK) {
                 try {

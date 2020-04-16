@@ -1,7 +1,7 @@
-package net.frankheijden.insights.api.entities;
+package net.frankheijden.insights.entities;
 
-import net.frankheijden.insights.api.enums.ScanType;
-import net.frankheijden.insights.api.interfaces.ScanCompleteEventListener;
+import net.frankheijden.insights.enums.ScanType;
+import net.frankheijden.insights.interfaces.ScanCompleteListener;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -20,7 +20,7 @@ public class ScanOptions {
     private boolean console;
     private boolean saveWorld;
     private boolean debug;
-    private ScanCompleteEventListener listener;
+    private ScanCompleteListener listener;
 
     public ScanOptions() {
         this.scanType = null;
@@ -57,8 +57,8 @@ public class ScanOptions {
         return chunkLocations;
     }
 
-    public void setChunkLocations(Queue<ChunkLocation> chunkLocations) {
-        this.chunkLocations = chunkLocations;
+    public void setChunkLocations(Collection<? extends ChunkLocation> chunkLocations) {
+        this.chunkLocations = new LinkedList<>(chunkLocations);
         this.chunkCount = getChunkLocationsSize();
     }
 
@@ -156,11 +156,11 @@ public class ScanOptions {
         this.debug = debug;
     }
 
-    public ScanCompleteEventListener getListener() {
+    public ScanCompleteListener getListener() {
         return listener;
     }
 
-    public void setListener(ScanCompleteEventListener listener) {
+    public void setListener(ScanCompleteListener listener) {
         this.listener = listener;
     }
 
