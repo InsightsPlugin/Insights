@@ -19,8 +19,7 @@
 <!-- End of variables block -->
 
 
-Insights
-===========
+# Insights
 
 For the description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
 
@@ -33,64 +32,21 @@ For the description of this plugin, please refer to SpigotMC: https://www.spigot
 [![spigotRatingImg]][spigot]
 [![spigotDownloadsImg]][spigot]
 
-How to run the project?
-------
+## How to run the project?
 1. Make sure you have [gradle][gradleInstall] installed.
 2. Run the project with `gradle shadowJar` to compile it with dependencies.
 
-Developer API
-------
-Example scan:
-```java
-import net.frankheijden.insights.builders.Scanner;
-import net.frankheijden.insights.entities.*;
-import net.frankheijden.insights.enums.ScanType;
-import org.bukkit.*;
+## Developer API
+### Scanning
+An example of a scan is located [here](src/main/java/net/frankheijden/insights/api/APIExample.java).
 
-import java.util.List;
+### Useful
+- Check if block/location is a tile entity: [TileUtils](src/main/java/net/frankheijden/insights/utils/TileUtils.java)
+- Event for when a player moves from chunk to chunk (cancellable!): [PlayerChunkMoveEvent](src/main/java/net/frankheijden/insights/events/PlayerChunkMoveEvent.java)
+- Event for when a player places down an entity (all entities): [PlayerEntityPlaceEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityPlaceEvent.java)
+- Event for when a player destroys an entity (all entities): [PlayerEntityDestroyEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityDestroyEvent.java)
 
-public class APIExample {
-
-    public void performScan() {
-        ScanOptions options = new ScanOptions();
-        options.setScanType(ScanType.CUSTOM);
-
-        // Let's scan in world
-        World world = Bukkit.getWorld("world");
-        options.setWorld(world);
-
-        // Let's scan the whole world
-        List<ChunkLocation> chunkLocations = ChunkLocation.from(world.getLoadedChunks());
-        options.setChunkLocations(chunkLocations);
-
-        // Let's scan for ores!
-        options.addMaterial("DIAMOND_ORE");
-        options.addMaterial("EMERALD_ORE");
-        options.addMaterial("GOLD_ORE");
-        options.addMaterial("LAPIS_ORE");
-        options.addMaterial("IRON_ORE");
-        options.addMaterial("COAL_ORE");
-
-        // Let's also scan for creepers and spiders!
-        options.addEntityType("CREEPER");
-        options.addEntityType("SPIDER");
-
-        // Let's scan!
-        Scanner.create(options).scan().whenComplete((event, err) -> {
-            // This block is called when the scan has completed
-            ScanResult result = event.getScanResult();
-
-            // And print the result to the console
-            System.out.println("Scan Result:");
-            result.getCounts().forEach((key, value) -> {
-                System.out.println(key + ": " + value);
-            });
-        });
-    }
-}
-```
-
-Example Hook:
+### Hooking
 ```java
 import net.frankheijden.insights.interfaces.Hook;
 import org.bukkit.Material;
@@ -123,21 +79,20 @@ public class MyPlugin extends JavaPlugin {
 }
 ```
 
-Screenshots
-------
-#### Limit blocks per group
+## Screenshots
+### Limit blocks per group
 ![GroupLimit](screenshots/GroupLimit.png)
-#### Custom block limit per chunk
+### Custom block limit per chunk
 ![CustomLimit](screenshots/CustomLimit.png)
-#### Scan all blocks in a radius around you!
+### Scan all blocks in a radius around you!
 ![ScanRadius](screenshots/ScanRadius.png)
-#### Limit globally all tiles per chunk!
+### Limit globally all tiles per chunk!
 ![TileLimit](screenshots/TileLimit.png)
-#### Scan all tiles in chunks
+### Scan all tiles in chunks
 ![TileScan](screenshots/TileScan.png)
-#### Scan with custom queries
+### Scan with custom queries
 ![CustomScan](screenshots/CustomScan.png)
-#### Automatically scan upon chunk entering
+### Automatically scan upon chunk entering
 ![AutoScan](screenshots/AutoScan.png)
-#### Disable blocks in WorldGuard regions (Regex region match)
+### Disable blocks in WorldGuard regions (Regex region match)
 ![RegionDisallow](screenshots/RegionDisallow.png)
