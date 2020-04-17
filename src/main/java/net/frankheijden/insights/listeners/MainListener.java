@@ -55,20 +55,8 @@ public class MainListener implements Listener {
         } else if (TileUtils.isTile(event.getBlock())) {
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || generalLimit > -1) {
-                if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                    int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
-                    double progress = ((double) current)/((double) generalLimit);
-                    if (progress > 1 || progress < 0) progress = 1;
-
-                    if (generalLimit > -1) {
-                        MessageUtils.sendSpecialMessage(player, "messages.realtime_check", progress,
-                                "%tile_count%", NumberFormat.getIntegerInstance().format(current),
-                                "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
-                    } else {
-                        MessageUtils.sendSpecialMessage(player, "messages.realtime_check_no_limit", progress,
-                                "%tile_count%", NumberFormat.getIntegerInstance().format(current));
-                    }
-                }
+                int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
+                tryNotifyRealtime(player, current, generalLimit);
             }
         }
     }
@@ -185,20 +173,29 @@ public class MainListener implements Listener {
             }
 
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || generalLimit > -1) {
-                if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-                    double progress = ((double) current)/((double) generalLimit);
-                    if (progress > 1 || progress < 0) progress = 1;
-
-                    if (generalLimit > -1) {
-                        MessageUtils.sendSpecialMessage(player, "messages.realtime_check", progress,
-                                "%tile_count%", NumberFormat.getIntegerInstance().format(current),
-                                "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
-                    } else {
-                        MessageUtils.sendSpecialMessage(player, "messages.realtime_check_no_limit", progress,
-                                "%tile_count%", NumberFormat.getIntegerInstance().format(current));
-                    }
-                }
+                tryNotifyRealtime(player, current, generalLimit);
             }
+        }
+    }
+
+    private boolean canNotifyRealtime(Player player) {
+        return player.hasPermission("insights.check.realtime")
+                && plugin.getSqLite().hasRealtimeCheckEnabled(player);
+    }
+
+    private void tryNotifyRealtime(Player player, int current, int limit) {
+        if (!canNotifyRealtime(player)) return;
+
+        double progress = ((double) current)/((double) limit);
+        if (progress > 1 || progress < 0) progress = 1;
+
+        if (limit > -1) {
+            MessageUtils.sendSpecialMessage(player, "messages.realtime_check", progress,
+                    "%tile_count%", NumberFormat.getIntegerInstance().format(current),
+                    "%limit%", NumberFormat.getIntegerInstance().format(limit));
+        } else {
+            MessageUtils.sendSpecialMessage(player, "messages.realtime_check_no_limit", progress,
+                    "%tile_count%", NumberFormat.getIntegerInstance().format(current));
         }
     }
 
