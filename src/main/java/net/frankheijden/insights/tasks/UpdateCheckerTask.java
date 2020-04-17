@@ -3,6 +3,7 @@ package net.frankheijden.insights.tasks;
 import com.google.gson.*;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.utils.MessageUtils;
+import net.frankheijden.insights.utils.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -51,7 +52,7 @@ public class UpdateCheckerTask implements Runnable {
                     .getAsJsonPrimitive("browser_download_url")
                     .getAsString();
         }
-        if (isNewVersion(githubVersion)) {
+        if (StringUtils.isNewVersion(currentVersion, githubVersion)) {
             if (plugin.getConfiguration().GENERAL_UPDATES_DOWNLOAD) {
                 MessageUtils.sendMessage(player, "messages.update.downloading",
                         "%old%", currentVersion,
@@ -115,18 +116,6 @@ public class UpdateCheckerTask implements Runnable {
         ReadableByteChannel rbc = Channels.newChannel(url.openStream());
         FileOutputStream fos = new FileOutputStream(target);
         fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-    }
-
-    private boolean isNewVersion(String version) {
-        String[] currentVersion = this.currentVersion.split("\\.");
-        String[] newVersion = version.split("\\.");
-
-        int i = 0;
-        while (i < currentVersion.length && i < newVersion.length) {
-            if (Integer.parseInt(newVersion[i]) > Integer.parseInt(currentVersion[i])) return true;
-            i++;
-        }
-        return false;
     }
 
     private String readAll(BufferedReader reader) throws IOException {
