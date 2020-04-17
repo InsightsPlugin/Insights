@@ -14,8 +14,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.text.NumberFormat;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class ScanChunksTask implements Runnable {
@@ -23,6 +22,9 @@ public class ScanChunksTask implements Runnable {
     private static final Insights plugin = Insights.getInstance();
     private static final ScanManager scanManager = ScanManager.getInstance();
     private static final BossBarManager bossBarManager = BossBarManager.getInstance();
+
+    private static final int NOTIFICATION_DELAY_SECONDS = 10;
+    private static final int NOTIFICATION_DELAY_SPECIAL_MILLIS = 50;
 
     private final ScanOptions scanOptions;
     private final ScanResult scanResult;
@@ -37,10 +39,13 @@ public class ScanChunksTask implements Runnable {
     private ScanChunksTaskSyncHelper scanChunksTaskSyncHelper = null;
     private final Queue<BlockState[]> blockStatesList;
 
-    private long lastProgressMessage;
+    private long lastProgressMessageInChat;
+    private long lastProgressMessageSpecial;
     private boolean isBossBar;
     private String progressMessage;
     private boolean canSendProgressMessage = false;
+
+    private final boolean scanEntities;
 
     public ScanChunksTask(ScanOptions scanOptions, LoadChunksTask loadChunksTask) {
         this.scanOptions = scanOptions;
@@ -54,11 +59,15 @@ public class ScanChunksTask implements Runnable {
         this.chunkQueue = new ConcurrentLinkedQueue<>();
         this.blockStatesList = new ConcurrentLinkedQueue<>();
         this.chunksDone = 0;
+        this.scanEntities = (scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getEntityTypes() != null)
+                || scanOptions.getScanType() == ScanType.ALL
+                || scanOptions.getScanType() == ScanType.ENTITY;
     }
 
     public void start(long startTime) {
         this.startTime = startTime;
-        this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 1); // TODO: find non-deprecated method
+        // Deprecated method because name could be misleading, its an asynchronous task.
+        this.taskID = Bukkit.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, this, 0, 1);
 
         if (scanOptions.getScanType() == ScanType.TILE) {
             scanChunksTaskSyncHelper = new ScanChunksTaskSyncHelper(scanOptions, this);
@@ -144,25 +153,6 @@ public class ScanChunksTask implements Runnable {
         }
     }
 
-    private void sendNotification(Player player) {
-        if (scanOptions.getChunkCount() == 0) return;
-        String done = NumberFormat.getIntegerInstance().format(chunksDone);
-        String total = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
-        double progressDouble = ((double) chunksDone)/((double) scanOptions.getChunkCount());
-        if (progressDouble < 0) {
-            progressDouble = 0;
-        } else if (progressDouble > 1) {
-            progressDouble = 1;
-        }
-        String progress = String.format("%.2f", progressDouble*100) + "%";
-        String message = MessageUtils.color(progressMessage.replace("%done%", done).replace("%total%", total).replace("%progress%", progress));
-        if (isBossBar) {
-            bossBarManager.displayPersistentBossBar(player, message, progressDouble);
-        } else {
-            MessageUtils.sendActionbar(player, message);
-        }
-    }
-
     public int getChunksDone() {
         return chunksDone;
     }
@@ -178,44 +168,21 @@ public class ScanChunksTask implements Runnable {
     @Override
     public void run() {
         // Notify player about progress in actionbar/bossbar
-        if (canSendProgressMessage && scanOptions.hasUUID()) {
-            Player player = Bukkit.getPlayer(scanOptions.getUUID());
-            if (player != null) {
-                sendNotification(player);
-            }
-        }
+        tryNotifySpecial();
 
         // Notify player about progress every 10 seconds in chat
-        long now = System.currentTimeMillis();
-        if (now > lastProgressMessage + 10000) {
-            lastProgressMessage = System.currentTimeMillis();
-            if (chunksDone > 0) {
-                String chunksDoneScanningString = NumberFormat.getIntegerInstance().format(chunksDone);
-                int chunksDoneLoading = scanOptions.getChunkCount() - scanOptions.getChunkLocations().size();
-                String totalChunksString = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
+        // Regardless if we may continue scanning the next round of chunks.
+        tryNotifyInChat();
 
-                if (scanOptions.isDebug()) {
-                    if (chunksDoneLoading != scanOptions.getChunkCount()) {
-                        String chunksDoneLoadingString = NumberFormat.getIntegerInstance().format(chunksDoneLoading);
-                        LogManager.log(LogType.DEBUG, "Loaded " + chunksDoneLoadingString + "/" + totalChunksString + " and scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...", loadChunksTask.getTaskID());
-                    } else {
-                        LogManager.log(LogType.DEBUG, "Scanned " + chunksDoneScanningString + "/" + totalChunksString + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks") + "...", loadChunksTask.getTaskID());
-                    }
-                }
-
-                sendMessage(scanOptions.getPath() + ".progress",
-                        "%count%", chunksDoneScanningString,
-                        "%total%", totalChunksString,
-                        "%world%", scanOptions.getWorld().getName());
-            }
-        }
-
+        // Simple trick to only allow one loop over the dataset at a time.
         if (!this.run) {
             return;
         }
         this.run = false;
 
         while (!chunkQueue.isEmpty()) {
+            // Try to get the chunk from chunk queue
+            // Should never throw exception, as we can assume all CompletableFuture's are finished by now.
             Chunk chunk;
             try {
                 chunk = chunkQueue.peek().get();
@@ -224,39 +191,32 @@ public class ScanChunksTask implements Runnable {
                 continue;
             }
 
-            if ((scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getEntityTypes() != null) || scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY) {
+            // Scan entities
+            if (scanEntities) {
                 for (Entity entity : chunk.getEntities()) {
-                    if ((scanOptions.getEntityTypes() != null && scanOptions.getEntityTypes().contains(entity.getType().name())) || scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY) {
+                    if (shouldIncementEntity(entity)) {
                         scanResult.increment(entity.getType().name());
                     }
                 }
             }
 
+            // Scan tiles or proceed to scanning the chunk for blocks
             if (scanOptions.getScanType() == ScanType.TILE) {
                 scanChunksTaskSyncHelper.addChunk(chunk);
-            } else if ((scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getMaterials() != null) || scanOptions.getScanType() == ScanType.ALL) {
-                ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
-                for (int x = 0; x < 16; x++) {
-                    for (int y = 0; y < scanOptions.getWorld().getMaxHeight(); y++) {
-                        for (int z = 0; z < 16; z++) {
-                            Material material = ChunkUtils.getMaterial(chunkSnapshot, x,y,z);
-                            if (material != null) {
-                                if ((scanOptions.getMaterials() != null && scanOptions.getMaterials().contains(material.name())) || scanOptions.getScanType() == ScanType.ALL) {
-                                    scanResult.increment(material.name());
-                                }
-                            }
-                        }
-                    }
-                }
+            } else if (scanOptions.getScanType() == ScanType.CUSTOM || scanOptions.getScanType() == ScanType.ALL) {
+                scanChunk(chunk, scanOptions, scanResult);
             }
 
+            // Remove the chunk from queue (above we only peeked, we can only remove chunk if it's done)
             chunkQueue.poll();
 
+            // Tiles are counted differently, this must be done in sync
             if (scanOptions.getScanType() != ScanType.TILE) {
                 chunksDone++;
             }
         }
 
+        // Count newly scanned tile chunks
         if (scanOptions.getScanType() == ScanType.TILE) {
             while (!blockStatesList.isEmpty()) {
                 for (BlockState blockState : blockStatesList.poll()) {
@@ -266,10 +226,115 @@ public class ScanChunksTask implements Runnable {
             }
         }
 
-        if (loadChunksTask.isCancelled() && chunkQueue.isEmpty() && (scanChunksTaskSyncHelper == null || (chunksDone == scanOptions.getChunkCount()))) {
-            this.stop();
+        if (isFinished()) {
+            tryNotifySpecial();
+            stop();
         }
 
         this.run = true;
+    }
+
+    private boolean canNotifyInChat() {
+        return System.currentTimeMillis() > (lastProgressMessageInChat + NOTIFICATION_DELAY_SECONDS * 1000);
+    }
+
+    private void tryNotifyInChat() {
+        if (!canNotifyInChat()) return;
+        lastProgressMessageInChat = System.currentTimeMillis();
+
+        if (chunksDone > 0) {
+            String chunksDoneScanningString = NumberFormat.getIntegerInstance().format(chunksDone);
+            int chunksDoneLoading = scanOptions.getChunkCount() - scanOptions.getChunkLocations().size();
+            String totalChunksString = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
+
+            if (scanOptions.isDebug()) {
+                if (chunksDoneLoading != scanOptions.getChunkCount()) {
+                    String chunksDoneLoadingString = NumberFormat.getIntegerInstance().format(chunksDoneLoading);
+                    LogManager.log(LogType.DEBUG, "Loaded " + chunksDoneLoadingString
+                            + "/" + totalChunksString
+                            + " and scanned " + chunksDoneScanningString + "/" + totalChunksString
+                            + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks")
+                            + "...", loadChunksTask.getTaskID());
+                } else {
+                    LogManager.log(LogType.DEBUG, "Scanned " + chunksDoneScanningString
+                            + "/" + totalChunksString
+                            + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks")
+                            + "...", loadChunksTask.getTaskID());
+                }
+            }
+
+            sendMessage(scanOptions.getPath() + ".progress",
+                    "%count%", chunksDoneScanningString,
+                    "%total%", totalChunksString,
+                    "%world%", scanOptions.getWorld().getName());
+        }
+    }
+
+    private boolean canNotifySpecial() {
+        return System.currentTimeMillis() > (lastProgressMessageSpecial + NOTIFICATION_DELAY_SPECIAL_MILLIS);
+    }
+
+    private void tryNotifySpecial() {
+        if (!canNotifySpecial()) return;
+        lastProgressMessageSpecial = System.currentTimeMillis();
+
+        if (canSendProgressMessage && scanOptions.hasUUID()) {
+            Player player = Bukkit.getPlayer(scanOptions.getUUID());
+            if (player != null) {
+                sendSpecialNotification(player);
+            }
+        }
+    }
+
+    private void sendSpecialNotification(Player player) {
+        if (scanOptions.getChunkCount() == 0) return;
+        String done = NumberFormat.getIntegerInstance().format(chunksDone);
+        String total = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
+        double progressDouble = ((double) chunksDone)/((double) scanOptions.getChunkCount());
+        if (progressDouble < 0) {
+            progressDouble = 0;
+        } else if (progressDouble > 1) {
+            progressDouble = 1;
+        }
+        String progress = String.format("%.2f", progressDouble*100) + "%";
+        String message = MessageUtils.color(progressMessage.replace("%done%", done)
+                .replace("%total%", total)
+                .replace("%progress%", progress));
+        if (isBossBar) {
+            bossBarManager.displayPersistentBossBar(player, message, progressDouble);
+        } else {
+            MessageUtils.sendActionbar(player, message);
+        }
+    }
+
+    public boolean isFinished() {
+        return loadChunksTask.isCancelled() // Loading chunks must be done
+                && chunkQueue.isEmpty() // There must be no more pending chunks
+                && (scanChunksTaskSyncHelper == null || (chunksDone == scanOptions.getChunkCount())); // Tile scanning must be done
+    }
+
+    private void scanChunk(Chunk chunk, ScanOptions scanOptions, ScanResult result) {
+        int maxHeight = scanOptions.getWorld().getMaxHeight();
+        List<String> materials = scanOptions.getMaterials();
+        ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < maxHeight; y++) {
+                for (int z = 0; z < 16; z++) {
+                    // Inter version compatible method to get the material of that location
+                    Material material = ChunkUtils.getMaterial(chunkSnapshot, x,y,z);
+                    if (material != null) {
+                        if (materials.contains(material.name()) || scanOptions.getScanType() == ScanType.ALL) {
+                            result.increment(material.name());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean shouldIncementEntity(Entity entity) {
+        if (scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY) return true;
+        List<String> entities = scanOptions.getEntityTypes();
+        return (entities.contains(entity.getType().name()));
     }
 }

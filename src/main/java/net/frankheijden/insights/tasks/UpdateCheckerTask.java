@@ -46,36 +46,49 @@ public class UpdateCheckerTask implements Runnable {
         JsonArray assets = jsonObject.getAsJsonArray("assets");
         String downloadLink = null;
         if (assets != null && assets.size() > 0) {
-            downloadLink = assets.get(0).getAsJsonObject().getAsJsonPrimitive("browser_download_url").getAsString();
+            downloadLink = assets.get(0)
+                    .getAsJsonObject()
+                    .getAsJsonPrimitive("browser_download_url")
+                    .getAsString();
         }
         if (isNewVersion(githubVersion)) {
             if (plugin.getConfiguration().GENERAL_UPDATES_DOWNLOAD) {
-                MessageUtils.sendMessage(player, "messages.update.downloading", "%old%", currentVersion, "%new%", githubVersion, "%info%", body);
-                if (downloading || (downloaded && currentVersion.equals(githubVersion))) {
-                    return;
-                }
-                downloaded = false;
-
-                if (downloadLink == null) {
-                    status(githubVersion, true);
-                    return;
-                }
-                downloading = true;
-
-                try {
-                    download(downloadLink, getPluginFile());
-                } catch (IOException ex) {
-                    status(githubVersion, true);
-                    throw new RuntimeException("Error downloading a new version of Insights", ex);
-                }
-
-                status(githubVersion, false);
-                downloading = false;
-                downloaded = true;
+                MessageUtils.sendMessage(player, "messages.update.downloading",
+                        "%old%", currentVersion,
+                        "%new%", githubVersion,
+                        "%info%", body);
+                downloadPlugin(githubVersion, downloadLink);
             } else {
-                MessageUtils.sendMessage(player, "messages.update.available", "%old%", currentVersion, "%new%", githubVersion, "%info%", body);
+                MessageUtils.sendMessage(player, "messages.update.available",
+                        "%old%", currentVersion,
+                        "%new%", githubVersion,
+                        "%info%", body);
             }
         }
+    }
+
+    private void downloadPlugin(String githubVersion, String downloadLink) {
+        if (downloading || (downloaded && currentVersion.equals(githubVersion))) {
+            return;
+        }
+        downloaded = false;
+
+        if (downloadLink == null) {
+            status(githubVersion, true);
+            return;
+        }
+        downloading = true;
+
+        try {
+            download(downloadLink, getPluginFile());
+        } catch (IOException ex) {
+            status(githubVersion, true);
+            throw new RuntimeException("Error downloading a new version of Insights", ex);
+        }
+
+        status(githubVersion, false);
+        downloading = false;
+        downloaded = true;
     }
 
     private void status(String githubVersion, boolean isError) {

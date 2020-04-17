@@ -97,7 +97,7 @@ public class BossBarManager {
         if (bossBar == null) return;
         bossBar.setVisible(false);
         bossBar.removeAll();
-        dataMap.remove(uuid);
+        persistentMap.remove(uuid);
     }
 
     public static BossBar createBossBar() {

@@ -63,9 +63,14 @@ public class LoadChunksTask implements Runnable {
         this.taskID = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
 
         if (scanOptions.isDebug()) {
-            LogManager.log(LogType.DEBUG, "Started scan for " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + "...", taskID);
+            LogManager.log(LogType.DEBUG, "Started scan for "
+                    + NumberFormat.getIntegerInstance().format(totalChunks)
+                    + " " + (totalChunks == 1 ? "chunk" : "chunks")
+                    + "...", taskID);
         }
-        sendMessage( scanOptions.getPath() + ".start", "%chunks%", NumberFormat.getIntegerInstance().format(totalChunks), "%world%", scanOptions.getWorld().getName());
+        sendMessage( scanOptions.getPath() + ".start",
+                "%chunks%",NumberFormat.getIntegerInstance().format(totalChunks),
+                "%world%", scanOptions.getWorld().getName());
 
         scanChunksTask = new ScanChunksTask(scanOptions, this);
         scanChunksTask.start(startTime);
@@ -100,6 +105,7 @@ public class LoadChunksTask implements Runnable {
             Object worldObject = worldClass.cast(scanOptions.getWorld());
 
             Method method = worldClass.getDeclaredMethod("setChunkForceLoaded", int.class, int.class, boolean.class);
+            // For some older versions this may be false.
             if (method != null) {
                 method.invoke(worldObject, x, z, b);
             }
@@ -112,7 +118,10 @@ public class LoadChunksTask implements Runnable {
 
     public void stop() {
         if (scanOptions.isDebug()) {
-            LogManager.log(LogType.DEBUG, "Finished loading and generating " + NumberFormat.getIntegerInstance().format(totalChunks) + " " + (totalChunks == 1 ? "chunk" : "chunks") + ", saving world and continuing scan...", taskID);
+            LogManager.log(LogType.DEBUG, "Finished loading and generating "
+                    + NumberFormat.getIntegerInstance().format(totalChunks)
+                    + " " + (totalChunks == 1 ? "chunk" : "chunks")
+                    + ", saving world and continuing scan...", taskID);
         }
 
         cancelled = true;
@@ -180,8 +189,8 @@ public class LoadChunksTask implements Runnable {
 
         // Load new chunks and addCompletableFuture them to the CompletableFuture list
         for (int i = 0; i < chunksToProcess; i++) {
-            ChunkLocation chunkLocation = scanOptions.getChunkLocations().poll();
-            if (chunkLocation == null) {
+            ChunkLocation loc = scanOptions.getChunkLocations().poll();
+            if (loc == null) {
                 stop();
                 return;
             }
@@ -191,8 +200,10 @@ public class LoadChunksTask implements Runnable {
                 return;
             }
 
-            setChunkForceLoaded(chunkLocation.getX(), chunkLocation.getZ(), true);
-            pendingChunks.put(PaperLib.getChunkAtAsync(scanOptions.getWorld(), chunkLocation.getX(), chunkLocation.getZ(), true), chunkLocation);
+            setChunkForceLoaded(loc.getX(), loc.getZ(), true);
+            CompletableFuture<Chunk> cc = PaperLib.getChunkAtAsync(scanOptions.getWorld(),
+                    loc.getX(), loc.getZ(), true);
+            pendingChunks.put(cc, loc);
         }
         run = true;
     }
