@@ -168,7 +168,7 @@ public class ScanChunksTask implements Runnable {
     @Override
     public void run() {
         // Notify player about progress in actionbar/bossbar
-        tryNotifySpecial();
+        tryNotifySpecial(false);
 
         // Notify player about progress every 10 seconds in chat
         // Regardless if we may continue scanning the next round of chunks.
@@ -227,7 +227,7 @@ public class ScanChunksTask implements Runnable {
         }
 
         if (isFinished()) {
-            tryNotifySpecial();
+            tryNotifySpecial(true);
             stop();
         }
 
@@ -274,23 +274,23 @@ public class ScanChunksTask implements Runnable {
         return System.currentTimeMillis() > (lastProgressMessageSpecial + NOTIFICATION_DELAY_SPECIAL_MILLIS);
     }
 
-    private void tryNotifySpecial() {
+    private void tryNotifySpecial(boolean finished) {
         if (!canNotifySpecial()) return;
         lastProgressMessageSpecial = System.currentTimeMillis();
 
         if (canSendProgressMessage && scanOptions.hasUUID()) {
             Player player = Bukkit.getPlayer(scanOptions.getUUID());
             if (player != null) {
-                sendSpecialNotification(player);
+                sendSpecialNotification(player, finished);
             }
         }
     }
 
-    private void sendSpecialNotification(Player player) {
+    private void sendSpecialNotification(Player player, boolean finished) {
         if (scanOptions.getChunkCount() == 0) return;
         String done = NumberFormat.getIntegerInstance().format(chunksDone);
         String total = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
-        double progressDouble = ((double) chunksDone)/((double) scanOptions.getChunkCount());
+        double progressDouble = finished ? 1 : ((double) chunksDone)/((double) scanOptions.getChunkCount());
         if (progressDouble < 0) {
             progressDouble = 0;
         } else if (progressDouble > 1) {
