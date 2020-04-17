@@ -13,11 +13,13 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
+/**
+ * InsightsAPI Class, methods are called in a static fashion.
+ */
 public class InsightsAPI {
 
     /**
      * Gets the instance of Insights.
-     *
      * @return Insights Main class
      */
     public static Insights getInstance() {
@@ -27,7 +29,6 @@ public class InsightsAPI {
     /**
      * Toggles realtime checking for the UUID specified.
      * NOTE: To use realtime checking, the user still needs the permission 'insights.check.realtime'.
-     *
      * @param uuid UUID of player
      */
     public static void toggleCheck(UUID uuid) {
@@ -37,7 +38,6 @@ public class InsightsAPI {
     /**
      * Enables or disabled realtime checking for the UUID specified.
      * NOTE: To use realtime checking, the user still needs the permission 'insights.check.realtime'.
-     *
      * @param uuid UUID of player
      * @param enabled boolean enabled
      */
@@ -47,7 +47,6 @@ public class InsightsAPI {
 
     /**
      * Checks if the player specified is scanning for chunks.
-     *
      * @param uuid UUID of player
      * @return boolean scanning
      */
@@ -58,7 +57,6 @@ public class InsightsAPI {
     /**
      * Gets a percentage between 0 and 1 of the progress of scanning chunks,
      * returns null if the player is not scanning chunks.
-     *
      * @param uuid UUID of player
      * @return double progress, or null if no ScanTask.
      */
@@ -80,7 +78,6 @@ public class InsightsAPI {
 
     /**
      * Gets the time elapsed for the current scan of a player
-     *
      * @param uuid UUID of player
      * @return String time elapsed, or null if no ScanTask.
      */
@@ -94,13 +91,17 @@ public class InsightsAPI {
 
     /**
      * Retrieves the HookManager instance
-     *
      * @return HookManager instance
      */
     public static HookManager getHookManager() {
-        return getInstance().getHookManager();
+        return HookManager.getInstance();
     }
 
+    /**
+     * Checks if limiting is enabled in a world by the config.
+     * @param world The world to check
+     * @return If enabled or not.
+     */
     public static boolean isLimitingEnabled(World world) {
         String name = world.getName();
         Config config = Insights.getInstance().getConfiguration();
@@ -114,6 +115,11 @@ public class InsightsAPI {
         return true;
     }
 
+    /**
+     * Check if limiting is enabled in a region by the config.
+     * @param region The region to check
+     * @return If enabled or not.
+     */
     public static boolean isLimitingEnabled(String region) {
         Config config = Insights.getInstance().getConfiguration();
         if (config.GENERAL_REGIONS_WHITELIST) {
@@ -126,7 +132,12 @@ public class InsightsAPI {
         return true;
     }
 
-    public static boolean isInDisabledRegion(Location location) {
+    /**
+     * Checks if the location is in a limited region.
+     * @param location The location to check
+     * @return Whether or not the location is in a limited region
+     */
+    public static boolean isInLimitedRegion(Location location) {
         WorldGuardManager worldGuardManager = WorldGuardManager.getInstance();
         if (worldGuardManager != null) {
             ProtectedRegion region = worldGuardManager.getInsightsRegion(location);
@@ -137,17 +148,47 @@ public class InsightsAPI {
         return false;
     }
 
+    /**
+     * Retrieves the limit for a specified player.
+     * @param player The player to check for
+     * @param str The string what the limit is (entity/material)
+     * @return The limit, or null if none
+     */
     public static Limit getLimit(Player player, String str) {
         return getLimit(player.getWorld(), player.getLocation(), str);
     }
 
+    /**
+     * Retrieves the limit for a specified world.
+     * @param world The world to check if limiting is enabled in there
+     * @param str The string what the limit is (entity/material)
+     * @return The limit, or null if none
+     */
     public static Limit getLimit(World world, String str) {
         return getLimit(world, null, str);
     }
 
+    /**
+     * Retrieves the limit for a specified location.
+     * @param location The location to check for if limiting is enabled
+     *                 in that world and if it's in a limited region
+     * @param str The string what the limit is (entity/material)
+     * @return The limit, or null if none
+     */
+    public static Limit getLimit(Location location, String str) {
+        return getLimit(location.getWorld(), location, str);
+    }
+
+    /**
+     * Retrieves the limit for a specified world and location.
+     * @param world The world to check if limiting is enabled in there
+     * @param location The location to check for if limiting is enabled in that region
+     * @param str The string what the limit is (entity/material)
+     * @return The limit, or null if none
+     */
     public static Limit getLimit(World world, Location location, String str) {
         if (!isLimitingEnabled(world)) return null;
-        if (location != null && isInDisabledRegion(location)) return null;
+        if (location != null && isInLimitedRegion(location)) return null;
 
         Limits limits = Insights.getInstance().getConfiguration().getLimits();
         return limits.getLimit(str);
