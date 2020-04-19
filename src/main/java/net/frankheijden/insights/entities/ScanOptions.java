@@ -11,7 +11,7 @@ import java.util.*;
 public class ScanOptions {
     private ScanType scanType;
     private World world;
-    private Queue<ChunkLocation> chunkLocations;
+    private Queue<PartialChunk> partials;
     private int chunkCount;
     private UUID uuid;
     private String path;
@@ -25,8 +25,8 @@ public class ScanOptions {
     public ScanOptions() {
         this.scanType = null;
         this.world = null;
-        this.chunkLocations = new LinkedList<>();
-        this.chunkCount = getChunkLocationsSize();
+        this.partials = new LinkedList<>();
+        this.chunkCount = 0;
         this.uuid = null;
         this.path = null;
         this.materials = new ArrayList<>();
@@ -53,31 +53,31 @@ public class ScanOptions {
         this.world = world;
     }
 
-    public Queue<ChunkLocation> getChunkLocations() {
-        return chunkLocations;
+    public Queue<PartialChunk> getPartialChunks() {
+        return partials;
     }
 
-    public void setChunkLocations(Collection<? extends ChunkLocation> chunkLocations) {
-        this.chunkLocations = new LinkedList<>(chunkLocations);
-        this.chunkCount = getChunkLocationsSize();
+    public void setPartialChunks(Collection<? extends PartialChunk> partials) {
+        this.partials = new LinkedList<>(partials);
+        this.chunkCount = getPartialChunksSize();
     }
 
-    public void addChunkLocation(ChunkLocation chunkLocation) {
-        chunkLocations.add(chunkLocation);
-        this.chunkCount = getChunkLocationsSize();
+    public void addPartialChunk(PartialChunk partial) {
+        this.partials.add(partial);
+        this.chunkCount++;
     }
 
-    public void addAllChunkLocation(Collection<? extends ChunkLocation> chunkLocations) {
-        this.chunkLocations.addAll(chunkLocations);
-        this.chunkCount = getChunkLocationsSize();
+    public void addAllPartialChunks(Collection<? extends PartialChunk> partials) {
+        this.partials.addAll(partials);
+        this.chunkCount = getPartialChunksSize();
     }
 
     public int getChunkCount() {
         return chunkCount;
     }
 
-    public int getChunkLocationsSize() {
-        return chunkLocations.size();
+    public int getPartialChunksSize() {
+        return partials.size();
     }
 
     public boolean hasUUID() {

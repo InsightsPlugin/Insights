@@ -245,6 +245,52 @@ messages:
     invalid_argument: "&cThe argument '%argument%' is not a valid entity or material."
     invalid_world: "&cThat world does not exist."
 
+  # Messages send when a user executes /selection
+  selection:
+    create:
+      # Send when you execute /selection start
+      info: "&3Entered selection mode. Type &b/selection stop &3to leave selection mode."
+      # Send when you left click on a block (= break)
+      # Special placeholders:
+      # %data%
+      first: "&3First location set%data%."
+      # Send when you right click on a block
+      # Special placeholders:
+      # %data%
+      second: "&3Second block set%data%."
+      # The %data% placeholder in messages above
+      # Special placeholders:
+      # %chunks%
+      # %blocks%
+      data: " (&b&l%chunks% &3chunk(s) and &b&l%blocks% &3block(s))"
+    scan:
+      # Special placeholders:
+      # %chunks%
+      start: "&3Started loading and scanning &b&l%chunks%&3 chunks, this may take a while..."
+      # Special placeholders:
+      # %count%
+      # %total%
+      progress: "&3Processed &b&l%count%&3/&b&l%total% &3chunks..."
+      end:
+        header: "&8&m--------------=&r&8[&b&l Selection Count&r &8]&m=---------------"
+        # Special placeholders:
+        # %entry%
+        # %count%
+        format: "&b %entry%&8: &7&l%count%"
+        # Special placeholders:
+        # %chunks%
+        # %blocks%
+        # %time%
+        total: "&3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks. Took &b%time%&3!"
+        footer: "&8&m-------------------------------------------------"
+        no_entries: "&cCouldn't find anything you're looking for in these chunks."
+    # Send when you execute /selection stop
+    stop: "&3Left selection mode."
+    already_selecting: "&cYou are already in selection mode."
+    not_selecting: "&cYou are not in selection mode."
+    invalid_first: "&cPlease set the first position for the selection."
+    invalid_second: "&cPlease set the second position for the selection."
+
   # Messages send when a user executes /togglecheck
   togglecheck:
     # Special placeholders:

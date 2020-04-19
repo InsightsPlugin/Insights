@@ -32,15 +32,20 @@ public class MessageUtils {
     }
 
     public static void sendMessage(CommandSender sender, String path, String... placeholders) {
+        sender.sendMessage(getMessage(path, placeholders));
+    }
+
+    public static String getMessage(String path, String... placeholders) {
         String message = plugin.getMessages().getString(path);
         if (message != null && !message.isEmpty()) {
             for (int i = 0; i < placeholders.length; i++, i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
             }
-            sender.sendMessage(color(message));
+            return color(message);
         } else {
             System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
         }
+        return "";
     }
 
     public static String color(String string) {
@@ -59,31 +64,11 @@ public class MessageUtils {
     }
 
     private static void sendBossBar(Player player, String path, double progress, String... placeholders) {
-        String message = plugin.getMessages().getString(path);
-        if (message != null && !message.isEmpty()) {
-            for (int i = 0; i < placeholders.length; i++,i++) {
-                message = message.replace(placeholders[i], placeholders[i + 1]);
-            }
-            message = color(message);
-
-            BossBarManager.getInstance().displayBossBar(player, message, progress);
-        } else {
-            System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
-        }
+        BossBarManager.getInstance().displayBossBar(player, getMessage(path, placeholders), progress);
     }
 
     private static void sendActionBar(Player player, String path, String... placeholders) {
-        String message = plugin.getMessages().getString(path);
-        if (message != null && !message.isEmpty()) {
-            for (int i = 0; i < placeholders.length; i++,i++) {
-                message = message.replace(placeholders[i], placeholders[i + 1]);
-            }
-            message = color(message);
-
-            sendActionbar(player, message);
-        } else {
-            System.err.println("[Insights] Missing locale in messages.yml at path '" + path + "'!");
-        }
+        sendActionbar(player, getMessage(path, placeholders));
     }
 
     public static void sendActionbar(Player player, String message) {

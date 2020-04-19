@@ -2,8 +2,7 @@ package net.frankheijden.insights.tasks;
 
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.entities.ChunkLocation;
-import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.LogType;
 import net.frankheijden.insights.managers.LogManager;
 import net.frankheijden.insights.managers.ScanManager;
@@ -16,6 +15,7 @@ import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class LoadChunksTask implements Runnable {
 
@@ -23,7 +23,7 @@ public class LoadChunksTask implements Runnable {
     private static final ScanManager scanManager = ScanManager.getInstance();
     private final ScanOptions scanOptions;
 
-    private transient Map<CompletableFuture<Chunk>, ChunkLocation> pendingChunks;
+    private transient Map<CompletableFuture<Chunk>, PartialChunk> pendingChunks;
     private transient boolean run = true;
     private int taskID;
     private boolean cancelled;
@@ -102,12 +102,10 @@ public class LoadChunksTask implements Runnable {
     private void setChunkForceLoaded(int x, int z, boolean b) {
         try {
             Class<?> worldClass = Class.forName("org.bukkit.World");
-            Object worldObject = worldClass.cast(scanOptions.getWorld());
-
             Method method = worldClass.getDeclaredMethod("setChunkForceLoaded", int.class, int.class, boolean.class);
             // For some older versions this may be false.
             if (method != null) {
-                method.invoke(worldObject, x, z, b);
+                method.invoke(scanOptions.getWorld(), x, z, b);
             }
         } catch (NoSuchMethodException ignored) {
 
@@ -157,17 +155,24 @@ public class LoadChunksTask implements Runnable {
         // Check if any CompletableFutures have been done processing.
         // If so, send the chunks to the ScanChunksTask for further processing.
         int chunksProcessedLastTick = 0;
-        Map<CompletableFuture<Chunk>, ChunkLocation> newPendingChunks = new HashMap<>();
+        Map<CompletableFuture<Chunk>, PartialChunk> newPendingChunks = new HashMap<>();
         Set<ChunkLocation> chunksToUnload = new HashSet<>();
         for (CompletableFuture<Chunk> completableFuture: pendingChunks.keySet()) {
-            ChunkLocation chunkLocation = pendingChunks.get(completableFuture);
+            PartialChunk partial = pendingChunks.get(completableFuture);
             if (completableFuture.isDone()) {
                 ++chunksProcessedLastTick;
 
-                scanChunksTask.addChunk(completableFuture);
-                chunksToUnload.add(chunkLocation);
+                ScanPart part;
+                try {
+                    part = new ScanPart(completableFuture.get(), partial);
+                } catch (InterruptedException | ExecutionException ex) {
+                    ex.printStackTrace();
+                    continue;
+                }
+                scanChunksTask.addPart(part);
+                chunksToUnload.add(part.getPartialChunk().getChunkLocation());
             } else {
-                newPendingChunks.put(completableFuture, chunkLocation);
+                newPendingChunks.put(completableFuture, partial);
             }
         }
         pendingChunks = newPendingChunks;
@@ -189,8 +194,8 @@ public class LoadChunksTask implements Runnable {
 
         // Load new chunks and addCompletableFuture them to the CompletableFuture list
         for (int i = 0; i < chunksToProcess; i++) {
-            ChunkLocation loc = scanOptions.getChunkLocations().poll();
-            if (loc == null) {
+            PartialChunk partial = scanOptions.getPartialChunks().poll();
+            if (partial == null) {
                 stop();
                 return;
             }
@@ -200,10 +205,11 @@ public class LoadChunksTask implements Runnable {
                 return;
             }
 
+            ChunkLocation loc = partial.getChunkLocation();
             setChunkForceLoaded(loc.getX(), loc.getZ(), true);
             CompletableFuture<Chunk> cc = PaperLib.getChunkAtAsync(scanOptions.getWorld(),
                     loc.getX(), loc.getZ(), true);
-            pendingChunks.put(cc, loc);
+            pendingChunks.put(cc, partial);
         }
         run = true;
     }

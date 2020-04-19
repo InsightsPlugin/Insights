@@ -1,8 +1,7 @@
 package net.frankheijden.insights.tasks;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.entities.ScanOptions;
-import net.frankheijden.insights.entities.ScanResult;
+import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.LogType;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.events.ScanCompleteEvent;
@@ -29,11 +28,12 @@ public class ScanChunksTask implements Runnable {
     private final ScanOptions scanOptions;
     private final ScanResult scanResult;
     private final LoadChunksTask loadChunksTask;
-    private final Queue<CompletableFuture<Chunk>> chunkQueue;
+    private final Queue<ScanPart> partQueue;
 
     private long startTime;
     private int taskID;
     private int chunksDone;
+    private long blocksDone;
     private boolean run = true;
 
     private ScanChunksTaskSyncHelper scanChunksTaskSyncHelper = null;
@@ -56,9 +56,10 @@ public class ScanChunksTask implements Runnable {
             this.scanResult = new ScanResult();
         }
 
-        this.chunkQueue = new ConcurrentLinkedQueue<>();
+        this.partQueue = new ConcurrentLinkedQueue<>();
         this.blockStatesList = new ConcurrentLinkedQueue<>();
         this.chunksDone = 0;
+        this.blocksDone = 0;
         this.scanEntities = (scanOptions.getScanType() == ScanType.CUSTOM && scanOptions.getEntityTypes() != null)
                 || scanOptions.getScanType() == ScanType.ALL
                 || scanOptions.getScanType() == ScanType.ENTITY;
@@ -95,7 +96,7 @@ public class ScanChunksTask implements Runnable {
 
                     sendMessage(scanOptions.getPath() + ".end.total",
                             "%chunks%", NumberFormat.getIntegerInstance().format(chunksDone),
-                            "%blocks%", NumberFormat.getIntegerInstance().format(chunksDone * 16 * 16 * 256),
+                            "%blocks%", NumberFormat.getIntegerInstance().format(blocksDone),
                             "%time%", TimeUtils.getDHMS(startTime),
                             "%world%", scanOptions.getWorld().getName());
 
@@ -157,8 +158,8 @@ public class ScanChunksTask implements Runnable {
         return chunksDone;
     }
 
-    public void addChunk(CompletableFuture<Chunk> completableFuture) {
-        chunkQueue.add(completableFuture);
+    public void addPart(ScanPart scanPart) {
+        partQueue.add(scanPart);
     }
 
     public void addBlockStates(BlockState[] blockStates) {
@@ -180,40 +181,33 @@ public class ScanChunksTask implements Runnable {
         }
         this.run = false;
 
-        while (!chunkQueue.isEmpty()) {
-            // Try to get the chunk from chunk queue
-            // Should never throw exception, as we can assume all CompletableFuture's are finished by now.
-            Chunk chunk;
-            try {
-                chunk = chunkQueue.peek().get();
-            } catch (InterruptedException | ExecutionException ex) {
-                ex.printStackTrace();
-                continue;
-            }
+        while (!partQueue.isEmpty()) {
+            ScanPart part = partQueue.poll();
+            PartialChunk partial = part.getPartialChunk();
 
             // Scan entities
             if (scanEntities) {
-                for (Entity entity : chunk.getEntities()) {
+                for (Entity entity : part.getChunk().getEntities()) {
                     if (shouldIncementEntity(entity)) {
-                        scanResult.increment(entity.getType().name());
+                        if (partial.contains(entity.getLocation())) {
+                            scanResult.increment(entity.getType().name());
+                        }
                     }
                 }
             }
 
             // Scan tiles or proceed to scanning the chunk for blocks
             if (scanOptions.getScanType() == ScanType.TILE) {
-                scanChunksTaskSyncHelper.addChunk(chunk);
+                scanChunksTaskSyncHelper.addChunk(part.getChunk());
             } else if (scanOptions.getScanType() == ScanType.CUSTOM || scanOptions.getScanType() == ScanType.ALL) {
-                scanChunk(chunk, scanOptions, scanResult);
+                scanChunk(part, scanOptions, scanResult);
             }
-
-            // Remove the chunk from queue (above we only peeked, we can only remove chunk if it's done)
-            chunkQueue.poll();
 
             // Tiles are counted differently, this must be done in sync
             if (scanOptions.getScanType() != ScanType.TILE) {
                 chunksDone++;
             }
+            blocksDone += partial.getBlockCount();
         }
 
         // Count newly scanned tile chunks
@@ -244,7 +238,7 @@ public class ScanChunksTask implements Runnable {
 
         if (chunksDone > 0) {
             String chunksDoneScanningString = NumberFormat.getIntegerInstance().format(chunksDone);
-            int chunksDoneLoading = scanOptions.getChunkCount() - scanOptions.getChunkLocations().size();
+            int chunksDoneLoading = scanOptions.getChunkCount() - scanOptions.getPartialChunksSize();
             String totalChunksString = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
 
             if (scanOptions.isDebug()) {
@@ -309,19 +303,21 @@ public class ScanChunksTask implements Runnable {
 
     public boolean isFinished() {
         return loadChunksTask.isCancelled() // Loading chunks must be done
-                && chunkQueue.isEmpty() // There must be no more pending chunks
+                && partQueue.isEmpty() // There must be no more pending chunks
                 && (scanChunksTaskSyncHelper == null || (chunksDone == scanOptions.getChunkCount())); // Tile scanning must be done
     }
 
-    private void scanChunk(Chunk chunk, ScanOptions scanOptions, ScanResult result) {
-        int maxHeight = scanOptions.getWorld().getMaxHeight();
+    private void scanChunk(ScanPart part, ScanOptions scanOptions, ScanResult result) {
+        ChunkVector min = part.getPartialChunk().getMinimum();
+        ChunkVector max = part.getPartialChunk().getMaximum();
+
         List<String> materials = scanOptions.getMaterials();
-        ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < maxHeight; y++) {
-                for (int z = 0; z < 16; z++) {
+        ChunkSnapshot chunkSnapshot = part.getChunk().getChunkSnapshot();
+        for (int x = min.getX(); x <= max.getX(); x++) {
+            for (int y = min.getY(); y <= max.getY(); y++) {
+                for (int z = min.getZ(); z <= max.getZ(); z++) {
                     // Inter version compatible method to get the material of that location
-                    Material material = ChunkUtils.getMaterial(chunkSnapshot, x,y,z);
+                    Material material = ChunkUtils.getMaterial(chunkSnapshot, x, y, z);
                     if (material != null) {
                         if (materials.contains(material.name()) || scanOptions.getScanType() == ScanType.ALL) {
                             result.increment(material.name());

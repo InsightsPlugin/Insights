@@ -6,8 +6,7 @@ import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.builders.Scanner;
 import net.frankheijden.insights.config.Limit;
 import net.frankheijden.insights.config.RegionBlocks;
-import net.frankheijden.insights.entities.ChunkLocation;
-import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.LogType;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.events.*;
@@ -19,10 +18,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.block.*;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -32,6 +29,7 @@ import java.util.*;
 public class MainListener implements Listener {
 
     private static final Insights plugin = Insights.getInstance();
+    private static final SelectionManager selectionManager = SelectionManager.getInstance();
     private final InteractListener interactListener;
     private final List<Location> blockLocations;
 
@@ -49,6 +47,11 @@ public class MainListener implements Listener {
         Player player = event.getPlayer();
         String name = event.getBlock().getType().name();
 
+        if (selectionManager.isSelecting(player.getUniqueId())) {
+            selectionManager.setPos1(player.getUniqueId(), event.getBlock().getLocation(), true);
+            event.setCancelled(true);
+        }
+
         Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
         if (limit != null) {
             sendBreakMessage(player, event.getBlock().getChunk(), limit);
@@ -58,6 +61,19 @@ public class MainListener implements Listener {
                 int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
                 tryNotifyRealtime(player, current, generalLimit);
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+
+        if (selectionManager.isSelecting(player.getUniqueId())) {
+            Block block = event.getClickedBlock();
+            if (block == null) return;
+            if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+            selectionManager.setPos2(player.getUniqueId(), block.getLocation(), true);
+            event.setCancelled(true);
         }
     }
 
@@ -347,7 +363,7 @@ public class MainListener implements Listener {
                 scanOptions.setEntityTypes(strs);
                 scanOptions.setMaterials(strs);
                 scanOptions.setWorld(chunk.getWorld());
-                scanOptions.setChunkLocations(new LinkedList<>(Collections.singletonList(new ChunkLocation(chunk))));
+                scanOptions.setPartialChunks(Collections.singletonList(PartialChunk.from(chunk)));
 
                 Scanner.create(scanOptions)
                         .scan()

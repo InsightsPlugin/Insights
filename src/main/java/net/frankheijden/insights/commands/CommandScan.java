@@ -1,8 +1,7 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.builders.Scanner;
-import net.frankheijden.insights.entities.ChunkLocation;
-import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.managers.ScanManager;
 import net.frankheijden.insights.utils.MessageUtils;
@@ -24,7 +23,7 @@ public class CommandScan implements CommandExecutor, TabExecutor {
 
             ScanOptions scanOptions = new ScanOptions();
             scanOptions.setWorld(player.getWorld());
-            scanOptions.addChunkLocation(new ChunkLocation(player.getLocation().getChunk()));
+            scanOptions.addPartialChunk(PartialChunk.from(player.getLocation().getChunk()));
             scanOptions.setUUIDAndPath(player.getUniqueId(), "messages.scan");
 
             if (args.length == 0) {
