@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'net.frankheijden'
-version = '4.1.0'
+version = '4.1.1'
 description = 'Insights'
 sourceCompatibility = '1.8'
 
