@@ -30,6 +30,7 @@ public class Insights extends JavaPlugin {
     private WorldGuardManager worldGuardManager = null;
     private HookManager hookManager = null;
     private ScanManager scanManager = null;
+    private SelectionManager selectionManager = null;
 
     private boolean placeholderAPIHook = false;
 
@@ -87,6 +88,7 @@ public class Insights extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("scan")).setExecutor(new CommandScan());
         Objects.requireNonNull(this.getCommand("scanradius")).setExecutor(new CommandScanradius());
         Objects.requireNonNull(this.getCommand("scanworld")).setExecutor(new CommandScanworld());
+        Objects.requireNonNull(this.getCommand("selection")).setExecutor(new CommandSelection());
         Objects.requireNonNull(this.getCommand("togglecheck")).setExecutor(new CommandTogglecheck());
         Objects.requireNonNull(this.getCommand("cancelscan")).setExecutor(new CommandCancelscan());
     }
@@ -112,6 +114,7 @@ public class Insights extends JavaPlugin {
         }
 
         scanManager = new ScanManager();
+        selectionManager = new SelectionManager();
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
         if (PaperLib.getMinecraftVersion() <= 7) {
@@ -172,6 +175,10 @@ public class Insights extends JavaPlugin {
 
     public ScanManager getScanManager() {
         return scanManager;
+    }
+
+    public SelectionManager getSelectionManager() {
+        return selectionManager;
     }
 
     public boolean hasPlaceholderAPIHook() {

@@ -24,8 +24,8 @@ public class ChunkLocation {
      * Constructs a new ChunkLocation from a Chunk
      * @param chunk Chunk
      */
-    public ChunkLocation(Chunk chunk) {
-        this(chunk.getX(), chunk.getZ());
+    public static ChunkLocation from(Chunk chunk) {
+        return new ChunkLocation(chunk.getX(), chunk.getZ());
     }
 
     /**
@@ -35,7 +35,7 @@ public class ChunkLocation {
      */
     public static List<ChunkLocation> from(Chunk... chunks) {
         return Stream.of(chunks)
-                .map(ChunkLocation::new)
+                .map(ChunkLocation::from)
                 .collect(Collectors.toList());
     }
 

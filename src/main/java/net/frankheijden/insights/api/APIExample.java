@@ -20,7 +20,7 @@ public class APIExample {
 
         // Let's scan the whole world
         List<ChunkLocation> chunkLocations = ChunkLocation.from(world.getLoadedChunks());
-        options.setChunkLocations(chunkLocations);
+        options.setPartialChunks(PartialChunk.from(world, chunkLocations));
 
         // Let's scan for ores!
         options.addMaterial("DIAMOND_ORE");

@@ -2,10 +2,11 @@ package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.builders.Scanner;
-import net.frankheijden.insights.entities.ScanOptions;
+import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.managers.ScanManager;
 import net.frankheijden.insights.utils.*;
+import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -34,8 +35,9 @@ public class CommandScanradius implements CommandExecutor, TabExecutor {
             Integer radius = parseValidRadius(sender, args, 0);
             if (radius == null) return true;
 
-            scanOptions.setChunkLocations(new LinkedList<>(ChunkUtils
-                    .getChunkLocations(player.getLocation().getChunk(), radius)));
+            Location loc = player.getLocation();
+            List<ChunkLocation> chunkLocations = ChunkUtils.getChunkLocations(loc.getChunk(), radius);
+            scanOptions.setPartialChunks(PartialChunk.from(loc.getWorld(), chunkLocations));
 
             if (args.length == 1) {
                 if (player.hasPermission("insights.scanradius.all")) {

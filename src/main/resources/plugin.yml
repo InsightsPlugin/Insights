@@ -52,6 +52,10 @@ commands:
        /<command> <world> custom DIAMOND_ORE
        /<command> <world> custom DIAMOND_ORE COW
 
+  selection:
+    usage: |-
+      Usage: /<command>
+
   togglecheck:
     usage: 'Usage: /<command>'
 
