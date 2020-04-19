@@ -54,7 +54,14 @@ commands:
 
   selection:
     usage: |-
-      Usage: /<command>
+      Usage: /<command> <create|scan|stop>
+      Examples:
+       /<command> create
+       /<command> scan tile
+       /<command> scan entity
+       /<command> scan custom DIAMOND_ORE
+       /<command> scan custom DIAMOND_ORE COW
+       /<command> stop
 
   togglecheck:
     usage: 'Usage: /<command>'
