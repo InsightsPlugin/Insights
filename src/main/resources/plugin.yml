@@ -2,7 +2,7 @@ name: Insights
 main: net.frankheijden.insights.Insights
 dev-url: https://www.spigotmc.org/resources/56489/
 version: ${version}
-softdepend: [PlaceholderAPI, WorldGuard]
+softdepend: [PlaceholderAPI, WorldEdit, WorldGuard]
 api-version: "1.13"
 
 commands:
@@ -61,6 +61,7 @@ commands:
        /<command> scan entity
        /<command> scan custom DIAMOND_ORE
        /<command> scan custom DIAMOND_ORE COW
+       /<command> deselect
        /<command> stop
 
   togglecheck:

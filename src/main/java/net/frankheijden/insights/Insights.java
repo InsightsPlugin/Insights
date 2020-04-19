@@ -27,6 +27,7 @@ public class Insights extends JavaPlugin {
 
     private NMSManager nmsManager = null;
     private BossBarManager bossBarManager = null;
+    private WorldEditManager worldEditManager = null;
     private WorldGuardManager worldGuardManager = null;
     private HookManager hookManager = null;
     private ScanManager scanManager = null;
@@ -108,6 +109,11 @@ public class Insights extends JavaPlugin {
 
         hookManager = new HookManager();
 
+        if (isAvailable("WorldEdit")) {
+            worldEditManager = new WorldEditManager();
+            Bukkit.getLogger().info("[Insights] Successfully hooked into WorldEdit!");
+        }
+
         if (isAvailable("WorldGuard")) {
             worldGuardManager = new WorldGuardManager();
             Bukkit.getLogger().info("[Insights] Successfully hooked into WorldGuard!");
@@ -163,6 +169,10 @@ public class Insights extends JavaPlugin {
 
     public BossBarManager getBossBarManager() {
         return bossBarManager;
+    }
+
+    public WorldEditManager getWorldEditManager() {
+        return worldEditManager;
     }
 
     public WorldGuardManager getWorldGuardManager() {

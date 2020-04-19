@@ -288,8 +288,9 @@ messages:
     stop: "&3Left selection mode."
     already_selecting: "&cYou are already in selection mode."
     not_selecting: "&cYou are not in selection mode."
-    invalid_first: "&cPlease set the first position for the selection."
-    invalid_second: "&cPlease set the second position for the selection."
+    invalid_selection: "&cYou currently don't have a selection."
+    # Send when you execute /selection deselect
+    deselect: "&3Deselected the current selection."
 
   # Messages send when a user executes /togglecheck
   togglecheck:

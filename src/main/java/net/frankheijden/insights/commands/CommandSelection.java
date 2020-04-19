@@ -4,6 +4,7 @@ import net.frankheijden.insights.builders.Scanner;
 import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.managers.SelectionManager;
+import net.frankheijden.insights.managers.WorldEditManager;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -14,6 +15,7 @@ import java.util.*;
 public class CommandSelection implements CommandExecutor, TabExecutor {
 
     private static final SelectionManager selectionManager = SelectionManager.getInstance();
+    private static final WorldEditManager worldEditManager = WorldEditManager.getInstance();
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -38,6 +40,14 @@ public class CommandSelection implements CommandExecutor, TabExecutor {
                         selectionManager.setSelecting(uuid);
                         MessageUtils.sendMessage(player, "messages.selection.create.info");
                     }
+                } else {
+                    MessageUtils.sendMessage(sender, "messages.no_permission");
+                }
+                return true;
+            } else if (args[0].equalsIgnoreCase("deselect")) {
+                if (player.hasPermission("insights.selection.create")) {
+                    selectionManager.setSelection(uuid, null);
+                    MessageUtils.sendMessage(player, "messages.selection.deselect");
                 } else {
                     MessageUtils.sendMessage(sender, "messages.no_permission");
                 }
@@ -101,7 +111,16 @@ public class CommandSelection implements CommandExecutor, TabExecutor {
         if (scanOptions.getScanType() == null) return false;
 
         Selection selection = selectionManager.getSelection(uuid);
+
+        selection:
         if (!selection.isValid()) {
+            if (worldEditManager != null) {
+                selection = worldEditManager.getSelection(player);
+                if (selection != null && selection.isValid()) {
+                    break selection;
+                }
+            }
+
             MessageUtils.sendMessage(player, "messages.selection.invalid_selection");
             return true;
         }
@@ -116,7 +135,7 @@ public class CommandSelection implements CommandExecutor, TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         if (sender.hasPermission("insights.selection.tab")) {
             if (args.length == 1) {
-                List<String> list = Arrays.asList("create", "scan", "stop");
+                List<String> list = Arrays.asList("create", "deselect", "scan", "stop");
                 return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
             } else if (args.length == 2 && args[0].equalsIgnoreCase("scan")) {
                 List<String> list = Arrays.asList("custom", "entity", "tile");
