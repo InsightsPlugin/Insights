@@ -90,7 +90,7 @@ public class CommandSelection implements CommandExecutor, TabExecutor {
                     }
                 }
             }
-        } else if (args[0].equalsIgnoreCase("scan") && args[1].equalsIgnoreCase("custom")) {
+        } else if (args.length > 2 && args[0].equalsIgnoreCase("scan") && args[1].equalsIgnoreCase("custom")) {
             scanOptions.setScanType(ScanType.CUSTOM);
             ArrayList<String> strings = new ArrayList<>();
             for (int i = 2; i < args.length; i++) {
