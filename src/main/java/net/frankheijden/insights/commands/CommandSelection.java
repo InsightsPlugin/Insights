@@ -1,5 +1,6 @@
 package net.frankheijden.insights.commands;
 
+import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.builders.Scanner;
 import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.ScanType;
@@ -15,7 +16,7 @@ import java.util.*;
 public class CommandSelection implements CommandExecutor, TabExecutor {
 
     private static final SelectionManager selectionManager = SelectionManager.getInstance();
-    private static final WorldEditManager worldEditManager = WorldEditManager.getInstance();
+    private static final WorldEditManager worldEditManager = Insights.getInstance().getWorldEditManager();
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
