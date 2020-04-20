@@ -1,10 +1,12 @@
 package net.frankheijden.insights.utils;
 
-import java.util.concurrent.TimeUnit;
+import java.text.NumberFormat;
 
 public class TimeUtils {
 
-    public static String getHumanTime(int seconds) {
+    public static String getHumanTime(long millis) {
+        int seconds = (int) millis / 1000;
+        String ml_ = "ms";
         String s_ = "second";
         String ss_ = "seconds";
         String m_ = "minute";
@@ -17,7 +19,9 @@ public class TimeUtils {
         String and_ = "and";
 
         if (seconds < 60) {
-            if (seconds == 1) {
+            if (seconds == 0) {
+                return NumberFormat.getInstance().format(millis) + " " + ml_;
+            } else if (seconds == 1) {
                 return seconds + " " + s_;
             } else {
                 return seconds + " " + ss_;
@@ -119,6 +123,6 @@ public class TimeUtils {
     }
 
     public static String getDHMS(long startTime) {
-        return getHumanTime((int) TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime));
+        return getHumanTime(System.currentTimeMillis() - startTime);
     }
 }
