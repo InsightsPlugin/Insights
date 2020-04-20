@@ -53,9 +53,9 @@ public class MainListener implements Listener {
         }
 
         Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
-        if (limit != null) {
+        if (limit != null && !isPassiveForPlayer(player, "block")) {
             sendBreakMessage(player, event.getBlock().getChunk(), limit);
-        } else if (TileUtils.isTile(event.getBlock())) {
+        } else if (TileUtils.isTile(event.getBlock()) && !isPassiveForPlayer(player, "tile")) {
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || generalLimit > -1) {
                 int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
@@ -108,8 +108,10 @@ public class MainListener implements Listener {
 
     private void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
         if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
-            MessageUtils.sendMessage(player, "messages.region_disallowed_block");
             cancellable.setCancelled(true);
+            if (!isPassiveForPlayer(player, "region")) {
+                MessageUtils.sendMessage(player, "messages.region_disallowed_block");
+            }
             return;
         }
 
@@ -121,13 +123,17 @@ public class MainListener implements Listener {
 
         if (current > l && !player.hasPermission(limit.getPermission())) {
             cancellable.setCancelled(true);
-            MessageUtils.sendMessage(player, "messages.limit_reached_custom",
-                    "%limit%", NumberFormat.getIntegerInstance().format(l),
-                    "%material%", StringUtils.capitalizeName(limit.getName()));
+            if (!isPassiveForPlayer(player, "entity")) {
+                MessageUtils.sendMessage(player, "messages.limit_reached_custom",
+                        "%limit%", NumberFormat.getIntegerInstance().format(l),
+                        "%material%", StringUtils.capitalizeName(limit.getName()));
+            }
             return;
         }
 
-        sendMessage(player, limit.getName(), current, l);
+        if (!isPassiveForPlayer(player, "entity")) {
+            sendMessage(player, limit.getName(), current, l);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -136,6 +142,7 @@ public class MainListener implements Listener {
     }
 
     public void handleEntityDestroy(Player player, Entity entity) {
+        if (isPassiveForPlayer(player, "entity")) return;
         String name = entity.getType().name();
 
         Limit limit = InsightsAPI.getLimit(player, name);
@@ -169,8 +176,10 @@ public class MainListener implements Listener {
         }
 
         if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
-            MessageUtils.sendMessage(player, "messages.region_disallowed_block");
             event.setCancelled(true);
+            if (!isPassiveForPlayer(player, "region")) {
+                MessageUtils.sendMessage(player, "messages.region_disallowed_block");
+            }
             return;
         }
 
@@ -183,13 +192,17 @@ public class MainListener implements Listener {
             if (generalLimit > -1 && current >= generalLimit) {
                 if (!player.hasPermission("insights.bypass")) {
                     event.setCancelled(true);
-                    MessageUtils.sendMessage(player, "messages.limit_reached",
-                            "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
+                    if (!isPassiveForPlayer(player, "tile")) {
+                        MessageUtils.sendMessage(player, "messages.limit_reached",
+                                "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
+                    }
                 }
             }
 
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || generalLimit > -1) {
-                tryNotifyRealtime(player, current, generalLimit);
+                if (!isPassiveForPlayer(player, "tile")) {
+                    tryNotifyRealtime(player, current, generalLimit);
+                }
             }
         }
     }
@@ -289,9 +302,11 @@ public class MainListener implements Listener {
         int l = limit.getLimit();
         if (current > l) {
             if (!player.hasPermission(limit.getPermission())) {
-                MessageUtils.sendMessage(player, "messages.limit_reached_custom",
-                        "%limit%", NumberFormat.getIntegerInstance().format(l),
-                        "%material%", StringUtils.capitalizeName(limit.getName()));
+                if (!isPassiveForPlayer(player, "block")) {
+                    MessageUtils.sendMessage(player, "messages.limit_reached_custom",
+                            "%limit%", NumberFormat.getIntegerInstance().format(l),
+                            "%material%", StringUtils.capitalizeName(limit.getName()));
+                }
                 if (async) {
                     if (player.getGameMode() != GameMode.CREATIVE) {
                         player.getInventory().addItem(itemStack);
@@ -310,7 +325,9 @@ public class MainListener implements Listener {
                 return;
             }
         }
-        sendMessage(player, limit.getName(), current, l);
+        if (!isPassiveForPlayer(player, "block")) {
+            sendMessage(player, limit.getName(), current, l);
+        }
         blockLocations.remove(block.getLocation());
     }
 
@@ -406,5 +423,12 @@ public class MainListener implements Listener {
             }
             MessageUtils.sendMessage(player, "messages.autoscan.multiple_entries.footer");
         }
+    }
+
+    private boolean isPassiveForPlayer(Player player, String what) {
+        if (plugin.getConfiguration().GENERAL_NOTIFICATION_PASSIVE.contains(what)) {
+            return !player.hasPermission("insights.check.passive." + what);
+        }
+        return false;
     }
 }

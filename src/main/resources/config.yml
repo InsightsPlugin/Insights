@@ -92,6 +92,17 @@ general:
   # actionbar for custom defined blocks.
   always_show_notification: true
 
+  # List with values to make Insights "passive" about it. If it is in the list,
+  # players will need the permission insights.check.passive.<value> to be
+  # notified about it. It will stil enable limiting, but just won't show up as
+  # a message in chat. All possible values are commented out (disabled by default)
+  passive:
+    #- "block"
+    #- "entity"
+    #- "region"
+    #- "tile"
+
+
   # Scanradius default radius (which will appear in tabcomplete)
   # Default: 5
   scanradius_default: 5

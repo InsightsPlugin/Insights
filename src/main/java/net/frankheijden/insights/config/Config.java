@@ -30,6 +30,7 @@ public class Config {
     public List<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS = Collections.emptyList();
     private List<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES = Arrays.asList("DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG");
     public int GENERAL_NOTIFICATION_BOSSBAR_DURATION = 60;
+    public List<String> GENERAL_NOTIFICATION_PASSIVE = new ArrayList<>();
     public int GENERAL_SCANRADIUS_DEFAULT = 5;
     public boolean GENERAL_SCAN_NOTIFICATION = true;
     public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
@@ -80,6 +81,8 @@ public class Config {
 
         GENERAL_SCAN_NOTIFICATION = config.getBoolean("general.scan_notification");
         GENERAL_ALWAYS_SHOW_NOTIFICATION = config.getBoolean("general.always_show_notification");
+
+        GENERAL_NOTIFICATION_PASSIVE = config.getStringList("general.passive");
 
         this.limits.reload();
 
