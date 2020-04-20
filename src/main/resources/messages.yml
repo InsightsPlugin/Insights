@@ -65,17 +65,24 @@ messages:
     help: |-
       &8&m---------------=&r&8[&b&l Insights Help&r &8]&m=----------------
       &b /insights &f| &7Displays information about this plugin.
+      &b /insights block &f| &7Displays the block you're looking at.
+      &b /insights entity &f| &7Displays the entity you're looking at.
       &b /insights help &f| &7Displays this message.
       &b /insights hooks &f| &7Shows plugin hooks.
       &b /insights reload &f| &7Reloads the plugin.
+      &b /cancelscan &f| &7Cancels the current ongoing scan.
       &b /check &f| &7Displays the amount of entities & tiles in this chunk.
       &b /checkworlds &f| &7Displays the amount of entities & tiles in the server.
-      &b /scan [entity|tile|all] &f| &7Displays a detailed scan of this chunk.
+      &b /scan [entity|tile] &f| &7Displays a detailed scan of this chunk.
       &b /scan custom [entity1] [material2] ... &f| &7Scan this chunk.
-      &b /scanradius [entity|tile|all] &f| &7Displays a detailed scan of chunks.
+      &b /scanradius [entity|tile] &f| &7Displays a detailed scan of chunks.
       &b /scanradius custom [entity1] [material2] ... &f| &7Scan chunks in a radius.
-      &b /scanworld <world> [entity|tile|all] &f| &7Displays a detailed scan of a world.
+      &b /scanworld <world> [entity|tile] &f| &7Displays a detailed scan of a world.
       &b /scanworld <world> custom [entity1] [material2] ... &f| &7Scan a world.
+      &b /selection [create|stop] &f| &7Enters / leaves selection mode.
+      &b /selection deselect &f| &7Deletes the current selection.
+      &b /selection scan [entity|tile] &f| &7Scan the region for entities/blocks.
+      &b /selection scan custom [entity1] [material2] ... &f| &7Scan a region.
       &b /togglecheck &f| &7Toggles realtime info in actionbar.
       &8&m-------------------------------------------------
 
