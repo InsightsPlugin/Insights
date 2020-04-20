@@ -4,8 +4,7 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.builders.Scanner;
 import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.ScanType;
-import net.frankheijden.insights.managers.SelectionManager;
-import net.frankheijden.insights.managers.WorldEditManager;
+import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -110,6 +109,7 @@ public class CommandSelection implements CommandExecutor, TabExecutor {
         }
 
         if (scanOptions.getScanType() == null) return false;
+        if (ScanManager.getInstance().isScanning(player)) return true;
 
         Selection selection = selectionManager.getSelection(uuid);
 
