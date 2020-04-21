@@ -4,6 +4,8 @@ general:
     check: true
     # Automatically download & install?
     download: false
+    # Automatically download & install on startup?
+    download_startup: false
 
   # Should the plugin output some useful information when scanning for blocks?
   debug: false

@@ -6,16 +6,19 @@ import net.frankheijden.insights.config.Config;
 import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
+import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import net.frankheijden.insights.utils.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.lang.reflect.*;
 import java.text.NumberFormat;
-import java.util.Objects;
+import java.util.*;
 
 public class Insights extends JavaPlugin {
     private static Insights insights;
@@ -32,6 +35,7 @@ public class Insights extends JavaPlugin {
     private HookManager hookManager = null;
     private ScanManager scanManager = null;
     private SelectionManager selectionManager = null;
+    private VersionManager versionManager = null;
 
     private boolean placeholderAPIHook = false;
 
@@ -47,11 +51,18 @@ public class Insights extends JavaPlugin {
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
+        checkForUpdates();
 
         long end = System.currentTimeMillis();
         long millis = end - start;
         Bukkit.getLogger().info("[Insights] Enabled Insights in "
                 + NumberFormat.getInstance().format(millis) + "ms!");
+    }
+
+    @Override
+    public void onDisable() {
+        super.onDisable();
+        unregisterCommands();
     }
 
     public static Insights getInstance() {
@@ -121,6 +132,7 @@ public class Insights extends JavaPlugin {
 
         scanManager = new ScanManager();
         selectionManager = new SelectionManager();
+        versionManager = new VersionManager();
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
         if (PaperLib.getMinecraftVersion() <= 7) {
@@ -142,6 +154,12 @@ public class Insights extends JavaPlugin {
             if (!placeholderAPIHook) {
                 Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
             }
+        }
+    }
+
+    private void checkForUpdates() {
+        if (config.GENERAL_UPDATES_CHECK) {
+            UpdateCheckerTask.start(Bukkit.getConsoleSender(), true);
         }
     }
 
@@ -191,7 +209,50 @@ public class Insights extends JavaPlugin {
         return selectionManager;
     }
 
+    public VersionManager getVersionManager() {
+        return versionManager;
+    }
+
     public boolean hasPlaceholderAPIHook() {
         return placeholderAPIHook;
+    }
+
+    private void unregisterCommands() {
+        Map<String, Command> map;
+        try {
+            map = getKnownCommands();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+        this.getDescription().getCommands().keySet().forEach(map::remove);
+    }
+
+    /*
+     * These methods need to be in this class due to
+     * unloading of the plugin when disabling.
+     */
+    public static SimpleCommandMap getCommandMap() throws NoSuchFieldException, IllegalAccessException {
+        Field commandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+        commandMap.setAccessible(true);
+        return (SimpleCommandMap) commandMap.get(Bukkit.getServer());
+    }
+
+    public static Map<String, Command> getKnownCommands() throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        return getKnownCommands(getCommandMap());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, Command> getKnownCommands(SimpleCommandMap map) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Object mapObject;
+        try {
+            Field knownCommands = map.getClass().getDeclaredField("knownCommands");
+            knownCommands.setAccessible(true);
+            mapObject = knownCommands.get(map);
+        } catch (NoSuchFieldException ex) {
+            Method getKnownCommands = map.getClass().getDeclaredMethod("getKnownCommands");
+            mapObject = getKnownCommands.invoke(map);
+        }
+        return (Map<String, Command>) mapObject;
     }
 }

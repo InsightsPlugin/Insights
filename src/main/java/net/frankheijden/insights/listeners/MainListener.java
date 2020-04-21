@@ -342,7 +342,7 @@ public class MainListener implements Listener {
 
         if (plugin.getConfiguration().GENERAL_UPDATES_CHECK) {
             if (player.hasPermission("insights.notification.update")) {
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, new UpdateCheckerTask(player));
+                UpdateCheckerTask.start(player);
             }
         }
     }

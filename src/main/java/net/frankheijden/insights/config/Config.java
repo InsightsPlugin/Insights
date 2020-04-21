@@ -12,7 +12,8 @@ public class Config {
     private YamlConfiguration config;
 
     public boolean GENERAL_UPDATES_CHECK = true;
-    public boolean GENERAL_UPDATES_DOWNLOAD = true;
+    public boolean GENERAL_UPDATES_DOWNLOAD = false;
+    public boolean GENERAL_UPDATES_DOWNLOAD_STARTUP = false;
     public boolean GENERAL_DEBUG = false;
     public int GENERAL_LIMIT = -1;
     public boolean GENERAL_SCAN_ASYNC = true;
@@ -47,6 +48,7 @@ public class Config {
 
         GENERAL_UPDATES_CHECK = config.getBoolean("general.updates.check");
         GENERAL_UPDATES_DOWNLOAD = config.getBoolean("general.updates.download");
+        GENERAL_UPDATES_DOWNLOAD_STARTUP = config.getBoolean("general.updates.download_startup");
         GENERAL_DEBUG = config.getBoolean("general.debug");
 
         int generalLimit = config.getInt("general.limit");
