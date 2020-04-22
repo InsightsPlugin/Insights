@@ -45,11 +45,21 @@ public class MainListener implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        String name = event.getBlock().getType().name();
+        Block block = event.getBlock();
+        String name = block.getType().name();
 
         if (selectionManager.isSelecting(player.getUniqueId())) {
-            selectionManager.setPos1(player.getUniqueId(), event.getBlock().getLocation(), true);
+            selectionManager.setPos1(player.getUniqueId(), block.getLocation(), true);
             event.setCancelled(true);
+        }
+
+        if (blockLocations.contains(block.getLocation())) {
+            event.setCancelled(true);
+            LogManager.log(LogType.WARNING, "Player " + player.getPlayerListName()
+                    + " removed block '"
+                    + name + "' too fast in "
+                    + LocationUtils.toString(block.getLocation()) + ".");
+            return;
         }
 
         Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
@@ -164,14 +174,18 @@ public class MainListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (HookManager.getInstance().shouldCancel(event.getBlock())) return;
+        Block block = event.getBlock();
+        if (HookManager.getInstance().shouldCancel(block)) return;
 
         Player player = event.getPlayer();
-        String name = event.getBlock().getType().name();
+        String name = block.getType().name();
 
-        if (isNextToForbiddenLocation(event.getBlock().getLocation())) {
+        if (isNextToForbiddenLocation(block.getLocation())) {
             event.setCancelled(true);
-            LogManager.log(LogType.WARNING, "Player " + player.getPlayerListName() + " placed block '" + name + "' too fast nearby a limited block.");
+            LogManager.log(LogType.WARNING, "Player " + player.getPlayerListName()
+                    + " placed block '"
+                    + name + "' too fast in "
+                    + LocationUtils.toString(block.getLocation()) + ".");
             return;
         }
 
@@ -185,7 +199,7 @@ public class MainListener implements Listener {
 
         Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
         if (limit != null) {
-            handleBlockPlace(event, player, event.getBlock(), event.getItemInHand(), limit);
+            handleBlockPlace(event, player, block, event.getItemInHand(), limit);
         } else if (TileUtils.isTile(event.getBlockPlaced())) {
             int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;

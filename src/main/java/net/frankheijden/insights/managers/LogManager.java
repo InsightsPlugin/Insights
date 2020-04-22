@@ -14,6 +14,7 @@ public class LogManager {
         if (logType == LogType.DEBUG && !Insights.getInstance().getConfiguration().GENERAL_DEBUG) {
             return;
         }
-        Bukkit.getLogger().info("[Insights] [" + logType.name() + "] " + ((taskID != null) ? ("[TASK #" + taskID + "] ") : "") + message);
+        String msg = "[Insights] " + ((taskID != null) ? ("[TASK #" + taskID + "] ") : "") + message;
+        Bukkit.getLogger().log(logType.getLevel(), msg);
     }
 }

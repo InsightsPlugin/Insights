@@ -19,4 +19,11 @@ public class LocationUtils {
                 Math.max(v1.getZ(), v2.getZ())
         );
     }
+
+    public static String toString(Location loc) {
+        return "World: " + loc.getWorld().getName()
+                + ", X: " + loc.getBlockX()
+                + ", Y: " + loc.getBlockY()
+                + ", Z: " + loc.getBlockZ();
+    }
 }
