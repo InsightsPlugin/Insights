@@ -8,6 +8,7 @@ import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import net.frankheijden.insights.utils.FileUtils;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -21,7 +22,9 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public class Insights extends JavaPlugin {
+
     private static Insights insights;
+    private static final int BSTATS_METRICS_ID = 7272;
 
     private FileConfiguration messages;
 
@@ -51,6 +54,7 @@ public class Insights extends JavaPlugin {
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
+        setupMetrics();
         checkForUpdates();
 
         long end = System.currentTimeMillis();
@@ -155,6 +159,10 @@ public class Insights extends JavaPlugin {
                 Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
             }
         }
+    }
+
+    private void setupMetrics() {
+        new Metrics(this, BSTATS_METRICS_ID);
     }
 
     private void checkForUpdates() {
