@@ -87,6 +87,31 @@ public class MainListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockPistonExtend(BlockPistonExtendEvent event) {
+        handlePistonEvent(event, event.getBlocks());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockPistonRetract(BlockPistonRetractEvent event) {
+        handlePistonEvent(event, event.getBlocks());
+    }
+
+    private void handlePistonEvent(Cancellable cancellable, List<Block> blocks) {
+        for (Block block : blocks) {
+            if (blockLocations.contains(block.getLocation())) {
+                cancellable.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockFromTo(BlockFromToEvent event) {
+        if (blockLocations.contains(event.getBlock().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
     private void sendBreakMessage(Player player, Chunk chunk, Limit limit) {
         ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
         new BukkitRunnable() {
