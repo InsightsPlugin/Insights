@@ -2,6 +2,7 @@ package net.frankheijden.insights.entities;
 
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.interfaces.ScanCompleteListener;
+import net.frankheijden.insights.utils.StringUtils;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -105,15 +106,15 @@ public class ScanOptions {
     }
 
     public void setMaterials(List<String> materials) {
-        this.materials = materials;
+        this.materials = StringUtils.lowercase(materials);
     }
 
     public void addMaterial(String material) {
-        materials.add(material);
+        materials.add(material.toLowerCase());
     }
 
     public void addAllMaterials(List<String> materials) {
-        this.materials.addAll(materials);
+        this.materials.addAll(StringUtils.lowercase(materials));
     }
 
     public List<String> getEntityTypes() {
@@ -121,15 +122,15 @@ public class ScanOptions {
     }
 
     public void setEntityTypes(List<String> entityTypes) {
-        this.entityTypes = entityTypes;
+        this.entityTypes = StringUtils.lowercase(entityTypes);
     }
 
     public void addEntityType(String entityType) {
-        entityTypes.add(entityType);
+        entityTypes.add(entityType.toLowerCase());
     }
 
     public void addAllEntityTypes(List<String> entityTypes) {
-        this.entityTypes.addAll(entityTypes);
+        this.entityTypes.addAll(StringUtils.lowercase(entityTypes));
     }
 
     public boolean isConsole() {

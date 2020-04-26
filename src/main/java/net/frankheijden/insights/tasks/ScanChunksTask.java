@@ -319,8 +319,9 @@ public class ScanChunksTask implements Runnable {
                     // Inter version compatible method to get the material of that location
                     Material material = ChunkUtils.getMaterial(chunkSnapshot, x, y, z);
                     if (material != null) {
-                        if (materials.contains(material.name()) || scanOptions.getScanType() == ScanType.ALL) {
-                            result.increment(material.name());
+                        String name = material.name().toLowerCase();
+                        if (materials.contains(name) || scanOptions.getScanType() == ScanType.ALL) {
+                            result.increment(name);
                         }
                     }
                 }

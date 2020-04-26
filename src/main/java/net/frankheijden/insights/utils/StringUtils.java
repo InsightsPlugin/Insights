@@ -1,6 +1,8 @@
 package net.frankheijden.insights.utils;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class StringUtils {
 
@@ -42,5 +44,11 @@ public class StringUtils {
             i++;
         }
         return false;
+    }
+
+    public static List<String> lowercase(Collection<? extends String> collection) {
+        return collection.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
     }
 }
