@@ -32,12 +32,14 @@ public class MessageUtils {
     }
 
     public static void sendMessage(CommandSender sender, String path, String... placeholders) {
-        sender.sendMessage(getMessage(path, placeholders));
+        String msg = getMessage(path, placeholders);
+        if (msg == null || msg.isEmpty()) return;
+        sender.sendMessage(msg);
     }
 
     public static String getMessage(String path, String... placeholders) {
         String message = plugin.getMessages().getString(path);
-        if (message != null && !message.isEmpty()) {
+        if (message != null) {
             for (int i = 0; i < placeholders.length; i++, i++) {
                 message = message.replace(placeholders[i], placeholders[i + 1]);
             }
