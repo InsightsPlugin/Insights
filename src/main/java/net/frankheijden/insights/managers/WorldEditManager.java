@@ -8,7 +8,7 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.eventbus.EventHandler;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import net.frankheijden.insights.entities.*;
-import net.frankheijden.insights.listeners.worldedit.WorldEditExtent;
+import net.frankheijden.insights.listeners.WorldEditListener;
 import org.bukkit.*;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -31,9 +31,7 @@ public class WorldEditManager {
     }
 
     private void register() {
-        if (NMSManager.getInstance().isPost1_13()) {
-            this.wePlugin.getWorldEdit().getEventBus().register(this);
-        }
+        this.wePlugin.getWorldEdit().getEventBus().register(this);
     }
 
     public static WorldEditManager getInstance() {
@@ -44,7 +42,8 @@ public class WorldEditManager {
     public void handleEditSession(EditSessionEvent event) {
         Actor actor = event.getActor();
         if (actor != null && actor.isPlayer()) {
-            event.setExtent(new WorldEditExtent(actor, event.getExtent()));
+            Player player = Bukkit.getPlayer(actor.getName());
+            event.setExtent(WorldEditListener.from(player, event.getExtent()));
         }
     }
 

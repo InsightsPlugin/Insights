@@ -23,6 +23,7 @@ repositories {
 dependencies {
     implementation 'io.papermc:paperlib:1.0.2'
     implementation 'org.bstats:bstats-bukkit:1.7'
+    implementation 'com.github.FrankHeijden:wecompatibility:v1.0.0'
     compileOnly 'com.destroystokyo.paper:paper-api:1.15.2-R0.1-SNAPSHOT'
     compileOnly 'me.clip:placeholderapi:2.10.4'
     compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.1.0'
@@ -39,6 +40,7 @@ artifacts {
 shadowJar {
     relocate('org.bstats.bukkit', packagePath + '.dependencies.bstats')
     relocate('io.papermc.lib', packagePath + '.dependencies.paperlib')
+    relocate('net.frankheijden.wecompatibility', packagePath + '.dependencies.wecompatibility')
 }
 
 tasks.withType(JavaCompile) {
