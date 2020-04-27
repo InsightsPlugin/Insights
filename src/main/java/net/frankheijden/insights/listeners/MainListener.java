@@ -4,8 +4,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.builders.Scanner;
-import net.frankheijden.insights.config.Limit;
-import net.frankheijden.insights.config.RegionBlocks;
+import net.frankheijden.insights.config.*;
 import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.enums.LogType;
 import net.frankheijden.insights.enums.ScanType;
@@ -316,7 +315,7 @@ public class MainListener implements Listener {
     private void handleBlockPlace(Cancellable event, Player player, Block block, ItemStack itemInHand, Limit limit) {
         ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
 
-        boolean async = plugin.getConfiguration().GENERAL_SCAN_ASYNC;
+        boolean async = shouldPerformAsync(block.getType().name());
         if (async) {
             ItemStack itemStack = new ItemStack(itemInHand);
             itemStack.setAmount(1);
@@ -334,6 +333,18 @@ public class MainListener implements Listener {
         } else {
             handleBlockPlace(event, player, block, chunkSnapshot, null, async, limit);
         }
+    }
+
+    private boolean shouldPerformAsync(String name) {
+        Config config = plugin.getConfiguration();
+        if (config.GENERAL_ASYNC_ENABLED) {
+            if (config.GENERAL_ASYNC_WHITELIST) {
+                return config.GENERAL_ASYNC_LIST.contains(name);
+            } else {
+                return !config.GENERAL_ASYNC_LIST.contains(name);
+            }
+        }
+        return false;
     }
 
     private void handleBlockPlace(Cancellable event, Player player, Block block, ChunkSnapshot chunkSnapshot, ItemStack itemStack, boolean async, Limit limit) {
