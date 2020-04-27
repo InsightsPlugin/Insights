@@ -2,8 +2,13 @@ package net.frankheijden.insights.managers;
 
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.bukkit.*;
+import com.sk89q.worldedit.event.extent.EditSessionEvent;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.regions.Region;
-import net.frankheijden.insights.entities.Selection;
+import com.sk89q.worldedit.util.eventbus.EventHandler;
+import com.sk89q.worldedit.util.eventbus.Subscribe;
+import net.frankheijden.insights.entities.*;
+import net.frankheijden.insights.listeners.worldedit.WorldEditExtent;
 import org.bukkit.*;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -15,17 +20,34 @@ public class WorldEditManager {
 
     private static WorldEditManager instance;
 
+    private final WorldEditPlugin wePlugin;
+
     public WorldEditManager() {
         instance = this;
+
+        this.wePlugin = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
+
+        register();
+    }
+
+    private void register() {
+        this.wePlugin.getWorldEdit().getEventBus().register(this);
     }
 
     public static WorldEditManager getInstance() {
         return instance;
     }
 
+    @Subscribe(priority = EventHandler.Priority.VERY_LATE)
+    public void handleEditSession(EditSessionEvent event) {
+        Actor actor = event.getActor();
+        if (actor != null && actor.isPlayer()) {
+            event.setExtent(new WorldEditExtent(actor, event.getExtent()));
+        }
+    }
+
     public Selection getSelection(Player player) {
-        WorldEditPlugin worldEdit = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
-        LocalSession session = worldEdit.getSession(player);
+        LocalSession session = wePlugin.getSession(player);
         if (session == null) return null;
         Region region;
         try {

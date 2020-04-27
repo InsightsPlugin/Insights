@@ -299,6 +299,24 @@ messages:
     # Send when you execute /selection deselect
     deselect: "&3Deselected the current selection."
 
+  # Message sent when a player tries to place limited blocks.
+  worldedit:
+    header: "&8&m--------------=&r&8[&b&l WorldEdit Limit&r &8]&m=--------------"
+    # Special placeholders:
+    # %entry%
+    # %count%
+    format: "&b %entry%&8: &7&l%count%"
+    # Sent when Insight is set to leave the blocks unchanged
+    # Special placeholders:
+    # %blocks%
+    unchanged: "&3 Prevented a total of &b&l%blocks% &3blocks from being placed."
+    # Sent when Insight is set to replace the blocks to a custom block
+    # Special placeholders:
+    # %blocks%
+    # %replacement%
+    replaced: "&3 Replaced a total of &b&l%blocks% &3blocks with &b%replacement%&3."
+    footer: "&8&m-------------------------------------------------"
+
   # Messages send when a user executes /togglecheck
   togglecheck:
     # Special placeholders:

@@ -43,6 +43,12 @@ public class ScanResult implements Iterable<Map.Entry<String, Integer>> {
         return counts.size();
     }
 
+    public int getTotalCount() {
+        return counts.values().stream()
+                .mapToInt(Integer::intValue)
+                .sum();
+    }
+
     @SuppressWarnings("NullableProblems")
     @Override
     public Iterator<Map.Entry<String, Integer>> iterator() {

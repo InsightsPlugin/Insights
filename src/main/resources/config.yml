@@ -64,6 +64,17 @@ general:
       list:
         - "DIAMOND_ORE"
 
+  # Configure how Insights will work with WorldEdit
+  # Please note: this only works on WorldEdit v7+.
+  # This is due to the fact WorldEdit removed support for
+  # legacy versions.
+  worldedit:
+    enabled: true
+    # Replace the blocks which have a limit or leave them unchanged!
+    # Possible values: REPLACEMENT, UNCHANGED
+    type: "REPLACEMENT"
+    replacement: "BEDROCK"
+
   notification:
     # How we inform the player about the live-tile count
     # Possible values are "ACTIONBAR", "BOSSBAR"

@@ -24,6 +24,10 @@ public class Config {
     public boolean GENERAL_REGIONS_WHITELIST = false;
     public List<String> GENERAL_REGIONS_LIST;
     public List<RegionBlocks> GENERAL_REGION_BLOCKS;
+    public boolean GENERAL_WORLDEDIT_ENABLED = true;
+    public String GENERAL_WORLDEDIT_TYPE = "REPLACEMENT";
+    private List<String> GENERAL_WORLDEDIT_TYPE_VALUES = Arrays.asList("UNCHANGED", "REPLACEMENT");
+    public String GENERAL_WORLDEDIT_REPLACEMENT = "BEDROCK";
     public String GENERAL_NOTIFICATION_TYPE = "BOSSBAR";
     private List<String> GENERAL_NOTIFICATION_TYPE_VALUES = Arrays.asList("BOSSBAR", "ACTIONBAR");
     public String GENERAL_NOTIFICATION_BOSSBAR_COLOR = "BLUE";
@@ -73,6 +77,10 @@ public class Config {
             RegionBlocks regionBlocks = RegionBlocks.from(config, regionPath);
             GENERAL_REGION_BLOCKS.add(regionBlocks);
         }
+
+        GENERAL_WORLDEDIT_ENABLED = config.getBoolean("general.worldedit.enabled");
+        updateString("general.worldedit.type", GENERAL_WORLDEDIT_TYPE_VALUES);
+        GENERAL_WORLDEDIT_REPLACEMENT = config.getString("general.worldedit.replacement");
 
         updateString("general.notification.type", GENERAL_NOTIFICATION_TYPE_VALUES);
         updateString("general.notification.bossbar.color", GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES);
