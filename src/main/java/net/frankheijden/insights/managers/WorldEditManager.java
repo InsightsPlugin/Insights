@@ -31,7 +31,9 @@ public class WorldEditManager {
     }
 
     private void register() {
-        this.wePlugin.getWorldEdit().getEventBus().register(this);
+        if (NMSManager.getInstance().isPost1_13()) {
+            this.wePlugin.getWorldEdit().getEventBus().register(this);
+        }
     }
 
     public static WorldEditManager getInstance() {
