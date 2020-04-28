@@ -16,6 +16,8 @@
 [requestFeature]: https://github.com/FrankHeijden/Insights/issues/new?labels=enhancement&template=feature.md
 [config]: https://github.com/FrankHeijden/Insights/blob/master/resources/config.yml
 [gradleInstall]: https://gradle.org/install/
+[bStatsImg]: https://bstats.org/signatures/bukkit/Insights.svg
+[bStats]: https://bstats.org/plugin/bukkit/Insights/7272
 <!-- End of variables block -->
 
 
@@ -32,19 +34,38 @@ For the description of this plugin, please refer to SpigotMC: https://www.spigot
 [![spigotRatingImg]][spigot]
 [![spigotDownloadsImg]][spigot]
 
+[![bStatsImg]][bStats]
+
 ## How to run the project?
 1. Make sure you have [gradle][gradleInstall] installed.
 2. Run the project with `gradle shadowJar` to compile it with dependencies.
 
 ## Developer API
 ### Scanning
-An example of a scan is located [here](src/main/java/net/frankheijden/insights/api/APIExample.java).
+An example of a scan can be found [here](src/main/java/net/frankheijden/insights/api/APIExample.java).
 
 ### Useful
-- Check if block/location is a tile entity: [TileUtils](src/main/java/net/frankheijden/insights/utils/TileUtils.java)
-- Event for when a player moves from chunk to chunk (cancellable!): [PlayerChunkMoveEvent](src/main/java/net/frankheijden/insights/events/PlayerChunkMoveEvent.java)
-- Event for when a player places down an entity (all entities): [PlayerEntityPlaceEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityPlaceEvent.java)
-- Event for when a player destroys an entity (all entities): [PlayerEntityDestroyEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityDestroyEvent.java)
+- Main API:
+[InsightsAPI](src/main/java/net/frankheijden/insights/api)
+- Chunk scan API:
+[Scanner](src/main/java/net/frankheijden/insights/builders/Scanner.java),
+[ScanOptions](src/main/java/net/frankheijden/insights/entities/ScanOptions.java) and
+[ScanResult](src/main/java/net/frankheijden/insights/entities/ScanResult.java)
+- Easily get ChunkLocations / PartialChunks for scanning:
+[ChunkUtils](src/main/java/net/frankheijden/insights/entities/ScanResult.java)
+- Easily check for tiles:
+[TileUtils](src/main/java/net/frankheijden/insights/utils/TileUtils.java)
+- Easily get entity/block player is looking at:
+[PlayerUtils](src/main/java/net/frankheijden/insights/utils/PlayerUtils.java)
+- Check for player move per chunk (cancellable):
+[PlayerChunkMoveEvent](src/main/java/net/frankheijden/insights/events/PlayerChunkMoveEvent.java)
+- Check when player places down (any) entity:
+[PlayerEntityPlaceEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityPlaceEvent.java)
+- Check when player removes (any) entity:
+[PlayerEntityDestroyEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityDestroyEvent.java)
+- Easily send ActionBar message:
+[MessageUtils](src/main/java/net/frankheijden/insights/utils/MessageUtils.java#L76)
+- Everything is compatible from 1.8 - 1.15.2 (with some reflections)!
 
 ### Hooking
 ```java
