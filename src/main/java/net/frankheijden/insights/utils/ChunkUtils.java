@@ -85,21 +85,39 @@ public class ChunkUtils {
         return count;
     }
 
-    public static Material getMaterial(ChunkSnapshot chunkSnapshot, int x, int y, int z) {
-        if (chunkSnapshot == null) return null;
+    private static class Cache {
+        Method getBlockType = null;
+        Method getBlockTypeId = null;
+        Method getMaterial = null;
+    }
+
+    private static Cache cache = null;
+    private static void initialiseCache() {
+        cache = new Cache();
 
         try {
-            Class<?> chunkSnapshotClass = Class.forName("org.bukkit.ChunkSnapshot");
+            Class<?> chunkSnapshotClass = ChunkSnapshot.class;
             if (NMSManager.getInstance().isPost1_13()) {
-                Method m = chunkSnapshotClass.getDeclaredMethod("getBlockType", int.class, int.class, int.class);
-                return (Material) m.invoke(chunkSnapshot, x, y, z);
+                cache.getBlockType = chunkSnapshotClass.getDeclaredMethod("getBlockType", int.class, int.class, int.class);
             } else {
-                Method m = chunkSnapshotClass.getDeclaredMethod("getBlockTypeId", int.class, int.class, int.class);
-                int id = (int) m.invoke(chunkSnapshot, x, y, z);
+                cache.getBlockTypeId = chunkSnapshotClass.getDeclaredMethod("getBlockTypeId", int.class, int.class, int.class);
+                cache.getMaterial = Material.class.getDeclaredMethod("getMaterial", int.class);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
-                Class<?> materialClass = Class.forName("org.bukkit.Material");
-                Method m1 = materialClass.getDeclaredMethod("getMaterial", int.class);
-                return (Material) m1.invoke(materialClass, id);
+    public static Material getMaterial(ChunkSnapshot chunkSnapshot, int x, int y, int z) {
+        if (chunkSnapshot == null) return null;
+        if (cache == null) initialiseCache();
+
+        try {
+            if (NMSManager.getInstance().isPost1_13()) {
+                return (Material) cache.getBlockType.invoke(chunkSnapshot, x, y, z);
+            } else {
+                int id = (int) cache.getBlockTypeId.invoke(chunkSnapshot, x, y, z);
+                return (Material) cache.getMaterial.invoke(Material.class, id);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
