@@ -107,6 +107,8 @@ public class MyPlugin extends JavaPlugin {
 ![CustomLimit](screenshots/CustomLimit.png)
 ### Scan all blocks in a radius around you!
 ![ScanRadius](screenshots/ScanRadius.png)
+### Apply limitations to WorldEdit!
+![WorldEditLimit](screenshots/WorldEditLimit.png)
 ### Limit globally all tiles per chunk!
 ![TileLimit](screenshots/TileLimit.png)
 ### Scan all tiles in chunks
