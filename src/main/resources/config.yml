@@ -1,19 +1,29 @@
 general:
-  # Should the plugin check for updates?
+  # The update section of Insights!
   updates:
+    # Disable this is you don't want any notifications about updates
+    # of Insights. Insights will check the GitHub repo for updates.
+    # Permission to receive updates: insights.notification.update
     check: true
-    # Automatically download & install?
+    # Choose whether you want Insights to automatically install updates!
+    # Not recommended for production servers, always carefully test before updating!
     download: false
-    # Automatically download & install on startup?
+    # If you really want to ensure you're always on the latest version of Insights
+    # without touching anything, you can enable this setting below. This will
+    # enable Insights to download and restart the plugin on startup of the server.
     download_startup: false
 
   # Should the plugin output some useful information when scanning for blocks?
   debug: false
 
-  # Max tiles in a chunk (Default: 256) -1 to disable
-  # A chunk is defined as width x length x height blocks (16 x 16 x 256).
+  # Configure a maximum Tile limit per chunk!
+  # If you want to disable this, set the value to -1.
+  # A list of all tiles: https://minecraft.gamepedia.com/Block_entity
+  # A chunk is defined as 16x16x256 blocks. The F3 + G shortcut shows boundaries.
+  # Permission to bypass: insights.bypass
   limit: 256
 
+  # The asynchronous limiting section
   async:
     # Should we scan custom defined block limits asynchronously?
     # Please note: there may be bugs when enabling this feature; test thoroughly!
@@ -22,52 +32,59 @@ general:
 
     # Some plugins may prefer Insights to scan particular blocks synchronously,
     # so all blocks in this list will cause Insights to scan synchronously.
-    # You can change the list to blacklist / whitelist mode if you prefer to.
+    # Blacklist mode (false): All worlds except the ones in the list.
+    # Whitelist mode (true): All worlds in the list.
     whitelist: false
     blocks:
       #- "HOPPER"
 
-  # Worlds in which the live-tile-scanning feature should be enabled/disabled
-  # Values are regex matched
+  # Worlds in which Insights should apply all limiting to
+  # Please note: values are regex matched!
   worlds:
-    # Blacklist mode = false
-    # Whitelist mode = true
+    # Blacklist mode (false): All worlds except the ones in the list.
+    # Whitelist mode (true): All worlds in the list.
     whitelist: true
     list:
       - "world"
       - "world_nether"
       - "world_the_end"
 
-  # Regions in which the live-tile-scanning feature should be enabled/disabled
-  # Values are regex matched
+  # Regions in which Insights should apply limiting to
+  # (so you can disable it in some regions)
+  # Please note: values are regex matched!
   regions:
-    # Blacklist mode = false
-    # Whitelist mode = true
+    # Blacklist mode (false): All worlds except the ones in the list.
+    # Whitelist mode (true): All worlds in the list.
     whitelist: false
     list:
       - "region1"
 
-  # Customize the blocks which may be placed inside regions!
+  # Customize disallowed block placements per region.
+  # Permission to bypass: insights.regions.bypass.<regionName>
   region_blocks:
-    # This will disallow DIAMOND_ORE placements inside region all regions starting with 'region-'
+    # An example of a region limit is below. This example
+    # will disable all DIAMOND_ORE placements inside all regions
+    # starting with 'region-' (regex).
+    # Bypass permission: insights.regions.bypass.region1
     "region1":
-      # Blacklist mode = false
-      # Whitelist mode = true
       whitelist: false
       regex: "region-.*"
       list:
         - "DIAMOND_ORE"
-    # This will only allow DIAMOND_ORE placements inside region 'region2'
+
+    # Another example of a region limit. This example
+    # will only allow DIAMOND_ORE placements inside region 'region2'
+    # Bypass permission: insights.regions.bypass.region2
     region2:
       whitelist: true
       regex: "region2"
       list:
         - "DIAMOND_ORE"
 
-  # Configure how Insights will work with WorldEdit
-  # Please note: this only works on WorldEdit v7+.
-  # This is due to the fact WorldEdit removed support for
-  # legacy versions.
+  # Configure how Insights will work with WorldEdit!
+  # Insights will block all defined limits and will
+  # apply the same permissions used there to ensure that
+  # users with permissions are still allowed to perform these actions.
   worldedit:
     enabled: true
     # Replace the blocks which have a limit or leave them unchanged!
@@ -75,47 +92,48 @@ general:
     type: "REPLACEMENT"
     replacement: "BEDROCK"
 
+  # Configure a live-notification when placing down a limited block!
+  # The message is either sent in the ActionBar or as BossBar. On versions
+  # prior to 1.9 this will be fixed to ActionBar.
   notification:
-    # How we inform the player about the live-tile count
+    # Choose the notification type here!
     # Possible values are "ACTIONBAR", "BOSSBAR"
-    # Default: "BOSSBAR"
-    #
-    # Please note: bossbar is only on Minecraft versions greater than or equal to 1.9!
+    # Please note: BossBar is only on Minecraft versions > 1.9!
     type: "BOSSBAR"
 
+    # Configure the BossBar aspects here!
     bossbar:
-      # Bossbar color
+      # The color of the BossBar
       # Possible values are "BLUE", "GREEN", "PINK", "PURPLE", "RED", "WHITE", "YELLOW"
-      # Default: "BLUE"
       color: "BLUE"
 
-      # Bossbar style
+      # The style of the BossBar
       # Possible values are "SOLID", "SEGMENTED_6", "SEGMENTED_10", "SEGMENTED_12", "SEGMENTED_20"
-      # Default: "SEGMENTED_10"
       style: "SEGMENTED_10"
 
-      # Bossbar flags
+      # If you want, you can apply some flags to the BossBar as well!
       # Possible values are "DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG"
-      # Default: []
-      flags: [] # Remove [] to addCompletableFuture values
-      #  - "DARKEN_SKY"
-      #  - "PLAY_BOSS_MUSIC"
+      flags:
+        #- "DARKEN_SKY"
+        #- "PLAY_BOSS_MUSIC"
+        #- "CREATE_FOG"
 
-      # Bossbar duration before it should disappear in ticks
-      # 1 second = 20 ticks
+      # The length in ticks we should show the BossBar before it should disappear
+      # Please note: 1 second is equal to 20 ticks in-game!
       duration: 60
 
-  # Send notification when scanning in actionbar/bossbar
+  # This switch will enable/disable the BossBar for scan commands,
+  # like /scanradius, /scanworld, etc. It will use the same BossBar
+  # we defined in the above section.
   scan_notification: true
 
-  # If limit is disabled (= -1), should we still show the bossbar/actionbar
-  # for tile entities? If set to false, this will still show the bossbar or
-  # actionbar for custom defined blocks.
+  # If you set the tile limit to -1, should we still notify the user
+  # about the amount of tiles they placed down?
   always_show_notification: true
 
   # List with values to make Insights "passive" about it. If it is in the list,
   # players will need the permission insights.check.passive.<value> to be
-  # notified about it. It will stil enable limiting, but just won't show up as
+  # notified about it. It will still enable limiting, but just won't show up as
   # a message in chat. All possible values are commented out (disabled by default)
   passive:
     #- "block"
@@ -123,42 +141,54 @@ general:
     #- "region"
     #- "tile"
 
-
   # Scanradius default radius (which will appear in tabcomplete)
-  # Default: 5
+  # Please note that the scanradius maximum is set to a fixed radius of 25.
   scanradius_default: 5
 
+  # The limiting section!
   limits:
-
     # This is a list in which order we should check limits
-    # The first in the list will be first checked, last in the list checked at last, etc.
+    # The first in the list will be first checked, last in the list will be checked at last.
+    # If a limit was found for a block in the "groups" section, Insights will stop there and
+    # proceed to use that group limit.
+    # Removing values from this list will mean that they won't be enabled at all!
     priorities:
       - "groups"
       - "permissions"
       - "materials"
       - "entities"
 
-    # Limits a single block in a chunk
+    # This section is for single block limits in a chunk.
+    # Each block has a maximum amount of which they may occur in a chunk.
+    # To check which block should go here, please use the /insights block command
+    # to lookup a block you're looking at in-game.
+    # Format of this section (see examples):
+    # BLOCK: LIMIT
+    # Permission to bypass: insights.bypass.<blockName>
     materials:
-      # Format:
-      # BLOCK: LIMIT
       DIAMOND_ORE: 128
       ENCHANTING_TABLE: 16 # If on < 1.13 use "ENCHANTMENT_TABLE"
 
-    # Limits entities per chunk
+    # This section is for single entity limits in a chunk.
+    # Each entity has a maximum amount of which they may occur in a chunk.
+    # To check which entity name should go here, please use the /insights entity command
+    # to lookup an entity you're looking at in-game.
+    # Format of this section (see examples):
+    # ENTITY: LIMIT
+    # Permission to bypass: insights.bypass.<entityName>
     entities:
       CREEPER: 4
 
-    # Set a limit to custom blocks in a chunk for certain material groups
-    # This group will act as a whole limit. All blocks will count towards the limit.
-    # Please note that this will override the global materials limit.
+    # This section is about group limits. The groups defined in here will act as "one"
+    # limit, so all materials and entities in the group will contribute to the limit.
     groups:
-
-      # Example of such a group, make sure the following line is unique!
+      # Example group. The following group will group together redstone
+      # with a maximum of 50 per chunk.
+      # Bypass permission is configurable, but is set to: insights.materialgroups.bypass.redstone
+      # Please make sure the following line is unique!
       my_redstone_group:
         name: "Redstone"
         limit: 50
-        # Bypass permission
         permission: "insights.materialgroups.bypass.redstone"
         materials:
          - "REDSTONE_WIRE"
@@ -183,11 +213,13 @@ general:
          - "REDSTONE_COMPARATOR"
          - "COMPARATOR"
 
-    # Set a limit to custom blocks in a chunk for certain groups
-    # Please note that this will override the global materials limit.
+    # This section will use permissions to define custom block and entity limits.
+    # You can achieve something like default rank may only place 50 limited blocks,
+    # while ranks are allowed to place 100 for example.
     permissions:
-
-      # Example of such a group, make sure the following line is unique!
+      # Example of such a group. This group will have some block and entity limits.
+      # The permission to be in this group is set to: insights.permissiongroups.group1
+      # Please make sure the following line is unique!
       my_permission_group1:
         name: "Permission Group"
         # Bypass permission

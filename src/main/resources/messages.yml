@@ -301,7 +301,7 @@ messages:
 
   # Message sent when a player tries to place limited blocks.
   worldedit:
-    header: "&8&m--------------=&r&8[&b&l WorldEdit Limit&r &8]&m=--------------"
+    header: "&8&m---------------=&r&8[&b&l WorldEdit Limit&r &8]&m=---------------"
     # Special placeholders:
     # %entry%
     # %count%
