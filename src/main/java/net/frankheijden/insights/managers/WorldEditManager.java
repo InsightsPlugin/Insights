@@ -7,6 +7,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.eventbus.EventHandler;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
+import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.*;
 import net.frankheijden.insights.listeners.WorldEditListener;
 import org.bukkit.*;
@@ -18,14 +19,20 @@ import java.lang.reflect.Method;
 
 public class WorldEditManager {
 
+    private static final Insights plugin = Insights.getInstance();
     private static WorldEditManager instance;
 
     private final WorldEditPlugin wePlugin;
+    private final boolean fawe;
 
     public WorldEditManager() {
         instance = this;
 
         this.wePlugin = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
+        this.fawe = plugin.isAvailable("FastAsyncWorldEdit");
+        if (isFawe()) {
+            Bukkit.getLogger().info("[Insights] Successfully hooked into FastAsyncWorldEdit!");
+        }
 
         register();
     }
@@ -36,6 +43,10 @@ public class WorldEditManager {
 
     public static WorldEditManager getInstance() {
         return instance;
+    }
+
+    public boolean isFawe() {
+        return fawe;
     }
 
     @Subscribe(priority = EventHandler.Priority.VERY_LATE)

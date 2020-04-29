@@ -109,7 +109,7 @@ public class Insights extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("cancelscan")).setExecutor(new CommandCancelscan());
     }
 
-    private boolean isAvailable(String pluginName) {
+    public boolean isAvailable(String pluginName) {
         Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
         return plugin != null && plugin.isEnabled();
     }

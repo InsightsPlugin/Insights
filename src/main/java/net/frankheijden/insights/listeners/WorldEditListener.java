@@ -7,6 +7,7 @@ import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.config.Limit;
 import net.frankheijden.insights.entities.ScanResult;
 import net.frankheijden.insights.managers.NMSManager;
+import net.frankheijden.insights.managers.WorldEditManager;
 import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.StringUtils;
 import net.frankheijden.wecompatibility.core.*;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class WorldEditListener implements ExtentDelegate {
 
     private static final Insights plugin = Insights.getInstance();
+    private static final WorldEditManager worldEditManager = WorldEditManager.getInstance();
 
     private final WorldEditPlugin wePlugin;
     private final Player player;
@@ -30,6 +32,8 @@ public class WorldEditListener implements ExtentDelegate {
     private ScanResult scanResult;
     private Material replacement = null;
     private final Map<String, Boolean> permissionCache;
+
+    private boolean didNotify;
 
     private WorldEditListener(Player player, Extent extent) {
         this.wePlugin = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
@@ -46,11 +50,13 @@ public class WorldEditListener implements ExtentDelegate {
 
         this.scanResult = new ScanResult();
         this.permissionCache = new HashMap<>();
+        this.didNotify = false;
     }
 
     public static String getPackage() {
         String version = NMSManager.getInstance().isPost1_13() ? "we7" : "we6";
-        return "net.frankheijden.wecompatibility." + version + ".WorldEditExtent";
+        String className = (worldEditManager.isFawe() ? "FA" : "") + "WorldEditExtent";
+        return "net.frankheijden.wecompatibility." + version + "." + className;
     }
 
     public static Extent from(Player player, Extent extent) {
@@ -94,11 +100,12 @@ public class WorldEditListener implements ExtentDelegate {
     }
 
     private boolean canNotify() {
-        return scanResult.getSize() != 0;
+        return !didNotify && scanResult.getSize() != 0;
     }
 
     public void tryNotify(Player player) {
         if (!canNotify()) return;
+        this.didNotify = true;
 
         // Header
         MessageUtils.sendMessage(player, "messages.worldedit.header");
