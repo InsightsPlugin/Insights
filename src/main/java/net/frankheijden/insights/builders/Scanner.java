@@ -2,6 +2,7 @@ package net.frankheijden.insights.builders;
 
 import net.frankheijden.insights.entities.ScanOptions;
 import net.frankheijden.insights.events.ScanCompleteEvent;
+import net.frankheijden.insights.managers.MetricsManager;
 import net.frankheijden.insights.tasks.LoadChunksTask;
 
 import java.util.concurrent.CompletableFuture;
@@ -60,6 +61,8 @@ public class Scanner {
                     ex.printStackTrace();
                 }
             }
+
+            MetricsManager.incrementScanCount();
 
             return event.get();
         });

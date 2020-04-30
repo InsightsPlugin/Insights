@@ -24,7 +24,6 @@ import java.util.*;
 public class Insights extends JavaPlugin {
 
     private static Insights insights;
-    private static final int BSTATS_METRICS_ID = 7272;
 
     private FileConfiguration messages;
 
@@ -39,6 +38,7 @@ public class Insights extends JavaPlugin {
     private ScanManager scanManager = null;
     private SelectionManager selectionManager = null;
     private VersionManager versionManager = null;
+    private MetricsManager metricsManager = null;
 
     private boolean placeholderAPIHook = false;
 
@@ -54,7 +54,6 @@ public class Insights extends JavaPlugin {
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
-        setupMetrics();
         checkForUpdates();
 
         long end = System.currentTimeMillis();
@@ -137,6 +136,7 @@ public class Insights extends JavaPlugin {
         scanManager = new ScanManager();
         selectionManager = new SelectionManager();
         versionManager = new VersionManager();
+        metricsManager = new MetricsManager();
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
         if (PaperLib.getMinecraftVersion() <= 7) {
@@ -159,10 +159,6 @@ public class Insights extends JavaPlugin {
                 Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
             }
         }
-    }
-
-    private void setupMetrics() {
-        new Metrics(this, BSTATS_METRICS_ID);
     }
 
     private void checkForUpdates() {
@@ -219,6 +215,10 @@ public class Insights extends JavaPlugin {
 
     public VersionManager getVersionManager() {
         return versionManager;
+    }
+
+    public MetricsManager getMetricsManager() {
+        return metricsManager;
     }
 
     public boolean hasPlaceholderAPIHook() {

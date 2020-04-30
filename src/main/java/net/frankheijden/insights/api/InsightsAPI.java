@@ -191,6 +191,8 @@ public class InsightsAPI {
         if (location != null && isInLimitedRegion(location)) return null;
 
         Limits limits = Insights.getInstance().getConfiguration().getLimits();
-        return limits.getLimit(str);
+        Limit limit = limits.getLimit(str);
+        if (limit != null) MetricsManager.incrementLimitCount();
+        return limit;
     }
 }
