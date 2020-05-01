@@ -1,7 +1,6 @@
 package net.frankheijden.insights.config;
 
 import net.frankheijden.insights.utils.YamlUtils;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.Map;
 
@@ -14,11 +13,11 @@ public class PermissionLimit extends AbstractLimit {
         this.setEntities(entities);
     }
 
-    public static PermissionLimit from(YamlConfiguration yml, String path) {
-        String name = yml.getString(YamlUtils.getPath(path, "name"), "");
-        String permission = yml.getString(YamlUtils.getPath(path, "permission"), null);
-        Map<String, Integer> materials = YamlUtils.getMap(yml, YamlUtils.getPath(path, "materials"));
-        Map<String, Integer> entities = YamlUtils.getMap(yml, YamlUtils.getPath(path, "entities"));
+    public static PermissionLimit from(YamlUtils utils, String path) {
+        String name = utils.getString(YamlUtils.getPath(path, "name"), "");
+        String permission = utils.getString(YamlUtils.getPath(path, "permission"), "");
+        Map<String, Integer> materials = utils.getMap(YamlUtils.getPath(path, "materials"));
+        Map<String, Integer> entities = utils.getMap(YamlUtils.getPath(path, "entities"));
         if (materials.isEmpty() && entities.isEmpty()) {
             return null;
         }

@@ -3,12 +3,13 @@ package net.frankheijden.insights;
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.config.Config;
+import net.frankheijden.insights.config.ConfigError;
 import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import net.frankheijden.insights.utils.FileUtils;
-import org.bstats.bukkit.Metrics;
+import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -49,7 +50,12 @@ public class Insights extends JavaPlugin {
 
         PaperLib.suggestPaper(this);
 
-        setupConfiguration();
+        List<ConfigError> errors = setupConfiguration();
+        if (!errors.isEmpty()) {
+            System.err.println("[Insights] Some errors were found while loading the config:");
+            errors.forEach(err -> System.err.println("[Insights] " + MessageUtils.stripColor(err.toString())));
+            System.err.println("[Insights] You will still be able to use Insights, but please regenerate or update your configs.");
+        }
         setupSQLite();
         setupManagers();
         setupClasses();
@@ -72,12 +78,13 @@ public class Insights extends JavaPlugin {
         return insights;
     }
 
-    private void setupConfiguration() {
+    private List<ConfigError> setupConfiguration() {
         config = new Config();
-        config.reload();
+        List<ConfigError> errors = config.reload();
 
         File messagesFile = FileUtils.copyResourceIfNotExists("messages.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
+        return errors;
     }
 
     private void setupSQLite() {
@@ -167,10 +174,11 @@ public class Insights extends JavaPlugin {
         }
     }
 
-    public void reload() {
-        setupConfiguration();
+    public List<ConfigError> reload() {
+        List<ConfigError> errors = setupConfiguration();
         setupSQLite();
         setupPlaceholderAPIHook();
+        return errors;
     }
 
     public FileConfiguration getMessages() {

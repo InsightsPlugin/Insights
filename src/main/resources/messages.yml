@@ -115,9 +115,6 @@ messages:
     # Message send when the plugin has been successfully reloaded
     reload: "&3Insights has been successfully reloaded!"
 
-    # Message send when the plugin had an error reloading config
-    reload_failed: "&cInsights failed to reload the config. Please check the console and report this error."
-
   # Message send when a user executes /check
   # Special placeholders:
   # %tile_count%

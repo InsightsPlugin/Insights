@@ -1,7 +1,7 @@
 package net.frankheijden.insights.config;
 
+import net.frankheijden.insights.utils.Utils;
 import net.frankheijden.insights.utils.YamlUtils;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
 
@@ -17,14 +17,10 @@ public class RegionBlocks {
         this.blocks = blocks;
     }
 
-    public static RegionBlocks from(YamlConfiguration yml, String path) {
-        boolean whitelist = yml.getBoolean(YamlUtils.getPath(path, "whitelist"));
-        String regex = yml.getString(YamlUtils.getPath(path, "regex"));
-        if (regex == null) {
-            System.err.println("[Insights/Config] Invalid configuration in config.yml at path '"
-                    + YamlUtils.getPath(path, "regex") + "'!");
-        }
-        List<String> blocks = yml.getStringList(YamlUtils.getPath(path, "list"));
+    public static RegionBlocks from(YamlUtils utils, String path) {
+        boolean whitelist = utils.getBoolean(YamlUtils.getPath(path, "whitelist"), true);
+        String regex = utils.getString(YamlUtils.getPath(path, "regex"), "");
+        List<String> blocks = utils.getStringList(YamlUtils.getPath(path, "list"), Utils.SCANNABLE_BLOCKS, "block");
         return new RegionBlocks(whitelist, regex, blocks);
     }
 

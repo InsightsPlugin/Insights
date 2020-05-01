@@ -1,15 +1,13 @@
 package net.frankheijden.insights.config;
 
 import net.frankheijden.insights.utils.YamlUtils;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.*;
 
 public class Limits {
 
-    private final Config config;
-
     private List<String> PRIORITIES;
+    private static final Set<String> PRIORITIES_VALUES = Config.of("GROUPS", "PERMISSIONS", "MATERIALS", "ENTITIES");
 
     private Map<String, Integer> SINGLE_MATERIALS;
     private Map<String, Integer> SINGLE_ENTITIES;
@@ -17,33 +15,28 @@ public class Limits {
     private List<GroupLimit> GROUP_LIMITS;
     private List<PermissionLimit> PERMISSION_LIMITS;
 
-    public Limits(Config config) {
-        this.config = config;
-    }
-
-    public void reload() {
-        YamlConfiguration yml = config.getConfig();
-        this.PRIORITIES = yml.getStringList("general.limits.priorities");
-        this.SINGLE_MATERIALS = YamlUtils.getMap(yml, "general.limits.materials");
-        this.SINGLE_ENTITIES = YamlUtils.getMap(yml, "general.limits.entities");
+    public void reload(YamlUtils utils) {
+        this.PRIORITIES = utils.getStringList("general.limits.priorities", PRIORITIES_VALUES, "priority");
+        this.SINGLE_MATERIALS = utils.getMap("general.limits.materials");
+        this.SINGLE_ENTITIES = utils.getMap("general.limits.entities");
         this.GROUP_LIMITS = new ArrayList<>();
         this.PERMISSION_LIMITS = new ArrayList<>();
 
         String materialGroupPath = "general.limits.groups";
-        Set<String> materialGroups = YamlUtils.getKeys(yml, materialGroupPath);
+        Set<String> materialGroups = utils.getKeys(materialGroupPath);
         for (String materialGroup : materialGroups) {
             String path = YamlUtils.getPath(materialGroupPath, materialGroup);
-            GroupLimit limit = GroupLimit.from(yml, path);
+            GroupLimit limit = GroupLimit.from(utils, path);
             if (limit != null) {
                 this.GROUP_LIMITS.add(limit);
             }
         }
 
         String permissionGroupPath = "general.limits.permissions";
-        Set<String> permissionGroups = YamlUtils.getKeys(yml, permissionGroupPath);
+        Set<String> permissionGroups = utils.getKeys(permissionGroupPath);
         for (String permissionGroup : permissionGroups) {
             String path = YamlUtils.getPath(permissionGroupPath, permissionGroup);
-            PermissionLimit limit = PermissionLimit.from(yml, path);
+            PermissionLimit limit = PermissionLimit.from(utils, path);
             if (limit != null) {
                 this.PERMISSION_LIMITS.add(limit);
             }

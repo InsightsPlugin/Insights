@@ -1,6 +1,7 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.config.ConfigError;
 import net.frankheijden.insights.managers.HookManager;
 import net.frankheijden.insights.managers.WorldGuardManager;
 import net.frankheijden.insights.utils.MessageUtils;
@@ -83,14 +84,14 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("reload")) {
                 if (sender.hasPermission("insights.reload")) {
-                    try {
-                        plugin.reload();
-                    } catch (Exception ex) {
-                        MessageUtils.sendMessage(sender, "messages.insights.reload_failed");
-                        return true;
+                    List<ConfigError> errors = plugin.reload();
+                    if (errors.isEmpty()) {
+                        MessageUtils.sendMessage(sender, "messages.insights.reload");
+                    } else {
+                        sender.sendMessage(MessageUtils.color("&cSome errors occurred while reloading:"));
+                        sender.sendMessage(errors.stream().map(e -> MessageUtils.color(e.toString())).toArray(String[]::new));
+                        sender.sendMessage(MessageUtils.color("&cYou will still be able to use Insights, but please regenerate or update your configs."));
                     }
-
-                    MessageUtils.sendMessage(sender, "messages.insights.reload");
                 } else {
                     MessageUtils.sendMessage(sender, "messages.no_permission");
                 }

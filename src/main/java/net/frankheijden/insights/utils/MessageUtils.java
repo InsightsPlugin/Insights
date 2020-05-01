@@ -55,6 +55,12 @@ public class MessageUtils {
         return ChatColor.translateAlternateColorCodes('&', string);
     }
 
+    public static String stripColor(String str) {
+        String color = color(str);
+        if (color == null) return null;
+        return ChatColor.stripColor(color);
+    }
+
     public static void sendSpecialMessage(Player player, String path, double progress, String... placeholders) {
         String messageType = plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE;
         if (messageType == null) messageType = "ACTIONBAR";

@@ -1,154 +1,107 @@
 package net.frankheijden.insights.config;
 
-import net.frankheijden.insights.utils.FileUtils;
-import net.frankheijden.insights.utils.YamlUtils;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class Config {
     private YamlConfiguration config;
 
-    public boolean GENERAL_UPDATES_CHECK = true;
-    public boolean GENERAL_UPDATES_DOWNLOAD = false;
-    public boolean GENERAL_UPDATES_DOWNLOAD_STARTUP = false;
-    public boolean GENERAL_DEBUG = false;
-    public int GENERAL_LIMIT = -1;
-    public boolean GENERAL_ASYNC_ENABLED = true;
-    public boolean GENERAL_ASYNC_WHITELIST = false;
+    public boolean GENERAL_UPDATES_CHECK;
+    public boolean GENERAL_UPDATES_DOWNLOAD;
+    public boolean GENERAL_UPDATES_DOWNLOAD_STARTUP;
+    public boolean GENERAL_DEBUG;
+    public int GENERAL_LIMIT;
+    public boolean GENERAL_ASYNC_ENABLED;
+    public boolean GENERAL_ASYNC_WHITELIST;
     public List<String> GENERAL_ASYNC_LIST;
-    public boolean GENERAL_WORLDS_WHITELIST = true;
-    public List<String> GENERAL_WORLDS_LIST = Arrays.asList("world", "world_nether", "world_the_end");
-    public boolean GENERAL_REGIONS_WHITELIST = false;
+    public boolean GENERAL_WORLDS_WHITELIST;
+    public List<String> GENERAL_WORLDS_LIST;
+    public boolean GENERAL_REGIONS_WHITELIST;
     public List<String> GENERAL_REGIONS_LIST;
     public List<RegionBlocks> GENERAL_REGION_BLOCKS;
-    public boolean GENERAL_WORLDEDIT_ENABLED = true;
-    public String GENERAL_WORLDEDIT_TYPE = "REPLACEMENT";
-    private List<String> GENERAL_WORLDEDIT_TYPE_VALUES = Arrays.asList("UNCHANGED", "REPLACEMENT");
-    public String GENERAL_WORLDEDIT_REPLACEMENT = "BEDROCK";
-    public String GENERAL_NOTIFICATION_TYPE = "BOSSBAR";
-    private List<String> GENERAL_NOTIFICATION_TYPE_VALUES = Arrays.asList("BOSSBAR", "ACTIONBAR");
-    public String GENERAL_NOTIFICATION_BOSSBAR_COLOR = "BLUE";
-    private List<String> GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES = Arrays.asList("BLUE", "GREEN", "PINK", "PURPLE", "RED", "WHITE", "YELLOW");
-    public String GENERAL_NOTIFICATION_BOSSBAR_STYLE = "SEGMENTED_10";
-    private List<String> GENERAL_NOTIFICATION_BOSSBAR_STYLE_VALUES = Arrays.asList("SOLID", "SEGMENTED_6", "SEGMENTED_10", "SEGMENTED_12", "SEGMENTED_20");
-    public List<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS = Collections.emptyList();
-    private List<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES = Arrays.asList("DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG");
-    public int GENERAL_NOTIFICATION_BOSSBAR_DURATION = 60;
-    public List<String> GENERAL_NOTIFICATION_PASSIVE = new ArrayList<>();
-    public int GENERAL_SCANRADIUS_DEFAULT = 5;
-    public boolean GENERAL_SCAN_NOTIFICATION = true;
-    public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION = true;
+    public boolean GENERAL_WORLDEDIT_ENABLED;
+    public String GENERAL_WORLDEDIT_TYPE;
+    private Set<String> GENERAL_WORLDEDIT_TYPE_VALUES = of("UNCHANGED", "REPLACEMENT");
+    public String GENERAL_WORLDEDIT_REPLACEMENT;
+    public String GENERAL_NOTIFICATION_TYPE;
+    private Set<String> GENERAL_NOTIFICATION_TYPE_VALUES = of("BOSSBAR", "ACTIONBAR");
+    public String GENERAL_NOTIFICATION_BOSSBAR_COLOR;
+    private Set<String> GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES = of("BLUE", "GREEN", "PINK", "PURPLE", "RED", "WHITE", "YELLOW");
+    public String GENERAL_NOTIFICATION_BOSSBAR_STYLE;
+    private Set<String> GENERAL_NOTIFICATION_BOSSBAR_STYLE_VALUES = of("SOLID", "SEGMENTED_6", "SEGMENTED_10", "SEGMENTED_12", "SEGMENTED_20");
+    public List<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS;
+    private Set<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES = of("DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG");
+    public int GENERAL_NOTIFICATION_BOSSBAR_DURATION;
+    public List<String> GENERAL_NOTIFICATION_PASSIVE;
+    public Set<String> GENERAL_NOTIFICATION_PASSIVE_VALUES = of("block", "entity", "region", "tile");
+    public int GENERAL_SCANRADIUS_DEFAULT;
+    public boolean GENERAL_SCAN_NOTIFICATION;
+    public boolean GENERAL_ALWAYS_SHOW_NOTIFICATION;
 
     private final Limits limits;
 
     public Config() {
-        this.limits = new Limits(this);
+        this.limits = new Limits();
     }
 
-    public void reload() {
+    public List<ConfigError> reload() {
         File configFile = FileUtils.copyResourceIfNotExists("config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
+        YamlUtils utils = new YamlUtils(config, "config.yml");
 
-        GENERAL_UPDATES_CHECK = config.getBoolean("general.updates.check");
-        GENERAL_UPDATES_DOWNLOAD = config.getBoolean("general.updates.download");
-        GENERAL_UPDATES_DOWNLOAD_STARTUP = config.getBoolean("general.updates.download_startup");
-        GENERAL_DEBUG = config.getBoolean("general.debug");
+        GENERAL_UPDATES_CHECK = utils.getBoolean("general.updates.check", true);
+        GENERAL_UPDATES_DOWNLOAD = utils.getBoolean("general.updates.download", false);
+        GENERAL_UPDATES_DOWNLOAD_STARTUP = utils.getBoolean("general.updates.download_startup", false);
+        GENERAL_DEBUG = utils.getBoolean("general.debug", false);
 
-        int generalLimit = config.getInt("general.limit");
-        if (generalLimit > -1) {
-            GENERAL_LIMIT = generalLimit;
-        } else {
-            System.out.println("[Insights/Config] Chunk tile limit was chosen not to be enabled.");
-        }
+        GENERAL_LIMIT = utils.getIntWithinRange("general.limit", -1, null, null);
 
-        GENERAL_ASYNC_ENABLED = config.getBoolean("general.async.enabled");
-        GENERAL_ASYNC_WHITELIST = config.getBoolean("general.async.whitelist");
-        GENERAL_ASYNC_LIST = config.getStringList("general.async.blocks");
+        GENERAL_ASYNC_ENABLED = utils.getBoolean("general.async.enabled", true);
+        GENERAL_ASYNC_WHITELIST = utils.getBoolean("general.async.whitelist", false);
+        GENERAL_ASYNC_LIST = utils.getStringList("general.async.blocks", Utils.SCANNABLE_BLOCKS, "block");
 
-        GENERAL_WORLDS_WHITELIST = config.getBoolean("general.worlds.whitelist");
-        GENERAL_WORLDS_LIST = config.getStringList("general.worlds.list");
+        GENERAL_WORLDS_WHITELIST = utils.getBoolean("general.worlds.whitelist", true);
+        GENERAL_WORLDS_LIST = utils.getStringList("general.worlds.list");
 
         GENERAL_REGION_BLOCKS = new ArrayList<>();
-        for (String regionEntry : YamlUtils.getKeys(config, "general.region_blocks")) {
+        for (String regionEntry : utils.getKeys("general.region_blocks")) {
             String regionPath = YamlUtils.getPath("general.region_blocks", regionEntry);
-            RegionBlocks regionBlocks = RegionBlocks.from(config, regionPath);
+            RegionBlocks regionBlocks = RegionBlocks.from(utils, regionPath);
             GENERAL_REGION_BLOCKS.add(regionBlocks);
         }
 
-        GENERAL_WORLDEDIT_ENABLED = config.getBoolean("general.worldedit.enabled");
-        updateString("general.worldedit.type", GENERAL_WORLDEDIT_TYPE_VALUES);
-        GENERAL_WORLDEDIT_REPLACEMENT = config.getString("general.worldedit.replacement");
+        GENERAL_WORLDEDIT_ENABLED = utils.getBoolean("general.worldedit.enabled", true);
+        GENERAL_WORLDEDIT_TYPE = utils.getString("general.worldedit.type", "REPLACEMENT", GENERAL_WORLDEDIT_TYPE_VALUES);
+        GENERAL_WORLDEDIT_REPLACEMENT = utils.getString("general.worldedit.replacement", "BEDROCK", Utils.SCANNABLE_BLOCKS, "block");
 
-        updateString("general.notification.type", GENERAL_NOTIFICATION_TYPE_VALUES);
-        updateString("general.notification.bossbar.color", GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES);
-        updateString("general.notification.bossbar.style", GENERAL_NOTIFICATION_BOSSBAR_STYLE_VALUES);
+        GENERAL_NOTIFICATION_TYPE = utils.getString("general.notification.type", "BOSSBAR", GENERAL_NOTIFICATION_TYPE_VALUES);
+        GENERAL_NOTIFICATION_BOSSBAR_COLOR = utils.getString("general.notification.bossbar.color", "BLUE", GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES);
+        GENERAL_NOTIFICATION_BOSSBAR_STYLE = utils.getString("general.notification.bossbar.style", "SEGMENTED_10", GENERAL_NOTIFICATION_BOSSBAR_STYLE_VALUES);
+        GENERAL_NOTIFICATION_BOSSBAR_FLAGS = utils.getStringList("general.notification.bossbar.flags", GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES, "flag");
+        GENERAL_NOTIFICATION_BOSSBAR_DURATION = utils.getIntWithinRange("general.notification.bossbar.duration", 60, 1, null);
 
-        List<String> bossbarFlags = config.getStringList("general.notification.bossbar.flags");
-        bossbarFlags.removeIf(flag -> !GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES.contains(flag.toUpperCase()));
-        GENERAL_NOTIFICATION_BOSSBAR_FLAGS = bossbarFlags;
+        GENERAL_SCANRADIUS_DEFAULT = utils.getIntWithinRange("general.scanradius_default", 5, 1, null);
+        GENERAL_SCAN_NOTIFICATION = utils.getBoolean("general.scan_notification", true);
+        GENERAL_ALWAYS_SHOW_NOTIFICATION = utils.getBoolean("general.always_show_notification", true);
 
-        updateInt("general.notification.bossbar.duration", 1);
-        updateInt("general.scanradius_default", 1);
+        GENERAL_NOTIFICATION_PASSIVE = utils.getStringList("general.passive", GENERAL_NOTIFICATION_PASSIVE_VALUES, "passive value");
 
-        GENERAL_SCAN_NOTIFICATION = config.getBoolean("general.scan_notification");
-        GENERAL_ALWAYS_SHOW_NOTIFICATION = config.getBoolean("general.always_show_notification");
+        this.limits.reload(utils);
 
-        GENERAL_NOTIFICATION_PASSIVE = config.getStringList("general.passive");
+        GENERAL_REGIONS_WHITELIST = utils.getBoolean("general.regions.whitelist", false);
+        GENERAL_REGIONS_LIST = utils.getStringList("general.regions.list");
 
-        this.limits.reload();
+        return utils.getErrors();
+    }
 
-        GENERAL_REGIONS_WHITELIST = config.getBoolean("general.regions.whitelist");
-        GENERAL_REGIONS_LIST = config.getStringList("general.regions.list");
+    public static Set<String> of(String... strings) {
+        return new HashSet<>(Arrays.asList(strings));
     }
 
     public Limits getLimits() {
         return limits;
-    }
-
-    protected YamlConfiguration getConfig() {
-        return config;
-    }
-
-    private void updateInt(String path, int min) {
-        String fieldName = path.replace(".", "_").toUpperCase();
-        int i = config.getInt(path);
-        if (i >= min) {
-            try {
-                Class<?> configClass = this.getClass();
-                Field field = configClass.getDeclaredField(fieldName);
-                field.set(this, i);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } else {
-            System.err.println("[Insights/Config] Invalid configuration in config.yml at path '" + path + "', value must be at least " + min + "!");
-        }
-    }
-
-    private void updateString(String path, List<String> possibleValues) {
-        String fieldName = path.replace(".", "_").toUpperCase();
-        String s = config.getString(path);
-        if (s != null && possibleValues.contains(s.toUpperCase())) {
-            try {
-                Class<?> configClass = this.getClass();
-                Field field = configClass.getDeclaredField(fieldName);
-                field.set(this, s);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for (String value : possibleValues) {
-                if (possibleValues.indexOf(value) + 1 == possibleValues.size()) {
-                    sb.append(" or \"").append(value).append("\"");
-                } else {
-                    sb.append("\"").append(value).append("\", ");
-                }
-            }
-            System.err.println("[Insights/Config] Invalid configuration in config.yml at path '" + path + "', value must be " + sb.toString() + "!");
-        }
     }
 }
