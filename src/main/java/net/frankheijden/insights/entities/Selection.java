@@ -1,7 +1,10 @@
 package net.frankheijden.insights.entities;
 
+import net.frankheijden.insights.utils.LocationUtils;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+
+import java.util.Objects;
 
 public class Selection {
 
@@ -37,6 +40,10 @@ public class Selection {
         return pos1 != null && pos2 != null;
     }
 
+    public boolean contains(Location loc) {
+        return LocationUtils.contains(pos1, pos2, loc);
+    }
+
     public long getBlockCount() {
         if (!isValid()) return -1;
         int dx = Math.abs(pos1.getBlockX() - pos2.getBlockX()) + 1;
@@ -52,5 +59,19 @@ public class Selection {
         int dx = Math.abs(c1.getX() - c2.getX()) + 1;
         int dz = Math.abs(c1.getZ() - c2.getZ()) + 1;
         return dx * dz;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Selection selection = (Selection) o;
+        return pos1.equals(selection.pos1) &&
+                pos2.equals(selection.pos2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pos1, pos2);
     }
 }

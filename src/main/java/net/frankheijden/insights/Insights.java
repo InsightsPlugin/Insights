@@ -38,6 +38,7 @@ public class Insights extends JavaPlugin {
     private HookManager hookManager = null;
     private ScanManager scanManager = null;
     private SelectionManager selectionManager = null;
+    private CacheManager cacheManager = null;
     private VersionManager versionManager = null;
     private MetricsManager metricsManager = null;
 
@@ -60,6 +61,7 @@ public class Insights extends JavaPlugin {
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
+        setupCaches();
         checkForUpdates();
 
         long end = System.currentTimeMillis();
@@ -142,6 +144,7 @@ public class Insights extends JavaPlugin {
 
         scanManager = new ScanManager();
         selectionManager = new SelectionManager();
+        cacheManager = new CacheManager();
         versionManager = new VersionManager();
         metricsManager = new MetricsManager();
 
@@ -165,6 +168,12 @@ public class Insights extends JavaPlugin {
             if (!placeholderAPIHook) {
                 Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
             }
+        }
+    }
+
+    private void setupCaches() {
+        if (isAvailable("BentoBox")) {
+            new BentoBoxCache().initialise();
         }
     }
 
@@ -219,6 +228,10 @@ public class Insights extends JavaPlugin {
 
     public SelectionManager getSelectionManager() {
         return selectionManager;
+    }
+
+    public CacheManager getCacheManager() {
+        return cacheManager;
     }
 
     public VersionManager getVersionManager() {
