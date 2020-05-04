@@ -29,7 +29,7 @@ dependencies {
     compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.2'
 
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.6.2'
-    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 }
 
 artifacts {
