@@ -46,9 +46,9 @@ public class StringUtils {
         return false;
     }
 
-    public static List<String> lowercase(Collection<? extends String> collection) {
+    public static List<String> uppercase(Collection<? extends String> collection) {
         return collection.stream()
-                .map(String::toLowerCase)
+                .map(String::toUpperCase)
                 .collect(Collectors.toList());
     }
 }

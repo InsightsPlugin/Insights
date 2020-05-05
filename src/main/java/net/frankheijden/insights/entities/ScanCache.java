@@ -25,10 +25,8 @@ public class ScanCache {
         return what.toUpperCase();
     }
 
-    public boolean isOverLimit(String what, int limit, int d) {
-        Integer count = scanResult.get(getKey(what));
-        if (count == null) return false;
-        return (count + d) > limit;
+    public Integer getCount(String what) {
+        return scanResult.get(getKey(what));
     }
 
     public void updateCache(String what, int d) {

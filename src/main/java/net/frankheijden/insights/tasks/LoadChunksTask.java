@@ -68,9 +68,11 @@ public class LoadChunksTask implements Runnable {
                     + " " + (totalChunks == 1 ? "chunk" : "chunks")
                     + "...", taskID);
         }
-        sendMessage( scanOptions.getPath() + ".start",
-                "%chunks%",NumberFormat.getIntegerInstance().format(totalChunks),
-                "%world%", scanOptions.getWorld().getName());
+        if (scanOptions.getPath() != null) {
+            sendMessage( scanOptions.getPath() + ".start",
+                    "%chunks%",NumberFormat.getIntegerInstance().format(totalChunks),
+                    "%world%", scanOptions.getWorld().getName());
+        }
 
         scanChunksTask = new ScanChunksTask(scanOptions, this);
         scanChunksTask.start(startTime);

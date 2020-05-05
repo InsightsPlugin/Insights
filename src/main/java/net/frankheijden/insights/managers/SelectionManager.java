@@ -74,7 +74,7 @@ public class SelectionManager {
 
     public Selection getSelection(UUID uuid) {
         Selection selection = dataMap.get(uuid);
-        if (selection == null) return new Selection(null, null);
+        if (selection == null) return new Selection();
         return selection;
     }
 }

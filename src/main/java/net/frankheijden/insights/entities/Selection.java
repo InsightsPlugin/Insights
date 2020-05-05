@@ -1,8 +1,8 @@
 package net.frankheijden.insights.entities;
 
 import net.frankheijden.insights.utils.LocationUtils;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
+import org.bukkit.*;
+import org.bukkit.util.BoundingBox;
 
 import java.util.Objects;
 
@@ -11,9 +11,21 @@ public class Selection {
     private Location pos1;
     private Location pos2;
 
+    public Selection() {
+        this.pos1 = null;
+        this.pos2 = null;
+    }
+
     public Selection(Location pos1, Location pos2) {
         this.pos1 = pos1;
         this.pos2 = pos2;
+    }
+
+    public Selection(World world, BoundingBox box) {
+        this(
+                new Location(world, box.getMinX(), box.getMinY(), box.getMinZ()),
+                new Location(world, box.getMaxX(), box.getMaxY() - 1, box.getMaxZ())
+        );
     }
 
     public Location getPos1() {
