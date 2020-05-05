@@ -55,8 +55,7 @@ public class WorldEditListener implements ExtentDelegate {
 
     public static String getPackage() {
         String version = NMSManager.getInstance().isPost1_13() ? "we7" : "we6";
-        String className = (worldEditManager.isFawe() ? "FA" : "") + "WorldEditExtent";
-        return "net.frankheijden.wecompatibility." + version + "." + className;
+        return "net.frankheijden.wecompatibility." + version + ".WorldEditExtent";
     }
 
     public static Extent from(Player player, Extent extent) {
