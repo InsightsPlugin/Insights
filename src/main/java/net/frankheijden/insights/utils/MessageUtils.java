@@ -1,7 +1,7 @@
 package net.frankheijden.insights.utils;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.managers.BossBarManager;
+import net.frankheijden.insights.managers.NotificationManager;
 import net.frankheijden.insights.managers.NMSManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,6 +15,7 @@ import java.util.UUID;
 public class MessageUtils {
 
     private static final Insights plugin = Insights.getInstance();
+    private static final int SEGMENT_COUNT = 50;
 
     public static void sendMessage(Object object, String path, String... placeholders) {
         if (object instanceof UUID) {
@@ -71,8 +72,18 @@ public class MessageUtils {
         }
     }
 
+    public static void sendActionBarProgress(Player player, double progress) {
+        int done = (int) Math.round(SEGMENT_COUNT * progress);
+        int rest = SEGMENT_COUNT - done;
+        String msg = getMessage("messages.actionbar_format",
+                "%done%", StringUtils.repeat('|', done),
+                "%rest%", StringUtils.repeat('|', rest),
+                "%progress%", String.format("%.2f", progress*100) + "%");
+        sendActionbar(player, msg);
+    }
+
     private static void sendBossBar(Player player, String path, double progress, String... placeholders) {
-        BossBarManager.getInstance().displayBossBar(player, getMessage(path, placeholders), progress);
+        NotificationManager.getInstance().displayBossBar(player, getMessage(path, placeholders), progress);
     }
 
     private static void sendActionBar(Player player, String path, String... placeholders) {

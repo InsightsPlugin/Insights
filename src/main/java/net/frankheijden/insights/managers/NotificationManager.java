@@ -1,8 +1,8 @@
 package net.frankheijden.insights.managers;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.entities.BossBarTime;
-import net.frankheijden.insights.tasks.BossBarTask;
+import net.frankheijden.insights.entities.*;
+import net.frankheijden.insights.tasks.NotifyTask;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.*;
 import org.bukkit.entity.Player;
@@ -10,25 +10,25 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BossBarManager {
+public class NotificationManager {
 
     private static final Insights plugin = Insights.getInstance();
-    private static BossBarManager instance = null;
+    private static NotificationManager instance = null;
 
-    private final BossBarTask task;
-    private final Map<UUID, BossBarTime> dataMap;
-    private final Map<UUID, BossBar> persistentMap;
+    private final NotifyTask task;
+    private final Map<UUID, Notification> notifications;
+    private final Map<UUID, BossBar> persistentBossBars;
     private final int BOSSBAR_DURATION_MILLIS;
 
-    public BossBarManager() {
+    public NotificationManager() {
         instance = this;
-        this.task = new BossBarTask();
-        this.dataMap = new ConcurrentHashMap<>();
-        this.persistentMap = new ConcurrentHashMap<>();
+        this.task = new NotifyTask();
+        this.notifications = new ConcurrentHashMap<>();
+        this.persistentBossBars = new ConcurrentHashMap<>();
         this.BOSSBAR_DURATION_MILLIS = plugin.getConfiguration().GENERAL_NOTIFICATION_BOSSBAR_DURATION * 50;
     }
 
-    public static BossBarManager getInstance() {
+    public static NotificationManager getInstance() {
         return instance;
     }
 
@@ -41,7 +41,7 @@ public class BossBarManager {
     }
 
     public void displayPersistentBossBar(Player player, String text, double progress) {
-        BossBar bossBar = persistentMap.get(player.getUniqueId());
+        BossBar bossBar = persistentBossBars.get(player.getUniqueId());
         if (bossBar == null) {
             bossBar = createBossBar();
             bossBar.addPlayer(player);
@@ -50,54 +50,54 @@ public class BossBarManager {
 
         bossBar.setTitle(text);
         bossBar.setProgress(progress);
-        persistentMap.put(player.getUniqueId(), bossBar);
+        persistentBossBars.put(player.getUniqueId(), bossBar);
     }
 
     public void displayBossBar(Player player, String text, double progress) {
         long endTime = System.currentTimeMillis() + BOSSBAR_DURATION_MILLIS;
 
-        BossBarTime barTime = dataMap.get(player.getUniqueId());
-        if (barTime == null) {
+        Notification notification = notifications.get(player.getUniqueId());
+        if (notification == null) {
             BossBar bossBar = createBossBar();
             bossBar.addPlayer(player);
             bossBar.setVisible(true);
-            barTime = new BossBarTime(bossBar, endTime);
+            notification = new Notification(bossBar, endTime);
         }
 
-        BossBar bossBar = barTime.getBossBar();
+        BossBar bossBar = notification.getBossBar();
         bossBar.setTitle(text);
         bossBar.setProgress(progress);
 
-        barTime.setEndTime(endTime);
-        dataMap.put(player.getUniqueId(), barTime);
+        notification.setEndTime(endTime);
+        notifications.put(player.getUniqueId(), notification);
     }
 
-    public void removeExpiredBossBars() {
+    public void removeExpired() {
         List<UUID> remove = new ArrayList<>();
-        dataMap.forEach(((uuid, bossBarTime) -> {
-            if (System.currentTimeMillis() >= bossBarTime.getEndTime()) {
-                bossBarTime.getBossBar().setVisible(false);
+        notifications.forEach(((uuid, notification) -> {
+            if (System.currentTimeMillis() >= notification.getEndTime()) {
+                notification.getBossBar().setVisible(false);
                 remove.add(uuid);
             }
         }));
 
-        remove.forEach(dataMap::remove);
+        remove.forEach(notifications::remove);
     }
 
-    public void refreshPersistentBossBar(Player player) {
-        BossBar bossBar = persistentMap.get(player.getUniqueId());
+    public void refreshPersistent(Player player) {
+        BossBar bossBar = persistentBossBars.get(player.getUniqueId());
         if (bossBar != null) {
             bossBar.removeAll();
             bossBar.addPlayer(player);
         }
     }
 
-    public void removePersistentBossBar(UUID uuid) {
-        BossBar bossBar = persistentMap.get(uuid);
+    public void removePersistent(UUID uuid) {
+        BossBar bossBar = persistentBossBars.get(uuid);
         if (bossBar == null) return;
         bossBar.setVisible(false);
         bossBar.removeAll();
-        persistentMap.remove(uuid);
+        persistentBossBars.remove(uuid);
     }
 
     public static BossBar createBossBar() {

@@ -385,9 +385,9 @@ public class MainListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        BossBarManager bossBarManager = BossBarManager.getInstance();
-        if (bossBarManager != null) {
-            bossBarManager.refreshPersistentBossBar(player);
+        NotificationManager notificationManager = NotificationManager.getInstance();
+        if (notificationManager != null) {
+            notificationManager.refreshPersistent(player);
         }
 
         if (plugin.getConfiguration().GENERAL_UPDATES_CHECK) {
