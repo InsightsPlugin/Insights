@@ -20,7 +20,7 @@ public class ScanChunksTask implements Runnable {
 
     private static final Insights plugin = Insights.getInstance();
     private static final ScanManager scanManager = ScanManager.getInstance();
-    private static final BossBarManager bossBarManager = BossBarManager.getInstance();
+    private static final NotificationManager notificationManager = NotificationManager.getInstance();
 
     private static final int NOTIFICATION_DELAY_SECONDS = 10;
     private static final int NOTIFICATION_DELAY_SPECIAL_MILLIS = 50;
@@ -120,8 +120,8 @@ public class ScanChunksTask implements Runnable {
 
         if (scanOptions.hasUUID()) {
             scanManager.remove(scanOptions.getUUID());
-            if (bossBarManager != null) {
-                bossBarManager.removePersistentBossBar(scanOptions.getUUID());
+            if (notificationManager != null) {
+                notificationManager.removePersistent(scanOptions.getUUID());
             }
         }
 
@@ -296,9 +296,9 @@ public class ScanChunksTask implements Runnable {
                 .replace("%total%", total)
                 .replace("%progress%", progress));
         if (isBossBar) {
-            bossBarManager.displayPersistentBossBar(player, message, progressDouble);
+            notificationManager.displayPersistentBossBar(player, message, progressDouble);
         } else {
-            MessageUtils.sendActionbar(player, message);
+            MessageUtils.sendActionBarProgress(player, progressDouble);
         }
     }
 

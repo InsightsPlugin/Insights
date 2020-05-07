@@ -51,6 +51,14 @@ messages:
   # %progress%
   scan_notification: "&3Progress: &b%progress%"
 
+  # Enhance the scan-actionbar here!
+  # Change the format of the actionbar here!
+  # Special placeholders:
+  # %done%
+  # %rest%
+  # %progress%
+  actionbar_format: "&a%done%&8%rest% &b%progress%"
+
   # Message if the player is already scanning chunks
   already_scanning: "&cYou are already scanning for chunks!"
 
