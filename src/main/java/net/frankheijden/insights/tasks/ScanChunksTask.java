@@ -270,7 +270,7 @@ public class ScanChunksTask implements Runnable {
     }
 
     private void tryNotifySpecial(boolean finished) {
-        if (!canNotifySpecial()) return;
+        if (!canNotifySpecial() && !finished) return;
         lastProgressMessageSpecial = System.currentTimeMillis();
 
         if (canSendProgressMessage && scanOptions.hasUUID()) {
