@@ -32,6 +32,7 @@ public class MainListener implements Listener {
     private static final Insights plugin = Insights.getInstance();
     private static final SelectionManager selectionManager = SelectionManager.getInstance();
     private static final CacheManager cacheManager = CacheManager.getInstance();
+    private static final FreezeManager freezeManager = FreezeManager.getInstance();
     private final InteractListener interactListener;
     private final List<Location> blockLocations;
 
@@ -341,6 +342,8 @@ public class MainListener implements Listener {
         if (list.size() == 0) return;
 
         player.sendMessage(MessageUtils.color("&3Please wait while we scan the area..."));
+        freezeManager.freezePlayer(player.getUniqueId());
+
         AtomicInteger integer = new AtomicInteger(list.size());
         for (Map.Entry<Selection, ScanOptions> entry : list.entrySet()) {
             Scanner.create(entry.getValue()).scan().whenComplete((ev, err) -> {
@@ -349,6 +352,7 @@ public class MainListener implements Listener {
 
                 if (integer.decrementAndGet() == 0) {
                     player.sendMessage(MessageUtils.color("&3Done scanning!"));
+                    freezeManager.defrostPlayer(player.getUniqueId());
 
                     for (Selection s : selections) {
                         ScanCache c = cacheManager.getCache(s);
@@ -367,9 +371,7 @@ public class MainListener implements Listener {
         count += d;
 
         int l = limit.getLimit();
-        if (count > l) {
-            if (player.hasPermission(limit.getPermission())) return false;
-
+        if (count > l && d >= 0 && !player.hasPermission(limit.getPermission())) {
             if (!isPassiveForPlayer(player, "block")) {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(l),

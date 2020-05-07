@@ -41,6 +41,7 @@ public class Insights extends JavaPlugin {
     private CacheManager cacheManager = null;
     private VersionManager versionManager = null;
     private MetricsManager metricsManager = null;
+    private FreezeManager freezeManager = null;
 
     private boolean placeholderAPIHook = false;
 
@@ -105,6 +106,7 @@ public class Insights extends JavaPlugin {
         } else {
             Bukkit.getPluginManager().registerEvents(new Pre1_13Listeners(mainListener), this);
         }
+        Bukkit.getPluginManager().registerEvents(new FreezeListener(), this);
         Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan());
         Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights());
         Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck());
@@ -147,6 +149,7 @@ public class Insights extends JavaPlugin {
         cacheManager = new CacheManager();
         versionManager = new VersionManager();
         metricsManager = new MetricsManager();
+        freezeManager = new FreezeManager();
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
         if (PaperLib.getMinecraftVersion() <= 7) {
@@ -240,6 +243,10 @@ public class Insights extends JavaPlugin {
 
     public MetricsManager getMetricsManager() {
         return metricsManager;
+    }
+
+    public FreezeManager getFreezeManager() {
+        return freezeManager;
     }
 
     public boolean hasPlaceholderAPIHook() {
