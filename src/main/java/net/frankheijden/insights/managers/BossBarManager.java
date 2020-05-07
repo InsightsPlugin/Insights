@@ -16,15 +16,13 @@ public class BossBarManager {
     private static BossBarManager instance = null;
 
     private final BossBarTask task;
-    private final Map<UUID, BossBarTime> dataMap;
-    private final Map<UUID, BossBar> persistentMap;
+    private static final Map<UUID, BossBarTime> dataMap = new ConcurrentHashMap<>();
+    private static final Map<UUID, BossBar> persistentMap = new ConcurrentHashMap<>();
     private final int BOSSBAR_DURATION_MILLIS;
 
     public BossBarManager() {
         instance = this;
         this.task = new BossBarTask();
-        this.dataMap = new ConcurrentHashMap<>();
-        this.persistentMap = new ConcurrentHashMap<>();
         this.BOSSBAR_DURATION_MILLIS = plugin.getConfiguration().GENERAL_NOTIFICATION_BOSSBAR_DURATION * 50;
     }
 
