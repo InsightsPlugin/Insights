@@ -2,6 +2,7 @@ package net.frankheijden.insights.listeners;
 
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.managers.FreezeManager;
+import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -25,6 +26,6 @@ public class FreezeListener implements Listener {
     public static void handleEvent(Cancellable event, Player player) {
         if (!freezeManager.isFrozen(player.getUniqueId())) return;
         event.setCancelled(true);
-        player.sendMessage("Brrrrrr!");
+        MessageUtils.sendMessage(player, "messages.area_scan.frozen");
     }
 }

@@ -57,6 +57,11 @@ messages:
   # Message send when a user places a block which he is not allowed to place in a region
   region_disallowed_block: "&cYou do not have permission to place that block in this region!"
 
+  area_scan:
+    start: "&3Please wait while we scan this area..."
+    end: "&3Finished scanning!"
+    frozen: "&cPlease wait until the scan completes."
+
   #
   # Command messages below
   #

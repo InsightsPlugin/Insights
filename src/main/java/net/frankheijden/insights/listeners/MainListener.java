@@ -345,7 +345,7 @@ public class MainListener implements Listener {
         Map<SelectionEntity, ScanOptions> list = from(selections, player);
         if (list.size() == 0) return;
 
-        player.sendMessage(MessageUtils.color("&3Please wait while we scan the area..."));
+        MessageUtils.sendMessage(player, "messages.area_scan.start");
         freezeManager.freezePlayer(player.getUniqueId());
 
         AtomicInteger integer = new AtomicInteger(list.size());
@@ -355,7 +355,7 @@ public class MainListener implements Listener {
                 cacheManager.updateCache(cache);
 
                 if (integer.decrementAndGet() == 0) {
-                    player.sendMessage(MessageUtils.color("&3Done scanning!"));
+                    MessageUtils.sendMessage(player, "messages.area_scan.end");
                     freezeManager.defrostPlayer(player.getUniqueId());
 
                     for (Selection s : selections) {
