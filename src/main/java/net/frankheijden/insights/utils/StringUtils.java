@@ -1,7 +1,6 @@
 package net.frankheijden.insights.utils;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StringUtils {
@@ -50,5 +49,11 @@ public class StringUtils {
         return collection.stream()
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());
+    }
+
+    public static String repeat(char c, int count) {
+        char[] repeat = new char[count];
+        Arrays.fill(repeat, c);
+        return new String(repeat);
     }
 }

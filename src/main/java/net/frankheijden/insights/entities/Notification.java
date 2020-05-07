@@ -2,12 +2,12 @@ package net.frankheijden.insights.entities;
 
 import org.bukkit.boss.BossBar;
 
-public class BossBarTime {
+public class Notification {
 
     private final BossBar bossBar;
     private long endTime;
 
-    public BossBarTime(BossBar bossBar, Long endTime) {
+    public Notification(BossBar bossBar, Long endTime) {
         this.bossBar = bossBar;
         this.endTime = endTime;
     }

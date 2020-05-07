@@ -32,7 +32,7 @@ public class Insights extends JavaPlugin {
     private SQLite sqLite;
 
     private NMSManager nmsManager = null;
-    private BossBarManager bossBarManager = null;
+    private NotificationManager notificationManager = null;
     private WorldEditManager worldEditManager = null;
     private WorldGuardManager worldGuardManager = null;
     private HookManager hookManager = null;
@@ -124,8 +124,8 @@ public class Insights extends JavaPlugin {
         nmsManager = new NMSManager();
 
         if (nmsManager.isPost1_9()) {
-            bossBarManager = new BossBarManager();
-            bossBarManager.start();
+            notificationManager = new NotificationManager();
+            notificationManager.start();
         }
 
         hookManager = new HookManager();
@@ -197,8 +197,8 @@ public class Insights extends JavaPlugin {
         return nmsManager;
     }
 
-    public BossBarManager getBossBarManager() {
-        return bossBarManager;
+    public NotificationManager getNotificationManager() {
+        return notificationManager;
     }
 
     public WorldEditManager getWorldEditManager() {
