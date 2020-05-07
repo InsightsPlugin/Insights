@@ -32,6 +32,13 @@ public class CacheManager {
         return getSelections(location).count() != 0;
     }
 
+    public Optional<ScanCache> getMaxCountCache(Location location, String what) {
+        return this.getSelections(location)
+                .map(this::getCache)
+                .filter(Objects::nonNull)
+                .max(Comparator.comparingInt(c -> c.getCount(what)));
+    }
+
     public Stream<SelectionEntity> getSelections(Location location) {
         return cacheAssistants.stream()
                 .map(c -> SelectionEntity.from(c.getSelection(location), c))

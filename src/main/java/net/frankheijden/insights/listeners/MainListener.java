@@ -330,18 +330,13 @@ public class MainListener implements Listener {
     private void handleBlockCache(Cancellable event, Player player, Block block, Material m, int d, Limit limit) {
         String name = block.getType().name();
 
-        if (limit != null) {
-            for (Selection s : cacheManager.getSelections(player.getLocation()).collect(Collectors.toSet())) {
-                ScanCache cache = cacheManager.getCache(s);
-                if (cache == null) continue;
-                if (handleCacheLimit(cache, event, player, block, name, m, d, limit)) {
-                    d = 0;
-                    break;
-                }
-            }
+        Set<SelectionEntity> selections = cacheManager.updateCache(player.getLocation(), name, d);
+        if (selections.size() == 0 && limit != null) {
+            cacheManager.getMaxCountCache(player.getLocation(), name)
+                    .ifPresent(scanCache -> handleCacheLimit(scanCache, event, player, block, name, m, d, limit));
+            return;
         }
 
-        Set<SelectionEntity> selections = cacheManager.updateCache(player.getLocation(), block.getType().name(), d);
         Map<SelectionEntity, ScanOptions> list = from(selections, player);
         if (list.size() == 0) return;
 
@@ -358,23 +353,19 @@ public class MainListener implements Listener {
                     MessageUtils.sendMessage(player, "messages.area_scan.end");
                     freezeManager.defrostPlayer(player.getUniqueId());
 
-                    for (Selection s : selections) {
-                        ScanCache c = cacheManager.getCache(s);
-                        if (c == null) continue;
-                        if (handleCacheLimit(c, null, player, block, name, m, 0, limit)) break;
-                    }
+                    cacheManager.getMaxCountCache(player.getLocation(), name)
+                            .ifPresent(scanCache -> handleCacheLimit(scanCache, null, player, block, name, m, d, limit));
                 }
             });
         }
     }
 
-    private boolean handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, Material m, int d, Limit limit) {
+    private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, Material m, int d, Limit limit) {
         Integer count = cache.getCount(name);
-        if (count == null) return false;
-        count += d;
+        if (count == null) return;
 
         int l = limit.getLimit();
-        if (count > l && d >= 0 && !player.hasPermission(limit.getPermission())) {
+        if (count > l && !player.hasPermission(limit.getPermission())) {
             if (!isPassiveForPlayer(player, "block")) {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(l),
@@ -382,16 +373,15 @@ public class MainListener implements Listener {
                         "%area%", cache.getSelectionEntity().getAssistant().getName());
             }
 
+            cache.updateCache(name, -d);
             if (event != null) {
                 event.setCancelled(true);
             } else {
                 simulateBreak(player, block, m);
             }
-            return true;
         } else if (!isPassiveForPlayer(player, "block")) {
             sendMessage(player, limit.getName(), count, l);
         }
-        return false;
     }
 
     private void simulateBreak(Player player, Block block, Material m) {
