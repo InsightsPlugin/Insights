@@ -328,11 +328,13 @@ public class MainListener implements Listener {
     }
 
     private void handleBlockCache(Cancellable event, Player player, Block block, Material m, int d, Limit limit) {
+        String name = block.getType().name();
+
         if (limit != null) {
             for (Selection s : cacheManager.getSelections(player.getLocation()).collect(Collectors.toSet())) {
                 ScanCache cache = cacheManager.getCache(s);
                 if (cache == null) continue;
-                if (handleCacheLimit(cache, event, player, block, m, d, limit)) {
+                if (handleCacheLimit(cache, event, player, block, name, m, d, limit)) {
                     d = 0;
                     break;
                 }
@@ -359,15 +361,14 @@ public class MainListener implements Listener {
                     for (Selection s : selections) {
                         ScanCache c = cacheManager.getCache(s);
                         if (c == null) continue;
-                        if (handleCacheLimit(c, null, player, block, m, 0, limit)) break;
+                        if (handleCacheLimit(c, null, player, block, name, m, 0, limit)) break;
                     }
                 }
             });
         }
     }
 
-    private boolean handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, Material m, int d, Limit limit) {
-        String name = block.getType().name();
+    private boolean handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, Material m, int d, Limit limit) {
         Integer count = cache.getCount(name);
         if (count == null) return false;
         count += d;
