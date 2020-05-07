@@ -329,7 +329,7 @@ public class MainListener implements Listener {
             for (Selection s : cacheManager.getSelections(player.getLocation()).collect(Collectors.toSet())) {
                 ScanCache cache = cacheManager.getCache(s);
                 if (cache == null) continue;
-                if (handleCacheLimit(cache, event, player, block, m, d, limit, false)) {
+                if (handleCacheLimit(cache, event, player, block, m, d, limit)) {
                     d = 0;
                     break;
                 }
@@ -353,20 +353,21 @@ public class MainListener implements Listener {
                     for (Selection s : selections) {
                         ScanCache c = cacheManager.getCache(s);
                         if (c == null) continue;
-                        if (handleCacheLimit(c, event, player, block, m, 1, limit, true)) break;
+                        if (handleCacheLimit(c, null, player, block, m, 0, limit)) break;
                     }
                 }
             });
         }
     }
 
-    private boolean handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, Material m, int d, Limit limit, boolean async) {
-        Integer count = cache.getCount(block.getType().name());
+    private boolean handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, Material m, int d, Limit limit) {
+        String name = block.getType().name();
+        Integer count = cache.getCount(name);
         if (count == null) return false;
-        int current = count + d;
-        if (async) current--;
+        count += d;
+
         int l = limit.getLimit();
-        if (current > l && count > 0) {
+        if (count > l) {
             if (player.hasPermission(limit.getPermission())) return false;
 
             if (!isPassiveForPlayer(player, "block")) {
@@ -376,14 +377,14 @@ public class MainListener implements Listener {
                         "%what%", "area");
             }
 
-            if (async) {
-                simulateBreak(player, block, m);
-            } else {
+            if (event != null) {
                 event.setCancelled(true);
+            } else {
+                simulateBreak(player, block, m);
             }
             return true;
         } else if (!isPassiveForPlayer(player, "block")) {
-            sendMessage(player, limit.getName(), current, l);
+            sendMessage(player, limit.getName(), count, l);
         }
         return false;
     }
