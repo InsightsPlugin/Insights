@@ -5,10 +5,19 @@ import net.frankheijden.insights.managers.CacheManager;
 
 public abstract class CacheAssistant implements Selectable {
 
-    private final CacheManager cacheManager = CacheManager.getInstance();
+    private static final CacheManager cacheManager = CacheManager.getInstance();
+    private final String name;
+
+    public CacheAssistant(String name) {
+        this.name = name;
+    }
 
     public void initialise() {
         cacheManager.addCacheAssistant(this);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public CacheManager getCacheManager() {

@@ -10,6 +10,10 @@ public class BentoBoxCache extends CacheAssistant {
 
     private final IslandsManager manager = BentoBox.getInstance().getIslands();
 
+    public BentoBoxCache() {
+        super("island");
+    }
+
     public Selection adapt(Island is) {
         return new Selection(is.getWorld(), is.getProtectionBoundingBox());
     }

@@ -32,9 +32,9 @@ public class CacheManager {
         return getSelections(location).count() != 0;
     }
 
-    public Stream<Selection> getSelections(Location location) {
+    public Stream<SelectionEntity> getSelections(Location location) {
         return cacheAssistants.stream()
-                .map(c -> c.getSelection(location))
+                .map(c -> SelectionEntity.from(c.getSelection(location), c))
                 .filter(Objects::nonNull);
     }
 
@@ -51,7 +51,7 @@ public class CacheManager {
     }
 
     public void updateCache(ScanCache scanCache) {
-        caches.put(scanCache.getSelection(), scanCache);
+        caches.put(scanCache.getSelectionEntity(), scanCache);
     }
 
     /**
@@ -62,7 +62,7 @@ public class CacheManager {
      * @param d The difference for the cache variable
      * @return A set of selections which need to be scanned
      */
-    public Set<Selection> updateCache(Location location, String what, int d) {
+    public Set<SelectionEntity> updateCache(Location location, String what, int d) {
         return this.getSelections(location)
                 .filter(s -> updateCache(s, what, d))
                 .collect(Collectors.toSet());

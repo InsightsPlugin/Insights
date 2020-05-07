@@ -20,13 +20,15 @@ messages:
   # Message send when a user tries to place more tiles than the above value
   # Special placeholders:
   # %limit%
-  limit_reached: "&cYou have reached the limit of %limit% tiles in this chunk. Please remove some."
+  # %area%
+  limit_reached: "&cYou have reached the limit of %limit% tiles in this %area%. Please remove some."
 
   # Message send when a user tries to place more custom defined limited blocks
   # Special placeholders:
   # %limit%
   # %material%
-  limit_reached_custom: "&cYou have reached the limit of %limit%x %material% in this chunk. Please remove some."
+  # %area%
+  limit_reached_custom: "&cYou have reached the limit of %limit%x %material% in this %area%. Please remove some."
 
   # Message send when a user has the permission insights.check.realtime and places a tile
   # Special placeholders:

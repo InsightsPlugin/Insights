@@ -168,7 +168,8 @@ public class MainListener implements Listener {
             if (!isPassiveForPlayer(player, "entity")) {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(l),
-                        "%material%", StringUtils.capitalizeName(limit.getName()));
+                        "%material%", StringUtils.capitalizeName(limit.getName()),
+                        "%area%", "chunk");
             }
             return;
         }
@@ -245,7 +246,8 @@ public class MainListener implements Listener {
                     event.setCancelled(true);
                     if (!isPassiveForPlayer(player, "tile")) {
                         MessageUtils.sendMessage(player, "messages.limit_reached",
-                                "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
+                                "%limit%", NumberFormat.getIntegerInstance().format(generalLimit),
+                                "%area%", "chunk");
                     }
                 }
             }
@@ -337,15 +339,15 @@ public class MainListener implements Listener {
             }
         }
 
-        Set<Selection> selections = cacheManager.updateCache(player.getLocation(), block.getType().name(), d);
-        Map<Selection, ScanOptions> list = from(selections, player);
+        Set<SelectionEntity> selections = cacheManager.updateCache(player.getLocation(), block.getType().name(), d);
+        Map<SelectionEntity, ScanOptions> list = from(selections, player);
         if (list.size() == 0) return;
 
         player.sendMessage(MessageUtils.color("&3Please wait while we scan the area..."));
         freezeManager.freezePlayer(player.getUniqueId());
 
         AtomicInteger integer = new AtomicInteger(list.size());
-        for (Map.Entry<Selection, ScanOptions> entry : list.entrySet()) {
+        for (Map.Entry<SelectionEntity, ScanOptions> entry : list.entrySet()) {
             Scanner.create(entry.getValue()).scan().whenComplete((ev, err) -> {
                 ScanCache cache = new ScanCache(entry.getKey(), ev.getScanResult());
                 cacheManager.updateCache(cache);
@@ -376,7 +378,7 @@ public class MainListener implements Listener {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(l),
                         "%material%", StringUtils.capitalizeName(limit.getName()),
-                        "%what%", "area");
+                        "%area%", cache.getSelectionEntity().getAssistant().getName());
             }
 
             if (event != null) {
@@ -406,9 +408,9 @@ public class MainListener implements Listener {
         }.runTask(plugin);
     }
 
-    private Map<Selection, ScanOptions> from(Set<Selection> selections, Player player) {
-        Map<Selection, ScanOptions> list = new HashMap<>();
-        for (Selection selection : selections) {
+    private Map<SelectionEntity, ScanOptions> from(Set<SelectionEntity> selections, Player player) {
+        Map<SelectionEntity, ScanOptions> list = new HashMap<>();
+        for (SelectionEntity selection : selections) {
             ScanOptions options = new ScanOptions();
             options.setScanType(ScanType.ALL);
             options.setWorld(player.getWorld());
@@ -461,7 +463,8 @@ public class MainListener implements Listener {
                 if (!isPassiveForPlayer(player, "block")) {
                     MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                             "%limit%", NumberFormat.getIntegerInstance().format(l),
-                            "%material%", StringUtils.capitalizeName(limit.getName()));
+                            "%material%", StringUtils.capitalizeName(limit.getName()),
+                            "%area%", "chunk");
                 }
                 if (async) {
                     simulateBreak(player, block, m);
