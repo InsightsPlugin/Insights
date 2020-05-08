@@ -106,6 +106,7 @@ public class Insights extends JavaPlugin {
         } else {
             Bukkit.getPluginManager().registerEvents(new Pre1_13Listeners(mainListener), this);
         }
+        Bukkit.getPluginManager().registerEvents(new CacheListener(), this);
         Bukkit.getPluginManager().registerEvents(new FreezeListener(), this);
         Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan());
         Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights());
