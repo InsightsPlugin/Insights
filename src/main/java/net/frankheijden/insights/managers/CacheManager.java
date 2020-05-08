@@ -2,6 +2,7 @@ package net.frankheijden.insights.managers;
 
 import net.frankheijden.insights.entities.*;
 import org.bukkit.Location;
+import org.bukkit.Material;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,6 +48,21 @@ public class CacheManager {
 
     public ScanCache getCache(Selection selection) {
         return caches.get(selection);
+    }
+
+    public void updateCache(Location location, Material from, Material to) {
+        updateCache(location, from.name(), to.name());
+    }
+
+    public void updateCache(Location location, String from, String to) {
+        if (from.equals(to)) return;
+        getSelections(location)
+                .map(this::getCache)
+                .filter(Objects::nonNull)
+                .forEach(c -> {
+                    c.updateCache(from, -1);
+                    c.updateCache(to, 1);
+                });
     }
 
     public boolean updateCache(Selection selection, String what, int d) {

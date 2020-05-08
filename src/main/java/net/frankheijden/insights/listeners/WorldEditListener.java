@@ -100,13 +100,7 @@ public class WorldEditListener implements ExtentDelegate {
 
     @Override
     public void onChange(Player player, Vector vector, Material from, Material to) {
-        cacheManager.getSelections(vector.toLocation(player.getWorld()))
-                .map(cacheManager::getCache)
-                .filter(Objects::nonNull)
-                .forEach(c -> {
-                    c.updateCache(from.name(), -1);
-                    c.updateCache(to.name(), 1);
-                });
+        cacheManager.updateCache(vector.toLocation(player.getWorld()), from, to);
     }
 
     private boolean canNotify() {

@@ -76,13 +76,6 @@ public class CacheListener implements Listener {
     }
 
     private void change(Location loc, Material from, Material to) {
-        if (from.equals(to)) return;
-        cacheManager.getSelections(loc)
-                .map(cacheManager::getCache)
-                .filter(Objects::nonNull)
-                .forEach(c -> {
-                    c.updateCache(from.name(), -1);
-                    c.updateCache(to.name(), 1);
-                });
+        cacheManager.updateCache(loc, from, to);
     }
 }
