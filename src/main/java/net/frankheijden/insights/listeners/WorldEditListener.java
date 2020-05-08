@@ -6,24 +6,24 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.config.Limit;
 import net.frankheijden.insights.entities.ScanResult;
-import net.frankheijden.insights.managers.NMSManager;
-import net.frankheijden.insights.managers.WorldEditManager;
+import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.StringUtils;
 import net.frankheijden.wecompatibility.core.*;
+import net.frankheijden.wecompatibility.core.Vector;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Constructor;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class WorldEditListener implements ExtentDelegate {
 
     private static final Insights plugin = Insights.getInstance();
     private static final WorldEditManager worldEditManager = WorldEditManager.getInstance();
+    private static final CacheManager cacheManager = CacheManager.getInstance();
 
     private final WorldEditPlugin wePlugin;
     private final Player player;
@@ -96,6 +96,17 @@ public class WorldEditListener implements ExtentDelegate {
             block.setMaterial(replacement);
         }
         return block;
+    }
+
+    @Override
+    public void onChange(Player player, Vector vector, Material from, Material to) {
+        cacheManager.getSelections(vector.toLocation(player.getWorld()))
+                .map(cacheManager::getCache)
+                .filter(Objects::nonNull)
+                .forEach(c -> {
+                    c.updateCache(from.name(), -1);
+                    c.updateCache(to.name(), 1);
+                });
     }
 
     private boolean canNotify() {
