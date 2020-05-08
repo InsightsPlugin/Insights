@@ -4,12 +4,12 @@ import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.config.Config;
 import net.frankheijden.insights.config.ConfigError;
+import net.frankheijden.insights.entities.CacheAssistant;
 import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
-import net.frankheijden.insights.utils.FileUtils;
-import net.frankheijden.insights.utils.MessageUtils;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -38,8 +38,10 @@ public class Insights extends JavaPlugin {
     private HookManager hookManager = null;
     private ScanManager scanManager = null;
     private SelectionManager selectionManager = null;
+    private CacheManager cacheManager = null;
     private VersionManager versionManager = null;
     private MetricsManager metricsManager = null;
+    private FreezeManager freezeManager = null;
 
     private boolean placeholderAPIHook = false;
 
@@ -60,6 +62,7 @@ public class Insights extends JavaPlugin {
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
+        registerAllAddons();
         checkForUpdates();
 
         long end = System.currentTimeMillis();
@@ -103,6 +106,8 @@ public class Insights extends JavaPlugin {
         } else {
             Bukkit.getPluginManager().registerEvents(new Pre1_13Listeners(mainListener), this);
         }
+        Bukkit.getPluginManager().registerEvents(new CacheListener(), this);
+        Bukkit.getPluginManager().registerEvents(new FreezeListener(), this);
         Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan());
         Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights());
         Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck());
@@ -142,8 +147,10 @@ public class Insights extends JavaPlugin {
 
         scanManager = new ScanManager();
         selectionManager = new SelectionManager();
+        cacheManager = new CacheManager();
         versionManager = new VersionManager();
         metricsManager = new MetricsManager();
+        freezeManager = new FreezeManager();
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
         if (PaperLib.getMinecraftVersion() <= 7) {
@@ -164,6 +171,18 @@ public class Insights extends JavaPlugin {
             placeholderAPIHook = expansion.isRegistered();
             if (!placeholderAPIHook) {
                 Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
+            }
+        }
+    }
+
+    private void registerAllAddons() {
+        List<Class<?>> classes = FileUtils.loadAllAddons();
+
+        for (Class<?> clazz : classes) {
+            CacheAssistant assistant = ReflectionUtils.createCacheAssistant(clazz);
+            if (assistant != null) {
+                cacheManager.addCacheAssistant(assistant);
+                Bukkit.getLogger().info("[Insights] Successfully registered addon " + assistant.getName() + "!");
             }
         }
     }
@@ -221,12 +240,20 @@ public class Insights extends JavaPlugin {
         return selectionManager;
     }
 
+    public CacheManager getCacheManager() {
+        return cacheManager;
+    }
+
     public VersionManager getVersionManager() {
         return versionManager;
     }
 
     public MetricsManager getMetricsManager() {
         return metricsManager;
+    }
+
+    public FreezeManager getFreezeManager() {
+        return freezeManager;
     }
 
     public boolean hasPlaceholderAPIHook() {

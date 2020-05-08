@@ -5,24 +5,24 @@ plugins {
 
 String packagePath = 'net.frankheijden.insights'
 group = packagePath
-version = '4.5.0'
+version = '5.0.0'
 description = 'Insights'
 sourceCompatibility = '1.8'
 
 repositories {
     mavenCentral()
-    maven { url = 'https://papermc.io/repo/repository/maven-public/' }
-    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
-    maven { url = 'https://maven.sk89q.com/repo/' }
-    maven { url = 'https://jitpack.io' }
-    maven { url = 'https://repo.maven.apache.org/maven2' }
-    maven { url = 'https://repo.codemc.org/repository/maven-public' }
+    maven { url 'https://papermc.io/repo/repository/maven-public/' }
+    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    maven { url 'https://maven.sk89q.com/repo/' }
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.maven.apache.org/maven2' }
+    maven { url 'https://repo.codemc.org/repository/maven-public' }
 }
 
 dependencies {
     implementation 'io.papermc:paperlib:1.0.2'
     implementation 'org.bstats:bstats-bukkit:1.7'
-    implementation 'com.github.FrankHeijden:wecompatibility:v1.2.0'
+    implementation 'com.github.FrankHeijden:wecompatibility:v1.3.0'
     compileOnly 'com.destroystokyo.paper:paper-api:1.15.2-R0.1-SNAPSHOT'
     compileOnly 'me.clip:placeholderapi:2.10.4'
     compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.1.0'

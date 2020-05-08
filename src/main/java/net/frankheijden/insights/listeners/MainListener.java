@@ -24,11 +24,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainListener implements Listener {
 
     private static final Insights plugin = Insights.getInstance();
     private static final SelectionManager selectionManager = SelectionManager.getInstance();
+    private static final CacheManager cacheManager = CacheManager.getInstance();
+    private static final FreezeManager freezeManager = FreezeManager.getInstance();
     private final InteractListener interactListener;
     private final List<Location> blockLocations;
 
@@ -62,8 +65,12 @@ public class MainListener implements Listener {
         }
 
         Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
-        if (limit != null && !isPassiveForPlayer(player, "block")) {
-            sendBreakMessage(player, event.getBlock().getChunk(), limit);
+        if (limit != null) {
+            if (cacheManager.hasSelections(player.getLocation())) {
+                handleBlockCache(event, player, block, null, -1, limit);
+            } else if (!isPassiveForPlayer(player, "block")) {
+                sendBreakMessage(player, event.getBlock().getChunk(), limit);
+            }
         } else if (TileUtils.isTile(event.getBlock()) && !isPassiveForPlayer(player, "tile")) {
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || generalLimit > -1) {
@@ -160,7 +167,8 @@ public class MainListener implements Listener {
             if (!isPassiveForPlayer(player, "entity")) {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(l),
-                        "%material%", StringUtils.capitalizeName(limit.getName()));
+                        "%material%", StringUtils.capitalizeName(limit.getName()),
+                        "%area%", "chunk");
             }
             return;
         }
@@ -223,7 +231,12 @@ public class MainListener implements Listener {
 
         Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
         if (limit != null) {
-            handleBlockPlace(event, player, block, event.getItemInHand(), limit);
+            Material m = event.getItemInHand().getType();
+            if (cacheManager.hasSelections(player.getLocation())) {
+                handleBlockCache(event, player, block, m, 1, limit);
+            } else {
+                handleChunkPreBlockPlace(event, player, block, m, limit);
+            }
         } else if (TileUtils.isTile(event.getBlockPlaced())) {
             int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
@@ -232,7 +245,8 @@ public class MainListener implements Listener {
                     event.setCancelled(true);
                     if (!isPassiveForPlayer(player, "tile")) {
                         MessageUtils.sendMessage(player, "messages.limit_reached",
-                                "%limit%", NumberFormat.getIntegerInstance().format(generalLimit));
+                                "%limit%", NumberFormat.getIntegerInstance().format(generalLimit),
+                                "%area%", "chunk");
                     }
                 }
             }
@@ -312,14 +326,98 @@ public class MainListener implements Listener {
         return false;
     }
 
-    private void handleBlockPlace(Cancellable event, Player player, Block block, ItemStack itemInHand, Limit limit) {
+    private void handleBlockCache(Cancellable event, Player player, Block block, Material m, int d, Limit limit) {
+        String name = block.getType().name();
+
+        Set<SelectionEntity> selections = cacheManager.updateCache(player.getLocation(), name, d);
+        if (selections.size() == 0 && limit != null) {
+            cacheManager.getMaxCountCache(player.getLocation(), name)
+                    .ifPresent(scanCache -> handleCacheLimit(scanCache, event, player, block, name, m, d, limit));
+            return;
+        }
+
+        Map<SelectionEntity, ScanOptions> list = from(selections, player);
+        if (list.size() == 0) return;
+
+        MessageUtils.sendMessage(player, "messages.area_scan.start");
+        freezeManager.freezePlayer(player.getUniqueId());
+
+        AtomicInteger integer = new AtomicInteger(list.size());
+        for (Map.Entry<SelectionEntity, ScanOptions> entry : list.entrySet()) {
+            Scanner.create(entry.getValue()).scan().whenComplete((ev, err) -> {
+                ScanCache cache = new ScanCache(entry.getKey(), ev.getScanResult());
+                cacheManager.updateCache(cache);
+
+                if (integer.decrementAndGet() == 0) {
+                    MessageUtils.sendMessage(player, "messages.area_scan.end");
+                    freezeManager.defrostPlayer(player.getUniqueId());
+
+                    cacheManager.getMaxCountCache(player.getLocation(), name)
+                            .ifPresent(scanCache -> handleCacheLimit(scanCache, null, player, block, name, m, d, limit));
+                }
+            });
+        }
+    }
+
+    private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, Material m, int d, Limit limit) {
+        Integer count = cache.getCount(name);
+        if (count == null) return;
+
+        int l = limit.getLimit();
+        if (count > l && !player.hasPermission(limit.getPermission())) {
+            if (!isPassiveForPlayer(player, "block")) {
+                MessageUtils.sendMessage(player, "messages.limit_reached_custom",
+                        "%limit%", NumberFormat.getIntegerInstance().format(l),
+                        "%material%", StringUtils.capitalizeName(limit.getName()),
+                        "%area%", cache.getSelectionEntity().getAssistant().getAreaName());
+            }
+
+            cache.updateCache(name, -d);
+            if (event != null) {
+                event.setCancelled(true);
+            } else {
+                simulateBreak(player, block, m);
+            }
+        } else if (!isPassiveForPlayer(player, "block")) {
+            sendMessage(player, limit.getName(), count, l);
+        }
+    }
+
+    private void simulateBreak(Player player, Block block, Material m) {
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            ItemStack it = new ItemStack(m);
+            it.setAmount(1);
+            player.getInventory().addItem(it);
+        }
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                block.setType(Material.AIR);
+                blockLocations.remove(block.getLocation());
+            }
+        }.runTask(plugin);
+    }
+
+    private Map<SelectionEntity, ScanOptions> from(Set<SelectionEntity> selections, Player player) {
+        Map<SelectionEntity, ScanOptions> list = new HashMap<>();
+        for (SelectionEntity selection : selections) {
+            ScanOptions options = new ScanOptions();
+            options.setScanType(ScanType.ALL);
+            options.setWorld(player.getWorld());
+            options.setUuid(player.getUniqueId());
+
+            List<PartialChunk> partials = ChunkUtils.getPartialChunks(selection.getPos1(), selection.getPos2());
+            options.setPartialChunks(partials);
+            list.put(selection, options);
+        }
+        return list;
+    }
+
+    private void handleChunkPreBlockPlace(Cancellable event, Player player, Block block, Material m, Limit limit) {
         ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
 
         boolean async = shouldPerformAsync(block.getType().name());
         if (async) {
-            ItemStack itemStack = new ItemStack(itemInHand);
-            itemStack.setAmount(1);
-
             if (!player.hasPermission(limit.getPermission())) {
                 blockLocations.add(block.getLocation());
             }
@@ -327,11 +425,11 @@ public class MainListener implements Listener {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    handleBlockPlace(event, player, block, chunkSnapshot, itemStack, async, limit);
+                    handleChunkBlockPlace(event, player, block, chunkSnapshot, m, async, limit);
                 }
             }.runTaskAsynchronously(plugin);
         } else {
-            handleBlockPlace(event, player, block, chunkSnapshot, null, async, limit);
+            handleChunkBlockPlace(event, player, block, chunkSnapshot, null, async, limit);
         }
     }
 
@@ -347,7 +445,7 @@ public class MainListener implements Listener {
         return false;
     }
 
-    private void handleBlockPlace(Cancellable event, Player player, Block block, ChunkSnapshot chunkSnapshot, ItemStack itemStack, boolean async, Limit limit) {
+    private void handleChunkBlockPlace(Cancellable event, Player player, Block block, ChunkSnapshot chunkSnapshot, Material m, boolean async, Limit limit) {
         int current = ChunkUtils.getAmountInChunk(block.getChunk(), chunkSnapshot, limit);
         int l = limit.getLimit();
         if (current > l) {
@@ -355,19 +453,11 @@ public class MainListener implements Listener {
                 if (!isPassiveForPlayer(player, "block")) {
                     MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                             "%limit%", NumberFormat.getIntegerInstance().format(l),
-                            "%material%", StringUtils.capitalizeName(limit.getName()));
+                            "%material%", StringUtils.capitalizeName(limit.getName()),
+                            "%area%", "chunk");
                 }
                 if (async) {
-                    if (player.getGameMode() != GameMode.CREATIVE) {
-                        player.getInventory().addItem(itemStack);
-                    }
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            block.setType(Material.AIR);
-                            blockLocations.remove(block.getLocation());
-                        }
-                    }.runTask(plugin);
+                    simulateBreak(player, block, m);
                 } else {
                     blockLocations.remove(block.getLocation());
                     event.setCancelled(true);

@@ -16,15 +16,13 @@ public class NotificationManager {
     private static NotificationManager instance = null;
 
     private final NotifyTask task;
-    private final Map<UUID, Notification> notifications;
-    private final Map<UUID, BossBar> persistentBossBars;
+    private static final Map<UUID, Notification> notifications = new ConcurrentHashMap<>();
+    private static final Map<UUID, BossBar> persistentBossBars = new ConcurrentHashMap<>();
     private final int BOSSBAR_DURATION_MILLIS;
 
     public NotificationManager() {
         instance = this;
         this.task = new NotifyTask();
-        this.notifications = new ConcurrentHashMap<>();
-        this.persistentBossBars = new ConcurrentHashMap<>();
         this.BOSSBAR_DURATION_MILLIS = plugin.getConfiguration().GENERAL_NOTIFICATION_BOSSBAR_DURATION * 50;
     }
 

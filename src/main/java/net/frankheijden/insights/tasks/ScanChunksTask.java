@@ -79,7 +79,7 @@ public class ScanChunksTask implements Runnable {
     private void stop() {
         forceStop();
 
-        if (scanOptions.getUUID() != null) {
+        if (scanOptions.getUUID() != null && scanOptions.getPath() != null) {
             Player player = Bukkit.getPlayer(scanOptions.getUUID());
             if (player != null || scanOptions.isConsole()) {
                 if (scanResult.getSize() > 0) {
@@ -229,7 +229,8 @@ public class ScanChunksTask implements Runnable {
     }
 
     private boolean canNotifyInChat() {
-        return System.currentTimeMillis() > (lastProgressMessageInChat + NOTIFICATION_DELAY_SECONDS * 1000);
+        return scanOptions.getPath() != null
+                && System.currentTimeMillis() > (lastProgressMessageInChat + NOTIFICATION_DELAY_SECONDS * 1000);
     }
 
     private void tryNotifyInChat() {
@@ -269,7 +270,7 @@ public class ScanChunksTask implements Runnable {
     }
 
     private void tryNotifySpecial(boolean finished) {
-        if (!canNotifySpecial()) return;
+        if (!canNotifySpecial() && !finished) return;
         lastProgressMessageSpecial = System.currentTimeMillis();
 
         if (canSendProgressMessage && scanOptions.hasUUID()) {
@@ -319,7 +320,7 @@ public class ScanChunksTask implements Runnable {
                     // Inter version compatible method to get the material of that location
                     Material material = ChunkUtils.getMaterial(chunkSnapshot, x, y, z);
                     if (material != null) {
-                        String name = material.name().toLowerCase();
+                        String name = material.name().toUpperCase();
                         if (materials.contains(name) || scanOptions.getScanType() == ScanType.ALL) {
                             result.increment(name);
                         }

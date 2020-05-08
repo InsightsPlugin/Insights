@@ -1,6 +1,8 @@
 package net.frankheijden.insights.utils;
 
+import net.frankheijden.insights.entities.CacheAssistant;
 import net.frankheijden.insights.managers.NMSManager;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.lang.reflect.Constructor;
@@ -28,4 +30,29 @@ public class ReflectionUtils {
         return getTileEntity.invoke(worldServer, blockPosition);
     }
 
+    public static CacheAssistant createCacheAssistant(Class<?> clazz) {
+        if (clazz == null || !CacheAssistant.class.isAssignableFrom(clazz)) {
+            return null;
+        }
+
+        CacheAssistant assistant = null;
+        try {
+            Constructor<?>[] c = clazz.getConstructors();
+            if (c.length == 0) {
+                assistant = (CacheAssistant) clazz.newInstance();
+            } else {
+                for (Constructor<?> con : c) {
+                    if (con.getParameterTypes().length == 0) {
+                        assistant = (CacheAssistant) clazz.newInstance();
+                        break;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Bukkit.getLogger().severe("[Insights] Failed to initialise addon: " + clazz.getName());
+            Bukkit.getLogger().severe(ex.getMessage());
+        }
+
+        return assistant;
+    }
 }

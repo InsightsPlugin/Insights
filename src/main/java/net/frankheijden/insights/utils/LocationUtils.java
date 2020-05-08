@@ -20,6 +20,15 @@ public class LocationUtils {
         );
     }
 
+    public static boolean contains(Location v1, Location v2, Location loc) {
+        Location min = min(v1, v2);
+        Location max = max(v1, v2);
+        return min.getWorld().equals(loc.getWorld())
+                && min.getX() <= loc.getX() && max.getX() >= loc.getX()
+                && min.getY() <= loc.getY() && max.getY() >= loc.getY()
+                && min.getZ() <= loc.getZ() && max.getZ() >= loc.getZ();
+    }
+
     public static String toString(Location loc) {
         return "World: " + loc.getWorld().getName()
                 + ", X: " + loc.getBlockX()

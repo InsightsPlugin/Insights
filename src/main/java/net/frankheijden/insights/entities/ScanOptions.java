@@ -106,7 +106,7 @@ public class ScanOptions {
     }
 
     public void setMaterials(List<String> materials) {
-        this.materials = StringUtils.lowercase(materials);
+        this.materials = StringUtils.uppercase(materials);
     }
 
     public void addMaterial(String material) {
@@ -114,7 +114,7 @@ public class ScanOptions {
     }
 
     public void addAllMaterials(List<String> materials) {
-        this.materials.addAll(StringUtils.lowercase(materials));
+        this.materials.addAll(StringUtils.uppercase(materials));
     }
 
     public List<String> getEntityTypes() {
@@ -122,7 +122,7 @@ public class ScanOptions {
     }
 
     public void setEntityTypes(List<String> entityTypes) {
-        this.entityTypes = StringUtils.lowercase(entityTypes);
+        this.entityTypes = StringUtils.uppercase(entityTypes);
     }
 
     public void addEntityType(String entityType) {
@@ -130,7 +130,7 @@ public class ScanOptions {
     }
 
     public void addAllEntityTypes(List<String> entityTypes) {
-        this.entityTypes.addAll(StringUtils.lowercase(entityTypes));
+        this.entityTypes.addAll(StringUtils.uppercase(entityTypes));
     }
 
     public boolean isConsole() {
