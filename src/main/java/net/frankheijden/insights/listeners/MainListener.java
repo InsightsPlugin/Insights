@@ -25,7 +25,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 public class MainListener implements Listener {
 
@@ -370,7 +369,7 @@ public class MainListener implements Listener {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(l),
                         "%material%", StringUtils.capitalizeName(limit.getName()),
-                        "%area%", cache.getSelectionEntity().getAssistant().getName());
+                        "%area%", cache.getSelectionEntity().getAssistant().getAreaName());
             }
 
             cache.updateCache(name, -d);

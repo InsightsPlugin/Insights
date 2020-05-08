@@ -27,7 +27,6 @@ dependencies {
     compileOnly 'me.clip:placeholderapi:2.10.4'
     compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.1.0'
     compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.2'
-    compileOnly 'world.bentobox:bentobox:1.14.0-SNAPSHOT'
 
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.6.2'
     testCompile 'org.junit.jupiter:junit-jupiter-engine:5.6.2'

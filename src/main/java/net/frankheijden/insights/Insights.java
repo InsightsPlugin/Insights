@@ -4,12 +4,12 @@ import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.config.Config;
 import net.frankheijden.insights.config.ConfigError;
+import net.frankheijden.insights.entities.CacheAssistant;
 import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
 import net.frankheijden.insights.tasks.UpdateCheckerTask;
-import net.frankheijden.insights.utils.FileUtils;
-import net.frankheijden.insights.utils.MessageUtils;
+import net.frankheijden.insights.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -62,7 +62,7 @@ public class Insights extends JavaPlugin {
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
-        setupCaches();
+        registerAllAddons();
         checkForUpdates();
 
         long end = System.currentTimeMillis();
@@ -175,9 +175,15 @@ public class Insights extends JavaPlugin {
         }
     }
 
-    private void setupCaches() {
-        if (isAvailable("BentoBox")) {
-            new BentoBoxCache().initialise();
+    private void registerAllAddons() {
+        List<Class<?>> classes = FileUtils.loadAllAddons();
+
+        for (Class<?> clazz : classes) {
+            CacheAssistant assistant = ReflectionUtils.createCacheAssistant(clazz);
+            if (assistant != null) {
+                cacheManager.addCacheAssistant(assistant);
+                Bukkit.getLogger().info("[Insights] Successfully registered addon " + assistant.getName() + "!");
+            }
         }
     }
 

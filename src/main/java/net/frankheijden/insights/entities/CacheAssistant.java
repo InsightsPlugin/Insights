@@ -7,17 +7,19 @@ public abstract class CacheAssistant implements Selectable {
 
     private static final CacheManager cacheManager = CacheManager.getInstance();
     private final String name;
+    private final String areaName;
 
-    public CacheAssistant(String name) {
+    public CacheAssistant(String name, String areaName) {
         this.name = name;
-    }
-
-    public void initialise() {
-        cacheManager.addCacheAssistant(this);
+        this.areaName = areaName;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getAreaName() {
+        return areaName;
     }
 
     public CacheManager getCacheManager() {
