@@ -2,7 +2,6 @@ package net.frankheijden.insights.tasks;
 
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.*;
-import net.frankheijden.insights.enums.LogType;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.events.ScanCompleteEvent;
 import net.frankheijden.insights.managers.*;
@@ -239,25 +238,8 @@ public class ScanChunksTask implements Runnable {
 
         if (chunksDone > 0) {
             String chunksDoneScanningString = NumberFormat.getIntegerInstance().format(chunksDone);
-            int chunksDoneLoading = scanOptions.getChunkCount() - scanOptions.getPartialChunksSize();
+            //int chunksDoneLoading = scanOptions.getChunkCount() - scanOptions.getPartialChunksSize();
             String totalChunksString = NumberFormat.getIntegerInstance().format(scanOptions.getChunkCount());
-
-            if (scanOptions.isDebug()) {
-                if (chunksDoneLoading != scanOptions.getChunkCount()) {
-                    String chunksDoneLoadingString = NumberFormat.getIntegerInstance().format(chunksDoneLoading);
-                    LogManager.log(LogType.DEBUG, "Loaded " + chunksDoneLoadingString
-                            + "/" + totalChunksString
-                            + " and scanned " + chunksDoneScanningString + "/" + totalChunksString
-                            + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks")
-                            + "...", loadChunksTask.getTaskID());
-                } else {
-                    LogManager.log(LogType.DEBUG, "Scanned " + chunksDoneScanningString
-                            + "/" + totalChunksString
-                            + " " + (scanOptions.getChunkCount() == 1 ? "chunk" : "chunks")
-                            + "...", loadChunksTask.getTaskID());
-                }
-            }
-
             sendMessage(scanOptions.getPath() + ".progress",
                     "%count%", chunksDoneScanningString,
                     "%total%", totalChunksString,

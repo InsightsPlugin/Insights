@@ -31,7 +31,7 @@ public class WorldEditManager {
         this.wePlugin = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
         this.fawe = plugin.isAvailable("FastAsyncWorldEdit");
         if (isFawe()) {
-            Bukkit.getLogger().info("[Insights] Successfully hooked into FastAsyncWorldEdit!");
+            Insights.logger.info("Successfully hooked into FastAsyncWorldEdit!");
         }
 
         register();

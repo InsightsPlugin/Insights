@@ -13,9 +13,6 @@ general:
     # enable Insights to download and restart the plugin on startup of the server.
     download_startup: false
 
-  # Should the plugin output some useful information when scanning for blocks?
-  debug: false
-
   # Configure a maximum Tile limit per chunk!
   # If you want to disable this, set the value to -1.
   # A list of all tiles: https://minecraft.gamepedia.com/Block_entity

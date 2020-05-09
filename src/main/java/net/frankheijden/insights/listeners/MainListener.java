@@ -6,7 +6,6 @@ import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.builders.Scanner;
 import net.frankheijden.insights.config.*;
 import net.frankheijden.insights.entities.*;
-import net.frankheijden.insights.enums.LogType;
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.events.*;
 import net.frankheijden.insights.managers.*;
@@ -57,10 +56,6 @@ public class MainListener implements Listener {
 
         if (blockLocations.contains(block.getLocation())) {
             event.setCancelled(true);
-            LogManager.log(LogType.WARNING, "Player " + player.getPlayerListName()
-                    + " removed block '"
-                    + name + "' too fast in "
-                    + LocationUtils.toString(block.getLocation()) + ".");
             return;
         }
 
@@ -214,10 +209,6 @@ public class MainListener implements Listener {
 
         if (isNextToForbiddenLocation(block.getLocation())) {
             event.setCancelled(true);
-            LogManager.log(LogType.WARNING, "Player " + player.getPlayerListName()
-                    + " placed block '"
-                    + name + "' too fast in "
-                    + LocationUtils.toString(block.getLocation()) + ".");
             return;
         }
 

@@ -204,6 +204,6 @@ public class MessageUtils {
     }
 
     public static void printErrors(List<Error> errors, boolean reload) {
-        formatErrors(errors, false, reload).forEach(c -> Bukkit.getLogger().severe(c));
+        formatErrors(errors, false, reload).forEach(c -> Insights.logger.severe(c));
     }
 }

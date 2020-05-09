@@ -20,7 +20,6 @@ public class ScanOptions {
     private List<String> entityTypes;
     private boolean console;
     private boolean saveWorld;
-    private boolean debug;
     private ScanCompleteListener listener;
 
     public ScanOptions() {
@@ -34,7 +33,6 @@ public class ScanOptions {
         this.entityTypes = new ArrayList<>();
         this.console = false;
         this.saveWorld = false;
-        this.debug = false;
         this.listener = null;
     }
 
@@ -147,14 +145,6 @@ public class ScanOptions {
 
     public void setSaveWorld(boolean saveWorld) {
         this.saveWorld = saveWorld;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
     }
 
     public ScanCompleteListener getListener() {

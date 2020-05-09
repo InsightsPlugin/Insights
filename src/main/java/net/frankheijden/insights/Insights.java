@@ -20,11 +20,13 @@ import java.io.File;
 import java.lang.reflect.*;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Insights extends JavaPlugin {
 
     private static Insights insights;
+    public static Logger logger;
 
     private FileConfiguration messages;
 
@@ -49,6 +51,7 @@ public class Insights extends JavaPlugin {
     public void onEnable() {
         long start = System.currentTimeMillis();
         insights = this;
+        logger = this.getLogger();
 
         PaperLib.suggestPaper(this);
 
@@ -68,8 +71,7 @@ public class Insights extends JavaPlugin {
 
         long end = System.currentTimeMillis();
         long millis = end - start;
-        Bukkit.getLogger().info("[Insights] Enabled Insights in "
-                + NumberFormat.getInstance().format(millis) + "ms!");
+        logger.info(String.format("Enabled Insights in %s ms!", NumberFormat.getInstance().format(millis)));
     }
 
     @Override
@@ -137,12 +139,12 @@ public class Insights extends JavaPlugin {
 
         if (isAvailable("WorldEdit")) {
             worldEditManager = new WorldEditManager();
-            Bukkit.getLogger().info("[Insights] Successfully hooked into WorldEdit!");
+            logger.info("Successfully hooked into WorldEdit!");
         }
 
         if (isAvailable("WorldGuard")) {
             worldGuardManager = new WorldGuardManager();
-            Bukkit.getLogger().info("[Insights] Successfully hooked into WorldGuard!");
+            logger.info("Successfully hooked into WorldGuard!");
         }
 
         scanManager = new ScanManager();
@@ -154,10 +156,9 @@ public class Insights extends JavaPlugin {
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
         if (PaperLib.getMinecraftVersion() <= 7) {
-            Bukkit.getLogger().warning("[Insights] Minecraft version '" + version + "' detected, "
-                    + "please note that Insights may not support this version!");
+            logger.severe(String.format("Minecraft version '%s' detected, please note that Insights may not support this version!", version));
         } else {
-            Bukkit.getLogger().info("[Insights] Minecraft version '" + version + "' detected!");
+            logger.info(String.format("Minecraft version '%s' detected!", version));
         }
     }
 
@@ -165,12 +166,12 @@ public class Insights extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             InsightsPlaceholderAPIExpansion expansion = new InsightsPlaceholderAPIExpansion();
             if (expansion.register()) {
-                Bukkit.getLogger().info("[Insights] Successfully hooked into PlaceholderAPI!");
+                Bukkit.getLogger().info("Successfully hooked into PlaceholderAPI!");
             }
 
             placeholderAPIHook = expansion.isRegistered();
             if (!placeholderAPIHook) {
-                Bukkit.getLogger().warning("[Insights] Couldn't hook into PlaceholderAPI.");
+                Bukkit.getLogger().warning("Couldn't hook into PlaceholderAPI.");
             }
         }
     }

@@ -3,8 +3,6 @@ package net.frankheijden.insights.tasks;
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.*;
-import net.frankheijden.insights.enums.LogType;
-import net.frankheijden.insights.managers.LogManager;
 import net.frankheijden.insights.managers.ScanManager;
 import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.Bukkit;
@@ -62,12 +60,6 @@ public class LoadChunksTask implements Runnable {
         this.pendingChunks = new HashMap<>();
         this.taskID = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 0, 1);
 
-        if (scanOptions.isDebug()) {
-            LogManager.log(LogType.DEBUG, "Started scan for "
-                    + NumberFormat.getIntegerInstance().format(totalChunks)
-                    + " " + (totalChunks == 1 ? "chunk" : "chunks")
-                    + "...", taskID);
-        }
         if (scanOptions.getPath() != null) {
             sendMessage( scanOptions.getPath() + ".start",
                     "%chunks%",NumberFormat.getIntegerInstance().format(totalChunks),
@@ -117,13 +109,6 @@ public class LoadChunksTask implements Runnable {
     }
 
     public void stop() {
-        if (scanOptions.isDebug()) {
-            LogManager.log(LogType.DEBUG, "Finished loading and generating "
-                    + NumberFormat.getIntegerInstance().format(totalChunks)
-                    + " " + (totalChunks == 1 ? "chunk" : "chunks")
-                    + ", saving world and continuing scan...", taskID);
-        }
-
         cancelled = true;
         run = false;
         Bukkit.getScheduler().cancelTask(taskID);
@@ -138,10 +123,6 @@ public class LoadChunksTask implements Runnable {
         Bukkit.getScheduler().cancelTask(taskID);
 
         scanChunksTask.forceStop();
-
-        if (scanOptions.isDebug()) {
-            LogManager.log(LogType.DEBUG, "Task has been forcefully stopped.", taskID);
-        }
     }
 
     @Override

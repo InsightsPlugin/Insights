@@ -47,7 +47,7 @@ public class CacheManager {
 
     public void addCacheAssistant(CacheAssistant cache) {
         this.cacheAssistants.add(cache);
-        Bukkit.getLogger().info("[Insights] Successfully registered addon " + cache.getName() + " v" + cache.getVersion() + "!");
+        Insights.logger.info("[Insights] Successfully registered addon " + cache.getName() + " v" + cache.getVersion() + "!");
     }
 
     public Set<CacheAssistant> getLoadedAddons() {

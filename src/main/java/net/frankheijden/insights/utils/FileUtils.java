@@ -2,7 +2,6 @@ package net.frankheijden.insights.utils;
 
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.CacheAssistant;
-import org.bukkit.Bukkit;
 
 import java.io.*;
 import java.net.*;
@@ -31,7 +30,7 @@ public class FileUtils {
 
         File file = new File(plugin.getDataFolder(), resource);
         if (!file.exists()) {
-            Bukkit.getLogger().info("[Insights] '" + resource + "' not found, creating!");
+            Insights.logger.info(String.format("'%s' not found, creating!", resource));
             plugin.saveResource(resource, false);
         }
         return file;
@@ -42,7 +41,7 @@ public class FileUtils {
 
         File file = new File(plugin.getDataFolder(), fileName);
         if (!file.exists()) {
-            Bukkit.getLogger().info("[Insights] '" + fileName + "' not found, creating!");
+            Insights.logger.info(String.format("'%s' not found, creating!", fileName));
             try {
                 file.createNewFile();
             } catch (IOException ex) {

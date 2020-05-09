@@ -1,5 +1,6 @@
 package net.frankheijden.insights.managers;
 
+import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.interfaces.Hook;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -36,7 +37,7 @@ public class HookManager {
     public boolean tryHook(String plugin, Hook hook) {
         if (canHook(plugin)) {
             addHook(hook);
-            Bukkit.getLogger().info("[Insights] Successfully hooked into " + plugin + "!");
+            Insights.logger.info(String.format("Successfully hooked into %s!", plugin));
             return true;
         }
         return false;

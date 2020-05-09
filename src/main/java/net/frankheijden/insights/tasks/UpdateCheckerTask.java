@@ -57,7 +57,7 @@ public class UpdateCheckerTask implements Runnable {
         try {
             jsonObject = readJsonFromURL(GITHUB_INSIGHTS_LINK).getAsJsonObject();
         } catch (IOException ex) {
-            Bukkit.getLogger().severe("[Insights] Error fetching new version of Insights");
+            Insights.logger.severe("Error fetching new version of Insights");
             return;
         }
         String githubVersion = jsonObject.getAsJsonPrimitive("tag_name").getAsString();
@@ -125,8 +125,7 @@ public class UpdateCheckerTask implements Runnable {
         }
 
         if (isStartupCheck()) {
-            Bukkit.getLogger().info("[Insights] Downloaded Insights version " + githubVersion
-                    + ". Restarting plugin now...");
+            Insights.logger.info(String.format("Downloaded Insights version v%s. Restarting plugin now...", githubVersion));
             Bukkit.getPluginManager().disablePlugin(plugin);
             try {
                 Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(getPluginFile()));
@@ -134,7 +133,7 @@ public class UpdateCheckerTask implements Runnable {
                 ex.printStackTrace();
                 return;
             }
-            Bukkit.getLogger().info("[Insights] Successfully upgraded Insights to " + githubVersion + "!");
+            Insights.logger.info(String.format("Successfully upgraded Insights to v%s!", githubVersion));
         } else {
             versionManager.setDownloadedVersion(githubVersion);
             broadcastDownloadStatus(githubVersion, false);
