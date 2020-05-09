@@ -3,8 +3,6 @@ package net.frankheijden.insights;
 import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.config.Config;
-import net.frankheijden.insights.config.ConfigError;
-import net.frankheijden.insights.entities.CacheAssistant;
 import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.managers.*;

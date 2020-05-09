@@ -1,7 +1,10 @@
 name: Insights
 main: net.frankheijden.insights.Insights
-dev-url: https://www.spigotmc.org/resources/56489/
 version: ${version}
+description: "A plugin which gives you Insights about your server, and allows for the limiting of blocks."
+author: "FrankHeijden"
+website: "https://www.spigotmc.org/resources/56489/"
+prefix: "Insights"
 softdepend: [BentoBoxWorld, FastAsyncWorldEdit, PlaceholderAPI, WorldEdit, WorldGuard]
 api-version: "1.15"
 

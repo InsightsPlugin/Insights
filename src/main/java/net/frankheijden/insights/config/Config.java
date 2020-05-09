@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.*;
 
 public class Config {
-    private YamlConfiguration config;
 
     public boolean GENERAL_UPDATES_CHECK;
     public boolean GENERAL_UPDATES_DOWNLOAD;
@@ -25,16 +24,16 @@ public class Config {
     public List<RegionBlocks> GENERAL_REGION_BLOCKS;
     public boolean GENERAL_WORLDEDIT_ENABLED;
     public String GENERAL_WORLDEDIT_TYPE;
-    private Set<String> GENERAL_WORLDEDIT_TYPE_VALUES = of("UNCHANGED", "REPLACEMENT");
+    private final Set<String> GENERAL_WORLDEDIT_TYPE_VALUES = of("UNCHANGED", "REPLACEMENT");
     public String GENERAL_WORLDEDIT_REPLACEMENT;
     public String GENERAL_NOTIFICATION_TYPE;
-    private Set<String> GENERAL_NOTIFICATION_TYPE_VALUES = of("BOSSBAR", "ACTIONBAR");
+    private final Set<String> GENERAL_NOTIFICATION_TYPE_VALUES = of("BOSSBAR", "ACTIONBAR");
     public String GENERAL_NOTIFICATION_BOSSBAR_COLOR;
-    private Set<String> GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES = of("BLUE", "GREEN", "PINK", "PURPLE", "RED", "WHITE", "YELLOW");
+    private final Set<String> GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES = of("BLUE", "GREEN", "PINK", "PURPLE", "RED", "WHITE", "YELLOW");
     public String GENERAL_NOTIFICATION_BOSSBAR_STYLE;
-    private Set<String> GENERAL_NOTIFICATION_BOSSBAR_STYLE_VALUES = of("SOLID", "SEGMENTED_6", "SEGMENTED_10", "SEGMENTED_12", "SEGMENTED_20");
+    private final Set<String> GENERAL_NOTIFICATION_BOSSBAR_STYLE_VALUES = of("SOLID", "SEGMENTED_6", "SEGMENTED_10", "SEGMENTED_12", "SEGMENTED_20");
     public List<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS;
-    private Set<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES = of("DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG");
+    private final Set<String> GENERAL_NOTIFICATION_BOSSBAR_FLAGS_VALUES = of("DARKEN_SKY", "PLAY_BOSS_MUSIC", "CREATE_FOG");
     public int GENERAL_NOTIFICATION_BOSSBAR_DURATION;
     public List<String> GENERAL_NOTIFICATION_PASSIVE;
     public Set<String> GENERAL_NOTIFICATION_PASSIVE_VALUES = of("block", "entity", "region", "tile");
@@ -50,7 +49,7 @@ public class Config {
 
     public void reload(List<Error> errors) {
         File configFile = FileUtils.copyResourceIfNotExists("config.yml");
-        config = YamlConfiguration.loadConfiguration(configFile);
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         YamlUtils utils = new YamlUtils(errors, config, "config.yml");
 
         GENERAL_UPDATES_CHECK = utils.getBoolean("general.updates.check", true);

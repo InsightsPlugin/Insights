@@ -4,7 +4,6 @@ import net.frankheijden.insights.entities.AddonError;
 import net.frankheijden.insights.entities.CacheAssistant;
 import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.managers.NMSManager;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.lang.reflect.Constructor;

@@ -9,8 +9,6 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
-import java.util.Objects;
-
 public class CacheListener implements Listener {
 
     private static final CacheManager cacheManager = CacheManager.getInstance();

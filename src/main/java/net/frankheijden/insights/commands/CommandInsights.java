@@ -26,7 +26,7 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
             sender.sendMessage(MessageUtils.color(new String[]{
                     "&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------",
                     "&b Plugin version: &a" + plugin.getDescription().getVersion(),
-                    "&b Plugin author: &7https://www.spigotmc.org/members/213966/",
+                    "&b Plugin author: &7FrankHeijden#0099",
                     "&b Plugin link: &7https://www.spigotmc.org/resources/56489/",
                     "&8&m-------------------------------------------------"
             }));
