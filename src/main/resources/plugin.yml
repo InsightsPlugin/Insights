@@ -3,7 +3,7 @@ main: net.frankheijden.insights.Insights
 dev-url: https://www.spigotmc.org/resources/56489/
 version: ${version}
 softdepend: [BentoBoxWorld, FastAsyncWorldEdit, PlaceholderAPI, WorldEdit, WorldGuard]
-api-version: "1.13"
+api-version: "1.15"
 
 commands:
   autoscan:

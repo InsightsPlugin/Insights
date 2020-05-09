@@ -26,7 +26,7 @@ public class UpdateCheckerTask implements Runnable {
     private final String currentVersion;
     private final boolean startup;
 
-    private static final String GITHUB_INSIGHTS_LINK = "https://api.github.com/repos/FrankHeijden/Insights/releases/latest";
+    private static final String GITHUB_INSIGHTS_LINK = "https://api.github.com/repos/InsightsPlugin/Insights/releases/latest";
 
     private UpdateCheckerTask(CommandSender sender, boolean startup) {
         this.sender = sender;

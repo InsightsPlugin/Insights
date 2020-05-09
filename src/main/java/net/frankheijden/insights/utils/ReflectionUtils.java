@@ -1,12 +1,15 @@
 package net.frankheijden.insights.utils;
 
+import net.frankheijden.insights.entities.AddonError;
 import net.frankheijden.insights.entities.CacheAssistant;
+import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.managers.NMSManager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.List;
 
 public class ReflectionUtils {
 
@@ -30,7 +33,7 @@ public class ReflectionUtils {
         return getTileEntity.invoke(worldServer, blockPosition);
     }
 
-    public static CacheAssistant createCacheAssistant(Class<?> clazz) {
+    public static CacheAssistant createCacheAssistant(List<Error> errors, Class<?> clazz) {
         if (clazz == null || !CacheAssistant.class.isAssignableFrom(clazz)) {
             return null;
         }
@@ -48,9 +51,9 @@ public class ReflectionUtils {
                     }
                 }
             }
-        } catch (Exception ex) {
-            Bukkit.getLogger().severe("[Insights] Failed to initialise addon: " + clazz.getName());
-            Bukkit.getLogger().severe(ex.getMessage());
+        } catch (Throwable th) {
+            errors.add(new AddonError("Failed to initialise addon: " + clazz.getName()));
+            th.printStackTrace();
         }
 
         return assistant;

@@ -1,8 +1,9 @@
 package net.frankheijden.insights.managers;
 
+import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.*;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import net.frankheijden.insights.entities.Error;
+import org.bukkit.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -10,23 +11,44 @@ import java.util.stream.Stream;
 
 public class CacheManager {
 
+    private static final Insights plugin = Insights.getInstance();
     private static CacheManager instance;
 
+    private Set<CacheAssistant> addonCacheAssistants;
     private final Set<CacheAssistant> cacheAssistants;
     private final Map<Selection, ScanCache> caches;
 
     public CacheManager() {
         instance = this;
-        cacheAssistants = new HashSet<>();
-        caches = new HashMap<>();
+        this.addonCacheAssistants = new HashSet<>();
+        this.cacheAssistants = new HashSet<>();
+        this.caches = new HashMap<>();
     }
 
     public static CacheManager getInstance() {
         return instance;
     }
 
+    public void unregisterAllAddons() {
+        this.cacheAssistants.removeAll(addonCacheAssistants);
+        this.addonCacheAssistants = new HashSet<>();
+    }
+
+    public void registerAllAddons(List<Error> errors, Set<CacheAssistant> cacheAssistants) {
+        for (CacheAssistant c : cacheAssistants) {
+            if (plugin.isAvailable(c.getName())) {
+                this.cacheAssistants.add(c);
+                Bukkit.getLogger().info("[Insights] Successfully registered addon " + c.getName() + "!");
+            } else {
+                errors.add(new AddonError("Error while registering addon: plugin " + c.getName() + " is not enabled!"));
+            }
+        }
+        this.addonCacheAssistants = cacheAssistants;
+    }
+
     public void addCacheAssistant(CacheAssistant cache) {
         this.cacheAssistants.add(cache);
+        Bukkit.getLogger().info("[Insights] Successfully registered addon " + cache.getName() + "!");
     }
 
     public boolean hasSelections(Location location) {

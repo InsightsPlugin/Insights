@@ -5,6 +5,7 @@ import net.frankheijden.insights.commands.*;
 import net.frankheijden.insights.config.Config;
 import net.frankheijden.insights.config.ConfigError;
 import net.frankheijden.insights.entities.CacheAssistant;
+import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.listeners.*;
 import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
@@ -21,6 +22,7 @@ import java.io.File;
 import java.lang.reflect.*;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Insights extends JavaPlugin {
 
@@ -52,17 +54,18 @@ public class Insights extends JavaPlugin {
 
         PaperLib.suggestPaper(this);
 
-        List<ConfigError> errors = setupConfiguration();
-        if (!errors.isEmpty()) {
-            System.err.println("[Insights] Some errors were found while loading the config:");
-            errors.forEach(err -> System.err.println("[Insights] " + MessageUtils.stripColor(err.toString())));
-            System.err.println("[Insights] You will still be able to use Insights, but please regenerate or update your configs.");
-        }
+        List<Error> errors = new ArrayList<>();
+        setupConfiguration(errors);
         setupSQLite();
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
-        registerAllAddons();
+        registerAllAddons(errors);
+
+        if (!errors.isEmpty()) {
+            MessageUtils.printErrors(errors, false);
+        }
+
         checkForUpdates();
 
         long end = System.currentTimeMillis();
@@ -81,13 +84,12 @@ public class Insights extends JavaPlugin {
         return insights;
     }
 
-    private List<ConfigError> setupConfiguration() {
+    private void setupConfiguration(List<Error> errors) {
         config = new Config();
-        List<ConfigError> errors = config.reload();
+        config.reload(errors);
 
         File messagesFile = FileUtils.copyResourceIfNotExists("messages.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
-        return errors;
     }
 
     private void setupSQLite() {
@@ -175,16 +177,12 @@ public class Insights extends JavaPlugin {
         }
     }
 
-    private void registerAllAddons() {
-        List<Class<?>> classes = FileUtils.loadAllAddons();
-
-        for (Class<?> clazz : classes) {
-            CacheAssistant assistant = ReflectionUtils.createCacheAssistant(clazz);
-            if (assistant != null) {
-                cacheManager.addCacheAssistant(assistant);
-                Bukkit.getLogger().info("[Insights] Successfully registered addon " + assistant.getName() + "!");
-            }
-        }
+    private void registerAllAddons(List<Error> errors) {
+        cacheManager.unregisterAllAddons();
+        cacheManager.registerAllAddons(errors, FileUtils.loadAllAddons().stream()
+                .map(c -> ReflectionUtils.createCacheAssistant(errors, c))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
     }
 
     private void checkForUpdates() {
@@ -193,10 +191,12 @@ public class Insights extends JavaPlugin {
         }
     }
 
-    public List<ConfigError> reload() {
-        List<ConfigError> errors = setupConfiguration();
+    public List<Error> reload() {
+        List<Error> errors = new ArrayList<>();
+        setupConfiguration(errors);
         setupSQLite();
         setupPlaceholderAPIHook();
+        registerAllAddons(errors);
         return errors;
     }
 

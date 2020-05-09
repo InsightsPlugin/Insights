@@ -1,11 +1,12 @@
 package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.config.ConfigError;
+import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.managers.HookManager;
 import net.frankheijden.insights.managers.WorldGuardManager;
 import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.PlayerUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
@@ -23,13 +24,13 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(new String[]{
-                    MessageUtils.color("&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------"),
-                    MessageUtils.color("&b Plugin version: &7" + plugin.getDescription().getVersion()),
-                    MessageUtils.color("&b Plugin author: &7https://www.spigotmc.org/members/213966/"),
-                    MessageUtils.color("&b Plugin link: &7https://www.spigotmc.org/resources/56489/"),
-                    MessageUtils.color("&8&m-------------------------------------------------")
-            });
+            sender.sendMessage(MessageUtils.color(new String[]{
+                    "&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------",
+                    "&b Plugin version: &a" + plugin.getDescription().getVersion(),
+                    "&b Plugin author: &7https://www.spigotmc.org/members/213966/",
+                    "&b Plugin link: &7https://www.spigotmc.org/resources/56489/",
+                    "&8&m-------------------------------------------------"
+            }));
             return true;
         } else if (args[0].equalsIgnoreCase("block") || args[0].equalsIgnoreCase("entity")) {
             if (!(sender instanceof Player)) {
@@ -84,13 +85,11 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("reload")) {
                 if (sender.hasPermission("insights.reload")) {
-                    List<ConfigError> errors = plugin.reload();
+                    List<Error> errors = plugin.reload();
                     if (errors.isEmpty()) {
                         MessageUtils.sendMessage(sender, "messages.insights.reload");
                     } else {
-                        sender.sendMessage(MessageUtils.color("&cSome errors occurred while reloading:"));
-                        sender.sendMessage(errors.stream().map(e -> MessageUtils.color(e.toString())).toArray(String[]::new));
-                        sender.sendMessage(MessageUtils.color("&cYou will still be able to use Insights, but please regenerate or update your configs."));
+                        MessageUtils.sendErrors(sender, errors, true);
                     }
                 } else {
                     MessageUtils.sendMessage(sender, "messages.no_permission");

@@ -1,6 +1,7 @@
 package net.frankheijden.insights.utils;
 
 import net.frankheijden.insights.config.ConfigError;
+import net.frankheijden.insights.entities.Error;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -11,15 +12,15 @@ public class YamlUtils {
 
     private final YamlConfiguration yml;
     private final String name;
-    private final List<ConfigError> errors;
+    private final List<Error> errors;
 
-    public YamlUtils(YamlConfiguration yml, String name) {
+    public YamlUtils(List<Error> errors, YamlConfiguration yml, String name) {
         this.yml = yml;
         this.name = name;
-        this.errors = new ArrayList<>();
+        this.errors = errors;
     }
 
-    public List<ConfigError> getErrors() {
+    public List<Error> getErrors() {
         return errors;
     }
 

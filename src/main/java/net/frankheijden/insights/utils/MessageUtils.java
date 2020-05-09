@@ -1,16 +1,22 @@
 package net.frankheijden.insights.utils;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.config.ConfigError;
+import net.frankheijden.insights.entities.AddonError;
+import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.managers.NotificationManager;
 import net.frankheijden.insights.managers.NMSManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MessageUtils {
 
@@ -38,6 +44,10 @@ public class MessageUtils {
         sender.sendMessage(msg);
     }
 
+    public static void sendRawMessage(CommandSender sender, List<String> messages) {
+        sender.sendMessage(messages.toArray(new String[0]));
+    }
+
     public static String getMessage(String path, String... placeholders) {
         String message = plugin.getMessages().getString(path);
         if (message != null) {
@@ -51,9 +61,23 @@ public class MessageUtils {
         return "";
     }
 
+    public static String[] color(String[] strings) {
+        for (int i = 0; i < strings.length; i++) {
+            strings[i] = color(strings[i]);
+        }
+        return strings;
+    }
+
     public static String color(String string) {
         if (string == null) return null;
         return ChatColor.translateAlternateColorCodes('&', string);
+    }
+
+    public static String[] stripColor(String[] strings) {
+        for (int i = 0; i < strings.length; i++) {
+            strings[i] = stripColor(strings[i]);
+        }
+        return strings;
     }
 
     public static String stripColor(String str) {
@@ -131,5 +155,56 @@ public class MessageUtils {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    public static Stream<Error> getConfigErrors(List<Error> errors) {
+        return errors.stream().filter(e -> e instanceof ConfigError);
+    }
+
+    public static Stream<Error> getAddonErrors(List<Error> errors) {
+        return errors.stream().filter(e -> e instanceof AddonError);
+    }
+
+    public static List<String> formatErrors(Stream<Error> errors, boolean console) {
+        return errors.map(e -> MessageUtils.format(e, console)).collect(Collectors.toList());
+    }
+
+    public static String format(Error error, boolean console) {
+        return format(error.toString(), console);
+    }
+
+    public static String format(String msg, boolean console) {
+        String f = MessageUtils.color(msg);
+        return console ? "[Insights] " + MessageUtils.stripColor(f) : f;
+    }
+
+    public static void add(List<String> list, String header, List<String> errors, boolean console) {
+        if (!errors.isEmpty()) {
+            list.add(format(header, console));
+            list.addAll(errors);
+        }
+    }
+
+    public static List<String> formatErrors(List<Error> errors, boolean console, boolean reload) {
+        List<String> list = new ArrayList<>();
+
+        String action = reload ? "reloading" : "loading";
+
+        List<String> configErrors = formatErrors(getConfigErrors(errors), console);
+        add(list, "&cSome configuration errors occurred while " + action + ":", configErrors, console);
+
+        List<String> addonErrors = formatErrors(getAddonErrors(errors), console);
+        add(list, "&cSome addon errors occurred while " + action + ":", addonErrors, console);
+
+        list.add(format("&cYou will still be able to use Insights.", console));
+        return list;
+    }
+
+    public static void sendErrors(CommandSender sender, List<Error> errors, boolean reload) {
+        sendRawMessage(sender, formatErrors(errors, false, reload));
+    }
+
+    public static void printErrors(List<Error> errors, boolean reload) {
+        formatErrors(errors, false, reload).forEach(c -> Bukkit.getLogger().severe(c));
     }
 }

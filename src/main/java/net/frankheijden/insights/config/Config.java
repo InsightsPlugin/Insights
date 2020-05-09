@@ -1,5 +1,6 @@
 package net.frankheijden.insights.config;
 
+import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -47,10 +48,10 @@ public class Config {
         this.limits = new Limits();
     }
 
-    public List<ConfigError> reload() {
+    public void reload(List<Error> errors) {
         File configFile = FileUtils.copyResourceIfNotExists("config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
-        YamlUtils utils = new YamlUtils(config, "config.yml");
+        YamlUtils utils = new YamlUtils(errors, config, "config.yml");
 
         GENERAL_UPDATES_CHECK = utils.getBoolean("general.updates.check", true);
         GENERAL_UPDATES_DOWNLOAD = utils.getBoolean("general.updates.download", false);
@@ -93,8 +94,6 @@ public class Config {
 
         GENERAL_REGIONS_WHITELIST = utils.getBoolean("general.regions.whitelist", false);
         GENERAL_REGIONS_LIST = utils.getStringList("general.regions.list");
-
-        return utils.getErrors();
     }
 
     public static Set<String> of(String... strings) {
