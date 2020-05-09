@@ -341,6 +341,7 @@ public class MainListener implements Listener {
 
         MessageUtils.sendMessage(player, "messages.area_scan.start");
         freezeManager.freezePlayer(player.getUniqueId());
+        blockLocations.add(block.getLocation());
 
         AtomicInteger integer = new AtomicInteger(list.size());
         for (Map.Entry<SelectionEntity, ScanOptions> entry : list.entrySet()) {
