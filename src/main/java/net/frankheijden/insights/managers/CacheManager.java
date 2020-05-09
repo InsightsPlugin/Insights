@@ -37,8 +37,7 @@ public class CacheManager {
     public void registerAllAddons(List<Error> errors, Set<CacheAssistant> cacheAssistants) {
         for (CacheAssistant c : cacheAssistants) {
             if (plugin.isAvailable(c.getName())) {
-                this.cacheAssistants.add(c);
-                Bukkit.getLogger().info("[Insights] Successfully registered addon " + c.getName() + "!");
+                addCacheAssistant(c);
             } else {
                 errors.add(new AddonError("Error while registering addon: plugin " + c.getName() + " is not enabled!"));
             }
@@ -48,7 +47,11 @@ public class CacheManager {
 
     public void addCacheAssistant(CacheAssistant cache) {
         this.cacheAssistants.add(cache);
-        Bukkit.getLogger().info("[Insights] Successfully registered addon " + cache.getName() + "!");
+        Bukkit.getLogger().info("[Insights] Successfully registered addon " + cache.getName() + " v" + cache.getVersion() + "!");
+    }
+
+    public Set<CacheAssistant> getLoadedAddons() {
+        return this.cacheAssistants;
     }
 
     public boolean hasSelections(Location location) {

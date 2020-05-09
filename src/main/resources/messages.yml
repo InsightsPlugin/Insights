@@ -106,9 +106,18 @@ messages:
       header: "&8&m---------------=&r&8[&b&l Insights Hooks&r &8]&m=---------------"
       # Special placeholders:
       # %plugin%
-      format: "&a&l✔ &r&a%plugin%"
+      format: " &a&l✔ &r&a%plugin%"
       footer: "&8&m-------------------------------------------------"
       none: "&cInsights has no hooks enabled."
+
+    # Messages send when a user executed /insights addons
+    addons:
+      header: "&8&m--------------=&r&8[&b&l Insights Addons&r &8]&m=---------------"
+      # Special placeholders:
+      # %plugin%
+      format: " &a&l✔ &r&a%addon% &8(&a%version%&8)"
+      footer: "&8&m-------------------------------------------------"
+      none: "&cInsights has no addons enabled."
 
     # Message send when a user executed /insights block
     # Special placeholders:

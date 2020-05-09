@@ -2,11 +2,9 @@ package net.frankheijden.insights.commands;
 
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.Error;
-import net.frankheijden.insights.managers.HookManager;
-import net.frankheijden.insights.managers.WorldGuardManager;
+import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.PlayerUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
@@ -14,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CommandInsights implements CommandExecutor, TabExecutor {
 
@@ -119,6 +118,25 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     MessageUtils.sendMessage(sender, "messages.no_permission");
                 }
                 return true;
+            } else if (args[0].equalsIgnoreCase("addons")) {
+                if (sender.hasPermission("insights.addons")) {
+                    List<String> addons = CacheManager.getInstance().getLoadedAddons().stream()
+                            .map(c -> MessageUtils.getMessage("messages.insights.addons.format",
+                                    "%addon%", c.getName(),
+                                    "%version%", c.getVersion()))
+                            .collect(Collectors.toList());
+
+                    if (addons.size() > 0) {
+                        MessageUtils.sendMessage(sender, "messages.insights.hooks.header");
+                        MessageUtils.sendRawMessage(sender, addons);
+                        MessageUtils.sendMessage(sender, "messages.insights.hooks.footer");
+                    } else {
+                        MessageUtils.sendMessage(sender, "messages.insights.addons.none");
+                    }
+                } else {
+                    MessageUtils.sendMessage(sender, "messages.no_permission");
+                }
+                return true;
             }
         }
 
@@ -132,18 +150,11 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 1) {
             List<String> list = new ArrayList<>(Collections.singletonList("help"));
-            if (sender.hasPermission("insights.block")) {
-                list.add("block");
-            }
-            if (sender.hasPermission("insights.entity")) {
-                list.add("entity");
-            }
-            if (sender.hasPermission("insights.hooks")) {
-                list.add("hooks");
-            }
-            if (sender.hasPermission("insights.reload")) {
-                list.add("reload");
-            }
+            if (sender.hasPermission("insights.addons")) list.add("addons");
+            if (sender.hasPermission("insights.block")) list.add("block");
+            if (sender.hasPermission("insights.entity")) list.add("entity");
+            if (sender.hasPermission("insights.hooks")) list.add("hooks");
+            if (sender.hasPermission("insights.reload")) list.add("reload");
             return StringUtil.copyPartialMatches(args[0], list, new ArrayList<>());
         }
         return Collections.emptyList();
