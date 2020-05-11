@@ -13,10 +13,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.URL;
+import java.net.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
 
 public class UpdateCheckerTask implements Runnable {
 
@@ -56,8 +57,12 @@ public class UpdateCheckerTask implements Runnable {
         JsonObject jsonObject;
         try {
             jsonObject = readJsonFromURL(GITHUB_INSIGHTS_LINK).getAsJsonObject();
+        } catch (ConnectException | UnknownHostException ex) {
+            Insights.logger.severe(String.format("Error fetching new version of Insights: (%s) %s (maybe check your connection?)",
+                    ex.getClass().getSimpleName(), ex.getMessage()));
+            return;
         } catch (IOException ex) {
-            Insights.logger.severe("Error fetching new version of Insights");
+            Insights.logger.log(Level.SEVERE, ex, () -> "Error fetching new version of Insights");
             return;
         }
         String githubVersion = jsonObject.getAsJsonPrimitive("tag_name").getAsString();
