@@ -8,18 +8,24 @@ import java.util.Objects;
 public abstract class CacheAssistant implements Selectable {
 
     private static final CacheManager cacheManager = CacheManager.getInstance();
+    private final String pluginName;
     private final String name;
     private final String areaName;
     private final String version;
 
     public CacheAssistant(String name, String areaName) {
-        this(name, areaName, "1.0.0");
+        this(name, name, areaName, "1.0.0");
     }
 
-    public CacheAssistant(String name, String areaName, String version) {
+    public CacheAssistant(String pluginName, String name, String areaName, String version) {
+        this.pluginName = pluginName;
         this.name = name;
         this.areaName = areaName;
         this.version = version;
+    }
+
+    public String getPluginName() {
+        return pluginName;
     }
 
     public String getName() {

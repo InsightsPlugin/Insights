@@ -36,7 +36,7 @@ public class CacheManager {
 
     public void registerAllAddons(List<Error> errors, Set<CacheAssistant> cacheAssistants) {
         for (CacheAssistant c : cacheAssistants) {
-            if (plugin.isAvailable(c.getName())) {
+            if (plugin.isAvailable(c.getPluginName())) {
                 addCacheAssistant(c);
             } else {
                 errors.add(new AddonError("Error while registering addon: plugin " + c.getName() + " is not enabled!"));
