@@ -12,7 +12,6 @@ public class Config {
     public boolean GENERAL_UPDATES_CHECK;
     public boolean GENERAL_UPDATES_DOWNLOAD;
     public boolean GENERAL_UPDATES_DOWNLOAD_STARTUP;
-    public boolean GENERAL_DEBUG;
     public int GENERAL_LIMIT;
     public boolean GENERAL_ASYNC_ENABLED;
     public boolean GENERAL_ASYNC_WHITELIST;
@@ -55,7 +54,6 @@ public class Config {
         GENERAL_UPDATES_CHECK = utils.getBoolean("general.updates.check", true);
         GENERAL_UPDATES_DOWNLOAD = utils.getBoolean("general.updates.download", false);
         GENERAL_UPDATES_DOWNLOAD_STARTUP = utils.getBoolean("general.updates.download_startup", false);
-        GENERAL_DEBUG = utils.getBoolean("general.debug", false);
 
         GENERAL_LIMIT = utils.getIntWithinRange("general.limit", -1, null, null);
 
