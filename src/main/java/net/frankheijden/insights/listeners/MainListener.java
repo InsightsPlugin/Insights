@@ -108,7 +108,9 @@ public class MainListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockFromTo(BlockFromToEvent event) {
-        if (blockLocations.contains(event.getBlock().getLocation())) {
+        Location f = event.getBlock().getLocation();
+        Location t = event.getToBlock().getLocation();
+        if (blockLocations.contains(f) || blockLocations.contains(t)) {
             event.setCancelled(true);
         }
     }
