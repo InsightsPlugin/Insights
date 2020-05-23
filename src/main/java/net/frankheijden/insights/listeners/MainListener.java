@@ -224,11 +224,12 @@ public class MainListener implements Listener {
 
         Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
         if (limit != null) {
-            Material m = event.getItemInHand().getType();
+            ItemStack is = new ItemStack(event.getItemInHand());
+            is.setAmount(1);
             if (cacheManager.hasSelections(player.getLocation())) {
-                handleBlockCache(event, player, block, m, 1, limit);
+                handleBlockCache(event, player, block, is, 1, limit);
             } else {
-                handleChunkPreBlockPlace(event, player, block, m, limit);
+                handleChunkPreBlockPlace(event, player, block, is, limit);
             }
         } else if (TileUtils.isTile(event.getBlockPlaced())) {
             int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
@@ -319,13 +320,13 @@ public class MainListener implements Listener {
         return false;
     }
 
-    private void handleBlockCache(Cancellable event, Player player, Block block, Material m, int d, Limit limit) {
+    private void handleBlockCache(Cancellable event, Player player, Block block, ItemStack is, int d, Limit limit) {
         String name = block.getType().name();
 
         Set<SelectionEntity> selections = cacheManager.updateCache(player.getLocation(), name, d);
         if (selections.size() == 0 && limit != null) {
             cacheManager.getMaxCountCache(player.getLocation(), name)
-                    .ifPresent(scanCache -> handleCacheLimit(scanCache, event, player, block, name, m, d, limit));
+                    .ifPresent(scanCache -> handleCacheLimit(scanCache, event, player, block, name, is, d, limit));
             return;
         }
 
@@ -347,13 +348,13 @@ public class MainListener implements Listener {
                     freezeManager.defrostPlayer(player.getUniqueId());
 
                     cacheManager.getMaxCountCache(player.getLocation(), name)
-                            .ifPresent(scanCache -> handleCacheLimit(scanCache, null, player, block, name, m, d, limit));
+                            .ifPresent(scanCache -> handleCacheLimit(scanCache, null, player, block, name, is, d, limit));
                 }
             });
         }
     }
 
-    private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, Material m, int d, Limit limit) {
+    private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, ItemStack is, int d, Limit limit) {
         Integer count = cache.getCount(name);
         if (count == null) return;
 
@@ -370,18 +371,16 @@ public class MainListener implements Listener {
             if (event != null) {
                 event.setCancelled(true);
             } else {
-                simulateBreak(player, block, m);
+                simulateBreak(player, block, is);
             }
         } else if (!isPassiveForPlayer(player, "block")) {
             sendMessage(player, limit.getName(), count, l);
         }
     }
 
-    private void simulateBreak(Player player, Block block, Material m) {
+    private void simulateBreak(Player player, Block block, ItemStack is) {
         if (player.getGameMode() != GameMode.CREATIVE) {
-            ItemStack it = new ItemStack(m);
-            it.setAmount(1);
-            player.getInventory().addItem(it);
+            player.getInventory().addItem(is);
         }
         new BukkitRunnable() {
             @Override
@@ -407,7 +406,7 @@ public class MainListener implements Listener {
         return list;
     }
 
-    private void handleChunkPreBlockPlace(Cancellable event, Player player, Block block, Material m, Limit limit) {
+    private void handleChunkPreBlockPlace(Cancellable event, Player player, Block block, ItemStack is, Limit limit) {
         ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
 
         boolean async = shouldPerformAsync(block.getType().name());
@@ -419,7 +418,7 @@ public class MainListener implements Listener {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    handleChunkBlockPlace(event, player, block, chunkSnapshot, m, async, limit);
+                    handleChunkBlockPlace(event, player, block, chunkSnapshot, is, async, limit);
                 }
             }.runTaskAsynchronously(plugin);
         } else {
@@ -439,7 +438,7 @@ public class MainListener implements Listener {
         return false;
     }
 
-    private void handleChunkBlockPlace(Cancellable event, Player player, Block block, ChunkSnapshot chunkSnapshot, Material m, boolean async, Limit limit) {
+    private void handleChunkBlockPlace(Cancellable event, Player player, Block block, ChunkSnapshot chunkSnapshot, ItemStack is, boolean async, Limit limit) {
         int current = ChunkUtils.getAmountInChunk(block.getChunk(), chunkSnapshot, limit);
         int l = limit.getLimit();
         if (current > l) {
@@ -451,7 +450,7 @@ public class MainListener implements Listener {
                             "%area%", "chunk");
                 }
                 if (async) {
-                    simulateBreak(player, block, m);
+                    simulateBreak(player, block, is);
                 } else {
                     blockLocations.remove(block.getLocation());
                     event.setCancelled(true);
