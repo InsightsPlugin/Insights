@@ -272,7 +272,16 @@ public class Insights extends JavaPlugin {
             ex.printStackTrace();
             return;
         }
-        this.getDescription().getCommands().keySet().forEach(map::remove);
+
+        this.getDescription().getCommands().forEach((cmd, data) -> {
+            map.remove(cmd);
+
+            @SuppressWarnings("unchecked")
+            List<String> aliases = (List<String>) data.get("aliases");
+            if (aliases != null) {
+                aliases.forEach(map::remove);
+            }
+        });
     }
 
     /*
