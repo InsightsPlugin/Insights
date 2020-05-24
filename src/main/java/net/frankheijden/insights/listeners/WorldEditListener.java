@@ -1,6 +1,6 @@
 package net.frankheijden.insights.listeners;
 
-import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.extent.Extent;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.InsightsAPI;
@@ -11,7 +11,6 @@ import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.StringUtils;
 import net.frankheijden.wecompatibility.core.*;
 import net.frankheijden.wecompatibility.core.Vector;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -25,7 +24,6 @@ public class WorldEditListener implements ExtentDelegate {
     private static final WorldEditManager worldEditManager = WorldEditManager.getInstance();
     private static final CacheManager cacheManager = CacheManager.getInstance();
 
-    private final WorldEditPlugin wePlugin;
     private final Player player;
     private final Extent extent;
 
@@ -36,7 +34,6 @@ public class WorldEditListener implements ExtentDelegate {
     private boolean didNotify;
 
     private WorldEditListener(Player player, Extent extent) {
-        this.wePlugin = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
         this.player = player;
         this.extent = extent;
 
@@ -58,12 +55,12 @@ public class WorldEditListener implements ExtentDelegate {
         return "net.frankheijden.wecompatibility." + version + ".WorldEditExtent";
     }
 
-    public static Extent from(Player player, Extent extent) {
+    public static Extent from(Player player, Extent extent, EditSession.Stage stage) {
         WorldEditListener listener = new WorldEditListener(player, extent);
         try {
             Class<?> clazz = Class.forName(getPackage());
             Constructor<?> c = clazz.getDeclaredConstructors()[0];
-            Object worldEditExtent = c.newInstance(listener.wePlugin, player, extent, listener);
+            Object worldEditExtent = c.newInstance(player, extent, stage, listener);
 
             Class<?> extentClazz = Extent.class;
             return (Extent) extentClazz.cast(worldEditExtent);

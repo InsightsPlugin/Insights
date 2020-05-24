@@ -73,6 +73,9 @@ commands:
   cancelscan:
     usage: 'Usage: /<command>'
 
+  deletecache:
+    usage: 'Usage: /<command>'
+
 permissions:
   insights.*:
     children:

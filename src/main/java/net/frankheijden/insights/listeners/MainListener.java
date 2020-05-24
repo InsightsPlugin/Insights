@@ -370,11 +370,13 @@ public class MainListener implements Listener {
             cache.updateCache(name, -d);
             if (event != null) {
                 event.setCancelled(true);
+                blockLocations.remove(block.getLocation());
             } else {
                 simulateBreak(player, block, is);
             }
         } else if (!isPassiveForPlayer(player, "block")) {
             sendMessage(player, limit.getName(), count, l);
+            blockLocations.remove(block.getLocation());
         }
     }
 

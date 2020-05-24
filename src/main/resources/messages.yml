@@ -160,6 +160,10 @@ messages:
     footer: "&8&m-------------------------------------------------"
     none: "&cThe server has no loaded entities or tiles."
 
+  deletecache:
+    success: "&3Successfully deleted all cache at this location."
+    no_cache: "&cThere were no cached blocks at this location."
+
   autoscan:
     # Special placeholders:
     # %material%

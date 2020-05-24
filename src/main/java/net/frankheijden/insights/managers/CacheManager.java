@@ -47,7 +47,7 @@ public class CacheManager {
 
     public void addCacheAssistant(CacheAssistant cache) {
         this.cacheAssistants.add(cache);
-        Insights.logger.info("[Insights] Successfully registered addon " + cache.getName() + " v" + cache.getVersion() + "!");
+        Insights.logger.info("Successfully registered addon " + cache.getName() + " v" + cache.getVersion() + "!");
     }
 
     public Set<CacheAssistant> getLoadedAddons() {
@@ -59,15 +59,19 @@ public class CacheManager {
     }
 
     public Optional<ScanCache> getMaxCountCache(Location location, String what) {
-        return this.getSelections(location)
-                .map(this::getCache)
-                .filter(Objects::nonNull)
+        return this.getCache(location)
                 .max(Comparator.comparingInt(c -> c.getCount(what)));
     }
 
     public Stream<SelectionEntity> getSelections(Location location) {
         return cacheAssistants.stream()
                 .map(c -> SelectionEntity.from(c.getSelection(location), c))
+                .filter(Objects::nonNull);
+    }
+
+    public Stream<ScanCache> getCache(Location location) {
+        return getSelections(location)
+                .map(this::getCache)
                 .filter(Objects::nonNull);
     }
 
@@ -81,13 +85,10 @@ public class CacheManager {
 
     public void updateCache(Location location, String from, String to) {
         if (from.equals(to)) return;
-        getSelections(location)
-                .map(this::getCache)
-                .filter(Objects::nonNull)
-                .forEach(c -> {
-                    c.updateCache(from, -1);
-                    c.updateCache(to, 1);
-                });
+        getCache(location).forEach(c -> {
+            c.updateCache(from, -1);
+            c.updateCache(to, 1);
+        });
     }
 
     public boolean updateCache(Selection selection, String what, int d) {
@@ -100,6 +101,14 @@ public class CacheManager {
 
     public void updateCache(ScanCache scanCache) {
         caches.put(scanCache.getSelectionEntity(), scanCache);
+    }
+
+    public boolean deleteCache(ScanCache scanCache) {
+        return deleteCache(scanCache.getSelectionEntity());
+    }
+
+    public boolean deleteCache(Selection selection) {
+        return caches.remove(selection) != null;
     }
 
     /**

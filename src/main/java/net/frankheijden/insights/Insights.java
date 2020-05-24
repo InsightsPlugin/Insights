@@ -61,11 +61,15 @@ public class Insights extends JavaPlugin {
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
-        registerAllAddons(errors);
 
-        if (!errors.isEmpty()) {
-            MessageUtils.printErrors(errors, false);
-        }
+        Bukkit.getScheduler().runTask(this, () -> {
+            logger.info("Enabling Insights addons...");
+            registerAllAddons(errors);
+
+            if (!errors.isEmpty()) {
+                MessageUtils.printErrors(errors, false);
+            }
+        });
 
         checkForUpdates();
 
@@ -114,6 +118,7 @@ public class Insights extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights());
         Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck());
         Objects.requireNonNull(this.getCommand("checkworlds")).setExecutor(new CommandCheckworlds());
+        Objects.requireNonNull(this.getCommand("deletecache")).setExecutor(new CommandDeleteCache());
         Objects.requireNonNull(this.getCommand("scan")).setExecutor(new CommandScan());
         Objects.requireNonNull(this.getCommand("scanradius")).setExecutor(new CommandScanradius());
         Objects.requireNonNull(this.getCommand("scanworld")).setExecutor(new CommandScanworld());
