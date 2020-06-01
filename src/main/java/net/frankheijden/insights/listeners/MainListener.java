@@ -141,11 +141,12 @@ public class MainListener implements Listener {
     public void onPlayerEntityPlace(PlayerEntityPlaceEvent event) {
         Player player = event.getPlayer();
         Entity entity = event.getEntity();
-        handleEntityPlace(event, player, entity.getLocation().getChunk(), entity.getType().name());
+        handleEntityPlace(event, player, entity.getLocation().getChunk(), entity);
     }
 
-    private void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, String name) {
-        if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
+    private void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, Entity entity) {
+        String name = entity.getType().name();
+        if (!canPlaceInRegion(entity.getLocation(), name) && !player.hasPermission("insights.regions.bypass." + name)) {
             cancellable.setCancelled(true);
             if (!isPassiveForPlayer(player, "region")) {
                 MessageUtils.sendMessage(player, "messages.region_disallowed_block");
@@ -214,7 +215,7 @@ public class MainListener implements Listener {
             return;
         }
 
-        if (!canPlaceInRegion(player, name) && !player.hasPermission("insights.regions.bypass." + name)) {
+        if (!canPlaceInRegion(block.getLocation(), name) && !player.hasPermission("insights.regions.bypass." + name)) {
             event.setCancelled(true);
             if (!isPassiveForPlayer(player, "region")) {
                 MessageUtils.sendMessage(player, "messages.region_disallowed_block");
@@ -290,10 +291,10 @@ public class MainListener implements Listener {
         return loc1.clone().add(x, y, z).equals(loc2);
     }
 
-    private boolean canPlaceInRegion(Player player, String str) {
+    private boolean canPlaceInRegion(Location location, String str) {
         WorldGuardManager worldGuardManager = WorldGuardManager.getInstance();
         if (worldGuardManager != null) {
-            ProtectedRegion region = worldGuardManager.getRegionWithLimitedBlocks(player.getLocation());
+            ProtectedRegion region = worldGuardManager.getRegionWithLimitedBlocks(location);
             if (region != null) {
                 return canPlaceInRegion(region.getId(), str);
             }
