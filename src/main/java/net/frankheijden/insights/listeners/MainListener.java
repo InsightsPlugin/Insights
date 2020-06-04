@@ -348,8 +348,12 @@ public class MainListener implements Listener {
                     MessageUtils.sendMessage(player, "messages.area_scan.end");
                     freezeManager.defrostPlayer(player.getUniqueId());
 
-                    cacheManager.getMaxCountCache(player.getLocation(), name)
-                            .ifPresent(scanCache -> handleCacheLimit(scanCache, null, player, block, name, is, d, limit));
+                    Optional<ScanCache> scanCache = cacheManager.getMaxCountCache(player.getLocation(), name);
+                    if (scanCache.isPresent()) {
+                        handleCacheLimit(scanCache.get(), null, player, block, name, is, d, limit);
+                    } else {
+                        blockLocations.remove(block.getLocation());
+                    }
                 }
             });
         }
