@@ -139,7 +139,7 @@ public class ScanChunksTask implements Runnable {
 
     public void setupNotification(Player player) {
         canSendProgressMessage = true;
-        if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && NMSManager.getInstance().isPost1_9()) {
+        if (plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE.toUpperCase().equals("BOSSBAR") && NMSManager.getInstance().isPost(9)) {
             isBossBar = true;
         }
 

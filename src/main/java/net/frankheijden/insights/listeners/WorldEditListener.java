@@ -51,7 +51,7 @@ public class WorldEditListener implements ExtentDelegate {
     }
 
     public static String getPackage() {
-        String version = NMSManager.getInstance().isPost1_13() ? "we7" : "we6";
+        String version = NMSManager.getInstance().isPost(13) ? "we7" : "we6";
         return "net.frankheijden.wecompatibility." + version + ".WorldEditExtent";
     }
 

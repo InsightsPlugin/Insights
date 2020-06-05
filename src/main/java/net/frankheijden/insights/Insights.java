@@ -107,7 +107,7 @@ public class Insights extends JavaPlugin {
         MainListener mainListener = new MainListener(interactListener);
         Bukkit.getPluginManager().registerEvents(mainListener, this);
         Bukkit.getPluginManager().registerEvents(new EntityListener(mainListener), this);
-        if (nmsManager.isPost1_13()) {
+        if (nmsManager.isPost(13)) {
             Bukkit.getPluginManager().registerEvents(new Post1_13Listeners(), this);
         } else {
             Bukkit.getPluginManager().registerEvents(new Pre1_13Listeners(mainListener), this);
@@ -135,7 +135,7 @@ public class Insights extends JavaPlugin {
     private void setupManagers() {
         nmsManager = new NMSManager();
 
-        if (nmsManager.isPost1_9()) {
+        if (nmsManager.isPost(9)) {
             notificationManager = new NotificationManager();
             notificationManager.start();
         }

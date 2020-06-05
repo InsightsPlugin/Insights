@@ -88,7 +88,7 @@ public class MessageUtils {
     public static void sendSpecialMessage(Player player, String path, double progress, String... placeholders) {
         String messageType = plugin.getConfiguration().GENERAL_NOTIFICATION_TYPE;
         if (messageType == null) messageType = "ACTIONBAR";
-        if (messageType.toUpperCase().equals("BOSSBAR") && NMSManager.getInstance().isPost1_9()) {
+        if (messageType.toUpperCase().equals("BOSSBAR") && NMSManager.getInstance().isPost(9)) {
             sendBossBar(player, path, progress, placeholders);
         } else {
             sendActionBar(player, path, placeholders);

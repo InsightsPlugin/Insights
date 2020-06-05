@@ -8,8 +8,8 @@ import org.bukkit.block.Block;
 public class TileUtils {
 
     public static boolean isTile(Block block) {
-        if (NMSManager.getInstance().isPost1_13()) {
-            return Post1_13TileUtils.isTile(block);
+        if (NMSManager.getInstance().isPost(14)) {
+            return Post1_14TileUtils.isTile(block);
         }
         return isTile(block.getWorld(), block.getLocation());
     }

@@ -32,7 +32,7 @@ public class Pre1_13Listeners implements Listener {
         this.vehicleMap.put("MINECART_HOPPER", Material.valueOf("HOPPER_MINECART"));
 
         this.boatMap = new HashMap<>();
-        if (NMSManager.getInstance().isPost1_12()) {
+        if (NMSManager.getInstance().isPost(12)) {
             this.boatMap.put("ACACIA", Material.valueOf("BOAT_ACACIA"));
             this.boatMap.put("BIRCH", Material.valueOf("BOAT_BIRCH"));
             this.boatMap.put("DARK_OAK", Material.valueOf("BOAT_DARK_OAK"));
@@ -59,7 +59,7 @@ public class Pre1_13Listeners implements Listener {
     private Material getMaterial(Vehicle vehicle) {
         String name = vehicle.getType().name();
         Material m;
-        if (vehicle instanceof Boat && NMSManager.getInstance().isPost1_12()) {
+        if (vehicle instanceof Boat && NMSManager.getInstance().isPost(12)) {
             Boat boat = (Boat) vehicle;
             m = boatMap.get(boat.getWoodType().name());
         } else {
