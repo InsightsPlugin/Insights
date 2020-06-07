@@ -54,7 +54,7 @@ public class WorldEditManager {
         Actor actor = event.getActor();
         if (actor != null && actor.isPlayer()) {
             Player player = Bukkit.getPlayer(actor.getName());
-            event.setExtent(WorldEditListener.from(player, event.getExtent(), event.getStage()));
+            event.setExtent(WorldEditListener.from(Bukkit.getWorld(event.getWorld().getName()), player, event.getExtent(), event.getStage()));
         }
     }
 

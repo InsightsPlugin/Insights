@@ -12,23 +12,34 @@ import java.util.List;
 
 public class ReflectionUtils {
 
+    private static Class<?> craftWorldClass;
+    private static Method craftWorldGetHandle;
+    private static Class<?> blockPositionClass;
+    private static Constructor<?> newBlockPosition;
+    private static Class<?> worldServerClass;
+    private static Method getTileEntity;
+    static {
+        try {
+            craftWorldClass = Class.forName("org.bukkit.craftbukkit." + NMSManager.NMS + ".CraftWorld");
+            craftWorldGetHandle = craftWorldClass.getDeclaredMethod("getHandle");
+            blockPositionClass = Class.forName("net.minecraft.server." + NMSManager.NMS + ".BlockPosition");
+            newBlockPosition = blockPositionClass.getDeclaredConstructor(double.class, double.class, double.class);
+            worldServerClass = Class.forName("net.minecraft.server." + NMSManager.NMS + ".WorldServer");
+            getTileEntity = worldServerClass.getMethod("getTileEntity", blockPositionClass);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
     public static Object getWorldServer(World world) throws Exception {
-        Class<?> craftWorldClass = Class.forName("org.bukkit.craftbukkit." + NMSManager.NMS + ".CraftWorld");
         Object craftWorld = craftWorldClass.cast(world);
-        Method getHandle = craftWorldClass.getDeclaredMethod("getHandle");
-        return getHandle.invoke(craftWorld);
+        return craftWorldGetHandle.invoke(craftWorld);
     }
 
     public static Object createBlockPosition(double x, double y, double z) throws Exception {
-        Class<?> blockPositionClass = Class.forName("net.minecraft.server." + NMSManager.NMS + ".BlockPosition");
-        Constructor<?> newBlockPosition = blockPositionClass.getDeclaredConstructor(double.class, double.class, double.class);
         return newBlockPosition.newInstance(x, y, z);
     }
 
     public static Object getTileEntity(Object worldServer, Object blockPosition) throws Exception {
-        Class<?> worldServerClass = Class.forName("net.minecraft.server." + NMSManager.NMS + ".WorldServer");
-        Class<?> blockPositionClass = Class.forName("net.minecraft.server." + NMSManager.NMS + ".BlockPosition");
-        Method getTileEntity = worldServerClass.getMethod("getTileEntity", blockPositionClass);
         return getTileEntity.invoke(worldServer, blockPosition);
     }
 

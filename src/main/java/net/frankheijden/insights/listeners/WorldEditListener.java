@@ -10,9 +10,7 @@ import net.frankheijden.insights.managers.*;
 import net.frankheijden.insights.utils.*;
 import net.frankheijden.wecompatibility.core.*;
 import net.frankheijden.wecompatibility.core.Vector;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.block.BlockState;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Constructor;
@@ -25,8 +23,10 @@ public class WorldEditListener implements ExtentDelegate {
     private static final WorldEditManager worldEditManager = WorldEditManager.getInstance();
     private static final CacheManager cacheManager = CacheManager.getInstance();
 
+    private final World world;
     private final Player player;
     private final Extent extent;
+    private final EditSession.Stage stage;
 
     private ScanResult scanResult;
     private Material replacement = null;
@@ -34,9 +34,11 @@ public class WorldEditListener implements ExtentDelegate {
 
     private boolean didNotify;
 
-    private WorldEditListener(Player player, Extent extent) {
+    private WorldEditListener(World world, Player player, Extent extent, EditSession.Stage stage) {
+        this.world = world;
         this.player = player;
         this.extent = extent;
+        this.stage = stage;
 
         if (plugin.getConfiguration().GENERAL_WORLDEDIT_TYPE.equalsIgnoreCase("REPLACEMENT")) {
             try {
@@ -56,8 +58,8 @@ public class WorldEditListener implements ExtentDelegate {
         return "net.frankheijden.wecompatibility." + version + ".WorldEditExtent";
     }
 
-    public static Extent from(Player player, Extent extent, EditSession.Stage stage) {
-        WorldEditListener listener = new WorldEditListener(player, extent);
+    public static Extent from(World world, Player player, Extent extent, EditSession.Stage stage) {
+        WorldEditListener listener = new WorldEditListener(world, player, extent, stage);
         try {
             Class<?> clazz = Class.forName(getPackage());
             Constructor<?> c = clazz.getDeclaredConstructors()[0];
@@ -78,9 +80,6 @@ public class WorldEditListener implements ExtentDelegate {
         permissionCache.put(perm, p);
         return p;
     }
-
-    @Override
-    public void handleStage(String stage) {}
 
     @Override
     public CustomBlock setBlock(Player player, Vector vector, Material material) {
