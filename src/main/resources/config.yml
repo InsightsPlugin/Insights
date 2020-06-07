@@ -88,6 +88,9 @@ general:
     # Possible values: REPLACEMENT, UNCHANGED
     type: "REPLACEMENT"
     replacement: "BEDROCK"
+    # Disables all tile placements via worldedit.
+    # Use the permission insights.bypass.worldedit to bypass.
+    disable_tiles: false
 
   # Configure a live-notification when placing down a limited block!
   # The message is either sent in the ActionBar or as BossBar. On versions

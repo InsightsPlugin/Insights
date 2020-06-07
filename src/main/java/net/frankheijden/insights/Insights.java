@@ -94,6 +94,8 @@ public class Insights extends JavaPlugin {
 
         File messagesFile = FileUtils.copyResourceIfNotExists("messages.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
+
+        new TileUtils(FileUtils.copyResourceIfNotExists("tiles.yml"));
     }
 
     private void setupSQLite() {

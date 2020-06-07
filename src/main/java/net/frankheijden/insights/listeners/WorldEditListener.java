@@ -7,11 +7,12 @@ import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.config.Limit;
 import net.frankheijden.insights.entities.ScanResult;
 import net.frankheijden.insights.managers.*;
-import net.frankheijden.insights.utils.MessageUtils;
-import net.frankheijden.insights.utils.StringUtils;
+import net.frankheijden.insights.utils.*;
 import net.frankheijden.wecompatibility.core.*;
 import net.frankheijden.wecompatibility.core.Vector;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Constructor;
@@ -79,12 +80,17 @@ public class WorldEditListener implements ExtentDelegate {
     }
 
     @Override
+    public void handleStage(String stage) {}
+
+    @Override
     public CustomBlock setBlock(Player player, Vector vector, Material material) {
         if (!plugin.getConfiguration().GENERAL_WORLDEDIT_ENABLED) return null;
 
         String name = material.name();
-        Limit limit = InsightsAPI.getLimit(player, name);
-        if (limit == null || hasPermission(limit.getPermission())) return null;
+        if (!plugin.getConfiguration().GENERAL_WORLDEDIT_DISABLE_TILES || player.hasPermission("insights.worldedit.bypass") || !TileUtils.isTile(material)) {
+            Limit limit = InsightsAPI.getLimit(player, name);
+            if (limit == null || hasPermission(limit.getPermission())) return null;
+        }
 
         CustomBlock block = new CustomBlock(vector, material);
 
