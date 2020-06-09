@@ -83,8 +83,6 @@ public class WorldEditListener implements ExtentDelegate {
 
     @Override
     public CustomBlock setBlock(Player player, Vector vector, Material material) {
-        if (!plugin.getConfiguration().GENERAL_WORLDEDIT_ENABLED) return null;
-
         String name = material.name();
         if (!plugin.getConfiguration().GENERAL_WORLDEDIT_DISABLE_TILES || player.hasPermission("insights.worldedit.bypass") || !TileUtils.isTile(material)) {
             Limit limit = InsightsAPI.getLimit(player, name);

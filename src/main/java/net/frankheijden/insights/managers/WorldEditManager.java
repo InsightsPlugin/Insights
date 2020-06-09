@@ -51,6 +51,8 @@ public class WorldEditManager {
 
     @Subscribe(priority = EventHandler.Priority.VERY_LATE)
     public void handleEditSession(EditSessionEvent event) {
+        if (!plugin.getConfiguration().GENERAL_WORLDEDIT_ENABLED) return;
+
         Actor actor = event.getActor();
         if (actor != null && actor.isPlayer()) {
             Player player = Bukkit.getPlayer(actor.getName());
