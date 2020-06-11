@@ -361,10 +361,10 @@ public class MainListener implements Listener {
 
     private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, ItemStack is, int d, Limit limit) {
         Integer count = cache.getCount(name);
-        if (count == null) return;
+        if (count == null) count = 0;
 
         int l = limit.getLimit();
-        if (count > l && !player.hasPermission(limit.getPermission())) {
+        if (d > 0 && count > l && !player.hasPermission(limit.getPermission())) {
             if (!isPassiveForPlayer(player, "block")) {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(l),
@@ -375,14 +375,14 @@ public class MainListener implements Listener {
             cache.updateCache(name, -d);
             if (event != null) {
                 event.setCancelled(true);
-                blockLocations.remove(block.getLocation());
             } else {
                 simulateBreak(player, block, is);
+                return;
             }
         } else if (!isPassiveForPlayer(player, "block")) {
             sendMessage(player, limit.getName(), count, l);
-            blockLocations.remove(block.getLocation());
         }
+        blockLocations.remove(block.getLocation());
     }
 
     private void simulateBreak(Player player, Block block, ItemStack is) {
