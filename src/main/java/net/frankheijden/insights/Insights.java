@@ -82,6 +82,7 @@ public class Insights extends JavaPlugin {
     public void onDisable() {
         super.onDisable();
         unregisterCommands();
+        notificationManager.stop();
     }
 
     public static Insights getInstance() {

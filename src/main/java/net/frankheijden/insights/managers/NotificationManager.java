@@ -36,6 +36,10 @@ public class NotificationManager {
 
     public void stop() {
         task.stop();
+        notifications.values().forEach(n -> removeBossBar(n.getBossBar()));
+        notifications.clear();
+        persistentBossBars.values().forEach(NotificationManager::removeBossBar);
+        persistentBossBars.clear();
     }
 
     public void displayPersistentBossBar(Player player, String text, double progress) {
@@ -74,7 +78,7 @@ public class NotificationManager {
         List<UUID> remove = new ArrayList<>();
         notifications.forEach(((uuid, notification) -> {
             if (System.currentTimeMillis() >= notification.getEndTime()) {
-                notification.getBossBar().setVisible(false);
+                removeBossBar(notification.getBossBar());
                 remove.add(uuid);
             }
         }));
@@ -93,8 +97,7 @@ public class NotificationManager {
     public void removePersistent(UUID uuid) {
         BossBar bossBar = persistentBossBars.get(uuid);
         if (bossBar == null) return;
-        bossBar.setVisible(false);
-        bossBar.removeAll();
+        removeBossBar(bossBar);
         persistentBossBars.remove(uuid);
     }
 
@@ -108,5 +111,10 @@ public class NotificationManager {
         }
 
         return Bukkit.createBossBar("", barColor, barStyle, barFlags.toArray(new BarFlag[0]));
+    }
+
+    public static void removeBossBar(BossBar bossBar) {
+        bossBar.setVisible(false);
+        bossBar.removeAll();
     }
 }
