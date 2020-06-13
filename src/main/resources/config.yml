@@ -13,6 +13,19 @@ general:
     # enable Insights to download and restart the plugin on startup of the server.
     download_startup: false
 
+  # This section is used to configure the tile finder!
+  # Insights needs a single location to fetch tiles, you can change this location
+  # if this location messes things up with other plugins.
+  # Insights will restore this location after use to its old material again.
+  tilefinder_location:
+    ==: org.bukkit.Location
+    world: world
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    pitch: 0.0
+    yaw: 0.0
+
   # Configure a maximum Tile limit per chunk!
   # If you want to disable this, set the value to -1.
   # A list of all tiles: https://minecraft.gamepedia.com/Block_entity

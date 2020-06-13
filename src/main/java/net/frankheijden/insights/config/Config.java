@@ -2,6 +2,8 @@ package net.frankheijden.insights.config;
 
 import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.utils.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -12,6 +14,7 @@ public class Config {
     public boolean GENERAL_UPDATES_CHECK;
     public boolean GENERAL_UPDATES_DOWNLOAD;
     public boolean GENERAL_UPDATES_DOWNLOAD_STARTUP;
+    public Location GENERAL_TILEFINDER_LOCATION;
     public int GENERAL_LIMIT;
     public boolean GENERAL_ASYNC_ENABLED;
     public boolean GENERAL_ASYNC_WHITELIST;
@@ -55,6 +58,8 @@ public class Config {
         GENERAL_UPDATES_CHECK = utils.getBoolean("general.updates.check", true);
         GENERAL_UPDATES_DOWNLOAD = utils.getBoolean("general.updates.download", false);
         GENERAL_UPDATES_DOWNLOAD_STARTUP = utils.getBoolean("general.updates.download_startup", false);
+
+        GENERAL_TILEFINDER_LOCATION = utils.getLocation("general.tilefinder_location", new Location(Bukkit.getWorlds().get(0), 1, 1, 1));
 
         GENERAL_LIMIT = utils.getIntWithinRange("general.limit", -1, null, null);
 

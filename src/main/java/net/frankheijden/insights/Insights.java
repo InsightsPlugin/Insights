@@ -44,6 +44,7 @@ public class Insights extends JavaPlugin {
     private VersionManager versionManager = null;
     private MetricsManager metricsManager = null;
     private FreezeManager freezeManager = null;
+    private TileManager tileManager = null;
 
     private boolean placeholderAPIHook = false;
 
@@ -95,8 +96,6 @@ public class Insights extends JavaPlugin {
 
         File messagesFile = FileUtils.copyResourceIfNotExists("messages.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
-
-        new TileUtils(FileUtils.copyResourceIfNotExists("tiles.yml"));
     }
 
     private void setupSQLite() {
@@ -161,6 +160,9 @@ public class Insights extends JavaPlugin {
         versionManager = new VersionManager();
         metricsManager = new MetricsManager();
         freezeManager = new FreezeManager();
+        tileManager = new TileManager();
+        tileManager.calculateTiles(config.GENERAL_TILEFINDER_LOCATION);
+        logger.info(String.format("Found a total of %d tiles!", tileManager.getTiles().size()));
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
         if (PaperLib.getMinecraftVersion() <= 7) {
@@ -261,6 +263,10 @@ public class Insights extends JavaPlugin {
 
     public FreezeManager getFreezeManager() {
         return freezeManager;
+    }
+
+    public TileManager getTileManager() {
+        return tileManager;
     }
 
     public boolean hasPlaceholderAPIHook() {

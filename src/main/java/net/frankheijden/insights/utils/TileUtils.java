@@ -1,28 +1,22 @@
 package net.frankheijden.insights.utils;
 
 import net.frankheijden.insights.managers.NMSManager;
+import net.frankheijden.insights.managers.TileManager;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 
 public class TileUtils {
 
-    private static Set<String> tiles;
+    private static final TileManager tileManager = TileManager.getInstance();
 
-    public TileUtils(File file) {
-        tiles = new HashSet<>(YamlConfiguration.loadConfiguration(file).getStringList("tiles"));
-    }
-
-    public static Set<String> getTiles() {
-        return tiles;
+    public static Set<Material> getTiles() {
+        return tileManager.getTiles();
     }
 
     public static boolean isTile(Material material) {
-        return tiles.contains(material.name());
+        return tileManager.isTile(material);
     }
 
     public static boolean isTile(Block block) {

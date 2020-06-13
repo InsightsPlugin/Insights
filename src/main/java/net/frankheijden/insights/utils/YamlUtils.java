@@ -2,6 +2,7 @@ package net.frankheijden.insights.utils;
 
 import net.frankheijden.insights.config.ConfigError;
 import net.frankheijden.insights.entities.Error;
+import org.bukkit.Location;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -138,5 +139,10 @@ public class YamlUtils {
                 .map(s -> new ConfigError(name, path, "not a valid " + what + " (" + s + ")"))
                 .forEach(errors::add);
         return new ArrayList<>(validValues);
+    }
+
+    public Location getLocation(String path, Location def) {
+        if (!exists(path)) return def;
+        return yml.getLocation(path, def);
     }
 }
