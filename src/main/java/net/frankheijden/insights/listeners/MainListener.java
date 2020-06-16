@@ -158,7 +158,7 @@ public class MainListener implements Listener {
         if (limit == null) return;
         int l = limit.getLimit();
         if (l < 0) return;
-        int current = getEntityCount(chunk, name) + 1;
+        int current = getEntityCount(chunk, limit.getEntities()) + 1;
 
         if (current > l && !player.hasPermission(limit.getPermission())) {
             cancellable.setCancelled(true);
@@ -189,15 +189,15 @@ public class MainListener implements Listener {
         if (limit == null) return;
         int l = limit.getLimit();
         if (l < 0) return;
-        int current = getEntityCount(entity.getLocation().getChunk(), name) - 1;
+        int current = getEntityCount(entity.getLocation().getChunk(), limit.getEntities()) - 1;
 
         sendMessage(player, limit.getName(), current, l);
     }
 
-    private int getEntityCount(Chunk chunk, String entityType) {
+    private int getEntityCount(Chunk chunk, Set<String> entityTypes) {
         int count = 0;
         for (Entity entity : chunk.getEntities()) {
-            if (entity.getType().name().equals(entityType)) count++;
+            if (entityTypes.contains(entity.getType().name())) count++;
         }
         return count;
     }

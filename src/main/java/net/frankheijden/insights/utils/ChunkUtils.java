@@ -7,8 +7,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Entity;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ChunkUtils {
 
@@ -60,7 +59,7 @@ public class ChunkUtils {
     public static int getAmountInChunk(Chunk chunk, ChunkSnapshot chunkSnapshot, Limit limit) {
         int count = 0;
 
-        List<String> materials = limit.getMaterials();
+        Set<String> materials = limit.getMaterials();
         if (materials != null && !materials.isEmpty()) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
@@ -73,7 +72,7 @@ public class ChunkUtils {
             }
         }
 
-        List<String> entities = limit.getEntities();
+        Set<String> entities = limit.getEntities();
         if (entities != null && !entities.isEmpty()) {
             for (Entity entity : chunk.getEntities()) {
                 if (entities.contains(entity.getType().name())) {

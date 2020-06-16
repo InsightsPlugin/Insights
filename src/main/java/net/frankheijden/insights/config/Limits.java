@@ -49,8 +49,8 @@ public class Limits {
             Integer l = abstractLimit.getLimit(str);
             if (l != null) {
                 limit = new Limit(abstractLimit.getName(), abstractLimit.getPermission(), l,
-                        new ArrayList<>(abstractLimit.getMaterials()),
-                        new ArrayList<>(abstractLimit.getEntities()));
+                        abstractLimit.getMaterials(),
+                        abstractLimit.getEntities());
                 break;
             }
         }
@@ -67,7 +67,7 @@ public class Limits {
                     if (lm != null) {
                         String permission = "insights.bypass." + str;
                         limit = new Limit(str, permission,
-                                lm, Collections.singletonList(str), null);
+                                lm, Collections.singleton(str), null);
                     }
                     break;
                 case "entities":
@@ -75,7 +75,7 @@ public class Limits {
                     if (le != null) {
                         String permission = "insights.bypass." + str;
                         limit = new Limit(str, permission,
-                                le, Collections.singletonList(str), null);
+                                le, Collections.singleton(str), null);
                     }
                     break;
                 case "groups":

@@ -1,16 +1,16 @@
 package net.frankheijden.insights.config;
 
-import java.util.List;
+import java.util.Set;
 
 public class Limit {
 
     private final String name;
     private final String permission;
     private final int limit;
-    private final List<String> materials;
-    private final List<String> entities;
+    private final Set<String> materials;
+    private final Set<String> entities;
 
-    public Limit(String name, String permission, int limit, List<String> materials, List<String> entities) {
+    public Limit(String name, String permission, int limit, Set<String> materials, Set<String> entities) {
         this.name = name;
         this.permission = permission;
         this.limit = limit;
@@ -30,11 +30,11 @@ public class Limit {
         return limit;
     }
 
-    public List<String> getMaterials() {
+    public Set<String> getMaterials() {
         return materials;
     }
 
-    public List<String> getEntities() {
+    public Set<String> getEntities() {
         return entities;
     }
 }
