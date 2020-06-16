@@ -2,7 +2,7 @@ package net.frankheijden.insights.utils;
 
 import net.frankheijden.insights.config.ConfigError;
 import net.frankheijden.insights.entities.Error;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -143,6 +143,15 @@ public class YamlUtils {
 
     public Location getLocation(String path, Location def) {
         if (!exists(path)) return def;
-        return yml.getLocation(path, def);
+        String world = yml.getString(path + ".world");
+        double x = yml.getDouble(path + ".x", def.getX());
+        double y = yml.getDouble(path + ".y", def.getY());
+        double z = yml.getDouble(path + ".z", def.getZ());
+
+        World w = null;
+        if (world != null) w = Bukkit.getWorld(world);
+        if (w == null) w = def.getWorld();
+
+        return new Location(w, x, y, z);
     }
 }
