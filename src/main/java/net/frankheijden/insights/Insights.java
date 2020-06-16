@@ -161,8 +161,7 @@ public class Insights extends JavaPlugin {
         metricsManager = new MetricsManager();
         freezeManager = new FreezeManager();
         tileManager = new TileManager();
-        tileManager.calculateTiles(config.GENERAL_TILEFINDER_LOCATION);
-        logger.info(String.format("Found a total of %d tiles!", tileManager.getTiles().size()));
+        tileManager.tryRecalculateTiles(config.GENERAL_TILEFINDER_LOCATION);
 
         String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
         if (PaperLib.getMinecraftVersion() <= 7) {
