@@ -1,5 +1,6 @@
 package net.frankheijden.insights.config;
 
+import java.util.Collections;
 import java.util.Set;
 
 public class Limit {
@@ -14,8 +15,8 @@ public class Limit {
         this.name = name;
         this.permission = permission;
         this.limit = limit;
-        this.materials = materials;
-        this.entities = entities;
+        this.materials = materials == null ? Collections.emptySet() : materials;
+        this.entities = entities == null ? Collections.emptySet() : entities;
     }
 
     public String getName() {

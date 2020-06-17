@@ -75,7 +75,7 @@ public class Limits {
                     if (le != null) {
                         String permission = "insights.bypass." + str;
                         limit = new Limit(str, permission,
-                                le, Collections.singleton(str), null);
+                                le, null, Collections.singleton(str));
                     }
                     break;
                 case "groups":
