@@ -165,10 +165,11 @@ public class UpdateCheckerTask implements Runnable {
     }
 
     private void download(String urlString, File target) throws IOException {
-        URL url = new URL(urlString);
-        ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-        FileOutputStream fos = new FileOutputStream(target);
-        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+        try (InputStream is = stream(urlString);
+             ReadableByteChannel rbc = Channels.newChannel(is);
+             FileOutputStream fos = new FileOutputStream(target)) {
+            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+        }
     }
 
     private String readAll(BufferedReader reader) throws IOException {
@@ -181,10 +182,17 @@ public class UpdateCheckerTask implements Runnable {
     }
 
     private JsonElement readJsonFromURL(String url) throws IOException {
-        try (InputStream is = new URL(url).openStream()) {
+        try (InputStream is = stream(url)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String jsonText = readAll(reader);
             return new JsonParser().parse(jsonText);
         }
+    }
+
+    private InputStream stream(String url) throws IOException {
+        URLConnection conn = new URL(url).openConnection();
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0");
+        conn.setConnectTimeout(10000);
+        return conn.getInputStream();
     }
 }
