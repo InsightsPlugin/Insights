@@ -75,19 +75,25 @@ public class TileManager {
         Filter filterBackup = Bukkit.getLogger().getFilter();
         Bukkit.getLogger().setFilter(record -> false);
 
+        List<MaterialException> exceptions = new ArrayList<>();
+
         Block block = location.getBlock();
         Material materialBackup = block.getType();
         for (Material m : Material.values()) {
-            if (!m.isBlock()) continue;
+            if (!m.isBlock() || m.isAir()) continue;
 
-            block.setType(m, false);
+            trySetType(exceptions, block, m);
             if (TileUtils.isTile(block)) {
                 tiles.add(m);
             }
         }
-        block.setType(materialBackup);
-
+        trySetType(exceptions, block, materialBackup);
         Bukkit.getLogger().setFilter(filterBackup);
+
+        for (MaterialException exception : exceptions) {
+            exception.throwEx();
+        }
+
         return tiles;
     }
 
@@ -97,5 +103,27 @@ public class TileManager {
 
     public boolean isTile(Material material) {
         return tiles.contains(material);
+    }
+
+    private static void trySetType(List<MaterialException> exceptions, Block block, Material material) {
+        try {
+            block.setType(material, true);
+        } catch (Throwable th) {
+            exceptions.add(new MaterialException(material, th));
+        }
+    }
+
+    private static class MaterialException {
+        private final Material m;
+        private final Throwable th;
+
+        public MaterialException(Material m, Throwable th) {
+            this.m = m;
+            this.th = th;
+        }
+
+        public void throwEx() {
+            throw new RuntimeException("Error while setting material '" + m.name() + "'!", th);
+        }
     }
 }
