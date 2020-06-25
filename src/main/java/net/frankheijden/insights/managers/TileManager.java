@@ -80,7 +80,7 @@ public class TileManager {
         Block block = location.getBlock();
         Material materialBackup = block.getType();
         for (Material m : Material.values()) {
-            if (!m.isBlock() || m.isAir()) continue;
+            if (!m.isBlock() || isAir(m.name())) continue;
 
             trySetType(exceptions, block, m);
             if (TileUtils.isTile(block)) {
@@ -95,6 +95,13 @@ public class TileManager {
         }
 
         return tiles;
+    }
+
+    private boolean isAir(String m) {
+        return m.equals("AIR")
+                || m.equals("CAVE_AIR")
+                || m.equals("VOID_AIR")
+                || m.equals("LEGACY_AIR");
     }
 
     public Set<Material> getTiles() {
