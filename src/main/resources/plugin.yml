@@ -5,7 +5,7 @@ description: "A plugin which gives you Insights about your server, and allows fo
 author: "FrankHeijden"
 website: "https://www.spigotmc.org/resources/56489/"
 prefix: "Insights"
-softdepend: [BentoBoxWorld, FastAsyncWorldEdit, PlaceholderAPI, WorldEdit, WorldGuard]
+softdepend: [FastAsyncWorldEdit, Hyperverse, Multiverse-Core, PlaceholderAPI, PlayerWorldsPro, WorldEdit, WorldGuard]
 api-version: "1.13"
 
 commands:
