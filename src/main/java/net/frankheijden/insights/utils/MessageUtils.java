@@ -22,6 +22,15 @@ public class MessageUtils {
     private static final Insights plugin = Insights.getInstance();
     private static final int SEGMENT_COUNT = 50;
 
+    private static boolean hasActionBarMethod;
+    static {
+        Method m = null;
+        try {
+            m = Player.class.getDeclaredMethod("sendActionBar", String.class);
+        } catch (NoSuchMethodException ignored) {}
+        hasActionBarMethod = m != null;
+    }
+
     public static void sendMessage(Object object, String path, String... placeholders) {
         if (object instanceof UUID) {
             sendMessage((UUID) object, path, placeholders);
@@ -114,6 +123,11 @@ public class MessageUtils {
     }
 
     public static void sendActionbar(Player player, String message) {
+        if (hasActionBarMethod) {
+            player.sendActionBar(message);
+            return;
+        }
+
         try {
             Class<?> craftPlayerClass = Class.forName("org.bukkit.craftbukkit." + NMSManager.NMS + ".entity.CraftPlayer");
             Object craftPlayer = craftPlayerClass.cast(player);
