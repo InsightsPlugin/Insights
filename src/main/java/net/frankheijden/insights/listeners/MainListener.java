@@ -505,25 +505,26 @@ public class MainListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
-        Chunk fromChunk = event.getFrom().getChunk();
-        Chunk toChunk = event.getTo().getChunk();
-        if (fromChunk != toChunk) {
-            PlayerChunkMoveEvent chunkEnterEvent = new PlayerChunkMoveEvent(event.getPlayer(), fromChunk, toChunk);
+        if (!isChunkEqual(event.getFrom(), event.getTo())) {
+            PlayerChunkMoveEvent chunkEnterEvent = new PlayerChunkMoveEvent(event.getPlayer(),
+                    event.getFrom(),
+                    event.getTo());
             Bukkit.getPluginManager().callEvent(chunkEnterEvent);
             if (chunkEnterEvent.isCancelled()) {
-                event.setTo(event.getFrom());
+                event.setCancelled(true);
             }
         }
     }
 
-    @EventHandler
-    public void onPlayerChunkMove(PlayerChunkMoveEvent event) {
-        if (event.isCancelled()) {
-            return;
-        }
+    private boolean isChunkEqual(Location loc1, Location loc2) {
+        return (loc1.getBlockX() >> 4) == (loc2.getBlockX() >> 4)
+                && (loc1.getBlockZ() >> 4) == (loc2.getBlockZ() >> 4);
+    }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerChunkMove(PlayerChunkMoveEvent event) {
         Player player = event.getPlayer();
         String string = plugin.getSqLite().getAutoscan(player);
         Integer type = plugin.getSqLite().getAutoscanType(player);
