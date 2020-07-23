@@ -60,7 +60,7 @@ public class MainListener implements Listener {
             return;
         }
 
-        Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
+        Limit limit = InsightsAPI.getLimit(player, name);
         if (limit != null) {
             if (cacheManager.hasSelections(player.getLocation())) {
                 handleBlockCache(event, player, block, null, -1, limit);
@@ -241,7 +241,7 @@ public class MainListener implements Listener {
             return;
         }
 
-        Limit limit = InsightsAPI.getLimit(player.getWorld(), name);
+        Limit limit = InsightsAPI.getLimit(player, name);
         if (limit != null) {
             ItemStack is = new ItemStack(event.getItemInHand());
             is.setAmount(1);
@@ -549,7 +549,7 @@ public class MainListener implements Listener {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        Limit limit = plugin.getConfiguration().getLimits().getLimit(string);
+                        Limit limit = plugin.getConfiguration().getLimits().getLimit(string, player);
                         int count = ChunkUtils.getAmountInChunk(chunk, chunkSnapshot, limit);
 
                         double progress = ((double) count)/((double) limit.getLimit());

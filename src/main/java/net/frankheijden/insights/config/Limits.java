@@ -1,6 +1,7 @@
 package net.frankheijden.insights.config;
 
 import net.frankheijden.insights.utils.YamlUtils;
+import org.bukkit.command.CommandSender;
 
 import java.util.*;
 
@@ -43,11 +44,12 @@ public class Limits {
         }
     }
 
-    public Limit getLimit(List<? extends AbstractLimit> list, String str) {
+    public Limit getLimit(List<? extends AbstractLimit> list, String str, CommandSender sender) {
         Limit limit = null;
         for (AbstractLimit abstractLimit : list) {
             Integer l = abstractLimit.getLimit(str);
             if (l != null) {
+                if (sender.hasPermission(abstractLimit.getPermission())) continue;
                 limit = new Limit(abstractLimit.getName(), abstractLimit.getPermission(), l,
                         abstractLimit.getMaterials(),
                         abstractLimit.getEntities());
@@ -58,7 +60,7 @@ public class Limits {
         return limit;
     }
 
-    public Limit getLimit(String str) {
+    public Limit getLimit(String str, CommandSender sender) {
         Limit limit = null;
         for (String priorityValue : this.PRIORITIES) {
             switch (priorityValue.toLowerCase()) {
@@ -66,6 +68,7 @@ public class Limits {
                     Integer lm = this.SINGLE_MATERIALS.get(str);
                     if (lm != null) {
                         String permission = "insights.bypass." + str;
+                        if (sender.hasPermission(permission)) continue;
                         limit = new Limit(str, permission,
                                 lm, Collections.singleton(str), null);
                     }
@@ -74,15 +77,16 @@ public class Limits {
                     Integer le = this.SINGLE_ENTITIES.get(str);
                     if (le != null) {
                         String permission = "insights.bypass." + str;
+                        if (sender.hasPermission(permission)) continue;
                         limit = new Limit(str, permission,
                                 le, null, Collections.singleton(str));
                     }
                     break;
                 case "groups":
-                    limit = this.getLimit(this.GROUP_LIMITS, str);
+                    limit = this.getLimit(this.GROUP_LIMITS, str, sender);
                     break;
                 case "permissions":
-                    limit = this.getLimit(this.PERMISSION_LIMITS, str);
+                    limit = this.getLimit(this.PERMISSION_LIMITS, str, sender);
                     break;
             }
 

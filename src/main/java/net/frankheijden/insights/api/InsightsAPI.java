@@ -9,6 +9,7 @@ import net.frankheijden.insights.utils.StringUtils;
 import net.frankheijden.insights.utils.TimeUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -155,28 +156,7 @@ public class InsightsAPI {
      * @return The limit, or null if none
      */
     public static Limit getLimit(Player player, String str) {
-        return getLimit(player.getWorld(), player.getLocation(), str);
-    }
-
-    /**
-     * Retrieves the limit for a specified world.
-     * @param world The world to check if limiting is enabled in there
-     * @param str The string what the limit is (entity/material)
-     * @return The limit, or null if none
-     */
-    public static Limit getLimit(World world, String str) {
-        return getLimit(world, null, str);
-    }
-
-    /**
-     * Retrieves the limit for a specified location.
-     * @param location The location to check for if limiting is enabled
-     *                 in that world and if it's in a limited region
-     * @param str The string what the limit is (entity/material)
-     * @return The limit, or null if none
-     */
-    public static Limit getLimit(Location location, String str) {
-        return getLimit(location.getWorld(), location, str);
+        return getLimit(player.getWorld(), player.getLocation(), str, player);
     }
 
     /**
@@ -184,14 +164,15 @@ public class InsightsAPI {
      * @param world The world to check if limiting is enabled in there
      * @param location The location to check for if limiting is enabled in that region
      * @param str The string what the limit is (entity/material)
+     * @param sender The command sender to apply the limit to
      * @return The limit, or null if none
      */
-    public static Limit getLimit(World world, Location location, String str) {
+    public static Limit getLimit(World world, Location location, String str, CommandSender sender) {
         if (!isLimitingEnabled(world)) return null;
         if (location != null && isInLimitedRegion(location)) return null;
 
         Limits limits = Insights.getInstance().getConfiguration().getLimits();
-        Limit limit = limits.getLimit(str);
+        Limit limit = limits.getLimit(str, sender);
         if (limit != null) MetricsManager.incrementLimitCount();
         return limit;
     }
