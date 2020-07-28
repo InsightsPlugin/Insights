@@ -54,14 +54,16 @@ public class Insights extends JavaPlugin {
         insights = this;
         logger = this.getLogger();
 
-        PaperLib.suggestPaper(this);
-
         List<Error> errors = new ArrayList<>();
         setupConfiguration(errors);
         setupSQLite();
         setupManagers();
         setupClasses();
         setupPlaceholderAPIHook();
+
+        if (config.GENERAL_SUGGEST_PAPER) {
+            PaperLib.suggestPaper(this);
+        }
 
         Bukkit.getScheduler().runTask(this, () -> {
             logger.info("Enabling Insights addons...");

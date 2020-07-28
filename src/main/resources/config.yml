@@ -13,6 +13,9 @@ general:
     # enable Insights to download and restart the plugin on startup of the server.
     download_startup: false
 
+  # Disable the paper suggestion in the console (pls update to paper tho, it really has many benefits over spigot)
+  suggest_paper: true
+
   # This section is used to configure the tile finder!
   # Insights needs a single location to fetch tiles, you can change this location
   # if this location messes things up with other plugins.
