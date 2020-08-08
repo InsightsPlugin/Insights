@@ -306,6 +306,7 @@ public class MainListener implements Listener {
     }
 
     private boolean isEqual(Location loc1, Location loc2, int x, int y, int z) {
+        if (loc1 == null) return false;
         return loc1.clone().add(x, y, z).equals(loc2);
     }
 
