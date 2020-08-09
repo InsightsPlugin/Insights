@@ -83,19 +83,29 @@ public class WorldEditListener implements ExtentDelegate {
 
     @Override
     public CustomBlock setBlock(Player player, Vector vector, Material material) {
+        boolean replace = false;
+
         String name = material.name();
-        if (!plugin.getConfiguration().GENERAL_WORLDEDIT_DISABLE_TILES || player.hasPermission("insights.worldedit.bypass") || !TileUtils.isTile(material)) {
-            Limit limit = InsightsAPI.getLimit(player, name);
-            if (limit == null || hasPermission(limit.getPermission())) return null;
+        Limit limit = InsightsAPI.getLimit(player, name);
+        if (limit != null && !hasPermission(limit.getPermission())) {
+            replace = true;
         }
 
-        CustomBlock block = new CustomBlock(vector, material);
-
-        scanResult.increment(name.toLowerCase());
-        if (replacement != null) {
-            block.setMaterial(replacement);
+        if (!replace) {
+            if (plugin.getConfiguration().GENERAL_WORLDEDIT_DISABLE_TILES && TileUtils.isTile(material) && !hasPermission("insights.worldedit.bypass")) {
+                replace = true;
+            }
         }
-        return block;
+
+        if (replace) {
+            CustomBlock block = new CustomBlock(vector, material);
+            scanResult.increment(name.toLowerCase());
+            if (replacement != null) {
+                block.setMaterial(replacement);
+            }
+            return block;
+        }
+        return null;
     }
 
     @Override
