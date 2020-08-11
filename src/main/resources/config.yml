@@ -104,6 +104,11 @@ general:
     # Disables all tile placements via worldedit.
     # Use the permission insights.bypass.worldedit to bypass.
     disable_tiles: false
+    # Disable extra blocks through worldedit here.
+    # Bypass permission is insights.bypass.worldedit.<block>
+    whitelist: false
+    list:
+      - "POPPY"
 
   # Configure a live-notification when placing down a limited block!
   # The message is either sent in the ActionBar or as BossBar. On versions

@@ -31,6 +31,7 @@ public class WorldEditListener implements ExtentDelegate {
     private ScanResult scanResult;
     private Material replacement = null;
     private final Map<String, Boolean> permissionCache;
+    private final Map<String, Limit> limitCache;
 
     private boolean didNotify;
 
@@ -50,6 +51,7 @@ public class WorldEditListener implements ExtentDelegate {
 
         this.scanResult = new ScanResult();
         this.permissionCache = new HashMap<>();
+        this.limitCache = new HashMap<>();
         this.didNotify = false;
     }
 
@@ -81,19 +83,31 @@ public class WorldEditListener implements ExtentDelegate {
         return p;
     }
 
+    private boolean hasLimit(String name) {
+        Limit limit = limitCache.computeIfAbsent(name, k -> InsightsAPI.getLimit(player, name));
+        return limit != null && !hasPermission(limit.getPermission());
+    }
+
     @Override
     public CustomBlock setBlock(Player player, Vector vector, Material material) {
-        boolean replace = false;
-
         String name = material.name();
-        Limit limit = InsightsAPI.getLimit(player, name);
-        if (limit != null && !hasPermission(limit.getPermission())) {
-            replace = true;
-        }
+        boolean replace = hasLimit(name);
 
         if (!replace) {
             if (plugin.getConfiguration().GENERAL_WORLDEDIT_DISABLE_TILES && TileUtils.isTile(material) && !hasPermission("insights.worldedit.bypass")) {
                 replace = true;
+            }
+        }
+
+        if (!replace) {
+            if (plugin.getConfiguration().GENERAL_WORLDEDIT_LIST.contains(name.toUpperCase())) {
+                if (!plugin.getConfiguration().GENERAL_WORLDEDIT_WHITELIST && !hasPermission("insights.worldedit.bypass." + name)) {
+                    replace = true;
+                }
+            } else {
+                if (plugin.getConfiguration().GENERAL_WORLDEDIT_WHITELIST && !hasPermission("insights.worldedit.bypass." + name)) {
+                    replace = true;
+                }
             }
         }
 

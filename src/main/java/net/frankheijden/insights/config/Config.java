@@ -30,6 +30,8 @@ public class Config {
     private final Set<String> GENERAL_WORLDEDIT_TYPE_VALUES = of("UNCHANGED", "REPLACEMENT");
     public String GENERAL_WORLDEDIT_REPLACEMENT;
     public boolean GENERAL_WORLDEDIT_DISABLE_TILES;
+    public boolean GENERAL_WORLDEDIT_WHITELIST;
+    public Set<String> GENERAL_WORLDEDIT_LIST;
     public String GENERAL_NOTIFICATION_TYPE;
     private final Set<String> GENERAL_NOTIFICATION_TYPE_VALUES = of("BOSSBAR", "ACTIONBAR");
     public String GENERAL_NOTIFICATION_BOSSBAR_COLOR;
@@ -84,6 +86,8 @@ public class Config {
         GENERAL_WORLDEDIT_TYPE = utils.getString("general.worldedit.type", "REPLACEMENT", GENERAL_WORLDEDIT_TYPE_VALUES);
         GENERAL_WORLDEDIT_REPLACEMENT = utils.getString("general.worldedit.replacement", "BEDROCK", Utils.SCANNABLE_BLOCKS, "block");
         GENERAL_WORLDEDIT_DISABLE_TILES = utils.getBoolean("general.worldedit.disable_tiles", false);
+        GENERAL_WORLDEDIT_WHITELIST = utils.getBoolean("general.worldedit.whitelist", false);
+        GENERAL_WORLDEDIT_LIST = utils.getSet("general.worldedit.list", Utils.SCANNABLE_BLOCKS, "block");
 
         GENERAL_NOTIFICATION_TYPE = utils.getString("general.notification.type", "BOSSBAR", GENERAL_NOTIFICATION_TYPE_VALUES);
         GENERAL_NOTIFICATION_BOSSBAR_COLOR = utils.getString("general.notification.bossbar.color", "BLUE", GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES);

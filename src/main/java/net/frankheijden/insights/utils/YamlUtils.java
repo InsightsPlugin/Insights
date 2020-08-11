@@ -123,11 +123,7 @@ public class YamlUtils {
         }
     }
 
-    public List<String> getStringList(String path) {
-        return yml.getStringList(path);
-    }
-
-    public List<String> getStringList(String path, Set<String> possibleValues, String what) {
+    public Set<String> getSet(String path, Set<String> possibleValues, String what) {
         List<String> values = yml.getStringList(path);
         Set<String> validValues = new HashSet<>();
         values.stream()
@@ -138,7 +134,15 @@ public class YamlUtils {
                 })
                 .map(s -> new ConfigError(name, path, "not a valid " + what + " (" + s + ")"))
                 .forEach(errors::add);
-        return new ArrayList<>(validValues);
+        return validValues;
+    }
+
+    public List<String> getStringList(String path) {
+        return yml.getStringList(path);
+    }
+
+    public List<String> getStringList(String path, Set<String> possibleValues, String what) {
+        return new ArrayList<>(getSet(path, possibleValues, what));
     }
 
     public Location getLocation(String path, Location def) {

@@ -86,6 +86,7 @@ public class Insights extends JavaPlugin {
         super.onDisable();
         unregisterCommands();
         notificationManager.stop();
+        if (worldEditManager != null) worldEditManager.unregister();
     }
 
     public static Insights getInstance() {

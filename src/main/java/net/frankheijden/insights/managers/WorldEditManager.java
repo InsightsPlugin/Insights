@@ -41,6 +41,10 @@ public class WorldEditManager {
         this.wePlugin.getWorldEdit().getEventBus().register(this);
     }
 
+    public void unregister() {
+        this.wePlugin.getWorldEdit().getEventBus().unregister(this);
+    }
+
     public static WorldEditManager getInstance() {
         return instance;
     }
