@@ -533,8 +533,8 @@ public class MainListener implements Listener {
             List<String> strs = Arrays.asList(string.split(","));
 
             Chunk chunk = event.getToChunk();
-
-            if (type == 0) {
+            Limit limit = plugin.getConfiguration().getLimits().getLimit(string, player);
+            if (type == 0 || limit == null) {
                 ScanOptions scanOptions = new ScanOptions();
                 scanOptions.setScanType(ScanType.CUSTOM);
                 scanOptions.setEntityTypes(strs);
@@ -551,7 +551,6 @@ public class MainListener implements Listener {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        Limit limit = plugin.getConfiguration().getLimits().getLimit(string, player);
                         int count = ChunkUtils.getAmountInChunk(chunk, chunkSnapshot, limit);
 
                         double progress = ((double) count)/((double) limit.getLimit());
