@@ -1,6 +1,7 @@
 package net.frankheijden.insights.listeners;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import io.papermc.lib.PaperLib;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.api.InsightsAPI;
 import net.frankheijden.insights.builders.Scanner;
@@ -25,6 +26,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class MainListener implements Listener {
 
@@ -60,20 +62,33 @@ public class MainListener implements Listener {
             return;
         }
 
+        int d = -getAmount(block.getType());
+
         Limit limit = InsightsAPI.getLimit(player, name);
         if (limit != null) {
             if (cacheManager.hasSelections(player.getLocation())) {
-                handleBlockCache(event, player, block, null, -1, limit);
+                handleBlockCache(event, player, block, null, d, limit);
             } else if (!isPassiveForPlayer(player, "block")) {
-                sendBreakMessage(player, event.getBlock().getChunk(), limit);
+                sendBreakMessage(player, event.getBlock().getChunk(), d, limit);
             }
         } else if (TileUtils.isTile(event.getBlock()) && !isPassiveForPlayer(player, "tile")) {
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
             if (plugin.getConfiguration().GENERAL_ALWAYS_SHOW_NOTIFICATION || generalLimit > -1) {
-                int current = event.getBlock().getLocation().getChunk().getTileEntities().length - 1;
+                int current = event.getBlock().getLocation().getChunk().getTileEntities().length + d;
                 tryNotifyRealtime(player, current, generalLimit);
             }
         }
+    }
+
+    private static final Set<Material> BEDS = Arrays.stream(Material.values())
+            .filter(m -> m.name().endsWith("_BED") || m.name().equals("BED_BLOCK"))
+            .collect(Collectors.toSet());
+    private static final Set<Material> DOORS = Arrays.stream(Material.values())
+            .filter(m -> m.name().contains("_DOOR"))
+            .collect(Collectors.toSet());
+
+    private int getAmount(Material m) {
+        return BEDS.contains(m) || DOORS.contains(m) ? 2 : 1;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -133,12 +148,12 @@ public class MainListener implements Listener {
         }
     }
 
-    private void sendBreakMessage(Player player, Chunk chunk, Limit limit) {
+    private void sendBreakMessage(Player player, Chunk chunk, int d, Limit limit) {
         ChunkSnapshot chunkSnapshot = chunk.getChunkSnapshot();
         new BukkitRunnable() {
             @Override
             public void run() {
-                int current = ChunkUtils.getAmountInChunk(chunk, chunkSnapshot, limit) - 1;
+                int current = ChunkUtils.getAmountInChunk(chunk, chunkSnapshot, limit) + d;
                 sendMessage(player, limit.getName(), current, limit.getLimit());
             }
         }.runTaskAsynchronously(plugin);
@@ -241,17 +256,19 @@ public class MainListener implements Listener {
             return;
         }
 
+        int d = getAmount(block.getType());
+
         Limit limit = InsightsAPI.getLimit(player, name);
         if (limit != null) {
             ItemStack is = new ItemStack(event.getItemInHand());
             is.setAmount(1);
             if (cacheManager.hasSelections(player.getLocation())) {
-                handleBlockCache(event, player, block, is, 1, limit);
+                handleBlockCache(event, player, block, is, d, limit);
             } else {
                 handleChunkPreBlockPlace(event, player, block, is, limit);
             }
         } else if (TileUtils.isTile(event.getBlockPlaced())) {
-            int current = event.getBlock().getLocation().getChunk().getTileEntities().length + 1;
+            int current = event.getBlock().getLocation().getChunk().getTileEntities().length + d;
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
             if (generalLimit > -1 && current >= generalLimit) {
                 if (!player.hasPermission("insights.bypass")) {
@@ -411,7 +428,12 @@ public class MainListener implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
+                Block other = null;
+                if (PaperLib.getMinecraftVersion() >= 13) {
+                    other = Post1_13Listeners.getOther(block);
+                }
                 block.setType(Material.AIR);
+                if (other != null) other.setType(Material.AIR);
                 blockLocations.remove(block.getLocation());
             }
         }.runTask(plugin);
