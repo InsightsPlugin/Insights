@@ -34,6 +34,8 @@ For the description of this plugin, please refer to SpigotMC: https://www.spigot
 [![spigotRatingImg]][spigot]
 [![spigotDownloadsImg]][spigot]
 
+[![Discord](https://img.shields.io/discord/580773821745725452.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/WJGvzue)
+
 [![bStatsImg]][bStats]
 
 ## How to run the project?
