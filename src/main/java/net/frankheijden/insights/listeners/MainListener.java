@@ -397,7 +397,10 @@ public class MainListener implements Listener {
 
     private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, ItemStack is, int d, Limit limit) {
         Integer count = cache.getCount(name);
-        if (count == null) count = 0;
+        if (count == null) {
+            count = d;
+            if (count < 0) count = 0;
+        }
 
         int l = limit.getLimit();
         if (d > 0 && count > l && !player.hasPermission(limit.getPermission())) {
