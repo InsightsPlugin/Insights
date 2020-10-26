@@ -51,8 +51,8 @@ public class Limits {
             if (l != null) {
                 if (sender.hasPermission(abstractLimit.getPermission())) continue;
                 limit = new Limit(abstractLimit.getName(), abstractLimit.getPermission(), l,
-                        abstractLimit.getMaterials(),
-                        abstractLimit.getEntities());
+                        abstractLimit.getMaterials(str),
+                        abstractLimit.getEntities(str));
                 break;
             }
         }

@@ -25,7 +25,7 @@ public abstract class AbstractLimit implements Limitable {
         return permission;
     }
 
-    public Set<String> getMaterials() {
+    public Set<String> getMaterials(String str) {
         return materials.keySet();
     }
 
@@ -33,7 +33,7 @@ public abstract class AbstractLimit implements Limitable {
         this.materials = materials;
     }
 
-    public Set<String> getEntities() {
+    public Set<String> getEntities(String str) {
         return entities.keySet();
     }
 

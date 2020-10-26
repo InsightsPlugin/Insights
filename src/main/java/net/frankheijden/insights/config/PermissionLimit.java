@@ -2,7 +2,9 @@ package net.frankheijden.insights.config;
 
 import net.frankheijden.insights.utils.YamlUtils;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 public class PermissionLimit extends AbstractLimit {
 
@@ -22,5 +24,17 @@ public class PermissionLimit extends AbstractLimit {
             return null;
         }
         return new PermissionLimit(name, permission, materials, entities);
+    }
+
+    @Override
+    public Set<String> getMaterials(String str) {
+        if (!super.getMaterials(str).contains(str)) return Collections.emptySet();
+        return Collections.singleton(str);
+    }
+
+    @Override
+    public Set<String> getEntities(String str) {
+        if (!super.getEntities(str).contains(str)) return Collections.emptySet();
+        return Collections.singleton(str);
     }
 }
