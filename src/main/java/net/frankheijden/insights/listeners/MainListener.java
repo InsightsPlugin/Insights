@@ -114,8 +114,14 @@ public class MainListener implements Listener {
         handlePistonEvent(event, event.getBlocks());
     }
 
+    private static final EnumSet<Material> BLOCK_PHYSICS_BYPASS = EnumSet.of(
+            Material.CHEST,
+            Material.TRAPPED_CHEST
+    );
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPhysics(BlockPhysicsEvent event) {
+        if (BLOCK_PHYSICS_BYPASS.contains(event.getBlock().getType())) return;
         if (blockLocations.contains(event.getBlock().getLocation())) {
             event.setCancelled(true);
         }
