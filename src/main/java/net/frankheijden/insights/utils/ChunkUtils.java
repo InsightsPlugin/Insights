@@ -85,7 +85,6 @@ public class ChunkUtils {
     }
 
     private static class Cache {
-        Method getBlockType = null;
         Method getBlockTypeId = null;
         Method getMaterial = null;
     }
@@ -95,13 +94,8 @@ public class ChunkUtils {
         cache = new Cache();
 
         try {
-            Class<?> chunkSnapshotClass = ChunkSnapshot.class;
-            if (NMSManager.getInstance().isPost(13)) {
-                cache.getBlockType = chunkSnapshotClass.getDeclaredMethod("getBlockType", int.class, int.class, int.class);
-            } else {
-                cache.getBlockTypeId = chunkSnapshotClass.getDeclaredMethod("getBlockTypeId", int.class, int.class, int.class);
-                cache.getMaterial = Material.class.getDeclaredMethod("getMaterial", int.class);
-            }
+            cache.getBlockTypeId = ChunkSnapshot.class.getDeclaredMethod("getBlockTypeId", int.class, int.class, int.class);
+            cache.getMaterial = Material.class.getDeclaredMethod("getMaterial", int.class);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -109,11 +103,12 @@ public class ChunkUtils {
 
     public static Material getMaterial(ChunkSnapshot chunkSnapshot, int x, int y, int z) {
         if (chunkSnapshot == null) return null;
-        if (cache == null) initialiseCache();
+        boolean post13 = NMSManager.getInstance().isPost(13);
+        if (cache == null && !post13) initialiseCache();
 
         try {
-            if (NMSManager.getInstance().isPost(13)) {
-                return (Material) cache.getBlockType.invoke(chunkSnapshot, x, y, z);
+            if (post13) {
+                return chunkSnapshot.getBlockType(x, y, z);
             } else {
                 int id = (int) cache.getBlockTypeId.invoke(chunkSnapshot, x, y, z);
                 return (Material) cache.getMaterial.invoke(Material.class, id);
