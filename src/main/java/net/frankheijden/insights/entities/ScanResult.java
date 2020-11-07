@@ -20,14 +20,14 @@ public class ScanResult implements Iterable<Map.Entry<String, Integer>> {
      * @param materials Scan materials
      * @param entityTypes Scan entities
      */
-    public ScanResult(List<String> materials, List<String> entityTypes) {
+    public ScanResult(Collection<? extends String> materials, Collection<? extends String> entityTypes) {
         this.counts = new TreeMap<>();
 
         if (materials != null) initialize(materials);
         if (entityTypes != null) initialize(entityTypes);
     }
 
-    private void initialize(List<String> values) {
+    private void initialize(Collection<? extends String> values) {
         values.forEach(v -> counts.put(v, 0));
     }
 

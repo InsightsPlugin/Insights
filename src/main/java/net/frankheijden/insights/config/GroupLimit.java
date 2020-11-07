@@ -6,7 +6,7 @@ import java.util.*;
 
 public class GroupLimit extends AbstractLimit {
 
-    public GroupLimit(String name, String permission, Integer limit, List<String> materials, List<String> entities) {
+    public GroupLimit(String name, String permission, Integer limit, Collection<? extends String> materials, Collection<? extends String> entities) {
         super(name, permission);
 
         Map<String, Integer> materialMap = new HashMap<>();

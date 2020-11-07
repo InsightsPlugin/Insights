@@ -82,10 +82,10 @@ public class MainListener implements Listener {
 
     private static final Set<Material> BEDS = Arrays.stream(Material.values())
             .filter(m -> m.name().endsWith("_BED") || m.name().equals("BED_BLOCK"))
-            .collect(Collectors.toSet());
+            .collect(Collectors.toCollection(() -> EnumSet.noneOf(Material.class)));
     private static final Set<Material> DOORS = Arrays.stream(Material.values())
             .filter(m -> m.name().contains("_DOOR"))
-            .collect(Collectors.toSet());
+            .collect(Collectors.toCollection(() -> EnumSet.noneOf(Material.class)));
 
     private int getAmount(Material m) {
         return BEDS.contains(m) || DOORS.contains(m) ? 2 : 1;
@@ -356,7 +356,7 @@ public class MainListener implements Listener {
         }
 
         if (matchedRegion != null) {
-            List<String> strs = matchedRegion.getBlocks();
+            Set<String> strs = matchedRegion.getBlocks();
             if (matchedRegion.isWhitelist()) return strs.contains(str);
             else return !strs.contains(str);
         }

@@ -294,7 +294,7 @@ public class ScanChunksTask implements Runnable {
         ChunkVector min = part.getPartialChunk().getMinimum();
         ChunkVector max = part.getPartialChunk().getMaximum();
 
-        List<String> materials = scanOptions.getMaterials();
+        Set<String> materials = scanOptions.getMaterials();
         ChunkSnapshot chunkSnapshot = part.getChunk().getChunkSnapshot();
         for (int x = min.getX(); x <= max.getX(); x++) {
             for (int y = min.getY(); y <= max.getY(); y++) {
@@ -314,7 +314,7 @@ public class ScanChunksTask implements Runnable {
 
     private boolean shouldIncementEntity(Entity entity) {
         if (scanOptions.getScanType() == ScanType.ALL || scanOptions.getScanType() == ScanType.ENTITY) return true;
-        List<String> entities = scanOptions.getEntityTypes();
+        Set<String> entities = scanOptions.getEntityTypes();
         return (entities.contains(entity.getType().name()));
     }
 }

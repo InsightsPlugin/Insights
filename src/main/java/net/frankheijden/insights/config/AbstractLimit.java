@@ -1,5 +1,7 @@
 package net.frankheijden.insights.config;
 
+import net.frankheijden.insights.utils.CaseInsensitiveHashMap;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -7,14 +9,12 @@ public abstract class AbstractLimit implements Limitable {
 
     private final String name;
     private final String permission;
-    private Map<String, Integer> materials;
-    private Map<String, Integer> entities;
+    private CaseInsensitiveHashMap<Integer> materials = new CaseInsensitiveHashMap<>();
+    private CaseInsensitiveHashMap<Integer> entities = new CaseInsensitiveHashMap<>();
 
     public AbstractLimit(String name, String permission) {
         this.name = name;
         this.permission = permission;
-        this.materials = null;
-        this.entities = null;
     }
 
     public String getName() {
@@ -30,7 +30,7 @@ public abstract class AbstractLimit implements Limitable {
     }
 
     public void setMaterials(Map<String, Integer> materials) {
-        this.materials = materials;
+        this.materials = new CaseInsensitiveHashMap<>(materials);
     }
 
     public Set<String> getEntities(String str) {
@@ -38,7 +38,7 @@ public abstract class AbstractLimit implements Limitable {
     }
 
     public void setEntities(Map<String, Integer> entities) {
-        this.entities = entities;
+        this.entities = new CaseInsensitiveHashMap<>(entities);
     }
 
     @Override

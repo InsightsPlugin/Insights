@@ -1,7 +1,6 @@
 package net.frankheijden.insights.utils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class StringUtils {
 
@@ -43,12 +42,6 @@ public class StringUtils {
             i++;
         }
         return false;
-    }
-
-    public static List<String> uppercase(Collection<? extends String> collection) {
-        return collection.stream()
-                .map(String::toUpperCase)
-                .collect(Collectors.toList());
     }
 
     public static String repeat(char c, int count) {

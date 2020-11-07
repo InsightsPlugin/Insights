@@ -2,7 +2,7 @@ package net.frankheijden.insights.entities;
 
 import net.frankheijden.insights.enums.ScanType;
 import net.frankheijden.insights.interfaces.ScanCompleteListener;
-import net.frankheijden.insights.utils.StringUtils;
+import net.frankheijden.insights.utils.CaseInsensitiveHashSet;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -16,8 +16,8 @@ public class ScanOptions {
     private int chunkCount;
     private UUID uuid;
     private String path;
-    private List<String> materials;
-    private List<String> entityTypes;
+    private Set<String> materials;
+    private Set<String> entityTypes;
     private boolean console;
     private boolean saveWorld;
     private ScanCompleteListener listener;
@@ -29,8 +29,8 @@ public class ScanOptions {
         this.chunkCount = 0;
         this.uuid = null;
         this.path = null;
-        this.materials = new ArrayList<>();
-        this.entityTypes = new ArrayList<>();
+        this.materials = new CaseInsensitiveHashSet();
+        this.entityTypes = new CaseInsensitiveHashSet();
         this.console = false;
         this.saveWorld = false;
         this.listener = null;
@@ -99,36 +99,36 @@ public class ScanOptions {
         this.path = path;
     }
 
-    public List<String> getMaterials() {
+    public Set<String> getMaterials() {
         return materials;
     }
 
-    public void setMaterials(List<String> materials) {
-        this.materials = StringUtils.uppercase(materials);
+    public void setMaterials(Collection<? extends String> materials) {
+        this.materials = new CaseInsensitiveHashSet(materials);
     }
 
     public void addMaterial(String material) {
-        materials.add(material.toLowerCase());
+        materials.add(material);
     }
 
-    public void addAllMaterials(List<String> materials) {
-        this.materials.addAll(StringUtils.uppercase(materials));
+    public void addAllMaterials(Collection<? extends String> materials) {
+        this.materials.addAll(materials);
     }
 
-    public List<String> getEntityTypes() {
+    public Set<String> getEntityTypes() {
         return entityTypes;
     }
 
-    public void setEntityTypes(List<String> entityTypes) {
-        this.entityTypes = StringUtils.uppercase(entityTypes);
+    public void setEntityTypes(Collection<? extends String> entityTypes) {
+        this.entityTypes = new CaseInsensitiveHashSet(entityTypes);
     }
 
     public void addEntityType(String entityType) {
-        entityTypes.add(entityType.toLowerCase());
+        entityTypes.add(entityType);
     }
 
-    public void addAllEntityTypes(List<String> entityTypes) {
-        this.entityTypes.addAll(StringUtils.uppercase(entityTypes));
+    public void addAllEntityTypes(Collection<? extends String> entityTypes) {
+        this.entityTypes.addAll(entityTypes);
     }
 
     public boolean isConsole() {

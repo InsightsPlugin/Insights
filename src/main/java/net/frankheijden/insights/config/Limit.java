@@ -1,5 +1,8 @@
 package net.frankheijden.insights.config;
 
+import net.frankheijden.insights.utils.CaseInsensitiveHashSet;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -11,12 +14,12 @@ public class Limit {
     private final Set<String> materials;
     private final Set<String> entities;
 
-    public Limit(String name, String permission, int limit, Set<String> materials, Set<String> entities) {
+    public Limit(String name, String permission, int limit, Collection<? extends String> materials, Collection<? extends String> entities) {
         this.name = name;
         this.permission = permission;
         this.limit = limit;
-        this.materials = materials == null ? Collections.emptySet() : materials;
-        this.entities = entities == null ? Collections.emptySet() : entities;
+        this.materials = materials == null ? Collections.emptySet() : new CaseInsensitiveHashSet(materials);
+        this.entities = entities == null ? Collections.emptySet() : new CaseInsensitiveHashSet(entities);
     }
 
     public String getName() {

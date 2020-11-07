@@ -19,7 +19,7 @@ public class Config {
     public int GENERAL_LIMIT;
     public boolean GENERAL_ASYNC_ENABLED;
     public boolean GENERAL_ASYNC_WHITELIST;
-    public List<String> GENERAL_ASYNC_LIST;
+    public Set<String> GENERAL_ASYNC_LIST;
     public boolean GENERAL_WORLDS_WHITELIST;
     public List<String> GENERAL_WORLDS_LIST;
     public boolean GENERAL_REGIONS_WHITELIST;
@@ -70,7 +70,7 @@ public class Config {
 
         GENERAL_ASYNC_ENABLED = utils.getBoolean("general.async.enabled", true);
         GENERAL_ASYNC_WHITELIST = utils.getBoolean("general.async.whitelist", false);
-        GENERAL_ASYNC_LIST = utils.getStringList("general.async.blocks", Utils.SCANNABLE_BLOCKS, "block");
+        GENERAL_ASYNC_LIST = utils.getSet("general.async.blocks", Utils.SCANNABLE_BLOCKS, "block", new CaseInsensitiveHashSet());
 
         GENERAL_WORLDS_WHITELIST = utils.getBoolean("general.worlds.whitelist", true);
         GENERAL_WORLDS_LIST = utils.getStringList("general.worlds.list");
@@ -87,7 +87,7 @@ public class Config {
         GENERAL_WORLDEDIT_REPLACEMENT = utils.getString("general.worldedit.replacement", "BEDROCK", Utils.SCANNABLE_BLOCKS, "block");
         GENERAL_WORLDEDIT_DISABLE_TILES = utils.getBoolean("general.worldedit.disable_tiles", false);
         GENERAL_WORLDEDIT_WHITELIST = utils.getBoolean("general.worldedit.whitelist", false);
-        GENERAL_WORLDEDIT_LIST = utils.getSet("general.worldedit.list", Utils.SCANNABLE_BLOCKS, "block");
+        GENERAL_WORLDEDIT_LIST = utils.getSet("general.worldedit.list", Utils.SCANNABLE_BLOCKS, "block", new CaseInsensitiveHashSet());
 
         GENERAL_NOTIFICATION_TYPE = utils.getString("general.notification.type", "BOSSBAR", GENERAL_NOTIFICATION_TYPE_VALUES);
         GENERAL_NOTIFICATION_BOSSBAR_COLOR = utils.getString("general.notification.bossbar.color", "BLUE", GENERAL_NOTIFICATION_BOSSBAR_COLOR_VALUES);

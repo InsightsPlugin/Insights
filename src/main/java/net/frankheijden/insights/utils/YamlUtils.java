@@ -34,21 +34,20 @@ public class YamlUtils {
         return section.getKeys(false);
     }
 
-    public Map<String, Integer> getMap(String path) {
-        Map<String, Integer> map = new HashMap<>();
-        if (yml.get(path) == null) return map;
+    public Map<String, Integer> getMap(String path, Map<String, Integer> initialMap) {
+        if (yml.get(path) == null) return initialMap;
 
         for (String key : getKeys(path)) {
             String subPath = getPath(path, key);
             int value = yml.getInt(subPath, -1);
             if (value >= 0) {
-                map.put(key, value);
+                initialMap.put(key, value);
             } else {
                 errors.add(new ConfigError(name, path, "value must be at least 0"));
             }
         }
 
-        return map;
+        return initialMap;
     }
 
     public static String getPath(String... paths) {
@@ -123,18 +122,17 @@ public class YamlUtils {
         }
     }
 
-    public Set<String> getSet(String path, Set<String> possibleValues, String what) {
+    public Set<String> getSet(String path, Set<String> possibleValues, String what, Set<String> initialSet) {
         List<String> values = yml.getStringList(path);
-        Set<String> validValues = new HashSet<>();
         values.stream()
                 .filter(s -> {
                     boolean valid = possibleValues.contains(s.toUpperCase());
-                    if (valid) validValues.add(s);
+                    if (valid) initialSet.add(s);
                     return !valid;
                 })
                 .map(s -> new ConfigError(name, path, "not a valid " + what + " (" + s + ")"))
                 .forEach(errors::add);
-        return validValues;
+        return initialSet;
     }
 
     public List<String> getStringList(String path) {
@@ -142,7 +140,7 @@ public class YamlUtils {
     }
 
     public List<String> getStringList(String path, Set<String> possibleValues, String what) {
-        return new ArrayList<>(getSet(path, possibleValues, what));
+        return new ArrayList<>(getSet(path, possibleValues, what, new HashSet<>()));
     }
 
     public Location getLocation(String path, Location def) {

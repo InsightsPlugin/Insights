@@ -1,20 +1,23 @@
 package net.frankheijden.insights.config;
 
+import net.frankheijden.insights.utils.CaseInsensitiveHashSet;
 import net.frankheijden.insights.utils.Utils;
 import net.frankheijden.insights.utils.YamlUtils;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class RegionBlocks {
 
     private final boolean whitelist;
     private final String regex;
-    private final List<String> blocks;
+    private final Set<String> blocks;
 
-    public RegionBlocks(boolean whitelist, String regex, List<String> blocks) {
+    public RegionBlocks(boolean whitelist, String regex, Collection<? extends String> blocks) {
         this.whitelist = whitelist;
         this.regex = regex;
-        this.blocks = blocks;
+        this.blocks = new CaseInsensitiveHashSet(blocks);
     }
 
     public static RegionBlocks from(YamlUtils utils, String path) {
@@ -32,7 +35,7 @@ public class RegionBlocks {
         return regex;
     }
 
-    public List<String> getBlocks() {
+    public Set<String> getBlocks() {
         return blocks;
     }
 }

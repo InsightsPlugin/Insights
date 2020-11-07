@@ -1,5 +1,6 @@
 package net.frankheijden.insights.config;
 
+import net.frankheijden.insights.utils.CaseInsensitiveHashMap;
 import net.frankheijden.insights.utils.YamlUtils;
 import org.bukkit.command.CommandSender;
 
@@ -18,8 +19,8 @@ public class Limits {
 
     public void reload(YamlUtils utils) {
         this.PRIORITIES = utils.getStringList("general.limits.priorities", PRIORITIES_VALUES, "priority");
-        this.SINGLE_MATERIALS = utils.getMap("general.limits.materials");
-        this.SINGLE_ENTITIES = utils.getMap("general.limits.entities");
+        this.SINGLE_MATERIALS = utils.getMap("general.limits.materials", new CaseInsensitiveHashMap<>());
+        this.SINGLE_ENTITIES = utils.getMap("general.limits.entities", new CaseInsensitiveHashMap<>());
         this.GROUP_LIMITS = new ArrayList<>();
         this.PERMISSION_LIMITS = new ArrayList<>();
 
