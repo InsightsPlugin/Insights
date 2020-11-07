@@ -35,15 +35,23 @@ public class MainListener implements Listener {
     private static final CacheManager cacheManager = CacheManager.getInstance();
     private static final FreezeManager freezeManager = FreezeManager.getInstance();
     private final InteractListener interactListener;
+    private final EntityListener entityListener;
     private final List<Location> blockLocations;
 
-    public MainListener(InteractListener interactListener) {
-        this.interactListener = interactListener;
+    public MainListener() {
+        this.interactListener = new InteractListener();
+        this.entityListener = new EntityListener(this);
         this.blockLocations = new ArrayList<>();
     }
 
     public InteractListener getInteractListener() {
         return interactListener;
+    }
+
+    public void register() {
+        Bukkit.getPluginManager().registerEvents(interactListener, plugin);
+        Bukkit.getPluginManager().registerEvents(entityListener, plugin);
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -66,8 +74,8 @@ public class MainListener implements Listener {
 
         Limit limit = InsightsAPI.getLimit(player, name);
         if (limit != null) {
-            if (cacheManager.hasSelections(player.getLocation())) {
-                handleBlockCache(event, player, block, null, d, limit);
+            if (cacheManager.hasSelections(block.getLocation())) {
+                handleCache(event, player, block.getLocation(), null, name, null, d, limit);
             } else if (!isPassiveForPlayer(player, "block")) {
                 sendBreakMessage(player, event.getBlock().getChunk(), d, limit);
             }
@@ -197,7 +205,17 @@ public class MainListener implements Listener {
         if (limit == null) return;
         int l = limit.getLimit();
         if (l < 0) return;
-        int current = getEntityCount(chunk, limit.getEntities()) + 1;
+
+        if (cacheManager.hasSelections(entity.getLocation())) {
+            ItemStack is = EntityUtils.createItemStack(entity, 1);
+            handleCache(cancellable, player, entity.getLocation(), () -> {
+                entityListener.onRemoveEntity(entity.getUniqueId());
+                entity.remove();
+            }, name, is, 1, limit);
+            return;
+        }
+
+        int current = getEntityCount(chunk, limit.getEntities());
 
         if (current > l && !player.hasPermission(limit.getPermission())) {
             cancellable.setCancelled(true);
@@ -217,10 +235,10 @@ public class MainListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerEntityDestroy(PlayerEntityDestroyEvent event) {
-        handleEntityDestroy(event.getPlayer(), event.getEntity());
+        handleEntityDestroy(event, event.getPlayer(), event.getEntity());
     }
 
-    public void handleEntityDestroy(Player player, Entity entity) {
+    public void handleEntityDestroy(Cancellable cancellable, Player player, Entity entity) {
         if (isPassiveForPlayer(player, "entity")) return;
         String name = entity.getType().name();
 
@@ -228,6 +246,11 @@ public class MainListener implements Listener {
         if (limit == null) return;
         int l = limit.getLimit();
         if (l < 0) return;
+
+        if (cacheManager.hasSelections(entity.getLocation())) {
+            handleCache(cancellable, player, entity.getLocation(), null, name, null, -1, limit);
+            return;
+        }
         int current = getEntityCount(entity.getLocation().getChunk(), limit.getEntities()) - 1;
 
         sendMessage(player, limit.getName(), current, l);
@@ -268,8 +291,8 @@ public class MainListener implements Listener {
         if (limit != null) {
             ItemStack is = new ItemStack(event.getItemInHand());
             is.setAmount(1);
-            if (cacheManager.hasSelections(player.getLocation())) {
-                handleBlockCache(event, player, block, is, d, limit);
+            if (cacheManager.hasSelections(block.getLocation())) {
+                handleCache(event, player, block.getLocation(), () -> simulateBreak(block), name, is, d, limit);
             } else {
                 handleChunkPreBlockPlace(event, player, block, is, limit);
             }
@@ -363,13 +386,11 @@ public class MainListener implements Listener {
         return false;
     }
 
-    private void handleBlockCache(Cancellable event, Player player, Block block, ItemStack is, int d, Limit limit) {
-        String name = block.getType().name();
-
+    private void handleCache(Cancellable event, Player player, Location loc, Runnable remover, String name, ItemStack is, int d, Limit limit) {
         Set<SelectionEntity> selections = cacheManager.updateCache(player.getLocation(), name, d);
         if (selections.size() == 0 && limit != null) {
             cacheManager.getMaxCountCache(player.getLocation(), name)
-                    .ifPresent(scanCache -> handleCacheLimit(scanCache, event, player, block, name, is, d, limit));
+                    .ifPresent(scanCache -> handleCacheLimit(scanCache, event, player, loc, remover, name, is, d, limit));
             return;
         }
 
@@ -378,7 +399,7 @@ public class MainListener implements Listener {
 
         MessageUtils.sendMessage(player, "messages.area_scan.start");
         freezeManager.freezePlayer(player.getUniqueId());
-        blockLocations.add(block.getLocation());
+        blockLocations.add(loc);
 
         AtomicInteger integer = new AtomicInteger(list.size());
         for (Map.Entry<SelectionEntity, ScanOptions> entry : list.entrySet()) {
@@ -392,16 +413,16 @@ public class MainListener implements Listener {
 
                     Optional<ScanCache> scanCache = cacheManager.getMaxCountCache(player.getLocation(), name);
                     if (scanCache.isPresent()) {
-                        handleCacheLimit(scanCache.get(), null, player, block, name, is, d, limit);
+                        handleCacheLimit(scanCache.get(), null, player, loc, remover, name, is, d, limit);
                     } else {
-                        blockLocations.remove(block.getLocation());
+                        blockLocations.remove(loc);
                     }
                 }
             });
         }
     }
 
-    private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Block block, String name, ItemStack is, int d, Limit limit) {
+    private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Location loc, Runnable remover, String name, ItemStack is, int d, Limit limit) {
         Integer count = cache.getCount(name);
         if (count == null) {
             count = d;
@@ -421,19 +442,24 @@ public class MainListener implements Listener {
             if (event != null) {
                 event.setCancelled(true);
             } else {
-                simulateBreak(player, block, is);
+                if (player.getGameMode() != GameMode.CREATIVE) {
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            player.getInventory().addItem(is);
+                        }
+                    }.runTask(plugin);
+                }
+                remover.run();
                 return;
             }
         } else if (!isPassiveForPlayer(player, "block")) {
             sendMessage(player, limit.getName(), count, l);
         }
-        blockLocations.remove(block.getLocation());
+        blockLocations.remove(loc);
     }
 
-    private void simulateBreak(Player player, Block block, ItemStack is) {
-        if (player.getGameMode() != GameMode.CREATIVE) {
-            player.getInventory().addItem(is);
-        }
+    private void simulateBreak(Block block) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -475,11 +501,11 @@ public class MainListener implements Listener {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    handleChunkBlockPlace(event, player, block, chunkSnapshot, is, async, limit);
+                    handleChunkBlockPlace(event, player, block, () -> simulateBreak(block), chunkSnapshot, is, async, limit);
                 }
             }.runTaskAsynchronously(plugin);
         } else {
-            handleChunkBlockPlace(event, player, block, chunkSnapshot, null, async, limit);
+            handleChunkBlockPlace(event, player, block, () -> simulateBreak(block), chunkSnapshot, null, async, limit);
         }
     }
 
@@ -495,7 +521,7 @@ public class MainListener implements Listener {
         return false;
     }
 
-    private void handleChunkBlockPlace(Cancellable event, Player player, Block block, ChunkSnapshot chunkSnapshot, ItemStack is, boolean async, Limit limit) {
+    private void handleChunkBlockPlace(Cancellable event, Player player, Block block, Runnable remover, ChunkSnapshot chunkSnapshot, ItemStack is, boolean async, Limit limit) {
         int current = ChunkUtils.getAmountInChunk(block.getChunk(), chunkSnapshot, limit);
         int l = limit.getLimit();
         if (current > l) {
@@ -507,7 +533,10 @@ public class MainListener implements Listener {
                             "%area%", "chunk");
                 }
                 if (async) {
-                    simulateBreak(player, block, is);
+                    if (player.getGameMode() != GameMode.CREATIVE) {
+                        player.getInventory().addItem(is);
+                    }
+                    remover.run();
                 } else {
                     blockLocations.remove(block.getLocation());
                     event.setCancelled(true);

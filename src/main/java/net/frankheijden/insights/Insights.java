@@ -107,11 +107,8 @@ public class Insights extends JavaPlugin {
     }
 
     private void setupClasses() {
-        InteractListener interactListener = new InteractListener();
-        Bukkit.getPluginManager().registerEvents(interactListener, this);
-        MainListener mainListener = new MainListener(interactListener);
-        Bukkit.getPluginManager().registerEvents(mainListener, this);
-        Bukkit.getPluginManager().registerEvents(new EntityListener(mainListener), this);
+        MainListener mainListener = new MainListener();
+        mainListener.register();
         if (nmsManager.isPost(13)) {
             Bukkit.getPluginManager().registerEvents(new Post1_13Listeners(), this);
         } else {
@@ -119,6 +116,7 @@ public class Insights extends JavaPlugin {
         }
         Bukkit.getPluginManager().registerEvents(new CacheListener(), this);
         Bukkit.getPluginManager().registerEvents(new FreezeListener(), this);
+
         Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan());
         Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights());
         Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck());

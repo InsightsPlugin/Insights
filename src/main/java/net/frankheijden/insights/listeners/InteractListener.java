@@ -23,12 +23,14 @@ public class InteractListener implements Listener {
 
         Block block = event.getClickedBlock().getRelative(event.getBlockFace());
 
-        Location loc = block.getLocation();
+        Location loc = block.getLocation().clone();
         interactLocations.put(loc, event.getPlayer());
         interactTimes.put(loc, System.currentTimeMillis());
     }
 
     public Player getPlayerWithinRadius(Location location) {
+        Player player = null;
+
         List<Location> locationsToRemove = new ArrayList<>();
         for (Location loc : interactLocations.keySet()) {
             if (System.currentTimeMillis() - interactTimes.get(loc) > 500) {
@@ -40,7 +42,8 @@ public class InteractListener implements Listener {
 
             if (location.distance(loc) <= 1.5) {
                 locationsToRemove.add(loc);
-                return interactLocations.get(loc);
+                player = interactLocations.get(loc);
+                break;
             }
         }
 
@@ -49,6 +52,6 @@ public class InteractListener implements Listener {
             interactTimes.remove(loc);
         }
 
-        return null;
+        return player;
     }
 }
