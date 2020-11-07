@@ -292,7 +292,7 @@ public class MainListener implements Listener {
             ItemStack is = new ItemStack(event.getItemInHand());
             is.setAmount(1);
             if (cacheManager.hasSelections(block.getLocation())) {
-                handleCache(event, player, block.getLocation(), () -> simulateBreak(block), name, is, d, limit);
+                handleCache(event, player, block.getLocation(), () -> simulateBreak(player, block), name, is, d, limit);
             } else {
                 handleChunkPreBlockPlace(event, player, block, is, limit);
             }
@@ -459,10 +459,13 @@ public class MainListener implements Listener {
         blockLocations.remove(loc);
     }
 
-    private void simulateBreak(Block block) {
+    private void simulateBreak(Player player, Block block) {
         new BukkitRunnable() {
             @Override
             public void run() {
+                FakeBlockBreakEvent event = new FakeBlockBreakEvent(block, player);
+                Bukkit.getPluginManager().callEvent(event);
+
                 Block other = null;
                 if (PaperLib.getMinecraftVersion() >= 13) {
                     other = Post1_13Listeners.getOther(block);
@@ -501,11 +504,11 @@ public class MainListener implements Listener {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    handleChunkBlockPlace(event, player, block, () -> simulateBreak(block), chunkSnapshot, is, async, limit);
+                    handleChunkBlockPlace(event, player, block, () -> simulateBreak(player, block), chunkSnapshot, is, async, limit);
                 }
             }.runTaskAsynchronously(plugin);
         } else {
-            handleChunkBlockPlace(event, player, block, () -> simulateBreak(block), chunkSnapshot, null, async, limit);
+            handleChunkBlockPlace(event, player, block, () -> simulateBreak(player, block), chunkSnapshot, null, async, limit);
         }
     }
 
