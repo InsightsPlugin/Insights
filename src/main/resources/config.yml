@@ -40,10 +40,9 @@ general:
     # Support is enabled for this feature, if you come across any incompatibility, please report!
     enabled: true
 
-    # Some plugins may prefer Insights to scan particular blocks synchronously,
-    # so all blocks in this list will cause Insights to scan synchronously.
-    # Blacklist mode (false): All worlds except the ones in the list.
-    # Whitelist mode (true): All worlds in the list.
+    # Some plugins may prefer Insights to scan particular blocks synchronously.
+    # Blacklist mode (false): All blocks will be scanned synchronously except the ones in the list.
+    # Whitelist mode (true): All blocks in the list will be scanned synchronously.
     whitelist: false
     blocks:
       #- "HOPPER"
@@ -63,8 +62,8 @@ general:
   # (so you can disable it in some regions)
   # Please note: values are regex matched!
   regions:
-    # Blacklist mode (false): All worlds except the ones in the list.
-    # Whitelist mode (true): All worlds in the list.
+    # Blacklist mode (false): All regions except the ones in the list.
+    # Whitelist mode (true): All regions in the list.
     whitelist: false
     list:
       - "region1"
