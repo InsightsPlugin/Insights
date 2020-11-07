@@ -1,11 +1,13 @@
 package net.frankheijden.insights.listeners;
 
-import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.lib.PaperLib;
+import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.events.EntityRemoveFromWorldEvent;
 import net.frankheijden.insights.events.PlayerEntityDestroyEvent;
 import net.frankheijden.insights.events.PlayerEntityPlaceEvent;
 import net.frankheijden.insights.managers.CacheManager;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.*;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
@@ -13,18 +15,32 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class EntityListener implements Listener {
 
     private static final CacheManager cacheManager = CacheManager.getInstance();
     private final MainListener listener;
     private final Set<UUID> removedEntities = new HashSet<>();
+    private PaperEntityListener paperEntityListener = null;
 
     public EntityListener(MainListener listener) {
         this.listener = listener;
+
+        if (PaperLib.isPaper()) {
+            paperEntityListener = new PaperEntityListener();
+        } else {
+            Bukkit.getScheduler().runTaskTimerAsynchronously(Insights.getInstance(), new EntityRemovalChecker(), 0, 20);
+        }
+    }
+
+    public PaperEntityListener getPaperEntityListener() {
+        return paperEntityListener;
     }
 
     public void onRemoveEntity(UUID uuid) {
@@ -122,5 +138,49 @@ public class EntityListener implements Listener {
         PlayerEntityDestroyEvent entityDestroyEvent = new PlayerEntityDestroyEvent(player, entity);
         Bukkit.getPluginManager().callEvent(entityDestroyEvent);
         cancellable.setCancelled(entityDestroyEvent.isCancelled());
+    }
+
+    private static final class EntityRemovalChecker implements Runnable {
+
+        private Map<UUID, Entity> currentEntities = new HashMap<>();
+
+        private final Object LOCK = new Object();
+        private final AtomicBoolean busy = new AtomicBoolean(false);
+
+        @Override
+        public void run() {
+            if (busy.getAndSet(true)) return;
+
+            Map<UUID, Entity> entities = new HashMap<>();
+            for (World w : Bukkit.getWorlds()) {
+                for (Entity e : w.getEntities()) {
+                    entities.put(e.getUniqueId(), e);
+                }
+            }
+
+            currentEntities.keySet().removeAll(entities.keySet());
+
+            Bukkit.getScheduler().runTask(Insights.getInstance(), () -> {
+                for (Entity entity : currentEntities.values()) {
+                    Bukkit.getPluginManager().callEvent(new EntityRemoveFromWorldEvent(entity));
+                }
+
+                synchronized (LOCK) {
+                    LOCK.notify();
+                }
+            });
+
+            synchronized (LOCK) {
+                try {
+                    LOCK.wait();
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            currentEntities.clear();
+            currentEntities = entities;
+            busy.set(false);
+        }
     }
 }

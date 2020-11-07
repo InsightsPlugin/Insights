@@ -51,6 +51,8 @@ public class MainListener implements Listener {
     public void register() {
         Bukkit.getPluginManager().registerEvents(interactListener, plugin);
         Bukkit.getPluginManager().registerEvents(entityListener, plugin);
+        PaperEntityListener paperEntityListener = entityListener.getPaperEntityListener();
+        if (paperEntityListener != null) Bukkit.getPluginManager().registerEvents(paperEntityListener, plugin);
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
