@@ -87,7 +87,7 @@ public class ScanChunksTask implements Runnable {
                     long totalCount = 0;
                     for (Map.Entry<String, Integer> entry : scanResult) {
                         totalCount = totalCount + entry.getValue();
-                        String name = StringUtils.capitalizeName(entry.getKey().toLowerCase());
+                        String name = MessageUtils.getCustomName(entry.getKey());
                         sendMessage( scanOptions.getPath() + ".end.format",
                                 "%entry%", name,
                                 "%count%", NumberFormat.getIntegerInstance().format(entry.getValue()));

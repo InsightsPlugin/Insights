@@ -358,3 +358,10 @@ messages:
 
   # Message send when a user does not have a permission
   no_permission: "&cYou don't have permission to execute that command!"
+
+  # If you want, you can define custom item and custom entity names.
+  # Although this is not necessary (Insights will use the default item name),
+  # you can use this to customize them to your language.
+  custom-names:
+    #DIAMOND_ORE: "Ore of Diamond"
+    #CREEPER: "Explosive Green Thing"

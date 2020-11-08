@@ -141,7 +141,7 @@ public class WorldEditListener implements ExtentDelegate {
         // Entry
         NumberFormat nf = NumberFormat.getInstance();
         scanResult.forEach(e -> MessageUtils.sendMessage(player, "messages.worldedit.format",
-                "%entry%", StringUtils.capitalizeName(e.getKey().toLowerCase()),
+                "%entry%", MessageUtils.getCustomName(e.getKey()),
                 "%count%", nf.format(e.getValue())));
 
         // Total
@@ -149,7 +149,7 @@ public class WorldEditListener implements ExtentDelegate {
         if (replacement != null) {
             MessageUtils.sendMessage(player, "messages.worldedit.replaced",
                     "%blocks%", total,
-                    "%replacement%", StringUtils.capitalizeName(replacement.name().toLowerCase()));
+                    "%replacement%", MessageUtils.getCustomName(replacement.name()));
         } else {
             MessageUtils.sendMessage(player, "messages.worldedit.unchanged",
                     "%blocks%", total);

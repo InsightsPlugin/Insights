@@ -170,19 +170,19 @@ public class MainListener implements Listener {
             @Override
             public void run() {
                 int current = ChunkUtils.getAmountInChunk(chunk, chunkSnapshot, limit) + d;
-                sendMessage(player, limit.getName(), current, limit.getLimit());
+                sendMessage(player, limit, current);
             }
         }.runTaskAsynchronously(plugin);
     }
 
-    private void sendMessage(Player player, String name, int current, int limit) {
+    private void sendMessage(Player player, Limit limit, int current) {
         if (player.hasPermission("insights.check.realtime") && plugin.getSqLite().hasRealtimeCheckEnabled(player)) {
-            double progress = ((double) current)/((double) limit);
+            double progress = ((double) current)/((double) limit.getLimit());
             if (progress > 1 || progress < 0) progress = 1;
             MessageUtils.sendSpecialMessage(player, "messages.realtime_check_custom", progress,
                     "%count%", NumberFormat.getIntegerInstance().format(current),
-                    "%material%", StringUtils.capitalizeName(name),
-                    "%limit%", NumberFormat.getIntegerInstance().format(limit));
+                    "%material%", limit.getName(),
+                    "%limit%", NumberFormat.getIntegerInstance().format(limit.getLimit()));
         }
     }
 
@@ -205,8 +205,7 @@ public class MainListener implements Listener {
 
         Limit limit = InsightsAPI.getLimit(player, name);
         if (limit == null) return;
-        int l = limit.getLimit();
-        if (l < 0) return;
+        if (limit.getLimit() < 0) return;
 
         if (cacheManager.hasSelections(entity.getLocation())) {
             ItemStack is = EntityUtils.createItemStack(entity, 1);
@@ -219,19 +218,19 @@ public class MainListener implements Listener {
 
         int current = getEntityCount(chunk, limit.getEntities());
 
-        if (current > l && !player.hasPermission(limit.getPermission())) {
+        if (current > limit.getLimit() && !player.hasPermission(limit.getPermission())) {
             cancellable.setCancelled(true);
             if (!isPassiveForPlayer(player, "entity")) {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
-                        "%limit%", NumberFormat.getIntegerInstance().format(l),
-                        "%material%", StringUtils.capitalizeName(limit.getName()),
+                        "%limit%", NumberFormat.getIntegerInstance().format(limit.getLimit()),
+                        "%material%", limit.getName(),
                         "%area%", "chunk");
             }
             return;
         }
 
         if (!isPassiveForPlayer(player, "entity")) {
-            sendMessage(player, limit.getName(), current, l);
+            sendMessage(player, limit, current);
         }
     }
 
@@ -246,8 +245,7 @@ public class MainListener implements Listener {
 
         Limit limit = InsightsAPI.getLimit(player, name);
         if (limit == null) return;
-        int l = limit.getLimit();
-        if (l < 0) return;
+        if (limit.getLimit() < 0) return;
 
         if (cacheManager.hasSelections(entity.getLocation())) {
             handleCache(cancellable, player, entity.getLocation(), null, name, null, -1, limit);
@@ -255,7 +253,7 @@ public class MainListener implements Listener {
         }
         int current = getEntityCount(entity.getLocation().getChunk(), limit.getEntities()) - 1;
 
-        sendMessage(player, limit.getName(), current, l);
+        sendMessage(player, limit, current);
     }
 
     private int getEntityCount(Chunk chunk, Set<String> entityTypes) {
@@ -431,12 +429,11 @@ public class MainListener implements Listener {
             if (count < 0) count = 0;
         }
 
-        int l = limit.getLimit();
-        if (d > 0 && count > l && !player.hasPermission(limit.getPermission())) {
+        if (d > 0 && count > limit.getLimit() && !player.hasPermission(limit.getPermission())) {
             if (!isPassiveForPlayer(player, "block")) {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
-                        "%limit%", NumberFormat.getIntegerInstance().format(l),
-                        "%material%", StringUtils.capitalizeName(limit.getName()),
+                        "%limit%", NumberFormat.getIntegerInstance().format(limit.getLimit()),
+                        "%material%", limit.getName(),
                         "%area%", cache.getSelectionEntity().getAssistant().getAreaName());
             }
 
@@ -456,7 +453,7 @@ public class MainListener implements Listener {
                 return;
             }
         } else if (!isPassiveForPlayer(player, "block")) {
-            sendMessage(player, limit.getName(), count, l);
+            sendMessage(player, limit, count);
         }
         blockLocations.remove(loc);
     }
@@ -534,7 +531,7 @@ public class MainListener implements Listener {
                 if (!isPassiveForPlayer(player, "block")) {
                     MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                             "%limit%", NumberFormat.getIntegerInstance().format(l),
-                            "%material%", StringUtils.capitalizeName(limit.getName()),
+                            "%material%", limit.getName(),
                             "%area%", "chunk");
                 }
                 if (async) {
@@ -550,7 +547,7 @@ public class MainListener implements Listener {
             }
         }
         if (!isPassiveForPlayer(player, "block")) {
-            sendMessage(player, limit.getName(), current, l);
+            sendMessage(player, limit, current);
         }
         blockLocations.remove(block.getLocation());
     }
@@ -621,7 +618,7 @@ public class MainListener implements Listener {
                         double progress = ((double) count)/((double) limit.getLimit());
                         if (progress > 1 || progress < 0) progress = 1;
                         MessageUtils.sendSpecialMessage(player, "messages.autoscan.limit_entry", progress,
-                                "%key%", StringUtils.capitalizeName(limit.getName()),
+                                "%key%", limit.getName(),
                                 "%count%", NumberFormat.getInstance().format(count),
                                 "%limit%", NumberFormat.getInstance().format(limit.getLimit()));
                     }
@@ -636,13 +633,13 @@ public class MainListener implements Listener {
         if (counts.size() == 1) {
             Map.Entry<String, Integer> entry = counts.firstEntry();
             MessageUtils.sendSpecialMessage(player, "messages.autoscan.single_entry", 1.0,
-                    "%key%", StringUtils.capitalizeName(entry.getKey()),
+                    "%key%", MessageUtils.getCustomName(entry.getKey()),
                     "%count%", NumberFormat.getInstance().format(entry.getValue()));
         } else {
             MessageUtils.sendMessage(player, "messages.autoscan.multiple_entries.header");
             for (String str : counts.keySet()) {
                 MessageUtils.sendMessage(player, "messages.autoscan.multiple_entries.format",
-                        "%entry%", StringUtils.capitalizeName(str),
+                        "%entry%", MessageUtils.getCustomName(str),
                         "%count%", NumberFormat.getInstance().format(counts.get(str)));
             }
             MessageUtils.sendMessage(player, "messages.autoscan.multiple_entries.footer");

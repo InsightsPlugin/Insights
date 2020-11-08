@@ -18,13 +18,11 @@ public class StringUtils {
     }
 
     public static String capitalizeName(String name) {
-        name = name.toLowerCase();
         StringBuilder stringBuilder = new StringBuilder();
-        for (String entry : name.split("[_ ]")) {
-            stringBuilder.append(org.apache.commons.lang.StringUtils.capitalize(entry.toLowerCase())).append(" ");
+        for (String entry : name.toLowerCase().split("[_ ]")) {
+            stringBuilder.append(org.apache.commons.lang.StringUtils.capitalize(entry)).append(" ");
         }
-        String build = stringBuilder.toString();
-        return build.substring(0, build.length() - 1);
+        return stringBuilder.substring(0, stringBuilder.length() - 1);
     }
 
     public static boolean isNewVersion(String oldVersion, String newVersion) {

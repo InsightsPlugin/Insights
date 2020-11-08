@@ -69,6 +69,16 @@ public class MessageUtils {
         return "";
     }
 
+    public static String getRawMessage(String path) {
+        return plugin.getMessages().getString(path);
+    }
+
+    public static String getCustomName(String what) {
+        String configName = getRawMessage("messages.custom-names." + what);
+        if (configName != null) return configName;
+        return StringUtils.capitalizeName(what);
+    }
+
     public static String[] color(String[] strings) {
         for (int i = 0; i < strings.length; i++) {
             strings[i] = color(strings[i]);

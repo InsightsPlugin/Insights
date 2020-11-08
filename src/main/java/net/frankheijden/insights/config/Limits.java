@@ -1,6 +1,7 @@
 package net.frankheijden.insights.config;
 
 import net.frankheijden.insights.utils.CaseInsensitiveHashMap;
+import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.YamlUtils;
 import org.bukkit.command.CommandSender;
 
@@ -70,7 +71,7 @@ public class Limits {
                     if (lm != null) {
                         String permission = "insights.bypass." + str;
                         if (sender.hasPermission(permission)) continue;
-                        limit = new Limit(str, permission,
+                        limit = new Limit(MessageUtils.getCustomName(str), permission,
                                 lm, Collections.singleton(str), null);
                     }
                     break;
@@ -79,7 +80,7 @@ public class Limits {
                     if (le != null) {
                         String permission = "insights.bypass." + str;
                         if (sender.hasPermission(permission)) continue;
-                        limit = new Limit(str, permission,
+                        limit = new Limit(MessageUtils.getCustomName(str), permission,
                                 le, null, Collections.singleton(str));
                     }
                     break;
