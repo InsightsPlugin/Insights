@@ -96,12 +96,15 @@ public class EntityListener implements Listener {
                 // On some minecraft versions this statement is false
                 if (event instanceof Cancellable) {
                     handleEntityDestroyEvent(event, (Player) damager, entity);
+                    if (!event.isCancelled()) onRemoveEntity(entity.getUniqueId());
                 } else {
                     handleEntityDestroyEvent(entityDamageByEntityEvent, (Player) damager, entity);
+                    if (!entityDamageByEntityEvent.isCancelled()) onRemoveEntity(entity.getUniqueId());
                 }
                 return;
             }
         }
+        onRemoveEntity(entity.getUniqueId());
         handleEntityChange(entity, false);
     }
 
