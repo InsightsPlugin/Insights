@@ -36,12 +36,12 @@ public class MainListener implements Listener {
     private static final FreezeManager freezeManager = FreezeManager.getInstance();
     private final InteractListener interactListener;
     private final EntityListener entityListener;
-    private final List<Location> blockLocations;
+    private final Set<HashableBlockLocation> blockLocations;
 
     public MainListener() {
         this.interactListener = new InteractListener();
         this.entityListener = new EntityListener(this);
-        this.blockLocations = new ArrayList<>();
+        this.blockLocations = new HashSet<>();
     }
 
     public InteractListener getInteractListener() {
@@ -272,7 +272,7 @@ public class MainListener implements Listener {
         Player player = event.getPlayer();
         String name = block.getType().name();
 
-        if (isNextToForbiddenLocation(block.getLocation())) {
+        if (isNextToForbiddenLocation(HashableBlockLocation.of(block.getLocation()))) {
             event.setCancelled(true);
             return;
         }
@@ -339,21 +339,13 @@ public class MainListener implements Listener {
         }
     }
 
-    private boolean isNextToForbiddenLocation(Location location) {
-        for (Location loc : blockLocations) {
-            if (isEqual(loc, location, -1, 0, 0)
-                    || isEqual(loc, location, 1, 0, 0)
-                    || isEqual(loc, location, 0, -1, 0)
-                    || isEqual(loc, location, 0, 1, 0)
-                    || isEqual(loc, location, 0, 0, -1)
-                    || isEqual(loc, location, 0, 0, 1)) return true;
-        }
-        return false;
-    }
-
-    private boolean isEqual(Location loc1, Location loc2, int x, int y, int z) {
-        if (loc1 == null) return false;
-        return loc1.clone().add(x, y, z).equals(loc2);
+    private boolean isNextToForbiddenLocation(HashableBlockLocation location) {
+        return blockLocations.contains(location.add(-1, 0, 0))
+                || blockLocations.contains(location.add(1, 0, 0))
+                || blockLocations.contains(location.add(0, -1, 0))
+                || blockLocations.contains(location.add(0, 1, 0))
+                || blockLocations.contains(location.add(0, 0, -1))
+                || blockLocations.contains(location.add(0, 0, 1));
     }
 
     private boolean canPlaceInRegion(Location location, String str) {
@@ -399,7 +391,7 @@ public class MainListener implements Listener {
 
         MessageUtils.sendMessage(player, "messages.area_scan.start");
         freezeManager.freezePlayer(player.getUniqueId());
-        blockLocations.add(loc);
+        blockLocations.add(HashableBlockLocation.of(loc));
 
         AtomicInteger integer = new AtomicInteger(list.size());
         for (Map.Entry<SelectionEntity, ScanOptions> entry : list.entrySet()) {
@@ -497,7 +489,7 @@ public class MainListener implements Listener {
         boolean async = shouldPerformAsync(block.getType().name());
         if (async) {
             if (!player.hasPermission(limit.getPermission())) {
-                blockLocations.add(block.getLocation());
+                blockLocations.add(HashableBlockLocation.of(block.getLocation()));
             }
 
             new BukkitRunnable() {
