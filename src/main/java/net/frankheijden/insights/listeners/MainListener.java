@@ -67,7 +67,7 @@ public class MainListener implements Listener {
             event.setCancelled(true);
         }
 
-        if (blockLocations.contains(block.getLocation())) {
+        if (blockLocations.contains(HashableBlockLocation.of(block.getLocation()))) {
             event.setCancelled(true);
             return;
         }
@@ -132,24 +132,24 @@ public class MainListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (BLOCK_PHYSICS_BYPASS.contains(event.getBlock().getType())) return;
-        if (blockLocations.contains(event.getBlock().getLocation())) {
+        if (blockLocations.contains(HashableBlockLocation.of(event.getBlock().getLocation()))) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
-        event.blockList().removeIf(b -> blockLocations.contains(b.getLocation()));
+        event.blockList().removeIf(b -> blockLocations.contains(HashableBlockLocation.of(b.getLocation())));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
-        event.blockList().removeIf(b -> blockLocations.contains(b.getLocation()));
+        event.blockList().removeIf(b -> blockLocations.contains(HashableBlockLocation.of(b.getLocation())));
     }
 
     private void handlePistonEvent(Cancellable cancellable, List<Block> blocks) {
         for (Block block : blocks) {
-            if (blockLocations.contains(block.getLocation())) {
+            if (blockLocations.contains(HashableBlockLocation.of(block.getLocation()))) {
                 cancellable.setCancelled(true);
             }
         }
@@ -159,7 +159,7 @@ public class MainListener implements Listener {
     public void onBlockFromTo(BlockFromToEvent event) {
         Location f = event.getBlock().getLocation();
         Location t = event.getToBlock().getLocation();
-        if (blockLocations.contains(f) || blockLocations.contains(t)) {
+        if (blockLocations.contains(HashableBlockLocation.of(f)) || blockLocations.contains(HashableBlockLocation.of(t))) {
             event.setCancelled(true);
         }
     }
@@ -391,7 +391,8 @@ public class MainListener implements Listener {
 
         MessageUtils.sendMessage(player, "messages.area_scan.start");
         freezeManager.freezePlayer(player.getUniqueId());
-        blockLocations.add(HashableBlockLocation.of(loc));
+        HashableBlockLocation hashableLoc = HashableBlockLocation.of(loc);
+        blockLocations.add(hashableLoc);
 
         AtomicInteger integer = new AtomicInteger(list.size());
         for (Map.Entry<SelectionEntity, ScanOptions> entry : list.entrySet()) {
@@ -407,7 +408,7 @@ public class MainListener implements Listener {
                     if (scanCache.isPresent()) {
                         handleCacheLimit(scanCache.get(), null, player, loc, remover, name, is, d, limit);
                     } else {
-                        blockLocations.remove(loc);
+                        blockLocations.remove(hashableLoc);
                     }
                 }
             });
@@ -447,7 +448,7 @@ public class MainListener implements Listener {
         } else if (!isPassiveForPlayer(player, "block")) {
             sendMessage(player, limit, count);
         }
-        blockLocations.remove(loc);
+        blockLocations.remove(HashableBlockLocation.of(loc));
     }
 
     private void simulateBreak(Player player, Block block) {
@@ -463,7 +464,7 @@ public class MainListener implements Listener {
                 }
                 block.setType(Material.AIR);
                 if (other != null) other.setType(Material.AIR);
-                blockLocations.remove(block.getLocation());
+                blockLocations.remove(HashableBlockLocation.of(block.getLocation()));
             }
         }.runTask(plugin);
     }
@@ -532,7 +533,7 @@ public class MainListener implements Listener {
                     }
                     remover.run();
                 } else {
-                    blockLocations.remove(block.getLocation());
+                    blockLocations.remove(HashableBlockLocation.of(block.getLocation()));
                     event.setCancelled(true);
                 }
                 return;
@@ -541,7 +542,7 @@ public class MainListener implements Listener {
         if (!isPassiveForPlayer(player, "block")) {
             sendMessage(player, limit, current);
         }
-        blockLocations.remove(block.getLocation());
+        blockLocations.remove(HashableBlockLocation.of(block.getLocation()));
     }
 
     @EventHandler
