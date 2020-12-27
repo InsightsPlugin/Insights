@@ -1,12 +1,23 @@
 package net.frankheijden.insights.managers;
 
 import net.frankheijden.insights.Insights;
-import net.frankheijden.insights.entities.*;
+import net.frankheijden.insights.entities.AddonError;
+import net.frankheijden.insights.entities.Area;
+import net.frankheijden.insights.entities.CacheAssistant;
 import net.frankheijden.insights.entities.Error;
-import org.bukkit.*;
+import net.frankheijden.insights.entities.ScanCache;
+import org.bukkit.Location;
+import org.bukkit.Material;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class CacheManager {
@@ -16,7 +27,7 @@ public class CacheManager {
 
     private Set<CacheAssistant> addonCacheAssistants;
     private final Set<CacheAssistant> cacheAssistants;
-    private final Map<Selection, ScanCache> caches;
+    private final Map<String, ScanCache> caches;
 
     public CacheManager() {
         instance = this;
@@ -54,74 +65,108 @@ public class CacheManager {
         return this.cacheAssistants;
     }
 
-    public boolean hasSelections(Location location) {
-        return getSelections(location).count() != 0;
+    public List<Area> getSelections(Location location) {
+        List<Area> areas = new ArrayList<>(cacheAssistants.size());
+        for (CacheAssistant assistant : cacheAssistants) {
+            Area area = assistant.getArea(location);
+            if (area != null) {
+                areas.add(area);
+            }
+        }
+        return areas;
     }
 
-    public Optional<ScanCache> getMaxCountCache(Location location, String what) {
-        return this.getCache(location)
-                .max(Comparator.comparingInt(c -> c.getCount(what)));
+    public ScanCache getCache(Area area) {
+        return caches.get(area.getId());
     }
 
-    public Stream<SelectionEntity> getSelections(Location location) {
-        return cacheAssistants.stream()
-                .map(c -> SelectionEntity.from(c.getSelection(location), c))
-                .filter(Objects::nonNull);
+    public ScanCache getCache(String key) {
+        return caches.get(key);
     }
 
-    public Stream<ScanCache> getCache(Location location) {
-        return getSelections(location)
-                .map(this::getCache)
-                .filter(Objects::nonNull);
+    public void updateCache(ScanCache scanCache) {
+        caches.put(scanCache.getSelectionEntity().getId(), scanCache);
     }
 
-    public ScanCache getCache(Selection selection) {
-        return caches.get(selection);
-    }
-
-    public void updateCache(Location location, Material from, Material to) {
-        updateCache(location, from.name(), to.name());
-    }
-
-    public void updateCache(Location location, String from, String to) {
-        if (from.equals(to)) return;
-        getCache(location).forEach(c -> {
-            c.updateCache(from, -1);
-            c.updateCache(to, 1);
-        });
-    }
-
-    public boolean updateCache(Selection selection, String what, int d) {
-        ScanCache cache = getCache(selection);
+    /**
+     * Updates the cache and returns whether or not the area needs scanning.
+     */
+    public boolean updateCache(String id, String what, int d) {
+        ScanCache cache = getCache(id);
         if (cache == null) return true;
         cache.updateCache(what, d);
         updateCache(cache);
         return false;
     }
 
-    public void updateCache(ScanCache scanCache) {
-        caches.put(scanCache.getSelectionEntity(), scanCache);
-    }
-
     public boolean deleteCache(ScanCache scanCache) {
         return deleteCache(scanCache.getSelectionEntity());
     }
 
-    public boolean deleteCache(Selection selection) {
-        return caches.remove(selection) != null;
+    public boolean deleteCache(Area area) {
+        return caches.remove(area.getId()) != null;
     }
 
-    /**
-     * Method which updates the cache at a specific location and returns
-     * a set of selections which need to be scanned.
-     * @param location The location to be used
-     * @param what The cache variable which needs to be updated
-     * @param d The difference for the cache variable
-     * @return A set of selections which need to be scanned
-     */
-    public Set<SelectionEntity> updateCache(Location location, String what, int d) {
-        return this.getSelections(location)
-                .filter(s -> updateCache(s, what, d))
-                .collect(Collectors.toSet());
+    public boolean deleteCache(String id) {
+        return caches.remove(id) != null;
+    }
+
+    public CacheLocation newCacheLocation(Location loc) {
+        return new CacheLocation(loc, getSelections(loc));
+    }
+
+    public class CacheLocation {
+
+        private final Location loc;
+        private final List<Area> areas;
+
+        private CacheLocation(Location loc, List<Area> areas) {
+            this.loc = loc;
+            this.areas = areas;
+        }
+
+        public boolean isEmpty() {
+            return areas.isEmpty();
+        }
+
+        public Stream<ScanCache> getCache() {
+            return areas.stream()
+                    .map(CacheManager.this::getCache)
+                    .filter(Objects::nonNull);
+        }
+
+        public Optional<ScanCache> getMaxCountCache(String what) {
+            return this.getCache()
+                    .max(Comparator.comparingInt(c -> c.getCount(what)));
+        }
+
+        public void updateCache(Material from, Material to) {
+            updateCache(from.name(), to.name());
+        }
+
+        public void updateCache(String from, String to) {
+            if (from.equals(to)) return;
+            getCache().forEach(c -> {
+                c.updateCache(from, -1);
+                c.updateCache(to, 1);
+            });
+        }
+
+        /**
+         * Method which updates the cache at a specific location's areas and returns
+         * a set of selections which need to be scanned.
+         * @param what The cache variable which needs to be updated
+         * @param d The difference for the cache variable
+         * @return A set of selections which need to be scanned
+         */
+        public List<Area> updateCache(String what, int d) {
+            List<Area> scanAreas = new ArrayList<>(areas.size());
+            for (Area area : areas) {
+                if (CacheManager.this.updateCache(area.getId(), what, d)) {
+                    scanAreas.add(area);
+                }
+            }
+            return scanAreas;
+        }
     }
 }

@@ -23,6 +23,18 @@ public class ChunkUtils {
         return chunkLocations;
     }
 
+    public static List<PartialChunk> getPartialChunks(Area area) {
+        List<PartialChunk> partials = new ArrayList<>();
+        for (CuboidSelection selection : area.getSelections()) {
+            partials.addAll(getPartialChunks(selection));
+        }
+        return partials;
+    }
+
+    public static List<PartialChunk> getPartialChunks(CuboidSelection selection) {
+        return getPartialChunks(selection.getPos1(), selection.getPos2());
+    }
+
     public static List<PartialChunk> getPartialChunks(Location l1, Location l2) {
         Location min = LocationUtils.min(l1, l2);
         ChunkVector minV = ChunkVector.from(min);
@@ -36,7 +48,7 @@ public class ChunkUtils {
         int maxX = maxChunk.getX();
         int maxZ = maxChunk.getZ();
 
-        List<PartialChunk> partials = new ArrayList<>();
+        List<PartialChunk> partials = new ArrayList<>(maxX - minX + 1 + maxZ - minZ + 1);
         for (int x = minX; x <= maxX; x++) {
             int xmin = (x == minX) ? minV.getX() : 0;
             int ymin = minV.getY();

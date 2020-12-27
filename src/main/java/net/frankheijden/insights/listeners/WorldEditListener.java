@@ -124,7 +124,7 @@ public class WorldEditListener implements ExtentDelegate {
 
     @Override
     public void onChange(Player player, Vector vector, Material from, Material to) {
-        cacheManager.updateCache(vector.toLocation(player.getWorld()), from, to);
+        cacheManager.newCacheLocation(vector.toLocation(player.getWorld())).updateCache(from, to);
     }
 
     private boolean canNotify() {

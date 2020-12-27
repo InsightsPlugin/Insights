@@ -6,22 +6,22 @@ import org.bukkit.util.BoundingBox;
 
 import java.util.Objects;
 
-public class Selection {
+public class CuboidSelection {
 
     private Location pos1;
     private Location pos2;
 
-    public Selection() {
+    public CuboidSelection() {
         this.pos1 = null;
         this.pos2 = null;
     }
 
-    public Selection(Location pos1, Location pos2) {
+    public CuboidSelection(Location pos1, Location pos2) {
         this.pos1 = pos1;
         this.pos2 = pos2;
     }
 
-    public Selection(World world, BoundingBox box) {
+    public CuboidSelection(World world, BoundingBox box) {
         this(
                 new Location(world, box.getMinX(), box.getMinY(), box.getMinZ()),
                 new Location(world, box.getMaxX(), box.getMaxY() - 1, box.getMaxZ())
@@ -77,7 +77,7 @@ public class Selection {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Selection selection = (Selection) o;
+        CuboidSelection selection = (CuboidSelection) o;
         return pos1.equals(selection.pos1) &&
                 pos2.equals(selection.pos2);
     }

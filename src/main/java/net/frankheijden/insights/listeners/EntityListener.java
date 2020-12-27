@@ -63,7 +63,7 @@ public class EntityListener implements Listener {
         if (player != null) {
             handleEntityPlaceEvent(event, player, entity);
         } else {
-            cacheManager.updateCache(entity.getLocation(), entity.getType().name(), 1);
+            cacheManager.newCacheLocation(entity.getLocation()).updateCache(entity.getType().name(), 1);
         }
     }
 
@@ -128,7 +128,7 @@ public class EntityListener implements Listener {
     }
 
     public static void handleEntityChange(Entity entity, boolean added) {
-        cacheManager.updateCache(entity.getLocation(), entity.getType().name(), added ? 1 : -1);
+        cacheManager.newCacheLocation(entity.getLocation()).updateCache(entity.getType().name(), added ? 1 : -1);
     }
 
     public static void handleEntityPlaceEvent(Cancellable cancellable, Player player, Entity entity) {
