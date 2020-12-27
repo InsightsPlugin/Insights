@@ -25,7 +25,8 @@ public class CommandDeleteCache implements CommandExecutor, TabExecutor {
             return true;
         }
 
-        long deleted = cacheManager.getSelections(player.getLocation())
+        long deleted = cacheManager.newCacheLocation(player.getLocation())
+                .getCache()
                 .filter(cacheManager::deleteCache)
                 .count();
 

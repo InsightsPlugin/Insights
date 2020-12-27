@@ -13,10 +13,6 @@ public abstract class CacheAssistant implements Selectable {
     private final String areaName;
     private final String version;
 
-    public CacheAssistant(String name, String areaName) {
-        this(name, name, areaName, "1.0.0");
-    }
-
     public CacheAssistant(String pluginName, String name, String areaName, String version) {
         this.pluginName = pluginName;
         this.name = name;

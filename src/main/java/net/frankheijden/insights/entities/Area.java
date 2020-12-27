@@ -1,7 +1,5 @@
 package net.frankheijden.insights.entities;
 
-import org.bukkit.Location;
-
 import java.util.List;
 
 public class Area {

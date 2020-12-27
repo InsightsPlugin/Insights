@@ -74,6 +74,6 @@ public class CacheListener implements Listener {
     }
 
     private void change(Location loc, Material from, Material to) {
-        cacheManager.updateCache(loc, from, to);
+        cacheManager.newCacheLocation(loc).updateCache(from, to);
     }
 }

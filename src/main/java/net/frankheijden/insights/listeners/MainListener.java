@@ -76,9 +76,11 @@ public class MainListener implements Listener {
 
         Limit limit = InsightsAPI.getLimit(player, name);
         if (limit != null) {
-            if (cacheManager.hasSelections(block.getLocation())) {
-                handleCache(event, player, block.getLocation(), null, name, null, d, limit);
-            } else if (!isPassiveForPlayer(player, "block")) {
+            if (handleCache(event, player, block.getLocation(), null, name, null, d, limit)) {
+                return;
+            }
+
+            if (!isPassiveForPlayer(player, "block")) {
                 sendBreakMessage(player, event.getBlock().getChunk(), d, limit);
             }
         } else if (TileUtils.isTile(event.getBlock()) && !isPassiveForPlayer(player, "tile")) {
@@ -207,12 +209,10 @@ public class MainListener implements Listener {
         if (limit == null) return;
         if (limit.getLimit() < 0) return;
 
-        if (cacheManager.hasSelections(entity.getLocation())) {
-            ItemStack is = EntityUtils.createItemStack(entity, 1);
-            handleCache(cancellable, player, entity.getLocation(), () -> {
-                entityListener.onRemoveEntity(entity.getUniqueId());
-                entity.remove();
-            }, name, is, 1, limit);
+        if (handleCache(cancellable, player, entity.getLocation(), () -> {
+            entityListener.onRemoveEntity(entity.getUniqueId());
+            entity.remove();
+        }, name, EntityUtils.createItemStack(entity, 1), 1, limit)) {
             return;
         }
 
@@ -247,8 +247,7 @@ public class MainListener implements Listener {
         if (limit == null) return;
         if (limit.getLimit() < 0) return;
 
-        if (cacheManager.hasSelections(entity.getLocation())) {
-            handleCache(cancellable, player, entity.getLocation(), null, name, null, -1, limit);
+        if (handleCache(cancellable, player, entity.getLocation(), null, name, null, -1, limit)) {
             return;
         }
         int current = getEntityCount(entity.getLocation().getChunk(), limit.getEntities()) - 1;
@@ -291,11 +290,10 @@ public class MainListener implements Listener {
         if (limit != null) {
             ItemStack is = new ItemStack(event.getItemInHand());
             is.setAmount(1);
-            if (cacheManager.hasSelections(block.getLocation())) {
-                handleCache(event, player, block.getLocation(), () -> simulateBreak(player, block), name, is, d, limit);
-            } else {
-                handleChunkPreBlockPlace(event, player, block, is, limit);
+            if (handleCache(event, player, block.getLocation(), () -> simulateBreak(player, block), name, is, d, limit)) {
+                return;
             }
+            handleChunkPreBlockPlace(event, player, block, is, limit);
         } else if (TileUtils.isTile(event.getBlockPlaced())) {
             int current = event.getBlock().getLocation().getChunk().getTileEntities().length + d;
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
@@ -378,16 +376,19 @@ public class MainListener implements Listener {
         return false;
     }
 
-    private void handleCache(Cancellable event, Player player, Location loc, Runnable remover, String name, ItemStack is, int d, Limit limit) {
-        Set<Area> selections = cacheManager.updateCache(player.getLocation(), name, d);
-        if (selections.size() == 0 && limit != null) {
-            cacheManager.getMaxCountCache(player.getLocation(), name)
+    private boolean handleCache(Cancellable event, Player player, Location loc, Runnable remover, String name, ItemStack is, int d, Limit limit) {
+        CacheManager.CacheLocation cacheLocation = cacheManager.newCacheLocation(loc);
+        if (cacheLocation.isEmpty()) return false;
+
+        List<Area> scanAreas = cacheLocation.updateCache(name, d);
+        if (scanAreas.isEmpty() && limit != null) {
+            cacheLocation.getMaxCountCache(name)
                     .ifPresent(scanCache -> handleCacheLimit(scanCache, event, player, loc, remover, name, is, d, limit));
-            return;
+            return true;
         }
 
-        Map<Area, ScanOptions> list = from(selections, player);
-        if (list.size() == 0) return;
+        Map<Area, ScanOptions> list = from(scanAreas, player);
+        if (list.size() == 0) return true;
 
         MessageUtils.sendMessage(player, "messages.area_scan.start");
         freezeManager.freezePlayer(player.getUniqueId());
@@ -404,7 +405,7 @@ public class MainListener implements Listener {
                     MessageUtils.sendMessage(player, "messages.area_scan.end");
                     freezeManager.defrostPlayer(player.getUniqueId());
 
-                    Optional<ScanCache> scanCache = cacheManager.getMaxCountCache(player.getLocation(), name);
+                    Optional<ScanCache> scanCache = cacheLocation.getMaxCountCache(name);
                     if (scanCache.isPresent()) {
                         handleCacheLimit(scanCache.get(), null, player, loc, remover, name, is, d, limit);
                     } else {
@@ -413,6 +414,7 @@ public class MainListener implements Listener {
                 }
             });
         }
+        return true;
     }
 
     private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Location loc, Runnable remover, String name, ItemStack is, int d, Limit limit) {
@@ -469,8 +471,8 @@ public class MainListener implements Listener {
         }.runTask(plugin);
     }
 
-    private Map<Area, ScanOptions> from(Set<Area> areas, Player player) {
-        Map<Area, ScanOptions> list = new HashMap<>();
+    private Map<Area, ScanOptions> from(List<Area> areas, Player player) {
+        Map<Area, ScanOptions> list = new HashMap<>(areas.size());
         for (Area area : areas) {
             ScanOptions options = new ScanOptions();
             options.setScanType(ScanType.ALL);
