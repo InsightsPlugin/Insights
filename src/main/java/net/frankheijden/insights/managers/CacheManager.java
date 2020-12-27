@@ -16,7 +16,7 @@ public class CacheManager {
 
     private Set<CacheAssistant> addonCacheAssistants;
     private final Set<CacheAssistant> cacheAssistants;
-    private final Map<Selection, ScanCache> caches;
+    private final Map<String, ScanCache> caches;
 
     public CacheManager() {
         instance = this;
@@ -63,9 +63,9 @@ public class CacheManager {
                 .max(Comparator.comparingInt(c -> c.getCount(what)));
     }
 
-    public Stream<SelectionEntity> getSelections(Location location) {
+    public Stream<Area> getSelections(Location location) {
         return cacheAssistants.stream()
-                .map(c -> SelectionEntity.from(c.getSelection(location), c))
+                .map(c -> c.getArea(location))
                 .filter(Objects::nonNull);
     }
 
@@ -75,8 +75,12 @@ public class CacheManager {
                 .filter(Objects::nonNull);
     }
 
-    public ScanCache getCache(Selection selection) {
-        return caches.get(selection);
+    public ScanCache getCache(Area area) {
+        return caches.get(area.getId());
+    }
+
+    public ScanCache getCache(String key) {
+        return caches.get(key);
     }
 
     public void updateCache(Location location, Material from, Material to) {
@@ -91,8 +95,8 @@ public class CacheManager {
         });
     }
 
-    public boolean updateCache(Selection selection, String what, int d) {
-        ScanCache cache = getCache(selection);
+    public boolean updateCache(String id, String what, int d) {
+        ScanCache cache = getCache(id);
         if (cache == null) return true;
         cache.updateCache(what, d);
         updateCache(cache);
@@ -100,15 +104,19 @@ public class CacheManager {
     }
 
     public void updateCache(ScanCache scanCache) {
-        caches.put(scanCache.getSelectionEntity(), scanCache);
+        caches.put(scanCache.getSelectionEntity().getId(), scanCache);
     }
 
     public boolean deleteCache(ScanCache scanCache) {
         return deleteCache(scanCache.getSelectionEntity());
     }
 
-    public boolean deleteCache(Selection selection) {
-        return caches.remove(selection) != null;
+    public boolean deleteCache(Area area) {
+        return caches.remove(area.getId()) != null;
+    }
+
+    public boolean deleteCache(String id) {
+        return caches.remove(id) != null;
     }
 
     /**
@@ -119,9 +127,9 @@ public class CacheManager {
      * @param d The difference for the cache variable
      * @return A set of selections which need to be scanned
      */
-    public Set<SelectionEntity> updateCache(Location location, String what, int d) {
+    public Set<Area> updateCache(Location location, String what, int d) {
         return this.getSelections(location)
-                .filter(s -> updateCache(s, what, d))
+                .filter(area -> updateCache(area.getId(), what, d))
                 .collect(Collectors.toSet());
     }
 }

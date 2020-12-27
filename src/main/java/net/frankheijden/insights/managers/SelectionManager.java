@@ -1,6 +1,6 @@
 package net.frankheijden.insights.managers;
 
-import net.frankheijden.insights.entities.Selection;
+import net.frankheijden.insights.entities.CuboidSelection;
 import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.Location;
 
@@ -12,7 +12,7 @@ public class SelectionManager {
     private static SelectionManager instance;
 
     private final Set<UUID> selectionMode;
-    private final Map<UUID, Selection> dataMap;
+    private final Map<UUID, CuboidSelection> dataMap;
 
     public SelectionManager() {
         instance = this;
@@ -37,7 +37,7 @@ public class SelectionManager {
     }
 
     public void setPos1(UUID uuid, Location pos1, boolean message) {
-        Selection selection = getSelection(uuid);
+        CuboidSelection selection = getSelection(uuid);
         boolean success = selection.setPos1(pos1);
         setSelection(uuid, selection);
 
@@ -47,7 +47,7 @@ public class SelectionManager {
     }
 
     public void setPos2(UUID uuid, Location pos2, boolean message) {
-        Selection selection = getSelection(uuid);
+        CuboidSelection selection = getSelection(uuid);
         boolean success = selection.setPos2(pos2);
         setSelection(uuid, selection);
 
@@ -57,7 +57,7 @@ public class SelectionManager {
     }
 
     public void sendMessage(UUID uuid, String what) {
-        Selection selection = getSelection(uuid);
+        CuboidSelection selection = getSelection(uuid);
         String data = "";
         if (selection.isValid()) {
             data = MessageUtils.getMessage("messages.selection.create.data",
@@ -68,13 +68,13 @@ public class SelectionManager {
                 "%data%", data);
     }
 
-    public void setSelection(UUID uuid, Selection selection) {
+    public void setSelection(UUID uuid, CuboidSelection selection) {
         dataMap.put(uuid, selection);
     }
 
-    public Selection getSelection(UUID uuid) {
-        Selection selection = dataMap.get(uuid);
-        if (selection == null) return new Selection();
+    public CuboidSelection getSelection(UUID uuid) {
+        CuboidSelection selection = dataMap.get(uuid);
+        if (selection == null) return new CuboidSelection();
         return selection;
     }
 }

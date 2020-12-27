@@ -111,7 +111,7 @@ public class CommandSelection implements CommandExecutor, TabExecutor {
         if (scanOptions.getScanType() == null) return false;
         if (ScanManager.getInstance().isScanning(player)) return true;
 
-        Selection selection = selectionManager.getSelection(uuid);
+        CuboidSelection selection = selectionManager.getSelection(uuid);
 
         selection:
         if (!selection.isValid()) {

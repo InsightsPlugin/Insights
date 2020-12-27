@@ -379,14 +379,14 @@ public class MainListener implements Listener {
     }
 
     private void handleCache(Cancellable event, Player player, Location loc, Runnable remover, String name, ItemStack is, int d, Limit limit) {
-        Set<SelectionEntity> selections = cacheManager.updateCache(player.getLocation(), name, d);
+        Set<Area> selections = cacheManager.updateCache(player.getLocation(), name, d);
         if (selections.size() == 0 && limit != null) {
             cacheManager.getMaxCountCache(player.getLocation(), name)
                     .ifPresent(scanCache -> handleCacheLimit(scanCache, event, player, loc, remover, name, is, d, limit));
             return;
         }
 
-        Map<SelectionEntity, ScanOptions> list = from(selections, player);
+        Map<Area, ScanOptions> list = from(selections, player);
         if (list.size() == 0) return;
 
         MessageUtils.sendMessage(player, "messages.area_scan.start");
@@ -395,7 +395,7 @@ public class MainListener implements Listener {
         blockLocations.add(hashableLoc);
 
         AtomicInteger integer = new AtomicInteger(list.size());
-        for (Map.Entry<SelectionEntity, ScanOptions> entry : list.entrySet()) {
+        for (Map.Entry<Area, ScanOptions> entry : list.entrySet()) {
             Scanner.create(entry.getValue()).scan().whenComplete((ev, err) -> {
                 ScanCache cache = new ScanCache(entry.getKey(), ev.getScanResult());
                 cacheManager.updateCache(cache);
@@ -469,17 +469,17 @@ public class MainListener implements Listener {
         }.runTask(plugin);
     }
 
-    private Map<SelectionEntity, ScanOptions> from(Set<SelectionEntity> selections, Player player) {
-        Map<SelectionEntity, ScanOptions> list = new HashMap<>();
-        for (SelectionEntity selection : selections) {
+    private Map<Area, ScanOptions> from(Set<Area> areas, Player player) {
+        Map<Area, ScanOptions> list = new HashMap<>();
+        for (Area area : areas) {
             ScanOptions options = new ScanOptions();
             options.setScanType(ScanType.ALL);
             options.setWorld(player.getWorld());
             options.setUuid(player.getUniqueId());
 
-            List<PartialChunk> partials = ChunkUtils.getPartialChunks(selection.getPos1(), selection.getPos2());
+            List<PartialChunk> partials = ChunkUtils.getPartialChunks(area);
             options.setPartialChunks(partials);
-            list.put(selection, options);
+            list.put(area, options);
         }
         return list;
     }

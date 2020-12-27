@@ -1,10 +1,10 @@
 package net.frankheijden.insights.interfaces;
 
-import net.frankheijden.insights.entities.Selection;
+import net.frankheijden.insights.entities.Area;
 import org.bukkit.Location;
 
 public interface Selectable {
 
-    Selection getSelection(Location location);
+    Area getArea(Location location);
 
 }

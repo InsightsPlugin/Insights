@@ -64,7 +64,7 @@ public class WorldEditManager {
         }
     }
 
-    public Selection getSelection(Player player) {
+    public CuboidSelection getSelection(Player player) {
         LocalSession session = wePlugin.getSession(player);
         if (session == null) return null;
         Region region;
@@ -76,11 +76,11 @@ public class WorldEditManager {
         return adapt(region);
     }
 
-    public static Selection adapt(Region region) {
+    public static CuboidSelection adapt(Region region) {
         if (region.getWorld() == null) return null;
         World world = Bukkit.getWorld(region.getWorld().getName());
 
-        return new Selection(
+        return new CuboidSelection(
                 adapt(world, getVector(region, "getMinimumPoint")),
                 adapt(world, getVector(region, "getMaximumPoint"))
         );

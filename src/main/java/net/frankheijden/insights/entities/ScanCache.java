@@ -4,19 +4,19 @@ import java.util.*;
 
 public class ScanCache {
 
-    private final SelectionEntity selection;
+    private final Area selection;
     private final Map<String, Integer> scanResult;
 
-    public ScanCache(SelectionEntity selection) {
+    public ScanCache(Area selection) {
         this(selection, new ScanResult());
     }
 
-    public ScanCache(SelectionEntity selection, ScanResult scanResult) {
+    public ScanCache(Area selection, ScanResult scanResult) {
         this.selection = selection;
         this.scanResult = scanResult.getCounts();
     }
 
-    public SelectionEntity getSelectionEntity() {
+    public Area getSelectionEntity() {
         return selection;
     }
 
