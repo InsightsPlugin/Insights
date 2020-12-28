@@ -5,7 +5,7 @@ plugins {
 
 String packagePath = 'net.frankheijden.insights'
 group = packagePath
-version = '5.6.0'
+version = '5.6.1'
 description = 'Insights'
 sourceCompatibility = '1.8'
 
