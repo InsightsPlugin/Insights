@@ -85,7 +85,7 @@ public class Insights extends JavaPlugin {
     public void onDisable() {
         super.onDisable();
         unregisterCommands();
-        notificationManager.stop();
+        if (notificationManager != null) notificationManager.stop();
         if (worldEditManager != null) worldEditManager.unregister();
     }
 

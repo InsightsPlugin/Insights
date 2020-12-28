@@ -8,6 +8,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SpawnEggMeta;
+import org.bukkit.material.SpawnEgg;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -73,9 +74,14 @@ public class EntityUtils {
     public static ItemStack createItemStack(Entity entity, int count) {
         ItemStack is = new ItemStack(getMaterial(entity), count);
         if (!NMSManager.getInstance().isPost(13) && is.getType().name().equals("MONSTER_EGG")) {
-            SpawnEggMeta eggMeta = (SpawnEggMeta) is.getItemMeta();
-            eggMeta.setSpawnedType(entity.getType());
-            is.setItemMeta(eggMeta);
+            if (NMSManager.getInstance().isPost(9)) {
+                SpawnEggMeta eggMeta = (SpawnEggMeta) is.getItemMeta();
+                eggMeta.setSpawnedType(entity.getType());
+                is.setItemMeta(eggMeta);
+            } else {
+                SpawnEgg egg = new SpawnEgg(entity.getType());
+                return egg.toItemStack(count);
+            }
         }
         return is;
     }
