@@ -19,6 +19,8 @@ public class BlockUtils {
 
     public static boolean hasAnyNBTTags(Block block, Set<String> tags) {
         Object nbt = getNBT(block);
+        if (nbt == null) return false;
+
         for (String tag : tags) {
             if (nbtTagCompoundReflection.invoke(nbt, "hasKey", tag)) {
                 return true;
@@ -28,10 +30,10 @@ public class BlockUtils {
     }
 
     public static Object getNBT(Block block) {
-        if (block == null) return false;
+        if (block == null) return null;
 
         BlockState state = block.getState();
-        if (!craftBlockStateReflection.getClazz().isInstance(state)) return false;
+        if (!craftBlockStateReflection.getClazz().isInstance(state)) return null;
 
         Location loc = block.getLocation();
         Object blockPosition = blockPositionReflection.newInstance(
@@ -42,6 +44,7 @@ public class BlockUtils {
 
         Object world = craftWorldReflection.invoke(loc.getWorld(), "getHandle");
         Object tile = worldReflection.invoke(world, "getTileEntity", blockPosition);
+        if (tile == null) return null;
 
         Object tag = nbtTagCompoundReflection.newInstance();
         tileEntityReflection.invoke(tile, "save", tag);
