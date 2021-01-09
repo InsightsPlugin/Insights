@@ -14,6 +14,7 @@ import net.frankheijden.insights.tasks.UpdateCheckerTask;
 import net.frankheijden.insights.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
@@ -37,6 +38,10 @@ public class MainListener implements Listener {
     private final InteractListener interactListener;
     private final EntityListener entityListener;
     private final Set<HashableBlockLocation> blockLocations;
+
+    private static final Set<Material> hoes = Arrays.stream(Material.values())
+            .filter(m -> m.name().endsWith("_HOE"))
+            .collect(Collectors.toSet());
 
     public MainListener() {
         this.interactListener = new InteractListener();
@@ -288,12 +293,19 @@ public class MainListener implements Listener {
 
         Limit limit = InsightsAPI.getLimit(player, name);
         if (limit != null) {
+
+            Runnable remover = () -> simulateBreak(player, block, event.getBlockReplacedState());
+
             ItemStack is = new ItemStack(event.getItemInHand());
             is.setAmount(1);
-            if (handleCache(event, player, block.getLocation(), () -> simulateBreak(player, block), name, is, d, limit)) {
+            if (hoes.contains(event.getItemInHand().getType())) {
+                is = null;
+            }
+
+            if (handleCache(event, player, block.getLocation(), remover, name, is, d, limit)) {
                 return;
             }
-            handleChunkPreBlockPlace(event, player, block, is, limit);
+            handleChunkPreBlockPlace(event, player, block, remover, is, limit);
         } else if (TileUtils.isTile(event.getBlockPlaced())) {
             int current = event.getBlock().getLocation().getChunk().getTileEntities().length + d;
             int generalLimit = plugin.getConfiguration().GENERAL_LIMIT;
@@ -436,7 +448,7 @@ public class MainListener implements Listener {
             if (event != null) {
                 event.setCancelled(true);
             } else {
-                if (player.getGameMode() != GameMode.CREATIVE) {
+                if (player.getGameMode() != GameMode.CREATIVE && is != null) {
                     new BukkitRunnable() {
                         @Override
                         public void run() {
@@ -453,7 +465,7 @@ public class MainListener implements Listener {
         blockLocations.remove(HashableBlockLocation.of(loc));
     }
 
-    private void simulateBreak(Player player, Block block) {
+    private void simulateBreak(Player player, Block block, BlockState oldState) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -464,7 +476,7 @@ public class MainListener implements Listener {
                 if (PaperLib.getMinecraftVersion() >= 13) {
                     other = Post1_13Listeners.getOther(block);
                 }
-                block.setType(Material.AIR);
+                BlockUtils.set(block, oldState);
                 if (other != null) other.setType(Material.AIR);
                 blockLocations.remove(HashableBlockLocation.of(block.getLocation()));
             }
@@ -486,7 +498,7 @@ public class MainListener implements Listener {
         return list;
     }
 
-    private void handleChunkPreBlockPlace(Cancellable event, Player player, Block block, ItemStack is, Limit limit) {
+    private void handleChunkPreBlockPlace(Cancellable event, Player player, Block block, Runnable remover, ItemStack is, Limit limit) {
         ChunkSnapshot chunkSnapshot = block.getChunk().getChunkSnapshot();
 
         boolean async = shouldPerformAsync(block.getType().name());
@@ -498,11 +510,11 @@ public class MainListener implements Listener {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    handleChunkBlockPlace(event, player, block, () -> simulateBreak(player, block), chunkSnapshot, is, async, limit);
+                    handleChunkBlockPlace(event, player, block, remover, chunkSnapshot, is, async, limit);
                 }
             }.runTaskAsynchronously(plugin);
         } else {
-            handleChunkBlockPlace(event, player, block, () -> simulateBreak(player, block), chunkSnapshot, null, async, limit);
+            handleChunkBlockPlace(event, player, block, remover, chunkSnapshot, null, async, limit);
         }
     }
 
@@ -530,7 +542,7 @@ public class MainListener implements Listener {
                             "%area%", "chunk");
                 }
                 if (async) {
-                    if (player.getGameMode() != GameMode.CREATIVE) {
+                    if (player.getGameMode() != GameMode.CREATIVE && is != null) {
                         player.getInventory().addItem(is);
                     }
                     remover.run();
