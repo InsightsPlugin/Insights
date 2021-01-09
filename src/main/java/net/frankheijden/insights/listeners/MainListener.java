@@ -67,6 +67,8 @@ public class MainListener implements Listener {
         Block block = event.getBlock();
         String name = block.getType().name();
 
+        if (BlockUtils.hasAnyNBTTags(block, plugin.getConfiguration().GENERAL_IGNORE_NBT_TAGS)) return;
+
         if (selectionManager.isSelecting(player.getUniqueId())) {
             selectionManager.setPos1(player.getUniqueId(), block.getLocation(), true);
             event.setCancelled(true);
@@ -272,6 +274,7 @@ public class MainListener implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         Block block = event.getBlock();
         if (HookManager.getInstance().shouldCancel(block)) return;
+        if (BlockUtils.hasAnyNBTTags(block, plugin.getConfiguration().GENERAL_IGNORE_NBT_TAGS)) return;
 
         Player player = event.getPlayer();
         String name = block.getType().name();

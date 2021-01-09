@@ -33,6 +33,13 @@ general:
   # Permission to bypass: insights.bypass
   limit: 256
 
+  # Ignore blocks which have specific NBT tags on them when placed down?
+  # This will allow better compatibility with plugins which don't cancel the placing, but instead modify the placement.
+  # Leaving this option disabled could lead to so called "split-brains" where the other plugin still 'thinks'
+  # the block exists, but in reality Insights removed it due to a limit.
+  ignore-nbt-tags:
+    - "ExampleTag"
+
   # The asynchronous limiting section
   async:
     # Should we scan custom defined block limits asynchronously?

@@ -122,6 +122,10 @@ public class YamlUtils {
         }
     }
 
+    public Set<String> getSet(String path) {
+        return new HashSet<>(getStringList(path));
+    }
+
     public Set<String> getSet(String path, Set<String> possibleValues, String what, Set<String> initialSet) {
         List<String> values = yml.getStringList(path);
         values.stream()
