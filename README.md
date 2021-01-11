@@ -51,7 +51,7 @@ maven { url 'https://jitpack.io' }
 ```
 and as dependency:
 ```groovy
-compileOnly 'com.github.FrankHeijden:Insights:TAG'
+compileOnly 'com.github.InsightsPlugin:Insights:TAG'
 ```
 #### Maven:
 ```xml
@@ -63,7 +63,7 @@ compileOnly 'com.github.FrankHeijden:Insights:TAG'
 and as dependency:
 ```xml
 <dependency>
-    <groupId>com.github.FrankHeijden</groupId>
+    <groupId>com.github.InsightsPlugin</groupId>
     <artifactId>Insights</artifactId>
     <version>TAG</version>
     <scope>provided</scope>
