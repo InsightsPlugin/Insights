@@ -43,6 +43,33 @@ For the description of this plugin, please refer to SpigotMC: https://www.spigot
 2. Run the project with `gradle shadowJar` to compile it with dependencies.
 
 ## Developer API
+### Repository / Dependency
+Please use the following maven repository:
+#### Gradle:
+```groovy
+maven { url 'https://jitpack.io' }
+```
+and as dependency:
+```groovy
+compileOnly 'com.github.FrankHeijden:Insights:TAG'
+```
+#### Maven:
+```xml
+<repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+</repository>
+```
+and as dependency:
+```xml
+<dependency>
+    <groupId>com.github.FrankHeijden</groupId>
+    <artifactId>Insights</artifactId>
+    <version>TAG</version>
+    <scope>provided</scope>
+</dependency>
+```
+
 ### Scanning
 An example of a scan can be found [here](src/main/java/net/frankheijden/insights/api/APIExample.java).
 
