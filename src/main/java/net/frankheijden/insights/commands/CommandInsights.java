@@ -3,6 +3,7 @@ package net.frankheijden.insights.commands;
 import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.entities.Error;
 import net.frankheijden.insights.managers.*;
+import net.frankheijden.insights.utils.BlockUtils;
 import net.frankheijden.insights.utils.MessageUtils;
 import net.frankheijden.insights.utils.PlayerUtils;
 import org.bukkit.block.Block;
@@ -65,6 +66,15 @@ public class CommandInsights implements CommandExecutor, TabExecutor {
                     if (target != null) {
                         MessageUtils.sendMessage(player, "messages.insights.block",
                                 "%block%", target.getType().name());
+
+                        Map<String, Object> nbt = BlockUtils.getNBTAsMap(target);
+                        if (nbt != null && !nbt.isEmpty()) {
+                            MessageUtils.sendMessage(player, "messages.insights.block-nbt.header");
+                            nbt.forEach((key, value) -> MessageUtils.sendMessage(sender, "messages.insights.block-nbt.format",
+                                    "%key%", key,
+                                    "%value%", String.valueOf(value).replace("§", "\\u00a7")));
+                            MessageUtils.sendMessage(player, "messages.insights.block-nbt.footer");
+                        }
                     } else {
                         MessageUtils.sendMessage(player, "messages.insights.invalid_block");
                     }

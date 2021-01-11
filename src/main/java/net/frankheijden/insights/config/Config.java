@@ -17,7 +17,7 @@ public class Config {
     public boolean GENERAL_SUGGEST_PAPER;
     public Location GENERAL_TILEFINDER_LOCATION;
     public int GENERAL_LIMIT;
-    public Set<String> GENERAL_IGNORE_NBT_TAGS;
+    public Map<String, String> GENERAL_IGNORE_NBT_TAGS;
     public boolean GENERAL_ASYNC_ENABLED;
     public boolean GENERAL_ASYNC_WHITELIST;
     public Set<String> GENERAL_ASYNC_LIST;
@@ -69,7 +69,7 @@ public class Config {
 
         GENERAL_LIMIT = utils.getIntWithinRange("general.limit", -1, null, null);
 
-        GENERAL_IGNORE_NBT_TAGS = utils.getSet("general.ignore-nbt-tags");
+        GENERAL_IGNORE_NBT_TAGS = utils.getMapFromList("general.ignore-nbt-tags", ":");
 
         GENERAL_ASYNC_ENABLED = utils.getBoolean("general.async.enabled", true);
         GENERAL_ASYNC_WHITELIST = utils.getBoolean("general.async.whitelist", false);

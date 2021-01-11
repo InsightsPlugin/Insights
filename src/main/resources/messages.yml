@@ -123,6 +123,14 @@ messages:
     # Special placeholders:
     # %block%
     block: "&3The block you're looking at is \"&b%block%&3\"."
+    block-nbt:
+      header: "&8&m-----------------=&r&8[&b&l Block NBT&r &8]&m=------------------"
+      # Special placeholders:
+      # %key%
+      # %value%
+      format: "&b %key%&8: &r%value%"
+      footer: "&8&m-------------------------------------------------"
+
     # Message send when a user executed /insights block and looks at a block which is too far away
     invalid_block: "&cThat block is too far away."
 

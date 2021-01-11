@@ -39,6 +39,7 @@ general:
   # the block exists, but in reality Insights removed it due to a limit.
   ignore-nbt-tags:
     - "ExampleTag"
+    - "OtherTag:60" # Example with a value, the tag must then have this value fr Insights to ignore it.
 
   # The asynchronous limiting section
   async:
