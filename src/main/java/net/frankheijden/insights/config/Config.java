@@ -17,7 +17,7 @@ public class Config {
     public boolean GENERAL_SUGGEST_PAPER;
     public Location GENERAL_TILEFINDER_LOCATION;
     public int GENERAL_LIMIT;
-    public Map<String, String> GENERAL_IGNORE_NBT_TAGS;
+    public Map<String, Set<String>> GENERAL_IGNORE_NBT_TAGS;
     public boolean GENERAL_ASYNC_ENABLED;
     public boolean GENERAL_ASYNC_WHITELIST;
     public Set<String> GENERAL_ASYNC_LIST;

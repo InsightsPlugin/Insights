@@ -122,14 +122,14 @@ public class YamlUtils {
         }
     }
 
-    public Map<String, String> getMapFromList(String path, String delimiter) {
-        Map<String, String> map = new HashMap<>();
+    public Map<String, Set<String>> getMapFromList(String path, String delimiter) {
+        Map<String, Set<String>> map = new HashMap<>();
         for (String str : getStringList(path)) {
             String[] kv = str.split(delimiter, 2);
             if (kv.length == 1) {
                 map.put(kv[0], null);
             } else if (kv.length == 2) {
-                map.put(kv[0], kv[1]);
+                map.computeIfAbsent(kv[0], k -> new HashSet<>()).add(kv[1]);
             } else { // Should never happen, split only returns >= 1, and is limited by limit = 2.
                 errors.add(new ConfigError(name, path, "invalid key/value pair (" + str + ")"));
             }

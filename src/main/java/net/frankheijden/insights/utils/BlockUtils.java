@@ -3,6 +3,7 @@ package net.frankheijden.insights.utils;
 import dev.frankheijden.minecraftreflection.ClassObject;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import java.util.Map;
+import java.util.Set;
 import net.frankheijden.insights.managers.NMSManager;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -17,14 +18,14 @@ public class BlockUtils {
     private static final MinecraftReflection nbtTagCompoundReflection = MinecraftReflection.of("net.minecraft.server.%s.NBTTagCompound");
     private static final MinecraftReflection tileEntityReflection = MinecraftReflection.of("net.minecraft.server.%s.TileEntity");
 
-    public static boolean hasAnyNBTTags(Block block, Map<String, String> tags) {
+    public static boolean hasAnyNBTTags(Block block, Map<String, Set<String>> tags) {
         Object nbt = getNBT(block);
         if (nbt == null) return false;
 
-        for (Map.Entry<String, String> entry : tags.entrySet()) {
+        for (Map.Entry<String, Set<String>> entry : tags.entrySet()) {
             if (nbtTagCompoundReflection.invoke(nbt, "hasKey", entry.getKey())) {
-                String value = entry.getValue();
-                if (value == null || value.equals(nbtTagCompoundReflection.invoke(nbt, "getString", entry.getKey()))) {
+                Set<String> values = entry.getValue();
+                if (values == null || values.contains(nbtTagCompoundReflection.invoke(nbt, "getString", entry.getKey()))) {
                     return true;
                 }
             }
