@@ -435,7 +435,7 @@ public class MainListener implements Listener {
     }
 
     private void handleCacheLimit(ScanCache cache, Cancellable event, Player player, Location loc, Runnable remover, String name, ItemStack is, int d, Limit limit) {
-        Integer count = cache.getCount(name);
+        Integer count = cache.getCount(limit);
         if (count == null) {
             count = d;
             if (count < 0) count = 0;

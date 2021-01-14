@@ -1,5 +1,7 @@
 package net.frankheijden.insights.entities;
 
+import net.frankheijden.insights.config.Limit;
+
 import java.util.*;
 
 public class ScanCache {
@@ -26,6 +28,18 @@ public class ScanCache {
 
     public Integer getCount(String what) {
         return scanResult.get(getKey(what));
+    }
+
+    public Integer getCount(Limit limit) {
+        int count = 0;
+        for (String m : limit.getMaterials()) {
+            count += scanResult.getOrDefault(getKey(m), 0);
+        }
+        for (String e : limit.getEntities()) {
+            count += scanResult.getOrDefault(getKey(e), 0);
+        }
+
+        return count == 0 ? null : count;
     }
 
     public void updateCache(String what, int d) {
