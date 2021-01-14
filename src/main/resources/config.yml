@@ -41,6 +41,9 @@ general:
     - "ExampleTag"
     - "OtherTag:60" # Example with a value, the tag must then have this value fr Insights to ignore it.
 
+  # Ignore insights on plugin's entity spawning? This could lead to the same problems as above.
+  ignore-custom-spawn: true
+
   # The asynchronous limiting section
   async:
     # Should we scan custom defined block limits asynchronously?

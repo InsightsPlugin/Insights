@@ -60,7 +60,8 @@ public class EntityListener implements Listener {
         Entity entity = event.getEntity();
         Player player = listener.getInteractListener().getPlayerWithinRadius(entity.getLocation());
 
-        if (player != null) {
+        boolean ignore = Insights.getInstance().getConfiguration().GENERAL_IGNORE_CUSTOM_SPAWN && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM;
+        if (player != null && !ignore) {
             handleEntityPlaceEvent(event, player, entity);
         } else {
             cacheManager.newCacheLocation(entity.getLocation()).updateCache(entity.getType().name(), 1);
