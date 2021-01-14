@@ -101,17 +101,33 @@ An example of a scan can be found [here](src/main/java/net/frankheijden/insights
 import net.frankheijden.insights.interfaces.Hook;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.plugin.Plugin;
 
-public class MyInsightsHook extends Hook {
+public class MyInsightsHook implements Hook {
+    
+    private final Plugin plugin;
+    
     public MyInsightsHook(Plugin plugin) {
-       super(plugin);
+       this.plugin = plugin;
+    }
+
+    @Override
+    public Plugin getPlugin() {
+        return plugin;
     }
 
     @Override
     public boolean shouldCancel(Block block) {
        // Cancel Insights for all Dirt blocks
        return block.getType() == Material.DIRT;
+    }
+
+    @Override
+    public boolean shouldCancel(Entity entity) {
+        // Cancel Insights for all Sheep's
+        return entity.getType() == EntityType.SHEEP;
     }
 }
 ```

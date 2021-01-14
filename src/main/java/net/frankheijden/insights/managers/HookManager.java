@@ -4,6 +4,7 @@ import net.frankheijden.insights.Insights;
 import net.frankheijden.insights.interfaces.Hook;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,13 @@ public class HookManager {
     public boolean shouldCancel(Block block) {
         for (Hook hook : hooks) {
             if (hook.shouldCancel(block)) return true;
+        }
+        return false;
+    }
+
+    public boolean shouldCancel(Entity entity) {
+        for (Hook hook : hooks) {
+            if (hook.shouldCancel(entity)) return true;
         }
         return false;
     }

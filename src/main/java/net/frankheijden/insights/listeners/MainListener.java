@@ -199,6 +199,8 @@ public class MainListener implements Listener {
     public void onPlayerEntityPlace(PlayerEntityPlaceEvent event) {
         Player player = event.getPlayer();
         Entity entity = event.getEntity();
+        if (HookManager.getInstance().shouldCancel(entity)) return;
+
         handleEntityPlace(event, player, entity.getLocation().getChunk(), entity);
     }
 
