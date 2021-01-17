@@ -6,6 +6,7 @@ import net.frankheijden.insights.events.EntityRemoveFromWorldEvent;
 import net.frankheijden.insights.events.PlayerEntityDestroyEvent;
 import net.frankheijden.insights.events.PlayerEntityPlaceEvent;
 import net.frankheijden.insights.managers.CacheManager;
+import net.frankheijden.insights.managers.NMSManager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.*;
@@ -58,6 +59,10 @@ public class EntityListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         Entity entity = event.getEntity();
+
+        // >= 1.13 EntityPlaceEvent is called for Armor Stands.
+        if (entity.getType() == EntityType.ARMOR_STAND && NMSManager.getInstance().isPost(13)) return;
+
         Player player = listener.getInteractListener().getPlayerWithinRadius(entity.getLocation());
 
         boolean ignore = Insights.getInstance().getConfiguration().GENERAL_IGNORE_CUSTOM_SPAWN && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM;
