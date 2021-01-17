@@ -17,6 +17,8 @@ import java.net.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class UpdateCheckerTask implements Runnable {
@@ -26,6 +28,7 @@ public class UpdateCheckerTask implements Runnable {
     private final CommandSender sender;
     private final String currentVersion;
     private final boolean startup;
+    private final Map<String, UpdateCache> cacheMap = new HashMap<>();
 
     private static final String GITHUB_INSIGHTS_LINK = "https://api.github.com/repos/InsightsPlugin/Insights/releases/latest";
 
@@ -56,7 +59,7 @@ public class UpdateCheckerTask implements Runnable {
 
         JsonObject jsonObject;
         try {
-            jsonObject = readJsonFromURL(GITHUB_INSIGHTS_LINK).getAsJsonObject();
+            jsonObject = getCachedJson(GITHUB_INSIGHTS_LINK).getAsJsonObject();
         } catch (ConnectException | UnknownHostException ex) {
             Insights.logger.severe(String.format("Error fetching new version of Insights: (%s) %s (maybe check your connection?)",
                     ex.getClass().getSimpleName(), ex.getMessage()));
@@ -181,6 +184,15 @@ public class UpdateCheckerTask implements Runnable {
         return sb.toString();
     }
 
+    private JsonElement getCachedJson(String url) throws IOException {
+        UpdateCache cache = cacheMap.get(url);
+        if (cache == null || !cache.isAlive()) {
+            cache = new UpdateCache(readJsonFromURL(url));
+            cacheMap.put(url, cache);
+        }
+        return cache.getElement();
+    }
+
     private JsonElement readJsonFromURL(String url) throws IOException {
         try (InputStream is = stream(url)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
@@ -194,5 +206,26 @@ public class UpdateCheckerTask implements Runnable {
         conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0");
         conn.setConnectTimeout(10000);
         return conn.getInputStream();
+    }
+
+    public static final class UpdateCache {
+
+        public static final long CACHE_TTL_MILLIS = 30 * 60 * 1000L;
+
+        private final JsonElement element;
+        private final long timestamp;
+
+        public UpdateCache(JsonElement element) {
+            this.element = element;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        public JsonElement getElement() {
+            return element;
+        }
+
+        public boolean isAlive() {
+            return System.currentTimeMillis() - timestamp <= CACHE_TTL_MILLIS;
+        }
     }
 }
