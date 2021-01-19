@@ -1,6 +1,8 @@
 package net.frankheijden.insights.listeners;
 
 import net.frankheijden.insights.Insights;
+import net.frankheijden.insights.events.PlayerEntityDestroyEvent;
+import net.frankheijden.insights.events.PlayerEntityPlaceEvent;
 import net.frankheijden.insights.managers.FreezeManager;
 import net.frankheijden.insights.utils.MessageUtils;
 import org.bukkit.entity.Player;
@@ -20,6 +22,16 @@ public class FreezeListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
+        handleEvent(event, event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerEntityPlace(PlayerEntityPlaceEvent event) {
+        handleEvent(event, event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerEntityDestroy(PlayerEntityDestroyEvent event) {
         handleEvent(event, event.getPlayer());
     }
 
