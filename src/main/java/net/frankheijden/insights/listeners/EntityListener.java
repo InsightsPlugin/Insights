@@ -53,7 +53,7 @@ public class EntityListener implements Listener {
         Player player = event.getPlayer();
         Entity entity = event.getEntity();
 
-        handleEntityPlaceEvent(event, player, entity);
+        handleEntityPlaceEvent(event, player, entity, true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -67,7 +67,7 @@ public class EntityListener implements Listener {
 
         boolean ignore = Insights.getInstance().getConfiguration().GENERAL_IGNORE_CUSTOM_SPAWN && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM;
         if (player != null && !ignore) {
-            handleEntityPlaceEvent(event, player, entity);
+            handleEntityPlaceEvent(event, player, entity, true);
         } else {
             cacheManager.newCacheLocation(entity.getLocation()).updateCache(entity.getType().name(), 1);
         }
@@ -137,8 +137,8 @@ public class EntityListener implements Listener {
         cacheManager.newCacheLocation(entity.getLocation()).updateCache(entity.getType().name(), added ? 1 : -1);
     }
 
-    public static void handleEntityPlaceEvent(Cancellable cancellable, Player player, Entity entity) {
-        PlayerEntityPlaceEvent entityPlaceEvent = new PlayerEntityPlaceEvent(player, entity);
+    public static void handleEntityPlaceEvent(Cancellable cancellable, Player player, Entity entity, boolean includedInChunk) {
+        PlayerEntityPlaceEvent entityPlaceEvent = new PlayerEntityPlaceEvent(player, entity, includedInChunk);
         Bukkit.getPluginManager().callEvent(entityPlaceEvent);
         cancellable.setCancelled(entityPlaceEvent.isCancelled());
     }

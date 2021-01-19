@@ -204,10 +204,10 @@ public class MainListener implements Listener {
         handleEntityPlace(event, player, entity.getLocation().getChunk(), entity);
     }
 
-    private void handleEntityPlace(Cancellable cancellable, Player player, Chunk chunk, Entity entity) {
+    private void handleEntityPlace(PlayerEntityPlaceEvent event, Player player, Chunk chunk, Entity entity) {
         String name = entity.getType().name();
         if (!canPlaceInRegion(entity.getLocation(), name) && !player.hasPermission("insights.regions.bypass." + name)) {
-            cancellable.setCancelled(true);
+            event.setCancelled(true);
             if (!isPassiveForPlayer(player, "region")) {
                 MessageUtils.sendMessage(player, "messages.region_disallowed_block");
             }
@@ -218,7 +218,7 @@ public class MainListener implements Listener {
         if (limit == null) return;
         if (limit.getLimit() < 0) return;
 
-        if (handleCache(cancellable, player, entity.getLocation(), () -> {
+        if (handleCache(event, player, entity.getLocation(), () -> {
             entityListener.onRemoveEntity(entity.getUniqueId());
             entity.remove();
         }, name, EntityUtils.createItemStack(entity, 1), 1, limit)) {
@@ -226,9 +226,12 @@ public class MainListener implements Listener {
         }
 
         int current = getEntityCount(chunk, limit.getEntities());
+        if (!event.isIncludedInChunk()) {
+            current++;
+        }
 
         if (current > limit.getLimit() && !player.hasPermission(limit.getPermission())) {
-            cancellable.setCancelled(true);
+            event.setCancelled(true);
             if (!isPassiveForPlayer(player, "entity")) {
                 MessageUtils.sendMessage(player, "messages.limit_reached_custom",
                         "%limit%", NumberFormat.getIntegerInstance().format(limit.getLimit()),

@@ -27,7 +27,7 @@ public class Pre1_13Listeners implements Listener {
 
         if (player != null) {
             if (vehicleCancellable) {
-                EntityListener.handleEntityPlaceEvent(event, player, vehicle);
+                EntityListener.handleEntityPlaceEvent(event, player, vehicle, true);
             } else {
                 handleVehiclePlace(player, vehicle);
             }
@@ -60,7 +60,7 @@ public class Pre1_13Listeners implements Listener {
         Player player = mainListener.getInteractListener().getPlayerWithinRadius(entity.getLocation());
 
         if (player != null) {
-            EntityListener.handleEntityPlaceEvent(event, player, entity);
+            EntityListener.handleEntityPlaceEvent(event, player, entity, true);
         }
     }
 }
