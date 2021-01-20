@@ -63,11 +63,9 @@ general:
   worlds:
     # Blacklist mode (false): All worlds except the ones in the list.
     # Whitelist mode (true): All worlds in the list.
-    whitelist: true
-    list:
-      - "world"
-      - "world_nether"
-      - "world_the_end"
+    # This means by default Insights is enabled in all worlds!
+    whitelist: false
+    list: []
 
   # Regions in which Insights should apply limiting to
   # (so you can disable it in some regions)
