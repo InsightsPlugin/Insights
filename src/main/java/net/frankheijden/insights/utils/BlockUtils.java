@@ -2,6 +2,7 @@ package net.frankheijden.insights.utils;
 
 import dev.frankheijden.minecraftreflection.ClassObject;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
+import io.papermc.lib.PaperLib;
 import java.util.Map;
 import java.util.Set;
 import net.frankheijden.insights.managers.NMSManager;
@@ -57,7 +58,11 @@ public class BlockUtils {
         if (tile == null) return null;
 
         Object tag = nbtTagCompoundReflection.newInstance();
-        tileEntityReflection.invoke(tile, "save", tag);
+        if (PaperLib.isVersion(8)) {
+            tileEntityReflection.invoke(tile, "b", tag);
+        } else {
+            tileEntityReflection.invoke(tile, "save", tag);
+        }
 
         return tag;
     }
