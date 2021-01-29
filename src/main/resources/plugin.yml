@@ -1,5 +1,5 @@
 name: Insights
-main: net.frankheijden.insights.Insights
+main: dev.frankheijden.insights.Insights
 version: ${version}
 description: "A plugin which gives you Insights about your server, and allows for the limiting of blocks."
 author: "FrankHeijden"

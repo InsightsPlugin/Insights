@@ -1,0 +1,356 @@
+package dev.frankheijden.insights;
+
+import dev.frankheijden.insights.commands.CommandAutoscan;
+import dev.frankheijden.insights.commands.CommandCancelscan;
+import dev.frankheijden.insights.commands.CommandCheck;
+import dev.frankheijden.insights.commands.CommandCheckworlds;
+import dev.frankheijden.insights.commands.CommandDeleteCache;
+import dev.frankheijden.insights.commands.CommandInsights;
+import dev.frankheijden.insights.commands.CommandScan;
+import dev.frankheijden.insights.commands.CommandScanradius;
+import dev.frankheijden.insights.commands.CommandScanworld;
+import dev.frankheijden.insights.commands.CommandSelection;
+import dev.frankheijden.insights.commands.CommandTogglecheck;
+import dev.frankheijden.insights.config.Config;
+import dev.frankheijden.insights.entities.Error;
+import dev.frankheijden.insights.listeners.CacheListener;
+import dev.frankheijden.insights.listeners.FreezeListener;
+import dev.frankheijden.insights.listeners.MainListener;
+import dev.frankheijden.insights.listeners.Post1_13Listeners;
+import dev.frankheijden.insights.listeners.Pre1_13Listeners;
+import dev.frankheijden.insights.managers.CacheManager;
+import dev.frankheijden.insights.managers.FreezeManager;
+import dev.frankheijden.insights.managers.HookManager;
+import dev.frankheijden.insights.managers.MetricsManager;
+import dev.frankheijden.insights.managers.NMSManager;
+import dev.frankheijden.insights.managers.NotificationManager;
+import dev.frankheijden.insights.managers.ScanManager;
+import dev.frankheijden.insights.managers.SelectionManager;
+import dev.frankheijden.insights.managers.TileManager;
+import dev.frankheijden.insights.managers.VersionManager;
+import dev.frankheijden.insights.managers.WorldEditManager;
+import dev.frankheijden.insights.managers.WorldGuardManager;
+import dev.frankheijden.insights.placeholders.InsightsPlaceholderAPIExpansion;
+import dev.frankheijden.insights.tasks.UpdateCheckerTask;
+import dev.frankheijden.insights.utils.FileUtils;
+import dev.frankheijden.insights.utils.MessageUtils;
+import dev.frankheijden.insights.utils.ReflectionUtils;
+import io.papermc.lib.PaperLib;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+public class Insights extends JavaPlugin {
+
+    private static Insights insights;
+    public static Logger logger;
+
+    private FileConfiguration messages;
+
+    private Config config;
+    private SQLite sqLite;
+
+    private NMSManager nmsManager = null;
+    private NotificationManager notificationManager = null;
+    private WorldEditManager worldEditManager = null;
+    private WorldGuardManager worldGuardManager = null;
+    private HookManager hookManager = null;
+    private ScanManager scanManager = null;
+    private SelectionManager selectionManager = null;
+    private CacheManager cacheManager = null;
+    private VersionManager versionManager = null;
+    private MetricsManager metricsManager = null;
+    private FreezeManager freezeManager = null;
+    private TileManager tileManager = null;
+
+    private boolean placeholderAPIHook = false;
+
+    @Override
+    public void onEnable() {
+        long start = System.currentTimeMillis();
+        insights = this;
+        logger = this.getLogger();
+
+        List<Error> errors = new ArrayList<>();
+        setupConfiguration(errors);
+        setupSQLite();
+        setupManagers();
+        setupClasses();
+        setupPlaceholderAPIHook();
+
+        if (config.GENERAL_SUGGEST_PAPER) {
+            PaperLib.suggestPaper(this);
+        }
+
+        Bukkit.getScheduler().runTask(this, () -> {
+            logger.info("Enabling Insights addons...");
+            registerAllAddons(errors);
+
+            if (!errors.isEmpty()) {
+                MessageUtils.printErrors(errors, false);
+            }
+        });
+
+        checkForUpdates();
+
+        long end = System.currentTimeMillis();
+        long millis = end - start;
+        logger.info(String.format("Enabled Insights in %s ms!", NumberFormat.getInstance().format(millis)));
+    }
+
+    @Override
+    public void onDisable() {
+        super.onDisable();
+        unregisterCommands();
+        if (notificationManager != null) notificationManager.stop();
+        if (worldEditManager != null) worldEditManager.unregister();
+    }
+
+    public static Insights getInstance() {
+        return insights;
+    }
+
+    private void setupConfiguration(List<Error> errors) {
+        config = new Config();
+        config.reload(errors);
+
+        File messagesFile = FileUtils.copyResourceIfNotExists("messages.yml");
+        messages = YamlConfiguration.loadConfiguration(messagesFile);
+    }
+
+    private void setupSQLite() {
+        sqLite = new SQLite();
+        sqLite.load();
+    }
+
+    private void setupClasses() {
+        MainListener mainListener = new MainListener();
+        mainListener.register();
+        if (nmsManager.isPost(13)) {
+            Bukkit.getPluginManager().registerEvents(new Post1_13Listeners(), this);
+        } else {
+            Bukkit.getPluginManager().registerEvents(new Pre1_13Listeners(mainListener), this);
+        }
+        Bukkit.getPluginManager().registerEvents(new CacheListener(), this);
+        Bukkit.getPluginManager().registerEvents(new FreezeListener(), this);
+
+        Objects.requireNonNull(this.getCommand("autoscan")).setExecutor(new CommandAutoscan());
+        Objects.requireNonNull(this.getCommand("insights")).setExecutor(new CommandInsights());
+        Objects.requireNonNull(this.getCommand("check")).setExecutor(new CommandCheck());
+        Objects.requireNonNull(this.getCommand("checkworlds")).setExecutor(new CommandCheckworlds());
+        Objects.requireNonNull(this.getCommand("deletecache")).setExecutor(new CommandDeleteCache());
+        Objects.requireNonNull(this.getCommand("scan")).setExecutor(new CommandScan());
+        Objects.requireNonNull(this.getCommand("scanradius")).setExecutor(new CommandScanradius());
+        Objects.requireNonNull(this.getCommand("scanworld")).setExecutor(new CommandScanworld());
+        Objects.requireNonNull(this.getCommand("selection")).setExecutor(new CommandSelection());
+        Objects.requireNonNull(this.getCommand("togglecheck")).setExecutor(new CommandTogglecheck());
+        Objects.requireNonNull(this.getCommand("cancelscan")).setExecutor(new CommandCancelscan());
+    }
+
+    public boolean isAvailable(String pluginName) {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
+        return plugin != null && plugin.isEnabled();
+    }
+
+    private void setupManagers() {
+        nmsManager = new NMSManager();
+
+        if (nmsManager.isPost(9)) {
+            notificationManager = new NotificationManager();
+            notificationManager.start();
+        }
+
+        hookManager = new HookManager();
+
+        if (isAvailable("WorldEdit")) {
+            worldEditManager = new WorldEditManager();
+            logger.info("Successfully hooked into WorldEdit!");
+        }
+
+        if (isAvailable("WorldGuard")) {
+            worldGuardManager = new WorldGuardManager();
+            logger.info("Successfully hooked into WorldGuard!");
+        }
+
+        scanManager = new ScanManager();
+        selectionManager = new SelectionManager();
+        cacheManager = new CacheManager();
+        versionManager = new VersionManager();
+        metricsManager = new MetricsManager();
+        freezeManager = new FreezeManager();
+        tileManager = new TileManager();
+        tileManager.tryRecalculateTiles(config.GENERAL_TILEFINDER_LOCATION);
+
+        String version = String.format("1.%d.%d", PaperLib.getMinecraftVersion(), PaperLib.getMinecraftPatchVersion());
+        if (PaperLib.getMinecraftVersion() <= 7) {
+            logger.severe(String.format("Minecraft version '%s' detected, please note that Insights may not support this version!", version));
+        } else {
+            logger.info(String.format("Minecraft version '%s' detected!", version));
+        }
+    }
+
+    private void setupPlaceholderAPIHook() {
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            InsightsPlaceholderAPIExpansion expansion = new InsightsPlaceholderAPIExpansion();
+            if (expansion.register()) {
+                Bukkit.getLogger().info("Successfully hooked into PlaceholderAPI!");
+            }
+
+            placeholderAPIHook = expansion.isRegistered();
+            if (!placeholderAPIHook) {
+                Bukkit.getLogger().warning("Couldn't hook into PlaceholderAPI.");
+            }
+        }
+    }
+
+    private void registerAllAddons(List<Error> errors) {
+        cacheManager.unregisterAllAddons();
+        cacheManager.registerAllAddons(errors, FileUtils.loadAllAddons().stream()
+                .map(c -> ReflectionUtils.createCacheAssistant(errors, c))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+    }
+
+    private void checkForUpdates() {
+        if (config.GENERAL_UPDATES_CHECK) {
+            UpdateCheckerTask.start(Bukkit.getConsoleSender(), true);
+        }
+    }
+
+    public List<Error> reload() {
+        List<Error> errors = new ArrayList<>();
+        setupConfiguration(errors);
+        setupSQLite();
+        setupPlaceholderAPIHook();
+        registerAllAddons(errors);
+        return errors;
+    }
+
+    public FileConfiguration getMessages() {
+        return messages;
+    }
+
+    public Config getConfiguration() {
+        return config;
+    }
+
+    public SQLite getSqLite() {
+        return sqLite;
+    }
+
+    public NMSManager getNMSManager() {
+        return nmsManager;
+    }
+
+    public NotificationManager getNotificationManager() {
+        return notificationManager;
+    }
+
+    public WorldEditManager getWorldEditManager() {
+        return worldEditManager;
+    }
+
+    public WorldGuardManager getWorldGuardManager() {
+        return worldGuardManager;
+    }
+
+    public HookManager getHookManager() {
+        return hookManager;
+    }
+
+    public ScanManager getScanManager() {
+        return scanManager;
+    }
+
+    public SelectionManager getSelectionManager() {
+        return selectionManager;
+    }
+
+    public CacheManager getCacheManager() {
+        return cacheManager;
+    }
+
+    public VersionManager getVersionManager() {
+        return versionManager;
+    }
+
+    public MetricsManager getMetricsManager() {
+        return metricsManager;
+    }
+
+    public FreezeManager getFreezeManager() {
+        return freezeManager;
+    }
+
+    public TileManager getTileManager() {
+        return tileManager;
+    }
+
+    public boolean hasPlaceholderAPIHook() {
+        return placeholderAPIHook;
+    }
+
+    private void unregisterCommands() {
+        Map<String, Command> map;
+        try {
+            map = getKnownCommands();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        this.getDescription().getCommands().forEach((cmd, data) -> {
+            map.remove(cmd);
+
+            @SuppressWarnings("unchecked")
+            List<String> aliases = (List<String>) data.get("aliases");
+            if (aliases != null) {
+                aliases.forEach(map::remove);
+            }
+        });
+    }
+
+    /*
+     * These methods need to be in this class due to
+     * unloading of the plugin when disabling.
+     */
+    public static SimpleCommandMap getCommandMap() throws NoSuchFieldException, IllegalAccessException {
+        Field commandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+        commandMap.setAccessible(true);
+        return (SimpleCommandMap) commandMap.get(Bukkit.getServer());
+    }
+
+    public static Map<String, Command> getKnownCommands() throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        return getKnownCommands(getCommandMap());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, Command> getKnownCommands(SimpleCommandMap map) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Object mapObject;
+        try {
+            Field knownCommands = map.getClass().getDeclaredField("knownCommands");
+            knownCommands.setAccessible(true);
+            mapObject = knownCommands.get(map);
+        } catch (NoSuchFieldException ex) {
+            Method getKnownCommands = map.getClass().getDeclaredMethod("getKnownCommands");
+            mapObject = getKnownCommands.invoke(map);
+        }
+        return (Map<String, Command>) mapObject;
+    }
+}
