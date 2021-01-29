@@ -1,0 +1,11 @@
+group = rootProject.group + '.api'
+version = rootProject.version
+archivesBaseName = baseName + '-API'
+
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    compileOnly 'com.google.code.gson:gson:2.8.6'
+}

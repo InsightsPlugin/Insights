@@ -1,61 +1,88 @@
 plugins {
     id 'java'
-    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
-String packagePath = 'dev.frankheijden.insights'
-group = packagePath
+String name = "Insights"
+group = 'dev.frankheijden.insights'
 version = '6.0.0-DEV'
-description = 'Insights'
-sourceCompatibility = '1.8'
+
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'checkstyle'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+
+    ext {
+        baseName = name
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://repo.aikar.co/content/groups/aikar/' }
+        maven { url 'https://papermc.io/repo/repository/maven-public/' }
+    }
+
+    dependencies {
+        testCompile 'org.assertj:assertj-core:3.18.1'
+        testCompile 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+        testCompile 'org.junit.jupiter:junit-jupiter-params:5.7.0'
+        testCompile 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    }
+
+    compileJava {
+        options.compilerArgs += ["-parameters"]
+        options.fork = true
+        options.forkOptions.executable = 'javac'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    checkstyle {
+        toolVersion "8.38"
+        configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+
+        ignoreFailures = false
+        maxErrors = 0
+        maxWarnings = 0
+    }
+
+    shadowJar.dependsOn checkstyleMain, checkstyleTest, test
+}
 
 repositories {
     mavenCentral()
-    maven { url 'https://papermc.io/repo/repository/maven-public/' }
-    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
-    maven { url 'https://maven.sk89q.com/repo/' }
-    maven { url 'https://jitpack.io' }
-    maven { url 'https://repo.maven.apache.org/maven2' }
-    maven { url 'https://repo.codemc.org/repository/maven-public' }
 }
 
 dependencies {
-    implementation 'io.papermc:paperlib:1.0.2'
-    implementation 'org.bstats:bstats-bukkit:1.7'
-    implementation 'com.github.InsightsPlugin:WECompatibility:v1.8.0'
-    implementation 'com.github.FrankHeijden:MinecraftReflection:1.0.0'
-    compileOnly 'com.destroystokyo.paper:paper-api:1.16.4-R0.1-SNAPSHOT'
-    compileOnly 'me.clip:placeholderapi:2.10.4'
-    compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.1.0'
-    compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.2'
-
-    testCompile 'org.assertj:assertj-core:3.15.0'
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.6.2'
-    testCompile 'org.junit.jupiter:junit-jupiter-params:5.6.2'
-    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
-}
-
-artifacts {
-    archives shadowJar
+    implementation project(path: ':Insights-API', configuration: 'shadow')
+    implementation project(path: ':Insights', configuration: 'shadow')
 }
 
 shadowJar {
-    relocate('org.bstats.bukkit', packagePath + '.dependencies.bstats')
-    relocate('io.papermc.lib', packagePath + '.dependencies.paperlib')
-    relocate('net.frankheijden.wecompatibility', packagePath + '.dependencies.wecompatibility')
+    archiveFileName = "${name}-${archiveVersion.orNull}.${archiveExtension.orNull}"
 }
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
+def outputTasks() {
+    ["shadowJar", ":Insights:shadowJar"].stream().map({ tasks.findByPath(it) })
 }
 
-processResources {
-    from('src/main/resources') {
-        include 'plugin.yml'
-        expand(version: project.version)
-    }
+task copyJars(type: Copy) {
+    outputTasks().forEach({ from(it) })
+    rename '(.*)-all.jar', '$1.jar'
+    into file('jars')
 }
 
-test {
-    useJUnitPlatform()
+task cleanJars() {
+    delete file('jars')
 }
+
+clean.dependsOn cleanJars
+build.dependsOn shadowJar
+build.dependsOn copyJars

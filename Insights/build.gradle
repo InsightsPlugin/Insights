@@ -1,0 +1,26 @@
+group = rootProject.group
+String dependencyDir = group + '.dependencies'
+version = rootProject.version
+archivesBaseName = baseName
+
+dependencies {
+    compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
+    implementation 'com.github.FrankHeijden:MinecraftReflection:1.0.0'
+    implementation 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
+    implementation 'org.bstats:bstats-bukkit:1.8'
+    implementation project(":Insights-API")
+}
+
+processResources {
+    from('src/main/resources') {
+        include 'plugin.yml'
+        expand(version: project.version)
+    }
+}
+
+shadowJar {
+    relocate 'dev.frankheijden.minecraftreflection', dependencyDir + '.minecraftreflection'
+    relocate 'org.bstats.bukkit', dependencyDir + '.bstats'
+    relocate 'co.aikar.commands', dependencyDir + '.acf'
+    relocate 'co.aikar.locales', dependencyDir + '.locales'
+}
