@@ -58,7 +58,7 @@ public class BlockUtils {
         if (tile == null) return null;
 
         Object tag = nbtTagCompoundReflection.newInstance();
-        if (PaperLib.isVersion(8)) {
+        if (!PaperLib.isVersion(9)) {
             tileEntityReflection.invoke(tile, "b", tag);
         } else {
             tileEntityReflection.invoke(tile, "save", tag);
