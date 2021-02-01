@@ -1,0 +1,12 @@
+settings:
+  concurrent-scan-threads: -1
+  notification-type: "BOSSBAR"
+  bossbar-notification:
+    color: "BLUE"
+    style: "SEGMENTED_10"
+    flags: []
+    duration-ticks: 60
+  worldedit-integration:
+    enabled: true
+    type: "REPLACEMENT"
+    replacement-block: "BEDROCK"

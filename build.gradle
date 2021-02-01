@@ -70,7 +70,7 @@ shadowJar {
 }
 
 def outputTasks() {
-    ["shadowJar", ":Insights:shadowJar"].stream().map({ tasks.findByPath(it) })
+    ["shadowJar", ":Insights:shadowJar", ":Insights-API:shadowJar"].stream().map({ tasks.findByPath(it) })
 }
 
 task copyJars(type: Copy) {
