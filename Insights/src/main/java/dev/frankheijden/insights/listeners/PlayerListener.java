@@ -1,10 +1,10 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -41,16 +41,22 @@ public class PlayerListener extends InsightsListener {
         long chunkKey = ChunkUtils.getKey(chunk);
 
         if (plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey)) {
-            player.sendMessage(ChatColor.RED + "Please wait while we scan this chunk...");
+            plugin.getMessages().getMessage(Messages.Key.CHUNK_SCAN_QUEUED)
+                    .color()
+                    .sendTo(player);
             event.setCancelled(true);
             return;
         }
 
         if (!plugin.getWorldDistributionStorage().contains(worldUid, chunkKey)
                 && plugin.getSettings().CHUNK_SCAN_MODE == Settings.ChunkScanMode.MODIFICATION) {
-            player.sendMessage(ChatColor.DARK_AQUA + "Please wait while we scan this chunk...");
+            plugin.getMessages().getMessage(Messages.Key.CHUNK_SCAN_STARTED)
+                    .color()
+                    .sendTo(player);
             plugin.getChunkContainerExecutor().submit(chunk, true).whenComplete((map, err) -> {
-                player.sendMessage(ChatColor.AQUA + "Scan finished!");
+                plugin.getMessages().getMessage(Messages.Key.CHUNK_SCAN_COMPLETED)
+                        .color()
+                        .sendTo(player);
             });
             event.setCancelled(true);
             return;

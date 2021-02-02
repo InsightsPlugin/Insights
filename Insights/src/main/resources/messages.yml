@@ -1,0 +1,5 @@
+messages:
+  prefix: "&b&lInsights &8&l» "
+  chunk-scan-started: "<prefix>&3Please wait while we scan this chunk..."
+  chunk-scan-queued: "<prefix>&cChunk is currently queued for scanning..."
+  chunk-scan-completed: "<actionbar>&bScan completed!"

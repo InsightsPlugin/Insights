@@ -1,16 +1,13 @@
 package dev.frankheijden.insights.api.config;
 
 import dev.frankheijden.insights.api.config.parser.YamlParser;
-import dev.frankheijden.insights.api.utils.YamlUtils;
 import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
-import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 public class Settings {
 
@@ -52,15 +49,9 @@ public class Settings {
      * @return A Monad wrap of the Settings object.
      */
     public static Monad<Settings> load(File file, InputStream defaultSettings) throws IOException {
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        YamlConfiguration def = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultSettings));
-        YamlUtils.update(yaml, def);
-        YamlUtils.removeUnusedKeys(yaml, def);
-        yaml.save(file);
-
-        ConfigError.Builder errors = ConfigError.newBuilder();
-        Settings settings = new Settings(new YamlParser(yaml, file.getName(), errors));
-        return new Monad<>(settings, errors.getErrors());
+        YamlParser parser = YamlParser.load(file, defaultSettings);
+        Settings settings = new Settings(parser);
+        return parser.toMonad(settings);
     }
 
     public enum ChunkScanMode {

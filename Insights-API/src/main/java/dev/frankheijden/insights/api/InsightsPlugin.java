@@ -12,5 +12,6 @@ public abstract class InsightsPlugin extends JavaPlugin implements InsightsMain 
             getDataFolder().mkdirs();
         }
         reloadSettings();
+        reloadMessages();
     }
 }

@@ -1,9 +1,15 @@
 package dev.frankheijden.insights.api.config.parser;
 
 import dev.frankheijden.insights.api.config.ConfigError;
+import dev.frankheijden.insights.api.config.Monad;
 import dev.frankheijden.insights.api.utils.EnumUtils;
+import dev.frankheijden.insights.api.utils.YamlUtils;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,10 +34,29 @@ public class YamlParser {
     /**
      * Constructs a new YamlParser with given parameters.
      */
-    public YamlParser(YamlConfiguration yaml, String name, ConfigError.Builder errors) {
+    private YamlParser(YamlConfiguration yaml, String name, ConfigError.Builder errors) {
         this.yaml = yaml;
         this.name = name;
         this.errors = errors;
+    }
+
+    /**
+     * Loads the specified File into a YamlParser, given an InputStream of a default configuration.
+     * Nodes are automatically added and removed (if unused).
+     */
+    public static YamlParser load(File file, InputStream defaultSettings) throws IOException {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration def = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultSettings));
+        YamlUtils.update(yaml, def);
+        YamlUtils.removeUnusedKeys(yaml, def);
+        yaml.save(file);
+
+        ConfigError.Builder errors = ConfigError.newBuilder();
+        return new YamlParser(yaml, file.getName(), errors);
+    }
+
+    public <T> Monad<T> toMonad(T obj) {
+        return new Monad<>(obj, errors.getErrors());
     }
 
     /**
@@ -154,6 +179,11 @@ public class YamlParser {
         String defVal = def == null ? null : def.name();
         String checked = checkString(value, defVal, path, EnumUtils.getValues(clazz), friendlyName);
         return checked == null ? null : Enum.valueOf(clazz, checked);
+    }
+
+    public String getRawString(String path) {
+        String str = yaml.getString(path);
+        return (str == null || str.isEmpty()) ? null : str;
     }
 
     /**

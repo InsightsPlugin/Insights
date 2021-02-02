@@ -6,6 +6,7 @@ import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
+import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
@@ -19,9 +20,11 @@ import java.io.IOException;
 public class Insights extends InsightsPlugin {
 
     private static final String SETTINGS_FILE_NAME = "config.yml";
+    private static final String MESSAGES_FILE_NAME = "messages.yml";
 
     private static Insights instance;
     private Settings settings;
+    private Messages messages;
     private ContainerExecutor executor;
     private ChunkContainerExecutor chunkContainerExecutor;
     private PlayerList playerList;
@@ -70,8 +73,23 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
+    public void reloadMessages() {
+        File file = new File(getDataFolder(), MESSAGES_FILE_NAME);
+        try {
+            messages = Messages.load(file, getResource(MESSAGES_FILE_NAME));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
     public Settings getSettings() {
         return settings;
+    }
+
+    @Override
+    public Messages getMessages() {
+        return messages;
     }
 
     @Override
