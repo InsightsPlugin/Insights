@@ -1,5 +1,6 @@
 settings:
   concurrent-scan-threads: -1
+  chunk-scan-mode: "MODIFICATION"
   notification-type: "BOSSBAR"
   bossbar-notification:
     color: "BLUE"

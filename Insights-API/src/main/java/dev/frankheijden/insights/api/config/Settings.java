@@ -11,11 +11,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.management.ManagementFactory;
 
 public class Settings {
 
     public final int CONCURRENT_SCAN_THREADS;
+    public final ChunkScanMode CHUNK_SCAN_MODE;
     public final NotificationType NOTIFICATION_TYPE;
     public final BarColor BOSSBAR_NOTIFICATION_COLOR;
     public final BarStyle BOSSBAR_NOTIFICATION_STYLE;
@@ -30,10 +30,11 @@ public class Settings {
      */
     @SuppressWarnings("LineLength")
     public Settings(YamlParser parser) {
-        int maxThreads = ManagementFactory.getThreadMXBean().getThreadCount();
+        int maxThreads = Runtime.getRuntime().availableProcessors();
         int threads = parser.getInt("settings.concurrent-scan-threads", -1, -1, maxThreads);
         if (threads <= 0) threads = maxThreads;
         CONCURRENT_SCAN_THREADS = threads;
+        CHUNK_SCAN_MODE = parser.getEnum("settings.chunk-scan-mode", ChunkScanMode.MODIFICATION);
 
         NOTIFICATION_TYPE = parser.getEnum("settings.notification-type", NotificationType.BOSSBAR);
 
@@ -61,6 +62,11 @@ public class Settings {
         ConfigError.Builder errors = ConfigError.newBuilder();
         Settings settings = new Settings(new YamlParser(yaml, file.getName(), errors));
         return new Monad<>(settings, errors.getErrors());
+    }
+
+    public enum ChunkScanMode {
+        ALWAYS,
+        MODIFICATION
     }
 
     public enum NotificationType {
