@@ -1,12 +1,13 @@
 settings:
   concurrent-scan-threads: -1
   chunk-scan-mode: "MODIFICATION"
-  notification-type: "BOSSBAR"
-  bossbar-notification:
-    color: "BLUE"
-    style: "SEGMENTED_10"
-    flags: []
-    duration-ticks: 60
+  progress-notification:
+    type: "BOSSBAR"
+    bossbar:
+      color: "BLUE"
+      style: "SEGMENTED_10"
+      flags: []
+      duration-ticks: 60
   worldedit-integration:
     enabled: true
     type: "REPLACEMENT"

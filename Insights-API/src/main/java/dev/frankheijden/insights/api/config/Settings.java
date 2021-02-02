@@ -16,11 +16,11 @@ public class Settings {
 
     public final int CONCURRENT_SCAN_THREADS;
     public final ChunkScanMode CHUNK_SCAN_MODE;
-    public final NotificationType NOTIFICATION_TYPE;
-    public final BarColor BOSSBAR_NOTIFICATION_COLOR;
-    public final BarStyle BOSSBAR_NOTIFICATION_STYLE;
-    public final BarFlag[] BOSSBAR_NOTIFICATION_FLAGS;
-    public final int BOSSBAR_DURATION_TICKS;
+    public final NotificationType PROGRESS_NOTIFICATION_TYPE;
+    public final BarColor PROGRESS_BOSSBAR_COLOR;
+    public final BarStyle PROGRESS_BOSSBAR_STYLE;
+    public final BarFlag[] PROGRESS_BOSSBAR_FLAGS;
+    public final int PROGRESS_BOSSBAR_DURATION_TICKS;
     public final boolean WORLDEDIT_INTEGRATION_ENABLED;
     public final WorldEditIntegrationType WORLDEDIT_INTEGRATION_TYPE;
     public final Material WORLDEDIT_INTEGRATION_REPLACEMENT_BLOCK;
@@ -36,12 +36,11 @@ public class Settings {
         CONCURRENT_SCAN_THREADS = threads;
         CHUNK_SCAN_MODE = parser.getEnum("settings.chunk-scan-mode", ChunkScanMode.MODIFICATION);
 
-        NOTIFICATION_TYPE = parser.getEnum("settings.notification-type", NotificationType.BOSSBAR);
-
-        BOSSBAR_NOTIFICATION_COLOR = parser.getEnum("settings.bossbar-notification.color", BarColor.BLUE);
-        BOSSBAR_NOTIFICATION_STYLE = parser.getEnum("settings.bossbar-notification.style", BarStyle.SEGMENTED_10);
-        BOSSBAR_NOTIFICATION_FLAGS = parser.getEnums("settings.bossbar-notification.flags", BarFlag.class);
-        BOSSBAR_DURATION_TICKS = parser.getInt("settings.bossbar-notification.duration-ticks", 60, 0, Integer.MAX_VALUE);
+        PROGRESS_NOTIFICATION_TYPE = parser.getEnum("settings.progress-notification.type", NotificationType.BOSSBAR);
+        PROGRESS_BOSSBAR_COLOR = parser.getEnum("settings.progress-notification.bossbar.color", BarColor.BLUE);
+        PROGRESS_BOSSBAR_STYLE = parser.getEnum("settings.progress-notification.bossbar.style", BarStyle.SEGMENTED_10);
+        PROGRESS_BOSSBAR_FLAGS = parser.getEnums("settings.progress-notification.bossbar.flags", BarFlag.class);
+        PROGRESS_BOSSBAR_DURATION_TICKS = parser.getInt("settings.progress-notification.bossbar.duration-ticks", 60, 0, Integer.MAX_VALUE);
 
         WORLDEDIT_INTEGRATION_ENABLED = parser.getBoolean("settings.worldedit-integration.enabled", true);
         WORLDEDIT_INTEGRATION_TYPE = parser.getEnum("settings.worldedit-integration.type", WorldEditIntegrationType.REPLACEMENT);
