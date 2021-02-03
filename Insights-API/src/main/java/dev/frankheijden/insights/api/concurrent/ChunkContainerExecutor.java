@@ -49,13 +49,10 @@ public class ChunkContainerExecutor implements ContainerExecutor {
         scanTracker.set(worldUid, chunkKey, true);
 
         CompletableFuture<Map<Material, Integer>> future = submit(container);
-        if (save) {
-            future.whenComplete((map, err) -> {
-                distributionStorage.put(worldUid, chunkKey, map);
-                scanTracker.set(worldUid, chunkKey, false);
-            });
-        }
-        return future;
+        return save ? future.whenComplete((map, err) -> {
+            distributionStorage.put(worldUid, chunkKey, map);
+            scanTracker.set(worldUid, chunkKey, false);
+        }) : future;
     }
 
     @Override

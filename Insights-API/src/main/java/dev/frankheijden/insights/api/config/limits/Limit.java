@@ -4,6 +4,7 @@ import dev.frankheijden.insights.api.config.parser.SensitiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class Limit {
+public abstract class Limit {
 
     private static final String LIMIT_SECTION = "limit";
 
@@ -88,6 +89,11 @@ public class Limit {
     public LimitSettings getSettings() {
         return settings;
     }
+
+    /**
+     * Returns the list of materials that are associated to the given material.
+     */
+    public abstract Set<Material> getMaterials(Material m);
 
     public static class Info {
 

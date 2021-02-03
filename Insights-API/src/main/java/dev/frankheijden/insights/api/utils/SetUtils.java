@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.utils;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class SetUtils {
 
@@ -14,5 +15,17 @@ public class SetUtils {
         Set<T> set = new HashSet<>(a);
         set.retainAll(b);
         return set;
+    }
+
+    /**
+     * Finds the first item in a given set that tests positive to the predicate.
+     */
+    public static <T> T findFirst(Set<T> set, Predicate<? super T> predicate) {
+        for (T obj : set) {
+            if (predicate.test(obj)) {
+                return obj;
+            }
+        }
+        return null;
     }
 }

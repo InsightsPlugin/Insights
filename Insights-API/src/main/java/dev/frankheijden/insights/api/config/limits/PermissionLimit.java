@@ -3,8 +3,10 @@ package dev.frankheijden.insights.api.config.limits;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import org.bukkit.Material;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 
 public class PermissionLimit extends Limit {
 
@@ -32,5 +34,15 @@ public class PermissionLimit extends Limit {
 
     public Map<Material, Integer> getLimitMap() {
         return limitMap;
+    }
+
+    /**
+     * Returns the list of materials that are associated to the given material.
+     * For PermissionLimit's, a block is not associated to any other block (individual limit).
+     * If the given material is not in this limit, an empty set is returned.
+     */
+    @Override
+    public Set<Material> getMaterials(Material m) {
+        return limitMap.containsKey(m) ? Collections.singleton(m) : Collections.emptySet();
     }
 }
