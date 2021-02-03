@@ -13,5 +13,6 @@ public abstract class InsightsPlugin extends JavaPlugin implements InsightsMain 
         }
         reloadSettings();
         reloadMessages();
+        reloadLimits();
     }
 }

@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.config;
 
+import dev.frankheijden.insights.api.config.parser.PassiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
@@ -36,7 +37,7 @@ public class Settings {
         PROGRESS_NOTIFICATION_TYPE = parser.getEnum("settings.progress-notification.type", NotificationType.BOSSBAR);
         PROGRESS_BOSSBAR_COLOR = parser.getEnum("settings.progress-notification.bossbar.color", BarColor.BLUE);
         PROGRESS_BOSSBAR_STYLE = parser.getEnum("settings.progress-notification.bossbar.style", BarStyle.SEGMENTED_10);
-        PROGRESS_BOSSBAR_FLAGS = parser.getEnums("settings.progress-notification.bossbar.flags", BarFlag.class);
+        PROGRESS_BOSSBAR_FLAGS = parser.getEnums("settings.progress-notification.bossbar.flags", BarFlag.class).toArray(new BarFlag[0]);
         PROGRESS_BOSSBAR_DURATION_TICKS = parser.getInt("settings.progress-notification.bossbar.duration-ticks", 60, 0, Integer.MAX_VALUE);
 
         WORLDEDIT_INTEGRATION_ENABLED = parser.getBoolean("settings.worldedit-integration.enabled", true);
@@ -49,7 +50,7 @@ public class Settings {
      * @return A Monad wrap of the Settings object.
      */
     public static Monad<Settings> load(File file, InputStream defaultSettings) throws IOException {
-        YamlParser parser = YamlParser.load(file, defaultSettings);
+        PassiveYamlParser parser = PassiveYamlParser.load(file, defaultSettings);
         Settings settings = new Settings(parser);
         return parser.toMonad(settings);
     }

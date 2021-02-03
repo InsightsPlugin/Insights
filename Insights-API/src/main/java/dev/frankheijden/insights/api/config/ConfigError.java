@@ -36,7 +36,11 @@ public class ConfigError {
         }
 
         public Builder append(String fileName, String path, String error) {
-            this.errors.add(new ConfigError(fileName, path, error));
+            return append(new ConfigError(fileName, path, error));
+        }
+
+        public Builder append(ConfigError error) {
+            this.errors.add(error);
             return this;
         }
 

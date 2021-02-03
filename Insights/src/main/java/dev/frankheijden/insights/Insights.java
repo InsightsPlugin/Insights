@@ -6,9 +6,13 @@ import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
+import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Settings;
+import dev.frankheijden.insights.api.config.limits.Limit;
+import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.ChunkListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
@@ -16,15 +20,21 @@ import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import org.bukkit.Bukkit;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Insights extends InsightsPlugin {
 
     private static final String SETTINGS_FILE_NAME = "config.yml";
     private static final String MESSAGES_FILE_NAME = "messages.yml";
+    private static final String EXAMPLE_LIMITS_FOLDER_NAME = "example-limits";
+    private static final String LIMITS_FOLDER_NAME = "limits";
 
     private static Insights instance;
     private Settings settings;
     private Messages messages;
+    private Limits limits;
     private ContainerExecutor executor;
     private ChunkContainerExecutor chunkContainerExecutor;
     private PlayerList playerList;
@@ -83,6 +93,33 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
+    public void reloadLimits() {
+        limits = new Limits();
+
+        Path limitsPath = getDataFolder().toPath().resolve(LIMITS_FOLDER_NAME);
+        if (!Files.exists(limitsPath)) {
+            try {
+                Files.createDirectory(limitsPath);
+                IOUtils.copyResourceFolder(EXAMPLE_LIMITS_FOLDER_NAME, limitsPath, getClassLoader());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(limitsPath, p -> !Files.isDirectory(p))) {
+            for (Path child : stream) {
+                try {
+                    limits.addLimit(Limit.parse(child.toFile()));
+                } catch (YamlParseException ex) {
+                    getLogger().severe(ex.getMessage());
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
     public Settings getSettings() {
         return settings;
     }
@@ -90,6 +127,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public Messages getMessages() {
         return messages;
+    }
+
+    @Override
+    public Limits getLimits() {
+        return limits;
     }
 
     @Override

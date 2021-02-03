@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.config;
 
+import dev.frankheijden.insights.api.config.parser.PassiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import org.bukkit.ChatColor;
@@ -28,7 +29,7 @@ public class Messages {
     }
 
     public static Messages load(File file, InputStream defaultSettings) throws IOException {
-        return new Messages(YamlParser.load(file, defaultSettings));
+        return new Messages(PassiveYamlParser.load(file, defaultSettings));
     }
 
     public enum Key {

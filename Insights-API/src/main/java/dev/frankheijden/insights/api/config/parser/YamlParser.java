@@ -1,7 +1,6 @@
 package dev.frankheijden.insights.api.config.parser;
 
 import dev.frankheijden.insights.api.config.ConfigError;
-import dev.frankheijden.insights.api.config.Monad;
 import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.YamlUtils;
 import org.bukkit.configuration.MemorySection;
@@ -10,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -25,38 +24,38 @@ import java.util.stream.Collectors;
  * The main functionality of this class is parsing yaml contents into actual objects,
  * while appending errors which occur during parsing into the ConfigError.Builder object.
  */
-public class YamlParser {
+public abstract class YamlParser {
 
     private final YamlConfiguration yaml;
     private final String name;
-    private final ConfigError.Builder errors;
+    private final Consumer<ConfigError> errorConsumer;
 
     /**
      * Constructs a new YamlParser with given parameters.
      */
-    private YamlParser(YamlConfiguration yaml, String name, ConfigError.Builder errors) {
+    protected YamlParser(YamlConfiguration yaml, String name, Consumer<ConfigError> errorConsumer) {
         this.yaml = yaml;
         this.name = name;
-        this.errors = errors;
+        this.errorConsumer = errorConsumer;
+    }
+
+    public static YamlConfiguration loadYaml(File file) throws IOException {
+        return loadYaml(file, null);
     }
 
     /**
      * Loads the specified File into a YamlParser, given an InputStream of a default configuration.
      * Nodes are automatically added and removed (if unused).
      */
-    public static YamlParser load(File file, InputStream defaultSettings) throws IOException {
+    public static YamlConfiguration loadYaml(File file, InputStream defaultSettings) throws IOException {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        YamlConfiguration def = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultSettings));
-        YamlUtils.update(yaml, def);
-        YamlUtils.removeUnusedKeys(yaml, def);
-        yaml.save(file);
-
-        ConfigError.Builder errors = ConfigError.newBuilder();
-        return new YamlParser(yaml, file.getName(), errors);
-    }
-
-    public <T> Monad<T> toMonad(T obj) {
-        return new Monad<>(obj, errors.getErrors());
+        if (defaultSettings != null) {
+            YamlConfiguration def = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultSettings));
+            YamlUtils.update(yaml, def);
+            YamlUtils.removeUnusedKeys(yaml, def);
+            yaml.save(file);
+        }
+        return yaml;
     }
 
     /**
@@ -89,9 +88,9 @@ public class YamlParser {
             String subPath = joinPaths(path, key);
             int value = yaml.getInt(subPath, def);
             if (value < min) {
-                errors.append(name, path, "value must be at least " + min);
+                errorConsumer.accept(new ConfigError(name, path, "value must be at least " + min));
             } else if (value > max) {
-                errors.append(name, path, "value must be at most " + max);
+                errorConsumer.accept(new ConfigError(name, path, "value must be at most " + max));
             } else {
                 map.put(key, value);
             }
@@ -102,9 +101,9 @@ public class YamlParser {
     /**
      * Checks if an object exists at a given path.
      */
-    private boolean checkExists(String path) {
+    public boolean checkExists(String path) {
         boolean exists = yaml.get(path) != null;
-        if (!exists) errors.append(name, path, "object does not exist");
+        if (!exists) errorConsumer.accept(new ConfigError(name, path, "object does not exist"));
         return exists;
     }
 
@@ -112,44 +111,53 @@ public class YamlParser {
      * Parses an integer at given path.
      */
     public int getInt(String path, int def, int min, int max) {
-        if (!checkExists(path)) return def;
         if (!yaml.isInt(path)) {
-            errors.append(name, path, "value is not an integer");
+            errorConsumer.accept(new ConfigError(name, path, "value is not an integer"));
             return def;
         }
 
         int value = yaml.getInt(path, def);
         if (value < min) {
-            errors.append(name, path, "value must be at least " + min);
+            errorConsumer.accept(new ConfigError(name, path, "value must be at least " + min));
             return def;
         } else if (value > max) {
-            errors.append(name, path, "value must be at most " + max);
+            errorConsumer.accept(new ConfigError(name, path, "value must be at most " + max));
             return def;
         }
         return value;
     }
 
+    public boolean getBoolean(String path, boolean def) {
+        return getBoolean(path, def, true);
+    }
+
     /**
      * Parses a boolean at given path.
      */
-    public boolean getBoolean(String path, boolean def) {
-        if (!checkExists(path)) return def;
+    public boolean getBoolean(String path, boolean def, boolean logError) {
         if (!yaml.isBoolean(path)) {
-            errors.append(name, path, "value is not a boolean");
+            if (logError) errorConsumer.accept(new ConfigError(name, path, "value is not a boolean"));
             return def;
         }
         return yaml.getBoolean(path, def);
     }
 
-    /**
-     * Parses an enum at given path.
-     */
-    @SuppressWarnings("unchecked")
     public <E extends Enum<E>> E getEnum(String path, Enum<E> def) {
+        return getEnum(path, def, def.getDeclaringClass());
+    }
+
+    public <E extends Enum<E>> E getEnum(String path, Class<E> clazz) {
+        return getEnum(path, null, clazz);
+    }
+
+    /**
+     * Parses an enum at given path, with nullable default.
+     */
+    public <E extends Enum<E>> E getEnum(String path, Enum<E> def, Class<E> clazz) {
         return checkEnum(
                 path,
-                getString(path, def.name(), EnumUtils.getValues(def.getClass())),
-                def.getDeclaringClass(),
+                getString(path, def == null ? null : def.name(), EnumUtils.getValues(clazz)),
+                clazz,
                 def,
                 null
         );
@@ -158,20 +166,29 @@ public class YamlParser {
     /**
      * Parses an enum array at given path.
      */
-    @SuppressWarnings("unchecked")
-    public <E extends Enum<E>> E[] getEnums(String path, Class<E> clazz) {
+    public <E extends Enum<E>> List<E> getEnums(String path, Class<E> clazz) {
+        return getEnums(path, clazz, null);
+    }
+
+    /**
+     * Parses an enum array at given path.
+     */
+    public <E extends Enum<E>> List<E> getEnums(String path, Class<E> clazz, String friendlyName) {
         List<String> strings = getList(path);
         List<E> enums = new ArrayList<>(strings.size());
         for (String str : strings) {
-            E e = checkEnum(path, str, clazz, null, null);
+            E e = checkEnum(path, str, clazz, null, friendlyName);
             if (e != null) {
                 enums.add(e);
             }
         }
-        return enums.toArray((E[]) Array.newInstance(clazz, 0));
+        return enums;
     }
 
-    private <E extends Enum<E>> E checkEnum(String path,
+    /**
+     * Checks whether the given enum value is valid.
+     */
+    public <E extends Enum<E>> E checkEnum(String path,
                                             String value,
                                             Class<E> clazz,
                                             Enum<E> def,
@@ -186,13 +203,16 @@ public class YamlParser {
         return (str == null || str.isEmpty()) ? null : str;
     }
 
+    public String getString(String path, String def) {
+        return getString(path, def, true);
+    }
+
     /**
      * Parses a string at given path.
      */
-    public String getString(String path, String def) {
-        if (!checkExists(path)) return def;
+    public String getString(String path, String def, boolean logError) {
         if (!yaml.isString(path)) {
-            errors.append(name, path, "value is not a string");
+            if (logError) errorConsumer.accept(new ConfigError(name, path, "value is not a string"));
             return def;
         }
         return yaml.getString(path, def);
@@ -231,10 +251,12 @@ public class YamlParser {
         String upperCased = value.toUpperCase();
         if (!allowedValues.contains(upperCased)) {
             if (friendlyName != null) {
-                errors.append(name, path, "not a valid " + friendlyName + " (" + value + ")");
+                errorConsumer.accept(new ConfigError(name, path,
+                        "'" + value + "' is not a valid " + friendlyName + "!"));
             } else {
                 String values = allowedValues.stream().collect(Collectors.joining(", ", "\"", "\""));
-                errors.append(name, path, "value must be one of " + values);
+                errorConsumer.accept(new ConfigError(name, path,
+                        "'" + value + "' is not valid, it must be one of " + values + "!"));
             }
             return def;
         }
@@ -259,7 +281,7 @@ public class YamlParser {
             } else if (kv.length == 2) {
                 map.computeIfAbsent(kv[0], k -> new HashSet<>()).add(kv[1]);
             } else { // Should never happen, split only returns >= 1, and is limited by limit = 2.
-                errors.append(name, path, "invalid key/value pair (" + str + ")");
+                errorConsumer.accept(new ConfigError(name, path, "invalid key/value pair (" + str + ")"));
             }
         }
         return map;
