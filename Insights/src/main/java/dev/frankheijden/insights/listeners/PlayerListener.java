@@ -58,7 +58,7 @@ public class PlayerListener extends InsightsListener {
         }
 
         // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
-        Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(block, player);
+        Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, player);
 
         WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
         ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);

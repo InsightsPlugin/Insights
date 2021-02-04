@@ -7,7 +7,6 @@ import dev.frankheijden.insights.api.config.limits.TileLimit;
 import dev.frankheijden.insights.api.utils.BlockUtils;
 import dev.frankheijden.insights.api.utils.SetUtils;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,23 +59,23 @@ public class Limits {
         return new ArrayList<>(limits);
     }
 
-    public boolean hasLimit(Block block) {
-        return getFirstLimit(block, limit -> true).isPresent();
+    public boolean hasLimit(Material material) {
+        return getFirstLimit(material, limit -> true).isPresent();
     }
 
-    public Optional<Limit> getFirstLimit(Block block, Player player) {
-        return getFirstLimit(block, limit -> !player.hasPermission(limit.getBypassPermission()));
+    public Optional<Limit> getFirstLimit(Material material, Player player) {
+        return getFirstLimit(material, limit -> !player.hasPermission(limit.getBypassPermission()));
     }
 
     /**
      * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
      */
-    public Optional<Limit> getFirstLimit(Block block, Predicate<Limit> limitPredicate) {
+    public Optional<Limit> getFirstLimit(Material material, Predicate<Limit> limitPredicate) {
         final Set<? extends Limit> set;
-        if (BlockUtils.isTileEntity(block.getLocation())) {
+        if (BlockUtils.isTileEntity(material)) {
             set = tileLimits;
         } else {
-            set = materialLimits.get(block.getType());
+            set = materialLimits.get(material);
         }
         return set == null ? Optional.empty() : Optional.ofNullable(SetUtils.findFirst(set, limitPredicate));
     }
