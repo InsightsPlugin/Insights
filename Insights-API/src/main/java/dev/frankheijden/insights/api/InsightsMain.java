@@ -8,6 +8,7 @@ import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Settings;
+import java.util.Map;
 
 public interface InsightsMain {
 
@@ -32,4 +33,6 @@ public interface InsightsMain {
     WorldDistributionStorage getWorldDistributionStorage();
 
     WorldChunkScanTracker getWorldChunkScanTracker();
+
+    Map<String, Class<?>> getAllowedDisableEvents();
 }

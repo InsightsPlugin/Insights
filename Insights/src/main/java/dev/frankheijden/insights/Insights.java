@@ -1,6 +1,7 @@
 package dev.frankheijden.insights;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
@@ -13,20 +14,50 @@ import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.IOUtils;
+import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
+import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class Insights extends InsightsPlugin {
+
+    private static final Map<String, Class<?>> ALLOWED_DISABLED_EVENTS;
+
+    static {
+        Map<String, Class<?>> map = new HashMap<>();
+
+        List<Method> listenerMethods = new ArrayList<>();
+        listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(BlockListener.class, AllowDisabling.class));
+        listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(WorldListener.class, AllowDisabling.class));
+
+        for (Method method : listenerMethods) {
+            Class<?>[] params = method.getParameterTypes();
+            if (params.length != 1) continue;
+
+            Class<?> clazz = params[0];
+            map.put(clazz.getSimpleName().toUpperCase(Locale.ENGLISH), clazz);
+        }
+
+        ALLOWED_DISABLED_EVENTS = Collections.unmodifiableMap(map);
+    }
 
     private static final String SETTINGS_FILE_NAME = "config.yml";
     private static final String MESSAGES_FILE_NAME = "messages.yml";
@@ -64,12 +95,24 @@ public class Insights extends InsightsPlugin {
         executor = ContainerExecutorService.newExecutor(settings.CONCURRENT_SCAN_THREADS);
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldDistributionStorage, worldChunkScanTracker);
 
-        registerEvents(
+        InsightsListener[] disableListeners = new InsightsListener[] {
                 new BlockListener(this),
-                new ChunkListener(this),
-                new PlayerListener(this),
                 new WorldListener(this)
+        };
+
+        registerEvents(disableListeners);
+        registerEvents(
+                new ChunkListener(this),
+                new PlayerListener(this)
         );
+
+        for (Class<?> clazz : settings.DISABLED_EVENTS) {
+            HandlerList list = MinecraftReflection.of(clazz).invoke(null, "getHandlerList");
+            for (InsightsListener listener : disableListeners) {
+                list.unregister(listener);
+            }
+            getLogger().info("Unregistered listener of '" + clazz.getSimpleName() + "'");
+        }
 
         if (settings.CHUNK_SCAN_MODE == Settings.ChunkScanMode.ALWAYS) {
             Bukkit.getScheduler().runTaskTimerAsynchronously(this, new PlayerTrackerTask(this), 0, 1);
@@ -80,7 +123,7 @@ public class Insights extends InsightsPlugin {
     public void reloadSettings() {
         File file = new File(getDataFolder(), SETTINGS_FILE_NAME);
         try {
-            settings = Settings.load(file, getResource(SETTINGS_FILE_NAME)).exceptionally(getLogger());
+            settings = Settings.load(this, file, getResource(SETTINGS_FILE_NAME)).exceptionally(getLogger());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -161,6 +204,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public WorldChunkScanTracker getWorldChunkScanTracker() {
         return worldChunkScanTracker;
+    }
+
+    @Override
+    public Map<String, Class<?>> getAllowedDisableEvents() {
+        return ALLOWED_DISABLED_EVENTS;
     }
 
     private void registerEvents(InsightsListener... listeners) {

@@ -2,6 +2,7 @@ package dev.frankheijden.insights.listeners;
 
 import com.destroystokyo.paper.MaterialTags;
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.storage.ChunkDistributionStorage;
 import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
 import dev.frankheijden.insights.api.config.Messages;
@@ -134,6 +135,7 @@ public class BlockListener extends InsightsListener {
         handleModification(block, -delta);
     }
 
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBurn(BlockBurnEvent event) {
         handleModification(event.getBlock(), -1);
@@ -142,6 +144,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles dispensers.
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockDispense(BlockDispenseEvent event) {
         Block block = event.getBlock();
@@ -175,6 +178,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles block explosions.
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
         Block block = event.getBlock();
@@ -191,6 +195,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles blocks melting/fading.
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockFade(BlockFadeEvent event) {
         Block block = event.getBlock();
@@ -200,6 +205,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles water flowing.
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockFromTo(BlockFromToEvent event) {
         Block block = event.getToBlock();
@@ -211,6 +217,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles water drying up.
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFluidLevelChange(FluidLevelChangeEvent event) {
         if (event.getNewData().getMaterial() == Material.AIR) {
@@ -218,23 +225,27 @@ public class BlockListener extends InsightsListener {
         }
     }
 
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockGrow(BlockGrowEvent event) {
         Block block = event.getBlock();
         handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
     }
 
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockIgnite(BlockIgniteEvent event) {
         // Block transformed from block -> entity
         handleModification(event.getBlock(), -1);
     }
 
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPistonExtend(BlockPistonExtendEvent event) {
         handlePistonEvent(event, event.getBlocks());
     }
 
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPistonRetract(BlockPistonRetractEvent event) {
         handlePistonEvent(event, event.getBlocks());
@@ -255,6 +266,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles block spreads (grass growing).
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockSpread(BlockSpreadEvent event) {
         Block block = event.getBlock();
@@ -264,6 +276,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles blocks forming by entities (Snowmans, FrostWalker enchantment).
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityBlockForm(EntityBlockFormEvent event) {
         Block block = event.getBlock();
@@ -273,6 +286,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles leaves decaying.
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLeavesDecay(LeavesDecayEvent event) {
         handleModification(event.getBlock(), -1);
@@ -281,6 +295,7 @@ public class BlockListener extends InsightsListener {
     /**
      * Handles sponge absorbs.
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSpongeAbsorb(SpongeAbsorbEvent event) {
         Block block = event.getBlock();

@@ -1,6 +1,7 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -17,6 +18,7 @@ public class WorldListener extends InsightsListener {
     /**
      * Handles structure grows (trees/giant mushrooms).
      */
+    @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onStructureGrow(StructureGrowEvent event) {
         Block block = event.getLocation().getBlock();

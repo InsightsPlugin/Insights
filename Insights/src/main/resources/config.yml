@@ -8,6 +8,9 @@ settings:
       style: "SEGMENTED_10"
       flags: []
       duration-ticks: 60
+  disabled-listeners:
+    - "BlockFromToEvent"
+    - "FluidLevelChangeEvent"
   worldedit-integration:
     enabled: true
     type: "REPLACEMENT"
