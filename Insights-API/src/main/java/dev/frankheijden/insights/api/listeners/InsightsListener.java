@@ -39,8 +39,6 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         // Update the cache
         WorldDistributionStorage storage = plugin.getWorldDistributionStorage();
-        System.out.println(from.name() + " " + -amount);
-        System.out.println(to.name() + " " + amount);
         storage.modify(worldUid, chunkKey, from, -amount);
         storage.modify(worldUid, chunkKey, to, amount);
     }
