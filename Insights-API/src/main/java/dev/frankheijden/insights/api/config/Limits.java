@@ -63,6 +63,10 @@ public class Limits {
         return getFirstLimit(material, limit -> true).isPresent();
     }
 
+    /**
+     * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
+     * Bypass permissions are taken into account.
+     */
     public Optional<Limit> getFirstLimit(Material material, Player player) {
         return getFirstLimit(material, limit -> !player.hasPermission(limit.getBypassPermission()));
     }
@@ -71,12 +75,14 @@ public class Limits {
      * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
      */
     public Optional<Limit> getFirstLimit(Material material, Predicate<Limit> limitPredicate) {
-        final Set<? extends Limit> set;
         if (BlockUtils.isTileEntity(material)) {
-            set = tileLimits;
-        } else {
-            set = materialLimits.get(material);
+            TileLimit limit = SetUtils.findFirst(tileLimits, limitPredicate);
+            if (limit != null) {
+                return Optional.of(limit);
+            }
         }
+
+        Set<Limit> set = materialLimits.get(material);
         return set == null ? Optional.empty() : Optional.ofNullable(SetUtils.findFirst(set, limitPredicate));
     }
 }

@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.listeners;
 
+import com.destroystokyo.paper.MaterialTags;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.storage.ChunkDistributionStorage;
 import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
@@ -10,11 +11,33 @@ import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockGrowEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockMultiPlaceEvent;
+import org.bukkit.event.block.BlockPistonEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.block.EntityBlockFormEvent;
+import org.bukkit.event.block.FluidLevelChangeEvent;
+import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.block.SpongeAbsorbEvent;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -52,6 +75,11 @@ public class BlockListener extends InsightsListener {
         WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
         ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);
 
+        // In case of BlockMultiPlaceEvent, we need to take a different delta.
+        int delta = event instanceof BlockMultiPlaceEvent
+                ? ((BlockMultiPlaceEvent) event).getReplacedBlockStates().size()
+                : 1;
+
         // If a limit is present, the chunk is not known, and ChunkScanMode is set to MODIFICATION, scan the chunk
         if (limitOptional.isPresent() && !chunkStorage.contains(chunkKey)
                 && plugin.getSettings().CHUNK_SCAN_MODE == Settings.ChunkScanMode.MODIFICATION) {
@@ -65,7 +93,7 @@ public class BlockListener extends InsightsListener {
                 // Subtract block from BlockPlaceEvent as it was cancelled
                 // Can't subtract one from the given map, as a copied version is stored.
                 if (map.containsKey(material)) {
-                    chunkStorage.modify(chunkKey, material, -1);
+                    chunkStorage.modify(chunkKey, material, -delta);
                 }
 
                 // Notify the user scan completed
@@ -82,7 +110,7 @@ public class BlockListener extends InsightsListener {
             int count = chunkStorage.count(chunkKey, limit.getMaterials(material)).orElse(0);
 
             // If count is beyond limit, act
-            if (count + 1 > limit.getLimit()) {
+            if (count + delta > limit.getLimit()) {
                 player.sendMessage("You reached the limit (" + count + "/" + limit.getLimit() + ")!");
                 event.setCancelled(true);
                 return;
@@ -90,6 +118,175 @@ public class BlockListener extends InsightsListener {
         }
 
         // Update the cache
-        chunkStorage.modify(chunkKey, material, 1);
+        handleModification(chunk, event.getBlockReplacedState().getType(), material, delta);
+    }
+
+    /**
+     * Handles the BlockBreakEvent.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+
+        // Beds account for two block updates.
+        int delta = Tag.BEDS.isTagged(block.getType()) ? 2 : 1;
+
+        handleModification(block, -delta);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockBurn(BlockBurnEvent event) {
+        handleModification(event.getBlock(), -1);
+    }
+
+    /**
+     * Handles dispensers.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockDispense(BlockDispenseEvent event) {
+        Block block = event.getBlock();
+        BlockData blockData = block.getBlockData();
+
+        // If block is not directional, we don't know the dispensed block's position.
+        if (!(blockData instanceof Directional)) return;
+        Block relative = block.getRelative(((Directional) blockData).getFacing());
+
+        Material item = event.getItem().getType();
+
+        // If the item is an empty bucket, the dispenser scoops up water.
+        if (item == Material.BUCKET) {
+            handleModification(relative, -1);
+            return;
+        }
+
+        // Figure out the material the dispenser will output.
+        Material material = null;
+        if (MaterialTags.BUCKETS.isTagged(item) && item != Material.MILK_BUCKET) {
+            material = Material.WATER; // If a bucket is dispensed, this results in a new water source
+        } else if (MaterialTags.SHULKER_BOXES.isTagged(item)) {
+            material = item; // If a shulker is dispensed, its dispensed as block.
+        }
+
+        if (material != null) {
+            handleModification(relative.getChunk(), relative.getType(), material, 1);
+        }
+    }
+
+    /**
+     * Handles block explosions.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        Block block = event.getBlock();
+
+        // Beds account for two block updates.
+        int delta = Tag.BEDS.isTagged(block.getType()) ? 2 : 1;
+        handleModification(block, -delta);
+
+        for (Block explodedBlock : event.blockList()) {
+            handleModification(explodedBlock, -1);
+        }
+    }
+
+    /**
+     * Handles blocks melting/fading.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockFade(BlockFadeEvent event) {
+        Block block = event.getBlock();
+        handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
+    }
+
+    /**
+     * Handles water flowing.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockFromTo(BlockFromToEvent event) {
+        Block block = event.getToBlock();
+
+        // For some weird reason the "ToBlock" contains the from data...
+        handleModification(block.getChunk(), block.getType(), event.getBlock().getType(), 1);
+    }
+
+    /**
+     * Handles water drying up.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onFluidLevelChange(FluidLevelChangeEvent event) {
+        if (event.getNewData().getMaterial() == Material.AIR) {
+            handleModification(event.getBlock(), -1);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockGrow(BlockGrowEvent event) {
+        Block block = event.getBlock();
+        handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockIgnite(BlockIgniteEvent event) {
+        // Block transformed from block -> entity
+        handleModification(event.getBlock(), -1);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPistonExtend(BlockPistonExtendEvent event) {
+        handlePistonEvent(event, event.getBlocks());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPistonRetract(BlockPistonRetractEvent event) {
+        handlePistonEvent(event, event.getBlocks());
+    }
+
+    /**
+     * Handles pistons.
+     */
+    private void handlePistonEvent(BlockPistonEvent event, List<Block> blocks) {
+        for (Block block : blocks) {
+            Block relative = block.getRelative(event.getDirection());
+
+            handleModification(block, -1);
+            handleModification(relative.getChunk(), relative.getType(), block.getType(), 1);
+        }
+    }
+
+    /**
+     * Handles block spreads (grass growing).
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockSpread(BlockSpreadEvent event) {
+        Block block = event.getBlock();
+        handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
+    }
+
+    /**
+     * Handles blocks forming by entities (Snowmans, FrostWalker enchantment).
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityBlockForm(EntityBlockFormEvent event) {
+        Block block = event.getBlock();
+        handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
+    }
+
+    /**
+     * Handles leaves decaying.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onLeavesDecay(LeavesDecayEvent event) {
+        handleModification(event.getBlock(), -1);
+    }
+
+    /**
+     * Handles sponge absorbs.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSpongeAbsorb(SpongeAbsorbEvent event) {
+        Block block = event.getBlock();
+        handleModification(block.getChunk(), Material.SPONGE, Material.WET_SPONGE, 1);
+        for (BlockState state : event.getBlocks()) {
+            handleModification(state.getChunk(), Material.WATER, state.getType(), 1);
+        }
     }
 }

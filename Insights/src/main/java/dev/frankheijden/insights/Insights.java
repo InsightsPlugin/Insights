@@ -14,8 +14,10 @@ import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
+import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
+import dev.frankheijden.insights.listeners.WorldListener;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import org.bukkit.Bukkit;
 import java.io.File;
@@ -63,8 +65,10 @@ public class Insights extends InsightsPlugin {
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldDistributionStorage, worldChunkScanTracker);
 
         registerEvents(
+                new BlockListener(this),
                 new ChunkListener(this),
-                new PlayerListener(this)
+                new PlayerListener(this),
+                new WorldListener(this)
         );
 
         if (settings.CHUNK_SCAN_MODE == Settings.ChunkScanMode.ALWAYS) {
