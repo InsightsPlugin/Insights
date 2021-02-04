@@ -16,7 +16,7 @@ public class StringUtils {
     public static String replaceSmall(String str, String... replacements) {
         if (replacements.length % 2 != 0) throw new IllegalArgumentException("Must be a multiple of two");
         for (int i = 0; i < replacements.length; i += 2) {
-            str = str.replace('%' + replacements[0] + '%', replacements[1]);
+            str = str.replace('%' + replacements[i] + '%', replacements[i + 1]);
         }
         return str;
     }

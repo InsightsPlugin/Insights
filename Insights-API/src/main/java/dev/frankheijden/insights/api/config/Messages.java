@@ -36,7 +36,8 @@ public class Messages {
         PREFIX("prefix"),
         CHUNK_SCAN_STARTED("chunk-scan-started"),
         CHUNK_SCAN_QUEUED("chunk-scan-queued"),
-        CHUNK_SCAN_COMPLETED("chunk-scan-completed");
+        CHUNK_SCAN_COMPLETED("chunk-scan-completed"),
+        LIMIT_REACHED("limit-reached");
 
         private final String path;
 

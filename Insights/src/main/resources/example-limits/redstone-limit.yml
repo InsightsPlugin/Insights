@@ -2,6 +2,7 @@
 # The limit makes use of a world blacklist, which means with the current configuration it will work for all worlds.
 # It will also work for all addons.
 limit:
+  name: "Redstone"
   type: "GROUP"
   bypass-permission: "insights.bypass.limit.redstone"
   limit: 64

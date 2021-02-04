@@ -3,3 +3,4 @@ messages:
   chunk-scan-started: "<prefix>&3Please wait while we scan this chunk..."
   chunk-scan-queued: "<prefix>&cChunk is currently queued for scanning..."
   chunk-scan-completed: "<actionbar>&bScan completed!"
+  limit-reached: "<prefix>&cYou have reached the limit of %limit%x &4%name%&c!"

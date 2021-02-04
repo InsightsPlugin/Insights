@@ -112,7 +112,10 @@ public class BlockListener extends InsightsListener {
 
             // If count is beyond limit, act
             if (count + delta > limit.getLimit()) {
-                player.sendMessage("You reached the limit (" + count + "/" + limit.getLimit() + ")!");
+                plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED)
+                        .replace("limit", String.valueOf(limit.getLimit()), "name", limit.getName())
+                        .color()
+                        .sendTo(player);
                 event.setCancelled(true);
                 return;
             }
