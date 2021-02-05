@@ -6,6 +6,9 @@ public class ColorUtils {
 
     private ColorUtils() {}
 
+    /**
+     * Colorizes given strings.
+     */
     public static String[] colorize(String... strings) {
         String[] colored = new String[strings.length];
         for (int i = 0; i < strings.length; i++) {
