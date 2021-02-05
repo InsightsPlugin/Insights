@@ -21,7 +21,7 @@ import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
-import dev.frankheijden.insights.commands.CommandReload;
+import dev.frankheijden.insights.commands.CommandInsights;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
@@ -211,7 +211,7 @@ public class Insights extends InsightsPlugin {
         );
 
         // Parse commands
-        annotationParser.parse(new CommandReload(this));
+        annotationParser.parse(new CommandInsights(this));
     }
 
     @Override
