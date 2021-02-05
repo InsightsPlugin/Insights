@@ -1,5 +1,10 @@
 package dev.frankheijden.insights;
 
+import cloud.commandframework.annotations.AnnotationParser;
+import cloud.commandframework.bukkit.CloudBukkitCapabilities;
+import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator;
+import cloud.commandframework.meta.SimpleCommandMeta;
+import cloud.commandframework.paper.PaperCommandManager;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
@@ -16,6 +21,7 @@ import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
+import dev.frankheijden.insights.commands.CommandReload;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
@@ -24,6 +30,7 @@ import dev.frankheijden.insights.listeners.WorldListener;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 public class Insights extends InsightsPlugin {
 
@@ -91,6 +99,8 @@ public class Insights extends InsightsPlugin {
         worldChunkScanTracker = new WorldChunkScanTracker();
         executor = ContainerExecutorService.newExecutor(settings.CONCURRENT_SCAN_THREADS);
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldDistributionStorage, worldChunkScanTracker);
+
+        loadCommands();
 
         InsightsListener[] disableListeners = new InsightsListener[] {
                 new BlockListener(this),
@@ -169,6 +179,39 @@ public class Insights extends InsightsPlugin {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void loadCommands() {
+        PaperCommandManager<CommandSender> commandManager;
+        try {
+            commandManager = new PaperCommandManager<>(
+                    this,
+                    AsynchronousCommandExecutionCoordinator.<CommandSender>newBuilder().build(),
+                    Function.identity(),
+                    Function.identity()
+            );
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        // Register capabilities if allowed
+        if (commandManager.queryCapability(CloudBukkitCapabilities.BRIGADIER)) {
+            commandManager.registerBrigadier();
+        }
+        if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+            commandManager.registerAsynchronousCompletions();
+        }
+
+        // Create Annotation Parser
+        AnnotationParser<CommandSender> annotationParser = new AnnotationParser<>(
+                commandManager,
+                CommandSender.class,
+                parameters -> SimpleCommandMeta.empty()
+        );
+
+        // Parse commands
+        annotationParser.parse(new CommandReload(this));
     }
 
     @Override

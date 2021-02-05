@@ -34,6 +34,7 @@ public class Messages {
 
     public enum Key {
         PREFIX("prefix"),
+        CONFIGS_RELOADED("configs-reloaded"),
         CHUNK_SCAN_STARTED("chunk-scan-started"),
         CHUNK_SCAN_QUEUED("chunk-scan-queued"),
         CHUNK_SCAN_COMPLETED("chunk-scan-completed"),
