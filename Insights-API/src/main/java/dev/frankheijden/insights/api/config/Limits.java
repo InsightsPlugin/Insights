@@ -7,7 +7,6 @@ import dev.frankheijden.insights.api.config.limits.TileLimit;
 import dev.frankheijden.insights.api.utils.BlockUtils;
 import dev.frankheijden.insights.api.utils.SetUtils;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -61,14 +60,6 @@ public class Limits {
 
     public boolean hasLimit(Material material) {
         return getFirstLimit(material, limit -> true).isPresent();
-    }
-
-    /**
-     * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
-     * Bypass permissions are taken into account.
-     */
-    public Optional<Limit> getFirstLimit(Material material, Player player) {
-        return getFirstLimit(material, limit -> !player.hasPermission(limit.getBypassPermission()));
     }
 
     /**

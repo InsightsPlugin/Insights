@@ -34,12 +34,34 @@ public class LimitSettings {
         return worldWhitelist;
     }
 
+    /**
+     * Checks whether this limit can be applied on given world.
+     */
+    public boolean appliesToWorld(UUID worldUid) {
+        if (worldWhitelist) {
+            return worlds.contains(worldUid);
+        } else {
+            return !worlds.contains(worldUid);
+        }
+    }
+
     public Set<String> getAddons() {
         return addons;
     }
 
     public boolean isAddonWhitelist() {
         return addonWhitelist;
+    }
+
+    /**
+     * Checks whether this limit can be applied on given addon.
+     */
+    public boolean appliesToAddon(String addonName) {
+        if (addonWhitelist) {
+            return addons.contains(addonName);
+        } else {
+            return !addons.contains(addonName);
+        }
     }
 
     public boolean isWorldEditIntegrated() {

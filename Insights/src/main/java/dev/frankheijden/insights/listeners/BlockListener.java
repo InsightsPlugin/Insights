@@ -5,6 +5,7 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.storage.ChunkDistributionStorage;
 import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
+import dev.frankheijden.insights.api.config.LimitEnvironment;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.config.limits.Limit;
@@ -72,8 +73,11 @@ public class BlockListener extends InsightsListener {
             return;
         }
 
+        // Create limit environment
+        LimitEnvironment env = new LimitEnvironment(player, worldUid);
+
         // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
-        Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, player);
+        Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, env);
 
         WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
         ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);
@@ -171,8 +175,11 @@ public class BlockListener extends InsightsListener {
                 break notify;
             }
 
+            // Create limit environment
+            LimitEnvironment env = new LimitEnvironment(player, worldUid);
+
             // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
-            Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, player);
+            Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, env);
             if (!limitOptional.isPresent()) break notify;
             Limit limit = limitOptional.get();
 
