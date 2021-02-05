@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.utils;
 
+import java.text.NumberFormat;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,5 +37,9 @@ public class StringUtils {
             matcher.appendReplacement(sb, replacements.getOrDefault(group.substring(1, group.length() - 1), group));
         }
         return sb.toString();
+    }
+
+    public static String pretty(int n) {
+        return NumberFormat.getIntegerInstance().format(n);
     }
 }

@@ -11,6 +11,7 @@ import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
+import dev.frankheijden.insights.api.utils.StringUtils;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -120,7 +121,7 @@ public class BlockListener extends InsightsListener {
             if (count + delta > limit.getLimit()) {
                 plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED)
                         .replace(
-                                "limit", String.valueOf(limit.getLimit()),
+                                "limit", StringUtils.pretty(limit.getLimit()),
                                 "name", limit.getName(),
                                 "area", "chunk"
                         )
@@ -139,8 +140,8 @@ public class BlockListener extends InsightsListener {
                         .create()
                         .replace(
                                 "name", limit.getName(),
-                                "count", String.valueOf(count + delta),
-                                "limit", String.valueOf(limit.getLimit())
+                                "count", StringUtils.pretty(count + delta),
+                                "limit", StringUtils.pretty(limit.getLimit())
                         )
                         .color()
                         .send();
@@ -200,8 +201,8 @@ public class BlockListener extends InsightsListener {
                         .create()
                         .replace(
                                 "name", limit.getName(),
-                                "count", String.valueOf(count),
-                                "limit", String.valueOf(limit.getLimit())
+                                "count", StringUtils.pretty(count),
+                                "limit", StringUtils.pretty(limit.getLimit())
                         )
                         .color()
                         .send();
