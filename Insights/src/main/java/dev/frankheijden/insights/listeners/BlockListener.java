@@ -41,6 +41,7 @@ import org.bukkit.event.block.SpongeAbsorbEvent;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class BlockListener extends InsightsListener {
 
@@ -165,30 +166,46 @@ public class BlockListener extends InsightsListener {
         // Notify the user (if they have permission)
         notify:
         if (player.hasPermission("insights.notifications")) {
+            // If the chunk is queued, stop check here (notification will be displayed when it completes).
+            if (plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey)) {
+                break notify;
+            }
+
             // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
             Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, player);
             if (!limitOptional.isPresent()) break notify;
+            Limit limit = limitOptional.get();
 
             WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
             ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);
 
-            // If chunk doesn't contain the information, we can't display them.
-            if (!chunkStorage.contains(chunkKey)) break notify;
+            // Create a runnable for the notification.
+            Consumer<Boolean> notification = scan -> {
+                int count = chunkStorage.count(chunkKey, limit.getMaterials(material)).orElse(0);
 
-            Limit limit = limitOptional.get();
-            int count = chunkStorage.count(chunkKey, limit.getMaterials(material)).orElse(0);
-            double progress = (double) (count - delta) / limit.getLimit();
-            plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
-                    .progress(progress)
-                    .add(player)
-                    .create()
-                    .replace(
-                            "name", limit.getName(),
-                            "count", String.valueOf(count - delta),
-                            "limit", String.valueOf(limit.getLimit())
-                    )
-                    .color()
-                    .send();
+                // If this is executed after a scan, the data is already up to date.
+                if (!scan) count -= delta;
+
+                double progress = (double) count / limit.getLimit();
+                plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
+                        .progress(progress)
+                        .add(player)
+                        .create()
+                        .replace(
+                                "name", limit.getName(),
+                                "count", String.valueOf(count),
+                                "limit", String.valueOf(limit.getLimit())
+                        )
+                        .color()
+                        .send();
+            };
+
+            // If the data is already stored, send the notification immediately.
+            if (chunkStorage.contains(chunkKey)) {
+                notification.accept(false);
+            } else { // Else, we need to scan the chunk first.
+                plugin.getChunkContainerExecutor().submit(chunk, true).thenRun(() -> notification.accept(true));
+            }
         }
 
         // Update the cache
