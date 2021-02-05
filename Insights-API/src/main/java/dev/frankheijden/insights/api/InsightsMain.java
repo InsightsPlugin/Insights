@@ -7,6 +7,7 @@ import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
+import dev.frankheijden.insights.api.config.Notifications;
 import dev.frankheijden.insights.api.config.Settings;
 import java.util.Map;
 
@@ -16,11 +17,15 @@ public interface InsightsMain {
 
     void reloadMessages();
 
+    void reloadNotifications();
+
     void reloadLimits();
 
     Settings getSettings();
 
     Messages getMessages();
+
+    Notifications getNotifications();
 
     Limits getLimits();
 

@@ -37,7 +37,8 @@ public class Messages {
         CHUNK_SCAN_STARTED("chunk-scan-started"),
         CHUNK_SCAN_QUEUED("chunk-scan-queued"),
         CHUNK_SCAN_COMPLETED("chunk-scan-completed"),
-        LIMIT_REACHED("limit-reached");
+        LIMIT_REACHED("limit-reached"),
+        LIMIT_NOTIFICATION("limit-notification");
 
         private final String path;
 

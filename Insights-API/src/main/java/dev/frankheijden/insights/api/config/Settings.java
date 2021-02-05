@@ -18,11 +18,16 @@ public class Settings {
 
     public final int CONCURRENT_SCAN_THREADS;
     public final ChunkScanMode CHUNK_SCAN_MODE;
-    public final NotificationType PROGRESS_NOTIFICATION_TYPE;
-    public final BarColor PROGRESS_BOSSBAR_COLOR;
-    public final BarStyle PROGRESS_BOSSBAR_STYLE;
-    public final BarFlag[] PROGRESS_BOSSBAR_FLAGS;
-    public final int PROGRESS_BOSSBAR_DURATION_TICKS;
+    public final NotificationType NOTIFICATION_TYPE;
+    public final BarColor NOTIFICATION_BOSSBAR_COLOR;
+    public final BarStyle NOTIFICATION_BOSSBAR_STYLE;
+    public final BarFlag[] NOTIFICATION_BOSSBAR_FLAGS;
+    public final int NOTIFICATION_BOSSBAR_DURATION_TICKS;
+    public final int NOTIFICATION_ACTIONBAR_SEGMENTS;
+    public final String NOTIFICATION_ACTIONBAR_SEQUENCE;
+    public final String NOTIFICATION_ACTIONBAR_DONE_COLOR;
+    public final String NOTIFICATION_ACTIONBAR_TOTAL_COLOR;
+    public final String NOTIFICATION_ACTIONBAR_SEPARATOR;
     public final List<Class<?>> DISABLED_EVENTS;
     public final boolean WORLDEDIT_INTEGRATION_ENABLED;
     public final WorldEditIntegrationType WORLDEDIT_INTEGRATION_TYPE;
@@ -39,11 +44,18 @@ public class Settings {
         CONCURRENT_SCAN_THREADS = threads;
         CHUNK_SCAN_MODE = parser.getEnum("settings.chunk-scan-mode", ChunkScanMode.MODIFICATION);
 
-        PROGRESS_NOTIFICATION_TYPE = parser.getEnum("settings.progress-notification.type", NotificationType.BOSSBAR);
-        PROGRESS_BOSSBAR_COLOR = parser.getEnum("settings.progress-notification.bossbar.color", BarColor.BLUE);
-        PROGRESS_BOSSBAR_STYLE = parser.getEnum("settings.progress-notification.bossbar.style", BarStyle.SEGMENTED_10);
-        PROGRESS_BOSSBAR_FLAGS = parser.getEnums("settings.progress-notification.bossbar.flags", BarFlag.class).toArray(new BarFlag[0]);
-        PROGRESS_BOSSBAR_DURATION_TICKS = parser.getInt("settings.progress-notification.bossbar.duration-ticks", 60, 0, Integer.MAX_VALUE);
+        NOTIFICATION_TYPE = parser.getEnum("settings.notification.type", NotificationType.BOSSBAR);
+
+        NOTIFICATION_BOSSBAR_COLOR = parser.getEnum("settings.notification.bossbar.color", BarColor.BLUE);
+        NOTIFICATION_BOSSBAR_STYLE = parser.getEnum("settings.notification.bossbar.style", BarStyle.SEGMENTED_10);
+        NOTIFICATION_BOSSBAR_FLAGS = parser.getEnums("settings.notification.bossbar.flags", BarFlag.class).toArray(new BarFlag[0]);
+        NOTIFICATION_BOSSBAR_DURATION_TICKS = parser.getInt("settings.notification.bossbar.duration-ticks", 60, 0, Integer.MAX_VALUE);
+
+        NOTIFICATION_ACTIONBAR_SEGMENTS = parser.getInt("settings.notification.actionbar.segments", 50, 0, 100);
+        NOTIFICATION_ACTIONBAR_SEQUENCE = parser.getString("settings.notification.actionbar.progress-sequence", "|");
+        NOTIFICATION_ACTIONBAR_DONE_COLOR = parser.getString("settings.notification.actionbar.done-color", "&a");
+        NOTIFICATION_ACTIONBAR_TOTAL_COLOR = parser.getString("settings.notification.actionbar.total-color", "&8");
+        NOTIFICATION_ACTIONBAR_SEPARATOR = parser.getString("settings.notification.actionbar.separator", " ");
 
         DISABLED_EVENTS = new ArrayList<>();
         Map<String, Class<?>> events = plugin.getAllowedDisableEvents();

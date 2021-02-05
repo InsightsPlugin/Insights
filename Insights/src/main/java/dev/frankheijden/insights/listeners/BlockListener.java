@@ -57,6 +57,7 @@ public class BlockListener extends InsightsListener {
         Block block = event.getBlock();
         Material material = block.getType();
         Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
         Chunk chunk = block.getChunk();
         UUID worldUid = chunk.getWorld().getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
@@ -113,11 +114,31 @@ public class BlockListener extends InsightsListener {
             // If count is beyond limit, act
             if (count + delta > limit.getLimit()) {
                 plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED)
-                        .replace("limit", String.valueOf(limit.getLimit()), "name", limit.getName())
+                        .replace(
+                                "limit", String.valueOf(limit.getLimit()),
+                                "name", limit.getName(),
+                                "area", "chunk"
+                        )
                         .color()
                         .sendTo(player);
                 event.setCancelled(true);
                 return;
+            }
+
+            // Else notify the user (if they have permission)
+            if (player.hasPermission("insights.notifications")) {
+                double progress = (double) (count + delta) / limit.getLimit();
+                plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
+                        .progress(progress)
+                        .add(player)
+                        .create()
+                        .replace(
+                                "name", limit.getName(),
+                                "count", String.valueOf(count + delta),
+                                "limit", String.valueOf(limit.getLimit())
+                        )
+                        .color()
+                        .send();
             }
         }
 
@@ -131,10 +152,46 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
+        Material material = block.getType();
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+        Chunk chunk = block.getChunk();
+        UUID worldUid = chunk.getWorld().getUID();
+        long chunkKey = ChunkUtils.getKey(chunk);
 
         // Beds account for two block updates.
-        int delta = Tag.BEDS.isTagged(block.getType()) ? 2 : 1;
+        int delta = Tag.BEDS.isTagged(material) ? 2 : 1;
 
+        // Notify the user (if they have permission)
+        notify:
+        if (player.hasPermission("insights.notifications")) {
+            // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
+            Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, player);
+            if (!limitOptional.isPresent()) break notify;
+
+            WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
+            ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);
+
+            // If chunk doesn't contain the information, we can't display them.
+            if (!chunkStorage.contains(chunkKey)) break notify;
+
+            Limit limit = limitOptional.get();
+            int count = chunkStorage.count(chunkKey, limit.getMaterials(material)).orElse(0);
+            double progress = (double) (count - delta) / limit.getLimit();
+            plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
+                    .progress(progress)
+                    .add(player)
+                    .create()
+                    .replace(
+                            "name", limit.getName(),
+                            "count", String.valueOf(count - delta),
+                            "limit", String.valueOf(limit.getLimit())
+                    )
+                    .color()
+                    .send();
+        }
+
+        // Update the cache
         handleModification(block, -delta);
     }
 

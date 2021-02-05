@@ -1,13 +1,19 @@
 settings:
   concurrent-scan-threads: -1
   chunk-scan-mode: "MODIFICATION"
-  progress-notification:
+  notification:
     type: "BOSSBAR"
     bossbar:
       color: "BLUE"
       style: "SEGMENTED_10"
       flags: []
       duration-ticks: 60
+    actionbar:
+      segments: 50
+      progress-sequence: "|"
+      done-color: "&a"
+      total-color: "&8"
+      separator: " "
   disabled-listeners:
     - "BlockFromToEvent"
     - "FluidLevelChangeEvent"

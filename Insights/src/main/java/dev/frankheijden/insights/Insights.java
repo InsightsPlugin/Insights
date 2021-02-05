@@ -9,6 +9,7 @@ import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
+import dev.frankheijden.insights.api.config.Notifications;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
@@ -64,9 +65,9 @@ public class Insights extends InsightsPlugin {
     private static final String EXAMPLE_LIMITS_FOLDER_NAME = "example-limits";
     private static final String LIMITS_FOLDER_NAME = "limits";
 
-    private static Insights instance;
     private Settings settings;
     private Messages messages;
+    private Notifications notifications;
     private Limits limits;
     private ContainerExecutor executor;
     private ChunkContainerExecutor chunkContainerExecutor;
@@ -78,10 +79,6 @@ public class Insights extends InsightsPlugin {
     public void onLoad() {
         super.onLoad();
         instance = this;
-    }
-
-    public static Insights getInstance() {
-        return instance;
     }
 
     @Override
@@ -140,6 +137,14 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
+    public void reloadNotifications() {
+        if (settings == null || messages == null) {
+            throw new IllegalArgumentException("Settings or Messages not initialised!");
+        }
+        notifications = new Notifications(this);
+    }
+
+    @Override
     public void reloadLimits() {
         limits = new Limits();
 
@@ -179,6 +184,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public Limits getLimits() {
         return limits;
+    }
+
+    @Override
+    public Notifications getNotifications() {
+        return notifications;
     }
 
     @Override
