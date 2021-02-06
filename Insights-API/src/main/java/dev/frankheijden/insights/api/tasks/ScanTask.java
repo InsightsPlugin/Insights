@@ -1,19 +1,29 @@
-package dev.frankheijden.insights.tasks;
+package dev.frankheijden.insights.api.tasks;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
+import dev.frankheijden.insights.api.config.Messages;
+import dev.frankheijden.insights.api.config.notifications.ProgressNotification;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.utils.MapUtils;
+import dev.frankheijden.insights.api.utils.MaterialUtils;
+import dev.frankheijden.insights.api.utils.StringUtils;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -78,6 +88,84 @@ public class ScanTask implements Runnable {
                 plugin.getSettings().SCANS_INFO_INTERVAL_MILLIS,
                 distributionConsumer
         ).start();
+    }
+
+    /**
+     * Scans the defined chunks for a given player, looking for materials.
+     * The output of the task (when it completes) will be displayed to the user.
+     */
+    public static void scanAndDisplay(
+            InsightsPlugin plugin,
+            Player player,
+            Collection<? extends ChunkPart> chunkParts,
+            Set<Material> materials,
+            boolean displayZeros
+    ) {
+        int chunkCount = chunkParts.size();
+
+        // Create a notification for the task
+        ProgressNotification notification = plugin.getNotifications().getCachedProgress(
+                player.getUniqueId(),
+                Messages.Key.SCAN_PROGRESS
+        );
+        notification.add(player);
+
+        // Notify about scan start
+        plugin.getMessages().getMessage(Messages.Key.SCAN_START)
+                .replace(
+                        "count", StringUtils.pretty(chunkCount)
+                )
+                .color()
+                .sendTo(player);
+
+        // Start the scan
+        final long start = System.nanoTime();
+        ScanTask.scan(plugin, chunkParts, info -> {
+            // Update the notification with progress
+            double progress = (double) info.getChunksDone() / (double) info.getChunks();
+            notification.progress(progress)
+                    .create()
+                    .replace("percentage", StringUtils.prettyOneDecimal(progress * 100.))
+                    .color()
+                    .send();
+        }, map -> {
+            // The time it took to generate the results
+            @SuppressWarnings("VariableDeclarationUsageDistance")
+            long millis = (System.nanoTime() - start) / 1000000L;
+
+            // Send header
+            Messages messages = plugin.getMessages();
+            messages.getMessage(Messages.Key.SCAN_FINISH_HEADER).color().sendTo(player);
+
+            // Check which materials we need to display & sort them based on their name.
+            List<Material> displayMaterials = new ArrayList<>(materials == null ? map.keySet() : materials);
+            displayMaterials.sort(Comparator.comparing(Enum::name));
+
+            // Send each entry
+            for (Material material : displayMaterials) {
+                // Only display format if nonzero, or displayZeros is set to true.
+                int count = map.getOrDefault(material, 0);
+                if (count == 0 && !displayZeros) continue;
+
+                messages.getMessage(Messages.Key.SCAN_FINISH_FORMAT)
+                        .replace(
+                                "entry", MaterialUtils.pretty(material),
+                                "count", StringUtils.pretty(count)
+                        )
+                        .color()
+                        .sendTo(player);
+            }
+
+            // Send the footer
+            messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER)
+                    .replace(
+                            "chunks", StringUtils.pretty(chunkCount),
+                            "blocks", StringUtils.pretty(chunkCount * 256 * 16 * 16),
+                            "time", StringUtils.pretty(Duration.ofMillis(millis))
+                    )
+                    .color()
+                    .sendTo(player);
+        });
     }
 
     private void start() {

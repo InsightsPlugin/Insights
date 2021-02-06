@@ -25,6 +25,7 @@ import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.commands.CommandInsights;
 import dev.frankheijden.insights.commands.CommandScan;
+import dev.frankheijden.insights.commands.CommandScanWorld;
 import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
 import dev.frankheijden.insights.commands.parser.MaterialArrayArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
@@ -230,6 +231,7 @@ public class Insights extends InsightsPlugin {
         // Parse commands
         annotationParser.parse(new CommandInsights(this));
         annotationParser.parse(new CommandScan(this));
+        annotationParser.parse(new CommandScanWorld(this));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.objects.chunk;
 
+import org.bukkit.Chunk;
 import org.bukkit.World;
 
 public class ChunkLocation {
@@ -15,6 +16,10 @@ public class ChunkLocation {
         this.world = world;
         this.x = x;
         this.z = z;
+    }
+
+    public static ChunkLocation of(Chunk chunk) {
+        return new ChunkLocation(chunk.getWorld(), chunk.getX(), chunk.getZ());
     }
 
     public World getWorld() {
