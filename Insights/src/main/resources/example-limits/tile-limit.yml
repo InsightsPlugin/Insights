@@ -1,0 +1,17 @@
+# This is an example limit for tiles. Users will be able to only place at most 256 tiles per chunk.
+# The limit makes use of a world blacklist, which means with the current configuration it will work for all worlds.
+# It will also work for all addons.
+# The limit will also be applied on WorldEdit modifications, which means that the user won't be able to place tiles through WorldEdit.
+limit:
+  name: "Tiles"
+  type: "TILE"
+  bypass-permission: "insights.bypass.limit.tile"
+  limit: 256
+  settings:
+    enabled-worlds:
+      whitelist: false
+      worlds: []
+    enabled-addons:
+      whitelist: false
+      addons: []
+    worldedit: true

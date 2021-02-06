@@ -1,0 +1,27 @@
+settings:
+  scans:
+    concurrent-threads: -1
+    iteration-interval-ticks: 1
+    chunks-per-iteration: 2
+    info-interval-millis: 50
+  chunk-scan-mode: "MODIFICATION"
+  notification:
+    type: "BOSSBAR"
+    bossbar:
+      color: "BLUE"
+      style: "SEGMENTED_10"
+      flags: []
+      duration-ticks: 60
+    actionbar:
+      segments: 50
+      progress-sequence: "|"
+      done-color: "&a"
+      total-color: "&8"
+      separator: " "
+  disabled-listeners:
+    - "BlockFromToEvent"
+    - "FluidLevelChangeEvent"
+  worldedit-integration:
+    enabled: true
+    type: "REPLACEMENT"
+    replacement-block: "BEDROCK"

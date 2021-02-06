@@ -1,0 +1,18 @@
+messages:
+  prefix: "&b&lInsights &8&l» "
+  configs-reloaded: "<prefix>&3All configurations have been reloaded!"
+  chunk-scan-started: "<prefix>&3Please wait while we scan this chunk..."
+  chunk-scan-queued: "<prefix>&cChunk is currently queued for scanning..."
+  chunk-scan-completed: "<actionbar>&bScan completed!"
+  limit-reached: "<prefix>&cYou have reached the limit of %limit%x %name% in this %area%. Please remove some."
+  limit-notification: "&3%name%: &b%count%&3/&b%limit%"
+  scan:
+    start: "<prefix>&3Scanning &b&l%count%&3 chunks..."
+    already-scanning: "<prefix>&cPlease wait for your other scan to finish before requesting another one."
+    finish:
+      header: "&8&m----------------=&r&8[&b&l Insights Scan&r &8]&m=---------------"
+      format: "&b %entry%&8: &7&l%count%"
+      footer: |-
+        &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks. Took &b%time%&3!
+        &8&m-------------------------------------------------
+    progress: "&3Progress: &b%percentage%%"

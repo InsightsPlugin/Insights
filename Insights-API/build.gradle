@@ -1,0 +1,3 @@
+group = rootProject.group + '.api'
+version = rootProject.version
+archivesBaseName = baseName + '-API'
