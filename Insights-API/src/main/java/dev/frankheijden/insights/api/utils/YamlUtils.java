@@ -36,7 +36,7 @@ public class YamlUtils {
                 conf.set(key, null);
             } else if (confValue instanceof ConfigurationSection) {
                 if (defValue instanceof ConfigurationSection) {
-                    update((ConfigurationSection) confValue, (ConfigurationSection) defValue);
+                    removeUnusedKeys((ConfigurationSection) confValue, (ConfigurationSection) defValue);
                 } else {
                     conf.set(key, null);
                 }
