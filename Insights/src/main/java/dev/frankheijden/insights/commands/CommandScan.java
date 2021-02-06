@@ -38,7 +38,7 @@ public class CommandScan extends InsightsCommand {
             Player player,
             @Argument("radius") @Range(min = "0", max = "25") int radius
     ) {
-        handleScan(player, radius, RTileEntityTypes.getTileEntityMaterials());
+        handleScan(player, radius, RTileEntityTypes.getTileEntityMaterials(), false);
     }
 
     @CommandMethod("scan <radius> all")
@@ -47,7 +47,7 @@ public class CommandScan extends InsightsCommand {
             Player player,
             @Argument("radius") @Range(min = "0", max = "25") int radius
     ) {
-        handleScan(player, radius, null);
+        handleScan(player, radius, null, false);
     }
 
     @CommandMethod("scan <radius> custom <materials>")
@@ -57,13 +57,13 @@ public class CommandScan extends InsightsCommand {
             @Argument("radius") @Range(min = "0", max = "25") int radius,
             @Argument("materials") Material[] materials
     ) {
-        handleScan(player, radius, new HashSet<>(Arrays.asList(materials)));
+        handleScan(player, radius, new HashSet<>(Arrays.asList(materials)), true);
     }
 
     /**
      * Scans chunks in a radius around a player.
      */
-    public void handleScan(Player player, int radius, Set<Material> materials) {
+    public void handleScan(Player player, int radius, Set<Material> materials, boolean displayZeros) {
         Chunk chunk = player.getChunk();
         World world = chunk.getWorld();
         int chunkX = chunk.getX();
@@ -119,10 +119,14 @@ public class CommandScan extends InsightsCommand {
 
             // Send each entry
             for (Material material : displayMaterials) {
+                // Only display format if nonzero, or displayZeros is set to true.
+                int count = map.getOrDefault(material, 0);
+                if (count == 0 && !displayZeros) continue;
+
                 messages.getMessage(Messages.Key.SCAN_FINISH_FORMAT)
                         .replace(
                                 "entry", MaterialUtils.pretty(material),
-                                "count", StringUtils.pretty(map.getOrDefault(material, 0))
+                                "count", StringUtils.pretty(count)
                         )
                         .color()
                         .sendTo(player);
