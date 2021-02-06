@@ -16,8 +16,8 @@ public class Notifications {
     private final ProgressNotificationFactory progressNotificationFactory;
     private final Messages messages;
     private final Settings.NotificationType type;
-    private final Map<UUID, Notification> notificationMap = new HashMap<>();
-    private final Map<UUID, ProgressNotification> progressNotificationMap = new HashMap<>();
+    private final Map<UUID, Cache<Notification>> notificationMap = new HashMap<>();
+    private final Map<UUID, Cache<ProgressNotification>> progressNotificationMap = new HashMap<>();
 
     /**
      * Constructs a new Notifications Facade.
@@ -50,15 +50,50 @@ public class Notifications {
         return get(notificationFactory, messageKey);
     }
 
+    /**
+     * Retrieves the cached Notification, if present, or create a new one if it isn't present.
+     */
     public Notification getCached(UUID uuid, Messages.Key messageKey) {
-        return notificationMap.computeIfAbsent(uuid, k -> get(messageKey));
+        return notificationMap.compute(uuid, (uuid1, cache) -> {
+            if (cache == null || cache.getKey() != messageKey) {
+                return new Cache<>(get(messageKey), messageKey);
+            }
+            return cache;
+        }).getNotification();
     }
 
+    /**
+     * Retrieves the cached ProgressNotification, if present, or create a new one if it isn't present.
+     */
     public ProgressNotification getCachedProgress(UUID uuid, Messages.Key messageKey) {
-        return progressNotificationMap.computeIfAbsent(uuid, k -> getProgress(messageKey));
+        return progressNotificationMap.compute(uuid, (uuid1, cache) -> {
+            if (cache == null || cache.getKey() != messageKey) {
+                return new Cache<>(getProgress(messageKey), messageKey);
+            }
+            return cache;
+        }).getNotification();
     }
 
     public ProgressNotification getProgress(Messages.Key messageKey) {
         return get(progressNotificationFactory, messageKey);
+    }
+
+    private static final class Cache<T extends Notification> {
+
+        private final T notification;
+        private final Messages.Key key;
+
+        private Cache(T notification, Messages.Key key) {
+            this.notification = notification;
+            this.key = key;
+        }
+
+        public T getNotification() {
+            return notification;
+        }
+
+        public Messages.Key getKey() {
+            return key;
+        }
     }
 }
