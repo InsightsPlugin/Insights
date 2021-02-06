@@ -5,6 +5,7 @@ plugins {
 
 String name = "Insights"
 group = 'dev.frankheijden.insights'
+String dependencyDir = group + '.dependencies'
 version = '6.0.0-DEV'
 
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
@@ -30,6 +31,9 @@ subprojects {
     }
 
     dependencies {
+        compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
+        implementation 'com.github.FrankHeijden:MinecraftReflection:1.0.0'
+        implementation 'io.papermc:paperlib:1.0.6'
         testCompile 'org.assertj:assertj-core:3.18.1'
         testCompile 'org.junit.jupiter:junit-jupiter-api:5.7.0'
         testCompile 'org.junit.jupiter:junit-jupiter-params:5.7.0'
@@ -53,6 +57,11 @@ subprojects {
         ignoreFailures = false
         maxErrors = 0
         maxWarnings = 0
+    }
+
+    shadowJar {
+        relocate 'dev.frankheijden.minecraftreflection', dependencyDir + '.minecraftreflection'
+        relocate 'io.papermc.lib', dependencyDir + '.paperlib'
     }
 
     shadowJar.dependsOn checkstyleMain, checkstyleTest, test
