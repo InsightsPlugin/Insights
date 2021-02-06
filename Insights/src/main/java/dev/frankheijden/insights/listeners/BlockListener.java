@@ -43,7 +43,7 @@ import org.bukkit.event.block.SpongeAbsorbEvent;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class BlockListener extends InsightsListener {
 
@@ -168,12 +168,16 @@ public class BlockListener extends InsightsListener {
         // Beds account for two block updates.
         int delta = Tag.BEDS.isTagged(material) ? 2 : 1;
 
+        // Modify the chunk to account for the broken block.
+        WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
+        ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);
+        chunkStorage.modify(chunkKey, material, -delta);
+
         // Notify the user (if they have permission)
-        notify:
         if (player.hasPermission("insights.notifications")) {
             // If the chunk is queued, stop check here (notification will be displayed when it completes).
             if (plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey)) {
-                break notify;
+                return;
             }
 
             // Create limit environment
@@ -181,19 +185,11 @@ public class BlockListener extends InsightsListener {
 
             // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
             Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, env);
-            if (!limitOptional.isPresent()) break notify;
+            if (!limitOptional.isPresent()) return;
             Limit limit = limitOptional.get();
 
-            WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
-            ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);
-
             // Create a runnable for the notification.
-            Consumer<Boolean> notification = scan -> {
-                int count = chunkStorage.count(chunkKey, limit.getMaterials(material)).orElse(0);
-
-                // If this is executed after a scan, the data is already up to date.
-                if (!scan) count -= delta;
-
+            IntConsumer notification = count -> {
                 double progress = (double) count / limit.getLimit();
                 plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                         .progress(progress)
@@ -209,15 +205,19 @@ public class BlockListener extends InsightsListener {
             };
 
             // If the data is already stored, send the notification immediately.
-            if (chunkStorage.contains(chunkKey)) {
-                notification.accept(false);
+            Optional<Integer> countOptional = chunkStorage.count(chunkKey, limit.getMaterials(material));
+            if (countOptional.isPresent()) {
+                notification.accept(countOptional.get());
             } else { // Else, we need to scan the chunk first.
-                plugin.getChunkContainerExecutor().submit(chunk, true).thenRun(() -> notification.accept(true));
+                plugin.getChunkContainerExecutor().submit(chunk, true).thenRun(() -> {
+                    // Subtract the broken block, as the first modification failed (we had to scan the chunk)
+                    chunkStorage.modify(chunkKey, material, -delta);
+
+                    // Notify the user
+                    notification.accept(chunkStorage.count(chunkKey, limit.getMaterials(material)).orElse(0));
+                });
             }
         }
-
-        // Update the cache
-        handleModification(block, -delta);
     }
 
     @AllowDisabling
