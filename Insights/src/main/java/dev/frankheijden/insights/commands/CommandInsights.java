@@ -3,16 +3,15 @@ package dev.frankheijden.insights.commands;
 import cloud.commandframework.annotations.CommandMethod;
 import cloud.commandframework.annotations.CommandPermission;
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.utils.ColorUtils;
 import org.bukkit.command.CommandSender;
 
-public class CommandInsights {
-
-    private final InsightsPlugin plugin;
+public class CommandInsights extends InsightsCommand {
 
     public CommandInsights(InsightsPlugin plugin) {
-        this.plugin = plugin;
+        super(plugin);
     }
 
     @CommandMethod("insights|in")

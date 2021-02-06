@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.concurrent.containers;
 
+import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.ChunkSnapshot;
@@ -11,22 +12,20 @@ public class ChunkSnapshotContainer extends DistributionContainer<Material> {
 
     private final ChunkSnapshot chunkSnapshot;
     private final UUID worldUid;
-    private final ChunkVector min;
-    private final ChunkVector max;
+    private final ChunkCuboid cuboid;
 
     public ChunkSnapshotContainer(ChunkSnapshot chunkSnapshot, UUID worldUid) {
-        this(chunkSnapshot, worldUid, ChunkVector.MIN, ChunkVector.MAX);
+        this(chunkSnapshot, worldUid, ChunkCuboid.MAX);
     }
 
     /**
-     * Constructs a new ChunkSnapshotContainer, with the area to be scanned as a boundingbox between min and max.
+     * Constructs a new ChunkSnapshotContainer, with the area to be scanned as a cuboid.
      */
-    public ChunkSnapshotContainer(ChunkSnapshot chunkSnapshot, UUID worldUid, ChunkVector min, ChunkVector max) {
+    public ChunkSnapshotContainer(ChunkSnapshot chunkSnapshot, UUID worldUid, ChunkCuboid cuboid) {
         super(new EnumMap<>(Material.class));
         this.chunkSnapshot = chunkSnapshot;
         this.worldUid = worldUid;
-        this.min = min;
-        this.max = max;
+        this.cuboid = cuboid;
     }
 
     public UUID getWorldUid() {
@@ -47,6 +46,8 @@ public class ChunkSnapshotContainer extends DistributionContainer<Material> {
 
     @Override
     public void run() {
+        ChunkVector min = cuboid.getMin();
+        ChunkVector max = cuboid.getMax();
         for (int x = min.getX(); x < max.getX(); x++) {
             for (int y = min.getY(); y < max.getY(); y++) {
                 for (int z = min.getZ(); z < max.getZ(); z++) {

@@ -6,3 +6,12 @@ messages:
   chunk-scan-completed: "<actionbar>&bScan completed!"
   limit-reached: "<prefix>&cYou have reached the limit of %limit%x %name% in this %area%. Please remove some."
   limit-notification: "&3%name%: &b%count%&3/&b%limit%"
+  scan:
+    start: "<prefix>&3Scanning &b&l%count%&3 chunks..."
+    finish:
+      header: "&8&m----------------=&r&8[&b&l Insights Scan&r &8]&m=---------------"
+      format: "&b %entry%&8: &7&l%count%"
+      footer: |-
+        &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks. Took &b%time%&3!
+        &8&m-------------------------------------------------
+    progress: "&3Progress: &b%percentage%%"

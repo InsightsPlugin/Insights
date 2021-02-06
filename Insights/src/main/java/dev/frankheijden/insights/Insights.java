@@ -1,6 +1,8 @@
 package dev.frankheijden.insights;
 
 import cloud.commandframework.annotations.AnnotationParser;
+import cloud.commandframework.arguments.parser.ParserRegistry;
+import cloud.commandframework.brigadier.CloudBrigadierManager;
 import cloud.commandframework.bukkit.CloudBukkitCapabilities;
 import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator;
 import cloud.commandframework.meta.SimpleCommandMeta;
@@ -22,6 +24,9 @@ import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.commands.CommandInsights;
+import dev.frankheijden.insights.commands.CommandScan;
+import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
+import dev.frankheijden.insights.commands.parser.MaterialArrayArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
@@ -29,7 +34,9 @@ import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
+import io.leangen.geantyref.TypeToken;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
 import java.io.File;
@@ -97,7 +104,7 @@ public class Insights extends InsightsPlugin {
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
         worldDistributionStorage = new WorldDistributionStorage();
         worldChunkScanTracker = new WorldChunkScanTracker();
-        executor = ContainerExecutorService.newExecutor(settings.CONCURRENT_SCAN_THREADS);
+        executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldDistributionStorage, worldChunkScanTracker);
 
         loadCommands();
@@ -195,9 +202,19 @@ public class Insights extends InsightsPlugin {
             return;
         }
 
+        // Register parsers
+        ParserRegistry<CommandSender> parserRegistry = commandManager.getParserRegistry();
+        parserRegistry.registerParserSupplier(
+                TypeToken.get(Material[].class),
+                options -> new MaterialArrayArgument.MaterialArrayParser()
+        );
+
         // Register capabilities if allowed
         if (commandManager.queryCapability(CloudBukkitCapabilities.BRIGADIER)) {
             commandManager.registerBrigadier();
+            CloudBrigadierManager<CommandSender, ?> brigadierManager = commandManager.brigadierManager();
+            BrigadierHandler handler = new BrigadierHandler(brigadierManager);
+            handler.registerTypes();
         }
         if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             commandManager.registerAsynchronousCompletions();
@@ -212,6 +229,7 @@ public class Insights extends InsightsPlugin {
 
         // Parse commands
         annotationParser.parse(new CommandInsights(this));
+        annotationParser.parse(new CommandScan(this));
     }
 
     @Override

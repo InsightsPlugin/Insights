@@ -16,7 +16,10 @@ import java.util.Map;
 
 public class Settings {
 
-    public final int CONCURRENT_SCAN_THREADS;
+    public final int SCANS_CONCURRENT_THREADS;
+    public final int SCANS_ITERATION_INTERVAL_TICKS;
+    public final int SCANS_CHUNKS_PER_ITERATION;
+    public final int SCANS_INFO_INTERVAL_MILLIS;
     public final ChunkScanMode CHUNK_SCAN_MODE;
     public final NotificationType NOTIFICATION_TYPE;
     public final BarColor NOTIFICATION_BOSSBAR_COLOR;
@@ -39,9 +42,13 @@ public class Settings {
     @SuppressWarnings("LineLength")
     public Settings(InsightsPlugin plugin, YamlParser parser) {
         int maxThreads = Runtime.getRuntime().availableProcessors();
-        int threads = parser.getInt("settings.concurrent-scan-threads", -1, -1, maxThreads);
+        int threads = parser.getInt("settings.scans.concurrent-threads", -1, -1, maxThreads);
         if (threads <= 0) threads = maxThreads;
-        CONCURRENT_SCAN_THREADS = threads;
+        SCANS_CONCURRENT_THREADS = threads;
+        SCANS_ITERATION_INTERVAL_TICKS = parser.getInt("settings.scans.iteration-interval-ticks", 1, 1, Integer.MAX_VALUE);
+        SCANS_CHUNKS_PER_ITERATION = parser.getInt("settings.scans.chunks-per-iteration", 2, 1, Integer.MAX_VALUE);
+        SCANS_INFO_INTERVAL_MILLIS = parser.getInt("settings.scans.info-interval-millis", 50, 1, Integer.MAX_VALUE);
+
         CHUNK_SCAN_MODE = parser.getEnum("settings.chunk-scan-mode", ChunkScanMode.MODIFICATION);
 
         NOTIFICATION_TYPE = parser.getEnum("settings.notification.type", NotificationType.BOSSBAR);

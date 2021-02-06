@@ -5,6 +5,7 @@ import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
 import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
+import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
@@ -33,11 +34,20 @@ public class ChunkContainerExecutor implements ContainerExecutor {
     }
 
     public CompletableFuture<Map<Material, Integer>> submit(Chunk chunk, boolean save) {
-        return submit(chunk.getChunkSnapshot(), chunk.getWorld().getUID(), save);
+        return submit(chunk, ChunkCuboid.MAX, save);
     }
 
-    public CompletableFuture<Map<Material, Integer>> submit(ChunkSnapshot chunkSnapshot, UUID worldUid, boolean save) {
-        return submit(new ChunkSnapshotContainer(chunkSnapshot, worldUid), save);
+    public CompletableFuture<Map<Material, Integer>> submit(Chunk chunk, ChunkCuboid cuboid, boolean save) {
+        return submit(chunk.getChunkSnapshot(), chunk.getWorld().getUID(), cuboid, save);
+    }
+
+    public CompletableFuture<Map<Material, Integer>> submit(
+            ChunkSnapshot chunkSnapshot,
+            UUID worldUid,
+            ChunkCuboid cuboid,
+            boolean save
+    ) {
+        return submit(new ChunkSnapshotContainer(chunkSnapshot, worldUid, cuboid), save);
     }
 
     /**

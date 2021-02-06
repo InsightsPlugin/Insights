@@ -39,7 +39,12 @@ public class Messages {
         CHUNK_SCAN_QUEUED("chunk-scan-queued"),
         CHUNK_SCAN_COMPLETED("chunk-scan-completed"),
         LIMIT_REACHED("limit-reached"),
-        LIMIT_NOTIFICATION("limit-notification");
+        LIMIT_NOTIFICATION("limit-notification"),
+        SCAN_START("scan.start"),
+        SCAN_FINISH_HEADER("scan.finish.header"),
+        SCAN_FINISH_FORMAT("scan.finish.format"),
+        SCAN_FINISH_FOOTER("scan.finish.footer"),
+        SCAN_PROGRESS("scan.progress");
 
         private final String path;
 

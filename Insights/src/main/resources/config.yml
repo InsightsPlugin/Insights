@@ -1,5 +1,9 @@
 settings:
-  concurrent-scan-threads: -1
+  scans:
+    concurrent-threads: -1
+    iteration-interval-ticks: 1
+    chunks-per-iteration: 2
+    info-interval-millis: 50
   chunk-scan-mode: "MODIFICATION"
   notification:
     type: "BOSSBAR"
