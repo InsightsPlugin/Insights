@@ -19,17 +19,21 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class ScanTask implements Runnable {
+
+    private static final Set<UUID> scanners = new HashSet<>();
 
     private final InsightsPlugin plugin;
     private final ChunkContainerExecutor executor;
@@ -101,6 +105,17 @@ public class ScanTask implements Runnable {
             Set<Material> materials,
             boolean displayZeros
     ) {
+        UUID uuid = player.getUniqueId();
+
+        // If the player is already scanning, tell them they can't run two scans.
+        if (scanners.contains(uuid)) {
+            plugin.getMessages().getMessage(Messages.Key.SCAN_ALREADY_SCANNING).color().sendTo(player);
+            return;
+        }
+
+        // Add the player to the scanners
+        scanners.add(uuid);
+
         int chunkCount = chunkParts.size();
 
         // Create a notification for the task
@@ -165,6 +180,9 @@ public class ScanTask implements Runnable {
                     )
                     .color()
                     .sendTo(player);
+
+            // Remove player from scanners
+            scanners.remove(uuid);
         });
     }
 

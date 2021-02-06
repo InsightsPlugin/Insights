@@ -41,6 +41,7 @@ public class Messages {
         LIMIT_REACHED("limit-reached"),
         LIMIT_NOTIFICATION("limit-notification"),
         SCAN_START("scan.start"),
+        SCAN_ALREADY_SCANNING("scan.already-scanning"),
         SCAN_FINISH_HEADER("scan.finish.header"),
         SCAN_FINISH_FORMAT("scan.finish.format"),
         SCAN_FINISH_FOOTER("scan.finish.footer"),

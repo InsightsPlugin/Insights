@@ -8,6 +8,7 @@ messages:
   limit-notification: "&3%name%: &b%count%&3/&b%limit%"
   scan:
     start: "<prefix>&3Scanning &b&l%count%&3 chunks..."
+    already-scanning: "<prefix>&cPlease wait for your other scan to finish before requesting another one."
     finish:
       header: "&8&m----------------=&r&8[&b&l Insights Scan&r &8]&m=---------------"
       format: "&b %entry%&8: &7&l%count%"
