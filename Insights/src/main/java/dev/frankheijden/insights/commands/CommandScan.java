@@ -58,7 +58,7 @@ public class CommandScan extends InsightsCommand {
      * Scans chunks in a radius around a player.
      */
     public void handleScan(Player player, int radius, Set<Material> materials, boolean displayZeros) {
-        Chunk chunk = player.getChunk();
+        Chunk chunk = player.getLocation().getChunk();
         World world = chunk.getWorld();
         int chunkX = chunk.getX();
         int chunkZ = chunk.getZ();

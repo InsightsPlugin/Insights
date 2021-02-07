@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.config;
 
 import dev.frankheijden.insights.api.config.parser.PassiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
+import dev.frankheijden.insights.api.utils.PlayerUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -132,7 +133,7 @@ public class Messages {
          */
         public void sendTo(CommandSender sender) {
             if (type == Type.ACTIONBAR && sender instanceof Player) {
-                ((Player) sender).sendActionBar(content);
+                PlayerUtils.sendActionBar(((Player) sender), content);
             } else {
                 sender.sendMessage(content);
             }
