@@ -64,4 +64,11 @@ public class BlockUtils {
                 ClassObject.of(int.class, z)
         );
     }
+
+    /**
+     * Checks whether two blocks are within the same chunk.
+     */
+    public static boolean isSameChunk(Block x, Block y) {
+        return ((x.getX() >> 4) == (y.getX() >> 4)) && (x.getZ() >> 4) == (y.getZ() >> 4);
+    }
 }

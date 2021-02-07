@@ -32,6 +32,7 @@ public class Settings {
     public final String NOTIFICATION_ACTIONBAR_TOTAL_COLOR;
     public final String NOTIFICATION_ACTIONBAR_SEPARATOR;
     public final int SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
+    public final boolean APPLY_PISTON_LIMITS;
     public final List<Class<?>> DISABLED_EVENTS;
     public final boolean WORLDEDIT_INTEGRATION_ENABLED;
     public final WorldEditIntegrationType WORLDEDIT_INTEGRATION_TYPE;
@@ -66,6 +67,7 @@ public class Settings {
         NOTIFICATION_ACTIONBAR_SEPARATOR = parser.getString("settings.notification.actionbar.separator", " ");
 
         SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS = parser.getInt("settings.spigot.entity-tracker-interval-ticks", 10, 1, Integer.MAX_VALUE);
+        APPLY_PISTON_LIMITS = parser.getBoolean("settings.apply-piston-limits", true);
 
         DISABLED_EVENTS = new ArrayList<>();
         Map<String, Class<?>> events = plugin.getAllowedDisableEvents();
