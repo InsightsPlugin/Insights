@@ -22,11 +22,11 @@ public class MapUtils {
     }
 
     /**
-     * Merges the target map into the source map using given value combiner.
+     * Merges the left map into the right map (a into b).
      */
-    public static <K, V> void merge(Map<K, V> source, Map<K, V> target, BinaryOperator<V> combiner) {
-        for (Map.Entry<K, V> entry : target.entrySet()) {
-            source.merge(entry.getKey(), entry.getValue(), combiner);
+    public static <K, V> void mergeRight(Map<K, V> a, Map<K, V> b, BinaryOperator<V> combiner) {
+        for (Map.Entry<K, V> entry : a.entrySet()) {
+            b.merge(entry.getKey(), entry.getValue(), combiner);
         }
     }
 }

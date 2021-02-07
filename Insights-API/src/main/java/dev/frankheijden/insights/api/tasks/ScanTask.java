@@ -206,7 +206,7 @@ public class ScanTask implements Runnable {
         while (!chunkQueue.isEmpty()) {
             // Scan each chunk, merging the result with the distributionMap.
             executor.submit(chunkQueue.poll()).thenAccept(storage -> {
-                storage.merge(distributionStorage);
+                storage.mergeRight(distributionStorage);
                 chunks.incrementAndGet();
             });
         }

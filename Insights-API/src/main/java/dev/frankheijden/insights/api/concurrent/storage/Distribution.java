@@ -51,8 +51,8 @@ public class Distribution<E> {
     /**
      * Merges the current instance into another distribution, summing their values.
      */
-    public void merge(Distribution<E> target) {
-        MapUtils.merge(target.distributionMap, this.distributionMap, Integer::sum);
+    public void mergeRight(Distribution<E> target) {
+        MapUtils.mergeRight(this.distributionMap, target.distributionMap, Integer::sum);
     }
 
     /**

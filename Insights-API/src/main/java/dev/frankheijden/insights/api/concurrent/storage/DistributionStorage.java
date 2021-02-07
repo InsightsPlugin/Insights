@@ -71,8 +71,8 @@ public class DistributionStorage {
      * Merges the current instance with another distribution.
      * Note: the merged values will be in the target.
      */
-    public void merge(DistributionStorage target) {
-        target.materials.merge(materials);
-        target.entities.merge(entities);
+    public void mergeRight(DistributionStorage target) {
+        this.materials.mergeRight(target.materials);
+        this.entities.mergeRight(target.entities);
     }
 }
