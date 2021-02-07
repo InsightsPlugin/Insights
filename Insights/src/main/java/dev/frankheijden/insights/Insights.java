@@ -202,9 +202,14 @@ public class Insights extends InsightsPlugin {
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(limitsPath, p -> !Files.isDirectory(p))) {
             for (Path child : stream) {
+                String fileName = child.getFileName().toString();
+                if (!fileName.toLowerCase(Locale.ENGLISH).endsWith(".yml")) continue;
                 try {
-                    limits.addLimit(Limit.parse(child.toFile()));
+                    Limit limit = Limit.parse(child.toFile());
+                    getLogger().info("Loaded limit '" + limit.getName() + "'");
+                    limits.addLimit(limit);
                 } catch (YamlParseException ex) {
+                    getLogger().severe("Limit '" + fileName + "' could not be loaded:");
                     getLogger().severe(ex.getMessage());
                 }
             }
