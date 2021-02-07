@@ -12,7 +12,7 @@ import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
-import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
@@ -31,11 +31,15 @@ import dev.frankheijden.insights.commands.parser.MaterialArrayArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
+import dev.frankheijden.insights.listeners.EntityListener;
+import dev.frankheijden.insights.listeners.PaperEntityListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
+import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import io.leangen.geantyref.TypeToken;
+import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -52,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class Insights extends InsightsPlugin {
@@ -88,8 +93,9 @@ public class Insights extends InsightsPlugin {
     private ContainerExecutor executor;
     private ChunkContainerExecutor chunkContainerExecutor;
     private PlayerList playerList;
-    private WorldDistributionStorage worldDistributionStorage;
+    private WorldStorage worldStorage;
     private WorldChunkScanTracker worldChunkScanTracker;
+    private EntityTrackerTask entityTrackerTask;
 
     @Override
     public void onLoad() {
@@ -103,10 +109,10 @@ public class Insights extends InsightsPlugin {
         reloadConfigs();
 
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
-        worldDistributionStorage = new WorldDistributionStorage();
+        worldStorage = new WorldStorage();
         worldChunkScanTracker = new WorldChunkScanTracker();
         executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
-        chunkContainerExecutor = new ChunkContainerExecutor(executor, worldDistributionStorage, worldChunkScanTracker);
+        chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
 
         loadCommands();
 
@@ -121,6 +127,15 @@ public class Insights extends InsightsPlugin {
                 new PlayerListener(this)
         );
 
+        if (PaperLib.isPaper()) {
+            registerEvents(new PaperEntityListener(this));
+        } else {
+            registerEvents(new EntityListener(this));
+            entityTrackerTask = new EntityTrackerTask(this);
+            int interval = settings.SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
+            Bukkit.getScheduler().runTaskTimer(this, entityTrackerTask, 0, interval);
+        }
+
         for (Class<?> clazz : settings.DISABLED_EVENTS) {
             HandlerList list = MinecraftReflection.of(clazz).invoke(null, "getHandlerList");
             for (InsightsListener listener : disableListeners) {
@@ -132,6 +147,10 @@ public class Insights extends InsightsPlugin {
         if (settings.CHUNK_SCAN_MODE == Settings.ChunkScanMode.ALWAYS) {
             Bukkit.getScheduler().runTaskTimerAsynchronously(this, new PlayerTrackerTask(this), 0, 1);
         }
+    }
+
+    public Optional<EntityTrackerTask> getEntityTracker() {
+        return Optional.ofNullable(entityTrackerTask);
     }
 
     @Override
@@ -270,8 +289,8 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
-    public WorldDistributionStorage getWorldDistributionStorage() {
-        return worldDistributionStorage;
+    public WorldStorage getWorldStorage() {
+        return worldStorage;
     }
 
     @Override

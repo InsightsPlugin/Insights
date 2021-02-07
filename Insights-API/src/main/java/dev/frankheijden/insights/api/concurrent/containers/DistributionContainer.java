@@ -1,8 +1,9 @@
 package dev.frankheijden.insights.api.concurrent.containers;
 
+import dev.frankheijden.insights.api.concurrent.storage.Distribution;
 import java.util.Map;
 
-public abstract class DistributionContainer<E> implements SupplierContainer<Map<E, Integer>> {
+public abstract class DistributionContainer<E> implements SupplierContainer<Distribution<E>> {
 
     protected final Map<E, Integer> distributionMap;
 
@@ -11,8 +12,8 @@ public abstract class DistributionContainer<E> implements SupplierContainer<Map<
     }
 
     @Override
-    public Map<E, Integer> get() {
+    public Distribution<E> get() {
         run();
-        return distributionMap;
+        return new Distribution<>(distributionMap);
     }
 }

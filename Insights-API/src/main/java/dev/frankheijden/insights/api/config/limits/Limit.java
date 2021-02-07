@@ -6,6 +6,7 @@ import dev.frankheijden.insights.api.config.parser.YamlParser;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.EntityType;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -98,9 +99,14 @@ public abstract class Limit {
     }
 
     /**
-     * Returns the list of materials that are associated to the given material.
+     * Returns the set of materials that this limit consists of.
      */
-    public abstract Set<Material> getMaterials(Material m);
+    public abstract Set<Material> getMaterials();
+
+    /**
+     * Returns the set of entities that this limit consists of.
+     */
+    public abstract Set<EntityType> getEntities();
 
     public static class Info {
 

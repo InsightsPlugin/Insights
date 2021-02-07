@@ -2,11 +2,12 @@ package dev.frankheijden.insights.api.tasks;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
+import dev.frankheijden.insights.api.concurrent.storage.Distribution;
+import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.notifications.ProgressNotification;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
-import dev.frankheijden.insights.api.utils.MapUtils;
 import dev.frankheijden.insights.api.utils.MaterialUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import io.papermc.lib.PaperLib;
@@ -22,11 +23,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -39,11 +38,11 @@ public class ScanTask implements Runnable {
     private final ChunkContainerExecutor executor;
     private final Queue<ChunkPart> scanQueue;
     private final Queue<Chunk> chunkQueue;
-    private final Map<Material, Integer> distributionMap;
+    private final DistributionStorage distributionStorage;
     private final int chunksPerIteration;
     private final Consumer<Info> infoConsumer;
     private final long infoTimeout;
-    private final Consumer<Map<Material, Integer>> distributionConsumer;
+    private final Consumer<DistributionStorage> distributionConsumer;
     private final AtomicInteger iterationChunks = new AtomicInteger(0);
     private final AtomicInteger chunks = new AtomicInteger(0);
     private final int chunkCount;
@@ -60,13 +59,13 @@ public class ScanTask implements Runnable {
             int chunksPerIteration,
             Consumer<Info> infoConsumer,
             long infoTimeoutMillis,
-            Consumer<Map<Material, Integer>> distributionConsumer
+            Consumer<DistributionStorage> distributionConsumer
     ) {
         this.plugin = plugin;
         this.executor = plugin.getChunkContainerExecutor();
         this.scanQueue = new LinkedList<>(chunkParts);
         this.chunkQueue = new ConcurrentLinkedQueue<>();
-        this.distributionMap = new ConcurrentHashMap<>();
+        this.distributionStorage = new DistributionStorage();
         this.chunksPerIteration = chunksPerIteration;
         this.infoConsumer = infoConsumer;
         this.infoTimeout = infoTimeoutMillis * 1000000L; // Convert to nanos
@@ -82,7 +81,7 @@ public class ScanTask implements Runnable {
             InsightsPlugin plugin,
             Collection<? extends ChunkPart> chunkParts,
             Consumer<Info> infoConsumer,
-            Consumer<Map<Material, Integer>> distributionConsumer
+            Consumer<DistributionStorage> distributionConsumer
     ) {
         new ScanTask(
                 plugin,
@@ -143,7 +142,7 @@ public class ScanTask implements Runnable {
                     .replace("percentage", StringUtils.prettyOneDecimal(progress * 100.))
                     .color()
                     .send();
-        }, map -> {
+        }, storage -> {
             // The time it took to generate the results
             @SuppressWarnings("VariableDeclarationUsageDistance")
             long millis = (System.nanoTime() - start) / 1000000L;
@@ -152,14 +151,16 @@ public class ScanTask implements Runnable {
             Messages messages = plugin.getMessages();
             messages.getMessage(Messages.Key.SCAN_FINISH_HEADER).color().sendTo(player);
 
+            Distribution<Material> distribution = storage.materials();
+
             // Check which materials we need to display & sort them based on their name.
-            List<Material> displayMaterials = new ArrayList<>(materials == null ? map.keySet() : materials);
+            List<Material> displayMaterials = new ArrayList<>(materials == null ? distribution.keys() : materials);
             displayMaterials.sort(Comparator.comparing(Enum::name));
 
             // Send each entry
             for (Material material : displayMaterials) {
                 // Only display format if nonzero, or displayZeros is set to true.
-                int count = map.getOrDefault(material, 0);
+                int count = distribution.count(material);
                 if (count == 0 && !displayZeros) continue;
 
                 messages.getMessage(Messages.Key.SCAN_FINISH_FORMAT)
@@ -195,7 +196,7 @@ public class ScanTask implements Runnable {
         if (task != null) {
             task.cancel();
             sendInfo();
-            distributionConsumer.accept(distributionMap);
+            distributionConsumer.accept(distributionStorage);
         }
     }
 
@@ -204,8 +205,8 @@ public class ScanTask implements Runnable {
         // Empty the queue with available chunks (after loading)
         while (!chunkQueue.isEmpty()) {
             // Scan each chunk, merging the result with the distributionMap.
-            executor.submit(chunkQueue.poll(), false).thenAccept(map -> {
-                MapUtils.merge(distributionMap, map, Integer::sum);
+            executor.submit(chunkQueue.poll()).thenAccept(storage -> {
+                storage.merge(distributionStorage);
                 chunks.incrementAndGet();
             });
         }

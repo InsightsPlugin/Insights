@@ -1,12 +1,11 @@
 package dev.frankheijden.insights.api.config;
 
-import dev.frankheijden.insights.api.config.limits.GroupLimit;
 import dev.frankheijden.insights.api.config.limits.Limit;
-import dev.frankheijden.insights.api.config.limits.PermissionLimit;
 import dev.frankheijden.insights.api.config.limits.TileLimit;
 import dev.frankheijden.insights.api.utils.BlockUtils;
 import dev.frankheijden.insights.api.utils.SetUtils;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -24,6 +23,7 @@ public class Limits {
     private final List<Limit> limits;
     private final TreeSet<TileLimit> tileLimits;
     private final Map<Material, TreeSet<Limit>> materialLimits;
+    private final Map<EntityType, TreeSet<Limit>> entityLimits;
 
     /**
      * Constructs a new Limits object, holding a data structure for fast lookup of limits.
@@ -32,6 +32,7 @@ public class Limits {
         limits = new ArrayList<>();
         tileLimits = new TreeSet<>(ascendingLimits);
         materialLimits = new EnumMap<>(Material.class);
+        entityLimits = new EnumMap<>(EntityType.class);
     }
 
     /**
@@ -41,15 +42,12 @@ public class Limits {
         this.limits.add(limit);
         if (limit instanceof TileLimit) {
             this.tileLimits.add((TileLimit) limit);
-        } else if (limit instanceof GroupLimit) {
-            GroupLimit groupLimit = (GroupLimit) limit;
-            for (Material m : groupLimit.getMaterials()) {
-                materialLimits.computeIfAbsent(m, k -> new TreeSet<>(ascendingLimits)).add(groupLimit);
+        } else {
+            for (Material m : limit.getMaterials()) {
+                materialLimits.computeIfAbsent(m, k -> new TreeSet<>(ascendingLimits)).add(limit);
             }
-        } else if (limit instanceof PermissionLimit) {
-            PermissionLimit permissionLimit = (PermissionLimit) limit;
-            for (Material m : permissionLimit.getLimitMap().keySet()) {
-                materialLimits.computeIfAbsent(m, k -> new TreeSet<>(ascendingLimits)).add(permissionLimit);
+            for (EntityType e : limit.getEntities()) {
+                entityLimits.computeIfAbsent(e, k -> new TreeSet<>(ascendingLimits)).add(limit);
             }
         }
     }
@@ -64,6 +62,19 @@ public class Limits {
 
     /**
      * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
+     * Item must be of type Material or EntityType.
+     */
+    public Optional<Limit> getFirstLimit(Object item, Predicate<Limit> limitPredicate) {
+        if (item instanceof Material) {
+            return getFirstLimit((Material) item, limitPredicate);
+        } else if (item instanceof EntityType) {
+            return getFirstLimit((EntityType) item, limitPredicate);
+        }
+        throw new IllegalArgumentException("Item is of unsupported limit type '" + item.getClass() + "'");
+    }
+
+    /**
+     * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
      */
     public Optional<Limit> getFirstLimit(Material material, Predicate<Limit> limitPredicate) {
         if (BlockUtils.isTileEntity(material)) {
@@ -74,6 +85,14 @@ public class Limits {
         }
 
         Set<Limit> set = materialLimits.get(material);
+        return set == null ? Optional.empty() : Optional.ofNullable(SetUtils.findFirst(set, limitPredicate));
+    }
+
+    /**
+     * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
+     */
+    public Optional<Limit> getFirstLimit(EntityType entity, Predicate<Limit> limitPredicate) {
+        Set<Limit> set = entityLimits.get(entity);
         return set == null ? Optional.empty() : Optional.ofNullable(SetUtils.findFirst(set, limitPredicate));
     }
 }

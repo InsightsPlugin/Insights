@@ -2,7 +2,7 @@ package dev.frankheijden.insights.tasks;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
-import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.tasks.InsightsAsyncTask;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import dev.frankheijden.insights.api.utils.SetUtils;
@@ -42,9 +42,9 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
             }
         }
 
-        WorldDistributionStorage worldDistributionStorage = plugin.getWorldDistributionStorage();
+        WorldStorage worldStorage = plugin.getWorldStorage();
         for (Map.Entry<UUID, Set<Long>> entry : worldChunkMap.entrySet()) {
-            Set<Long> loadedChunks = worldDistributionStorage.getChunkDistribution(entry.getKey()).getKeys();
+            Set<Long> loadedChunks = worldStorage.getWorld(entry.getKey()).getChunks();
             Set<Long> playerChunks = entry.getValue();
             Set<Long> intersected = SetUtils.intersect(loadedChunks, playerChunks);
             playerChunks.removeIf(intersected::contains);
@@ -67,7 +67,7 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
 
                 for (Long key : entry.getValue()) {
                     Chunk chunk = world.getChunkAt(ChunkUtils.getX(key), ChunkUtils.getZ(key));
-                    futures[i++] = plugin.getChunkContainerExecutor().submit(chunk, true);
+                    futures[i++] = plugin.getChunkContainerExecutor().submit(chunk);
                 }
             }
 

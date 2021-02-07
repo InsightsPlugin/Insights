@@ -3,15 +3,18 @@ package dev.frankheijden.insights.api.concurrent;
 import dev.frankheijden.insights.api.concurrent.containers.ChunkSnapshotContainer;
 import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
-import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.Distribution;
+import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
+import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
-import org.bukkit.Material;
-import java.util.Map;
+import org.bukkit.entity.EntityType;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Decorator class for ContainerExecutor to add chunk scanning functionality.
@@ -19,50 +22,64 @@ import java.util.concurrent.CompletableFuture;
 public class ChunkContainerExecutor implements ContainerExecutor {
 
     private final ContainerExecutor containerExecutor;
-    private final WorldDistributionStorage distributionStorage;
+    private final WorldStorage worldStorage;
     private final WorldChunkScanTracker scanTracker;
 
     /**
      * Constructs a new ChunkContainerExecutor.
      */
-    public ChunkContainerExecutor(ContainerExecutor containerExecutor,
-                                  WorldDistributionStorage distributionStorage,
-                                  WorldChunkScanTracker scanTracker) {
+    public ChunkContainerExecutor(
+            ContainerExecutor containerExecutor,
+            WorldStorage worldStorage,
+            WorldChunkScanTracker scanTracker
+    ) {
         this.containerExecutor = containerExecutor;
-        this.distributionStorage = distributionStorage;
+        this.worldStorage = worldStorage;
         this.scanTracker = scanTracker;
     }
 
-    public CompletableFuture<Map<Material, Integer>> submit(Chunk chunk, boolean save) {
-        return submit(chunk, ChunkCuboid.MAX, save);
+    public CompletableFuture<DistributionStorage> submit(Chunk chunk) {
+        return submit(chunk, ScanOptions.all());
     }
 
-    public CompletableFuture<Map<Material, Integer>> submit(Chunk chunk, ChunkCuboid cuboid, boolean save) {
-        return submit(chunk.getChunkSnapshot(), chunk.getWorld().getUID(), cuboid, save);
-    }
-
-    public CompletableFuture<Map<Material, Integer>> submit(
-            ChunkSnapshot chunkSnapshot,
-            UUID worldUid,
-            ChunkCuboid cuboid,
-            boolean save
-    ) {
-        return submit(new ChunkSnapshotContainer(chunkSnapshot, worldUid, cuboid), save);
+    public CompletableFuture<DistributionStorage> submit(Chunk chunk, ScanOptions options) {
+        return submit(chunk, ChunkCuboid.MAX, options);
     }
 
     /**
-     * Submits a ChunkSnapshotContainer for scanning, optionally saving the result into storage.
+     * Submits a chunk for scanning, which will be scanned within given cuboid, and using given options.
+     * Note: this method MUST be called on the main thread!
      */
-    public CompletableFuture<Map<Material, Integer>> submit(ChunkSnapshotContainer container, boolean save) {
-        UUID worldUid = container.getWorldUid();
-        long chunkKey = container.getChunkKey();
-        scanTracker.set(worldUid, chunkKey, true);
+    public CompletableFuture<DistributionStorage> submit(Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
+        Distribution<EntityType> entities = options.entities()
+                ? ChunkUtils.countEntities(chunk)
+                : new Distribution<>(new ConcurrentHashMap<>());
+        return submit(chunk.getChunkSnapshot(), entities, chunk.getWorld().getUID(), cuboid, options);
+    }
 
-        CompletableFuture<Map<Material, Integer>> future = submit(container);
-        return save ? future.whenComplete((map, err) -> {
-            distributionStorage.put(worldUid, chunkKey, map);
-            scanTracker.set(worldUid, chunkKey, false);
-        }) : future;
+    /**
+     * Submits a ChunkSnapshot for scanning, returning a DistributionStorage object.
+     * DistributionStorage is essentially merged from the scan result and given entities Distribution.
+     */
+    public CompletableFuture<DistributionStorage> submit(
+            ChunkSnapshot snapshot,
+            Distribution<EntityType> entities,
+            UUID worldUid,
+            ChunkCuboid cuboid,
+            ScanOptions options
+    ) {
+        long chunkKey = ChunkUtils.getKey(snapshot);
+        if (options.track()) {
+            scanTracker.set(worldUid, chunkKey, true);
+        }
+
+        ChunkSnapshotContainer container = new ChunkSnapshotContainer(snapshot, worldUid, cuboid);
+        return submit(container).thenApply(materials -> {
+            DistributionStorage storage = new DistributionStorage(materials, entities);
+            if (options.save()) worldStorage.getWorld(worldUid).put(chunkKey, storage);
+            if (options.track()) scanTracker.set(worldUid, chunkKey, false);
+            return storage;
+        });
     }
 
     @Override

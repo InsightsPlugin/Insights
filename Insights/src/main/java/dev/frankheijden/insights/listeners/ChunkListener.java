@@ -1,6 +1,6 @@
 package dev.frankheijden.insights.listeners;
 
-import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.Insights;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
@@ -9,17 +9,20 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 
 public class ChunkListener extends InsightsListener {
 
-    public ChunkListener(InsightsPlugin plugin) {
+    protected Insights insights;
+
+    public ChunkListener(Insights plugin) {
         super(plugin);
+        this.insights = plugin;
     }
 
     /**
-     * Cleans up any storage Insights has on a chunk.
+     * Cleans up any chunk data from insights when a chunk unloads.
      */
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         Chunk chunk = event.getChunk();
-        plugin.getWorldDistributionStorage().getChunkDistribution(chunk.getWorld().getUID())
-                .remove(ChunkUtils.getKey(chunk));
+        plugin.getWorldStorage().getWorld(chunk.getWorld().getUID()).remove(ChunkUtils.getKey(chunk));
+        insights.getEntityTracker().ifPresent(tracker -> tracker.removeEntities(chunk.getEntities()));
     }
 }
