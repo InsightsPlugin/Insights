@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.config.notifications;
 
+import dev.frankheijden.insights.api.utils.PlayerUtils;
 import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,9 +27,7 @@ public class ActionBarNotification implements Notification {
         return new SendableNotification(content) {
             @Override
             public void send() {
-                for (Player player : receivers.values()) {
-                    player.sendActionBar(content);
-                }
+                PlayerUtils.sendActionBar(receivers.values(), content);
             }
         };
     }

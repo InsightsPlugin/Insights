@@ -1,9 +1,9 @@
 package dev.frankheijden.insights.listeners;
 
-import com.destroystokyo.paper.MaterialTags;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.util.MaterialTags;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -113,7 +113,7 @@ public class BlockListener extends InsightsListener {
         Material material = null;
         if (MaterialTags.BUCKETS.isTagged(item) && item != Material.MILK_BUCKET) {
             material = Material.WATER; // If a bucket is dispensed, this results in a new water source
-        } else if (MaterialTags.SHULKER_BOXES.isTagged(item)) {
+        } else if (Tag.SHULKER_BOXES.isTagged(item)) {
             material = item; // If a shulker is dispensed, its dispensed as block.
         }
 

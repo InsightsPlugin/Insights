@@ -33,7 +33,7 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
         }
 
         for (Map.Entry<UUID, Player> entry : playerList) {
-            Chunk chunk = entry.getValue().getChunk();
+            Chunk chunk = entry.getValue().getLocation().getChunk();
             Set<Long> worldChunks = worldChunkMap.get(chunk.getWorld().getUID());
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
