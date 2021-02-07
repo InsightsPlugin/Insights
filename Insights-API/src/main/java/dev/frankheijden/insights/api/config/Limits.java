@@ -62,6 +62,19 @@ public class Limits {
 
     /**
      * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
+     * Item must be of type Material or EntityType.
+     */
+    public Optional<Limit> getFirstLimit(Object item, Predicate<Limit> limitPredicate) {
+        if (item instanceof Material) {
+            return getFirstLimit((Material) item, limitPredicate);
+        } else if (item instanceof EntityType) {
+            return getFirstLimit((EntityType) item, limitPredicate);
+        }
+        throw new IllegalArgumentException("Item is of unsupported limit type '" + item.getClass() + "'");
+    }
+
+    /**
+     * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
      */
     public Optional<Limit> getFirstLimit(Material material, Predicate<Limit> limitPredicate) {
         if (BlockUtils.isTileEntity(material)) {

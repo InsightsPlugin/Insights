@@ -31,6 +31,7 @@ import dev.frankheijden.insights.commands.parser.MaterialArrayArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
+import dev.frankheijden.insights.listeners.EntityListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
@@ -112,7 +113,8 @@ public class Insights extends InsightsPlugin {
 
         InsightsListener[] disableListeners = new InsightsListener[] {
                 new BlockListener(this),
-                new WorldListener(this)
+                new WorldListener(this),
+                new EntityListener(this)
         };
 
         registerEvents(disableListeners);

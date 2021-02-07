@@ -1,0 +1,149 @@
+package dev.frankheijden.insights.listeners;
+
+import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.listeners.InsightsListener;
+import org.bukkit.Chunk;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityPlaceEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
+import org.bukkit.projectiles.ProjectileSource;
+import java.util.EnumSet;
+import java.util.Optional;
+import java.util.Set;
+
+public class EntityListener extends InsightsListener {
+
+    private static final Set<EntityType> LIMITED_ENTITIES = EnumSet.of(
+            EntityType.ARMOR_STAND,
+            EntityType.ENDER_CRYSTAL,
+            EntityType.ITEM_FRAME,
+            EntityType.PAINTING
+    );
+
+    public EntityListener(InsightsPlugin plugin) {
+        super(plugin);
+    }
+
+    /**
+     * Handles the HangingPlaceEvent for Item Frames and Paintings.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onHangingPlace(HangingPlaceEvent event) {
+        if (handleEntityPlace(event.getPlayer(), event.getEntity())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Handles the EntityPlaceEvent for Armor Stands and End Crystals.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onEntityPlace(EntityPlaceEvent event) {
+        if (handleEntityPlace(event.getPlayer(), event.getEntity())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Handles the HangingBreakEvent for Item Frames and Paintings.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onHangingBreak(HangingBreakEvent event) {
+        Entity entity = event.getEntity();
+        EntityType entityType = entity.getType();
+        if (!LIMITED_ENTITIES.contains(entityType)) return;
+
+        Chunk chunk = entity.getChunk();
+
+        int delta = 1;
+        if (event instanceof HangingBreakByEntityEvent) {
+            Entity remover = ((HangingBreakByEntityEvent) event).getRemover();
+            if (remover instanceof Player) {
+                handleRemoval((Player) remover, chunk, entityType, delta);
+                return;
+            }
+        }
+
+        // Update the cache if it was not broken by a player (but instead by e.g. physics)
+        handleModification(chunk, entityType, -delta);
+    }
+
+    /**
+     * Handles the EntityDeathEvent for Armor Stands.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityDeath(EntityDeathEvent event) {
+        handleEntityRemoval(event.getEntity());
+    }
+
+    /**
+     * Handles the EntityExplodeEvent for End Crystals.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityExplosion(EntityExplodeEvent event) {
+        handleEntityRemoval(event.getEntity());
+    }
+
+    private boolean handleEntityPlace(Player player, Entity entity) {
+        EntityType entityType = entity.getType();
+        if (!LIMITED_ENTITIES.contains(entityType)) return false;
+
+        Chunk chunk = entity.getChunk();
+
+        int delta = 1;
+        if (handleAddition(player, chunk, entityType, delta)) {
+            return true;
+        }
+
+        handleModification(chunk, entityType, delta);
+        return false;
+    }
+
+    private void handleEntityRemoval(Entity entity) {
+        EntityType entityType = entity.getType();
+        if (!LIMITED_ENTITIES.contains(entityType)) return;
+
+        Chunk chunk = entity.getChunk();
+        int delta = 1;
+
+        Optional<Player> player = getPlayerKiller(entity);
+        if (player.isPresent()) {
+            handleRemoval(player.get(), chunk, entityType, delta);
+            return;
+        }
+
+        // Update the cache if it was not removed by a player
+        handleModification(chunk, entityType, -delta);
+    }
+
+    /**
+     * Tries to figure out the player who killed the given entity.
+     */
+    private Optional<Player> getPlayerKiller(Entity entity) {
+        EntityDamageEvent event = entity.getLastDamageCause();
+        if (event instanceof EntityDamageByEntityEvent) {
+            EntityDamageByEntityEvent damageByEntityEvent = (EntityDamageByEntityEvent) event;
+            Entity damager = damageByEntityEvent.getDamager();
+            if (damager instanceof Player) {
+                return Optional.of((Player) damager);
+            } else if (damager instanceof Projectile) {
+                ProjectileSource source = ((Projectile) damager).getShooter();
+                if (source instanceof Player) {
+                    return Optional.of((Player) source);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+}

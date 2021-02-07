@@ -28,6 +28,20 @@ public class DistributionStorage {
         return entities;
     }
 
+    /**
+     * Retrieves the distribution for given item.
+     * Item must be of type Material or EntityType.
+     */
+    @SuppressWarnings("rawtypes")
+    public Distribution distribution(Object item) {
+        if (item instanceof Material) {
+            return materials;
+        } else if (item instanceof EntityType) {
+            return entities;
+        }
+        throw new IllegalArgumentException("Item is of unsupported limit type '" + item.getClass() + "'");
+    }
+
     protected int count(Limit limit) {
         return materials.count(limit.getMaterials()) + entities.count(limit.getEntities());
     }
@@ -38,6 +52,19 @@ public class DistributionStorage {
 
     public int count(Limit limit, EntityType entity) {
         return limit.getType() == LimitType.PERMISSION ? entities.count(entity) : count(limit);
+    }
+
+    /**
+     * Counts the distribution for given limit and item.
+     * Item must be of type Material or EntityType.
+     */
+    public int count(Limit limit, Object item) {
+        if (item instanceof Material) {
+            return count(limit, (Material) item);
+        } else if (item instanceof EntityType) {
+            return count(limit, (EntityType) item);
+        }
+        throw new IllegalArgumentException("Item is of unsupported limit type '" + item.getClass() + "'");
     }
 
     /**
