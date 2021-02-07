@@ -65,6 +65,10 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     }
 
     protected boolean handleAddition(Player player, Chunk chunk, Object item, int delta) {
+        return handleAddition(player, chunk, item, delta, true);
+    }
+
+    protected boolean handleAddition(Player player, Chunk chunk, Object item, int delta, boolean included) {
         UUID uuid = player.getUniqueId();
         UUID worldUid = chunk.getWorld().getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
@@ -97,9 +101,11 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
             // Submit the chunk for scanning
             plugin.getChunkContainerExecutor().submit(chunk).whenComplete((storage, err) -> {
-                // Subtract block from BlockPlaceEvent as it was cancelled
+                // Subtract item if it was included in the scan, because the event was cancelled.
                 // Can't subtract one from the given map, as a copied version is stored.
-                storage.distribution(item).modify(item, -delta);
+                if (included) {
+                    storage.distribution(item).modify(item, -delta);
+                }
 
                 // Notify the user scan completed
                 plugin.getMessages().getMessage(Messages.Key.CHUNK_SCAN_COMPLETED)

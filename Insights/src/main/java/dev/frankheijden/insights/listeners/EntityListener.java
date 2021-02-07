@@ -1,12 +1,15 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.events.EntityRemoveFromWorldEvent;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import org.bukkit.Chunk;
+import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Tameable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -19,20 +22,25 @@ import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.projectiles.ProjectileSource;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 public class EntityListener extends InsightsListener {
 
-    private static final Set<EntityType> LIMITED_ENTITIES = EnumSet.of(
+    protected static final Set<EntityType> LIMITED_ENTITIES = EnumSet.of(
             EntityType.ARMOR_STAND,
             EntityType.ENDER_CRYSTAL,
             EntityType.ITEM_FRAME,
             EntityType.PAINTING
     );
 
+    private final Set<UUID> removedEntities;
+
     public EntityListener(InsightsPlugin plugin) {
         super(plugin);
+        this.removedEntities = new HashSet<>();
     }
 
     /**
@@ -63,6 +71,7 @@ public class EntityListener extends InsightsListener {
         Entity entity = event.getEntity();
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return;
+        removedEntities.add(entity.getUniqueId());
 
         Chunk chunk = entity.getChunk();
 
@@ -95,14 +104,24 @@ public class EntityListener extends InsightsListener {
         handleEntityRemoval(event.getEntity());
     }
 
-    private boolean handleEntityPlace(Player player, Entity entity) {
+    /**
+     * Handles the EntityRemoveFromWorldEvent as "catch-all" for entity removals.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityRemoveFromWorld(EntityRemoveFromWorldEvent event) {
+        if (!LIMITED_ENTITIES.contains(event.getEntityType())) return;
+        if (removedEntities.remove(event.getEntity().getUniqueId())) return;
+        handleEntityRemoval(event.getEntity());
+    }
+
+    protected boolean handleEntityPlace(Player player, Entity entity) {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return false;
 
         Chunk chunk = entity.getChunk();
-
         int delta = 1;
-        if (handleAddition(player, chunk, entityType, delta)) {
+
+        if (handleAddition(player, chunk, entityType, delta, false)) {
             return true;
         }
 
@@ -110,9 +129,10 @@ public class EntityListener extends InsightsListener {
         return false;
     }
 
-    private void handleEntityRemoval(Entity entity) {
+    protected void handleEntityRemoval(Entity entity) {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return;
+        removedEntities.add(entity.getUniqueId());
 
         Chunk chunk = entity.getChunk();
         int delta = 1;
@@ -130,18 +150,29 @@ public class EntityListener extends InsightsListener {
     /**
      * Tries to figure out the player who killed the given entity.
      */
-    private Optional<Player> getPlayerKiller(Entity entity) {
+    protected Optional<Player> getPlayerKiller(Entity entity) {
         EntityDamageEvent event = entity.getLastDamageCause();
         if (event instanceof EntityDamageByEntityEvent) {
-            EntityDamageByEntityEvent damageByEntityEvent = (EntityDamageByEntityEvent) event;
-            Entity damager = damageByEntityEvent.getDamager();
-            if (damager instanceof Player) {
-                return Optional.of((Player) damager);
-            } else if (damager instanceof Projectile) {
-                ProjectileSource source = ((Projectile) damager).getShooter();
-                if (source instanceof Player) {
-                    return Optional.of((Player) source);
-                }
+            return getPlayer(((EntityDamageByEntityEvent) event).getDamager());
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Tries to figure out the player from a given "damager" entity.
+     */
+    protected Optional<Player> getPlayer(Entity damager) {
+        if (damager instanceof Player) {
+            return Optional.of((Player) damager);
+        } else if (damager instanceof Projectile) {
+            ProjectileSource source = ((Projectile) damager).getShooter();
+            if (source instanceof Player) {
+                return Optional.of((Player) source);
+            }
+        } else if (damager instanceof Tameable) {
+            AnimalTamer tamer = ((Tameable) damager).getOwner();
+            if (tamer instanceof Player) {
+                return Optional.of((Player) tamer);
             }
         }
         return Optional.empty();

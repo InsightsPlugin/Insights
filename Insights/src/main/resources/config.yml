@@ -18,6 +18,8 @@ settings:
       done-color: "&a"
       total-color: "&8"
       separator: " "
+  spigot:
+    entity-tracker-interval-ticks: 10
   disabled-listeners:
     - "BlockFromToEvent"
     - "FluidLevelChangeEvent"

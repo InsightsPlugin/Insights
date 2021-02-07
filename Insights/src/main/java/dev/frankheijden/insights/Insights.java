@@ -32,11 +32,14 @@ import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
 import dev.frankheijden.insights.listeners.EntityListener;
+import dev.frankheijden.insights.listeners.PaperEntityListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
+import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import io.leangen.geantyref.TypeToken;
+import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -53,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class Insights extends InsightsPlugin {
@@ -91,6 +95,7 @@ public class Insights extends InsightsPlugin {
     private PlayerList playerList;
     private WorldStorage worldStorage;
     private WorldChunkScanTracker worldChunkScanTracker;
+    private EntityTrackerTask entityTrackerTask;
 
     @Override
     public void onLoad() {
@@ -113,8 +118,7 @@ public class Insights extends InsightsPlugin {
 
         InsightsListener[] disableListeners = new InsightsListener[] {
                 new BlockListener(this),
-                new WorldListener(this),
-                new EntityListener(this)
+                new WorldListener(this)
         };
 
         registerEvents(disableListeners);
@@ -122,6 +126,15 @@ public class Insights extends InsightsPlugin {
                 new ChunkListener(this),
                 new PlayerListener(this)
         );
+
+        if (PaperLib.isPaper()) {
+            registerEvents(new PaperEntityListener(this));
+        } else {
+            registerEvents(new EntityListener(this));
+            entityTrackerTask = new EntityTrackerTask(this);
+            int interval = settings.SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
+            Bukkit.getScheduler().runTaskTimer(this, entityTrackerTask, 0, interval);
+        }
 
         for (Class<?> clazz : settings.DISABLED_EVENTS) {
             HandlerList list = MinecraftReflection.of(clazz).invoke(null, "getHandlerList");
@@ -134,6 +147,10 @@ public class Insights extends InsightsPlugin {
         if (settings.CHUNK_SCAN_MODE == Settings.ChunkScanMode.ALWAYS) {
             Bukkit.getScheduler().runTaskTimerAsynchronously(this, new PlayerTrackerTask(this), 0, 1);
         }
+    }
+
+    public Optional<EntityTrackerTask> getEntityTracker() {
+        return Optional.ofNullable(entityTrackerTask);
     }
 
     @Override
