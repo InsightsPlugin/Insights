@@ -20,6 +20,7 @@ settings:
       separator: " "
   spigot:
     entity-tracker-interval-ticks: 10
+  apply-piston-limits: true
   disabled-listeners:
     - "BlockFromToEvent"
     - "FluidLevelChangeEvent"

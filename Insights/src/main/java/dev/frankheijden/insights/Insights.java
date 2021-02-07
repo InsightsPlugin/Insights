@@ -33,6 +33,7 @@ import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
 import dev.frankheijden.insights.listeners.EntityListener;
 import dev.frankheijden.insights.listeners.PaperEntityListener;
+import dev.frankheijden.insights.listeners.PistonListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
 import dev.frankheijden.insights.tasks.EntityTrackerTask;
@@ -134,6 +135,10 @@ public class Insights extends InsightsPlugin {
             entityTrackerTask = new EntityTrackerTask(this);
             int interval = settings.SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
             Bukkit.getScheduler().runTaskTimer(this, entityTrackerTask, 0, interval);
+        }
+
+        if (settings.APPLY_PISTON_LIMITS) {
+            registerEvents(new PistonListener(this));
         }
 
         for (Class<?> clazz : settings.DISABLED_EVENTS) {
