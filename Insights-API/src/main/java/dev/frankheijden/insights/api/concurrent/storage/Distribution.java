@@ -35,7 +35,6 @@ public class Distribution<E> {
      * Modifies the distribution of given item by an integer amount.
      */
     public void modify(E item, int amount) {
-        System.out.println(item + " " + amount);
         distributionMap.compute(item, (e, count) -> {
             if (count == null) count = 0;
             return Math.max(0, count + amount);
