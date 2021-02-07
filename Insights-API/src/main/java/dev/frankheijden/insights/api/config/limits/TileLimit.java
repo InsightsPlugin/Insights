@@ -4,6 +4,7 @@ import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import java.util.Collections;
 import java.util.Set;
 
@@ -20,13 +21,13 @@ public class TileLimit extends Limit {
         return new TileLimit(info);
     }
 
-    /**
-     * Returns the list of materials that are associated to the given material.
-     * For TileLimit's, a block is associated to all other tiles.
-     * If the given material is not a Tile, an empty set is returned.
-     */
     @Override
-    public Set<Material> getMaterials(Material m) {
-        return RTileEntityTypes.isTileEntity(m) ? RTileEntityTypes.getTileEntityMaterials() : Collections.emptySet();
+    public Set<Material> getMaterials() {
+        return RTileEntityTypes.getTileEntityMaterials();
+    }
+
+    @Override
+    public Set<EntityType> getEntities() {
+        return Collections.emptySet();
     }
 }

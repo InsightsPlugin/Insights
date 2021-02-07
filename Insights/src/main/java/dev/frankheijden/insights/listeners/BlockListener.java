@@ -3,8 +3,9 @@ package dev.frankheijden.insights.listeners;
 import com.destroystokyo.paper.MaterialTags;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
-import dev.frankheijden.insights.api.concurrent.storage.ChunkDistributionStorage;
-import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.ChunkStorage;
+import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.config.LimitEnvironment;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Settings;
@@ -43,7 +44,7 @@ import org.bukkit.event.block.SpongeAbsorbEvent;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.IntConsumer;
+import java.util.function.Consumer;
 
 public class BlockListener extends InsightsListener {
 
@@ -80,8 +81,9 @@ public class BlockListener extends InsightsListener {
         // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
         Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, env);
 
-        WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
-        ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);
+        WorldStorage worldStorage = plugin.getWorldStorage();
+        ChunkStorage chunkStorage = worldStorage.getWorld(worldUid);
+        Optional<DistributionStorage> storageOptional = chunkStorage.get(chunkKey);
 
         // In case of BlockMultiPlaceEvent, we need to take a different delta.
         int delta = event instanceof BlockMultiPlaceEvent
@@ -89,7 +91,7 @@ public class BlockListener extends InsightsListener {
                 : 1;
 
         // If a limit is present, the chunk is not known, and ChunkScanMode is set to MODIFICATION, scan the chunk
-        if (limitOptional.isPresent() && !chunkStorage.contains(chunkKey)
+        if (limitOptional.isPresent() && !storageOptional.isPresent()
                 && plugin.getSettings().CHUNK_SCAN_MODE == Settings.ChunkScanMode.MODIFICATION) {
             // Notify the user scan started
             plugin.getMessages().getMessage(Messages.Key.CHUNK_SCAN_STARTED)
@@ -97,12 +99,10 @@ public class BlockListener extends InsightsListener {
                     .sendTo(player);
 
             // Submit the chunk for scanning
-            plugin.getChunkContainerExecutor().submit(chunk, true).whenComplete((map, err) -> {
+            plugin.getChunkContainerExecutor().submit(chunk).whenComplete((storage, err) -> {
                 // Subtract block from BlockPlaceEvent as it was cancelled
                 // Can't subtract one from the given map, as a copied version is stored.
-                if (map.containsKey(material)) {
-                    chunkStorage.modify(chunkKey, material, -delta);
-                }
+                storage.materials().modify(material, -delta);
 
                 // Notify the user scan completed
                 plugin.getMessages().getMessage(Messages.Key.CHUNK_SCAN_COMPLETED)
@@ -113,9 +113,10 @@ public class BlockListener extends InsightsListener {
             return;
         }
 
-        if (limitOptional.isPresent()) {
+        if (limitOptional.isPresent() && storageOptional.isPresent()) {
             Limit limit = limitOptional.get();
-            int count = chunkStorage.count(chunkKey, limit.getMaterials(material)).orElse(0);
+            DistributionStorage storage = storageOptional.get();
+            int count = storage.count(limit, material);
 
             // If count is beyond limit, act
             if (count + delta > limit.getLimit()) {
@@ -169,9 +170,10 @@ public class BlockListener extends InsightsListener {
         int delta = Tag.BEDS.isTagged(material) ? 2 : 1;
 
         // Modify the chunk to account for the broken block.
-        WorldDistributionStorage worldStorage = plugin.getWorldDistributionStorage();
-        ChunkDistributionStorage chunkStorage = worldStorage.getChunkDistribution(worldUid);
-        chunkStorage.modify(chunkKey, material, -delta);
+        WorldStorage worldStorage = plugin.getWorldStorage();
+        ChunkStorage chunkStorage = worldStorage.getWorld(worldUid);
+        Optional<DistributionStorage> storageOptional = chunkStorage.get(chunkKey);
+        storageOptional.ifPresent(storage -> storage.materials().modify(material, -delta));
 
         // Notify the user (if they have permission)
         if (player.hasPermission("insights.notifications")) {
@@ -189,7 +191,8 @@ public class BlockListener extends InsightsListener {
             Limit limit = limitOptional.get();
 
             // Create a runnable for the notification.
-            IntConsumer notification = count -> {
+            Consumer<DistributionStorage> notification = storage -> {
+                int count = storage.count(limit, material);
                 double progress = (double) count / limit.getLimit();
                 plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                         .progress(progress)
@@ -205,16 +208,15 @@ public class BlockListener extends InsightsListener {
             };
 
             // If the data is already stored, send the notification immediately.
-            Optional<Integer> countOptional = chunkStorage.count(chunkKey, limit.getMaterials(material));
-            if (countOptional.isPresent()) {
-                notification.accept(countOptional.get());
+            if (storageOptional.isPresent()) {
+                notification.accept(storageOptional.get());
             } else { // Else, we need to scan the chunk first.
-                plugin.getChunkContainerExecutor().submit(chunk, true).thenRun(() -> {
+                plugin.getChunkContainerExecutor().submit(chunk).thenAccept(storage -> {
                     // Subtract the broken block, as the first modification failed (we had to scan the chunk)
-                    chunkStorage.modify(chunkKey, material, -delta);
+                    storage.materials().modify(material, -delta);
 
                     // Notify the user
-                    notification.accept(chunkStorage.count(chunkKey, limit.getMaterials(material)).orElse(0));
+                    notification.accept(storage);
                 });
             }
         }

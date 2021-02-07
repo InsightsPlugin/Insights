@@ -16,6 +16,6 @@ public class ChunkListener extends InsightsListener {
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         Chunk chunk = event.getChunk();
-        plugin.getWorldDistributionStorage().remove(chunk.getWorld().getUID(), ChunkUtils.getKey(chunk));
+        plugin.getWorldStorage().getWorld(chunk.getWorld().getUID()).remove(ChunkUtils.getKey(chunk));
     }
 }

@@ -1,56 +1,51 @@
 package dev.frankheijden.insights.api.concurrent.storage;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import dev.frankheijden.insights.api.config.limits.Limit;
+import dev.frankheijden.insights.api.config.limits.LimitType;
+import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class DistributionStorage<T, E> {
+public class DistributionStorage {
 
-    protected final Map<T, Map<E, Integer>> distributionMap;
+    private final Distribution<Material> materials;
+    private final Distribution<EntityType> entities;
 
-    protected DistributionStorage(Map<T, Map<E, Integer>> distributionMap) {
-        this.distributionMap = distributionMap;
+    public DistributionStorage() {
+        this(new Distribution<>(new ConcurrentHashMap<>()), new Distribution<>(new ConcurrentHashMap<>()));
     }
 
-    public Set<T> getKeys() {
-        return distributionMap.keySet();
+    public DistributionStorage(Distribution<Material> materials, Distribution<EntityType> entities) {
+        this.materials = materials.copy(new ConcurrentHashMap<>());
+        this.entities = entities.copy(new ConcurrentHashMap<>());
+    }
+
+    public Distribution<Material> materials() {
+        return materials;
+    }
+
+    public Distribution<EntityType> entities() {
+        return entities;
+    }
+
+    protected int count(Limit limit) {
+        return materials.count(limit.getMaterials()) + entities.count(limit.getEntities());
+    }
+
+    public int count(Limit limit, Material material) {
+        return limit.getType() == LimitType.PERMISSION ? materials.count(material) : count(limit);
+    }
+
+    public int count(Limit limit, EntityType entity) {
+        return limit.getType() == LimitType.PERMISSION ? entities.count(entity) : count(limit);
     }
 
     /**
-     * Counts the distribution of specified items at given key.
+     * Merges the current instance with another distribution.
+     * Note: the merged values will be in the target.
      */
-    public Optional<Integer> count(T key, Collection<? extends E> items) {
-        Map<E, Integer> distribution = distributionMap.get(key);
-        if (distribution == null) return Optional.empty();
-
-        int count = 0;
-        for (E item : items) {
-            count += distribution.getOrDefault(item, 0);
-        }
-        return Optional.of(count);
-    }
-
-    /**
-     * Modifies the cache of given key & item by amount.
-     */
-    public void modify(T key, E item, int amount) {
-        Map<E, Integer> distribution = distributionMap.get(key);
-        if (distribution == null) return;
-        int count = distribution.getOrDefault(item, 0);
-        distribution.put(item, Math.max(0, count + amount));
-    }
-
-    public void put(T key, Map<E, Integer> map) {
-        distributionMap.put(key, new ConcurrentHashMap<>(map));
-    }
-
-    public void remove(T key) {
-        distributionMap.remove(key);
-    }
-
-    public boolean contains(T key) {
-        return distributionMap.containsKey(key);
+    public void merge(DistributionStorage target) {
+        target.materials.merge(materials);
+        target.entities.merge(entities);
     }
 }

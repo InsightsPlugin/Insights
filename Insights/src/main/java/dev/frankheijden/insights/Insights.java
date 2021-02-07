@@ -12,7 +12,7 @@ import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
-import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
@@ -88,7 +88,7 @@ public class Insights extends InsightsPlugin {
     private ContainerExecutor executor;
     private ChunkContainerExecutor chunkContainerExecutor;
     private PlayerList playerList;
-    private WorldDistributionStorage worldDistributionStorage;
+    private WorldStorage worldStorage;
     private WorldChunkScanTracker worldChunkScanTracker;
 
     @Override
@@ -103,10 +103,10 @@ public class Insights extends InsightsPlugin {
         reloadConfigs();
 
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
-        worldDistributionStorage = new WorldDistributionStorage();
+        worldStorage = new WorldStorage();
         worldChunkScanTracker = new WorldChunkScanTracker();
         executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
-        chunkContainerExecutor = new ChunkContainerExecutor(executor, worldDistributionStorage, worldChunkScanTracker);
+        chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
 
         loadCommands();
 
@@ -270,8 +270,8 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
-    public WorldDistributionStorage getWorldDistributionStorage() {
-        return worldDistributionStorage;
+    public WorldStorage getWorldStorage() {
+        return worldStorage;
     }
 
     @Override

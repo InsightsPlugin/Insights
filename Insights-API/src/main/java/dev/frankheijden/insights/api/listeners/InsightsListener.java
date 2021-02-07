@@ -1,7 +1,7 @@
 package dev.frankheijden.insights.api.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.concurrent.storage.WorldDistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.Distribution;
 import dev.frankheijden.insights.api.objects.InsightsBase;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
@@ -36,10 +36,10 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     protected void handleModification(Chunk chunk, Material from, Material to, int amount) {
         UUID worldUid = chunk.getWorld().getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
-
-        // Update the cache
-        WorldDistributionStorage storage = plugin.getWorldDistributionStorage();
-        storage.modify(worldUid, chunkKey, from, -amount);
-        storage.modify(worldUid, chunkKey, to, amount);
+        plugin.getWorldStorage().getWorld(worldUid).get(chunkKey).ifPresent(storage -> {
+            Distribution<Material> distribution = storage.materials();
+            distribution.modify(from, -amount);
+            distribution.modify(to, amount);
+        });
     }
 }
