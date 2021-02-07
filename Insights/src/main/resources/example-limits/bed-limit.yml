@@ -1,0 +1,10 @@
+# This is an example group limit for beds. This regex limit will limit all beds to 64 per chunk / addon area.
+# Please note that you must escape \ as "\\"
+limit:
+  name: "Beds"
+  type: "GROUP"
+  bypass-permission: "insights.bypass.limit.beds"
+  limit: 64
+  regex: true
+  materials:
+    - "^.*_BED\\b"

@@ -164,6 +164,18 @@ public abstract class YamlParser {
     }
 
     /**
+     * Parses an enum array at given path, using regex.
+     */
+    public <E extends Enum<E>> List<E> getRegexEnums(String path, Class<E> clazz) {
+        List<String> strings = getList(path);
+        List<E> enums = new ArrayList<>(strings.size());
+        for (String regex : strings) {
+            enums.addAll(EnumUtils.getEnumsByRegex(regex, clazz));
+        }
+        return enums;
+    }
+
+    /**
      * Parses an enum array at given path.
      */
     public <E extends Enum<E>> List<E> getEnums(String path, Class<E> clazz) {

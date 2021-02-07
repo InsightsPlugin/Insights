@@ -24,8 +24,13 @@ public class GroupLimit extends Limit {
      * Parses a GroupLimit.
      */
     public static GroupLimit parse(YamlParser parser, Info info) throws YamlParseException {
-        List<Material> materials = parser.getEnums("limit.materials", Material.class, "material");
-        List<EntityType> entities = parser.getEnums("limit.entities", EntityType.class, "entity");
+        boolean regex = parser.getBoolean("limit.regex", false, false);
+        List<Material> materials = regex
+                ? parser.getRegexEnums("limit.materials", Material.class)
+                : parser.getEnums("limit.materials", Material.class, "material");
+        List<EntityType> entities = regex
+                ? parser.getRegexEnums("limit.entities", EntityType.class)
+                : parser.getEnums("limit.entities", EntityType.class, "entity");
         return new GroupLimit(
                 info,
                 materials.isEmpty() ? Collections.emptySet() : EnumSet.copyOf(materials),
