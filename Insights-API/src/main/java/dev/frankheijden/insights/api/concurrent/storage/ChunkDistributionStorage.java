@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.concurrent.storage;
 
+import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import java.util.Map;
@@ -12,10 +13,6 @@ public class ChunkDistributionStorage extends DistributionStorage<Long, Material
     }
 
     public void put(Chunk chunk, Map<Material, Integer> map) {
-        put(chunk.getChunkKey(), map);
-    }
-
-    public void remove(Chunk chunk) {
-        remove(chunk.getChunkKey());
+        put(ChunkUtils.getKey(chunk), map);
     }
 }
