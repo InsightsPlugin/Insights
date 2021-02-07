@@ -73,7 +73,7 @@ public class EntityListener extends InsightsListener {
         if (!LIMITED_ENTITIES.contains(entityType)) return;
         removedEntities.add(entity.getUniqueId());
 
-        Chunk chunk = entity.getChunk();
+        Chunk chunk = entity.getLocation().getChunk();
 
         int delta = 1;
         if (event instanceof HangingBreakByEntityEvent) {
@@ -118,7 +118,7 @@ public class EntityListener extends InsightsListener {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return false;
 
-        Chunk chunk = entity.getChunk();
+        Chunk chunk = entity.getLocation().getChunk();
         int delta = 1;
 
         if (handleAddition(player, chunk, entityType, delta, false)) {
@@ -134,7 +134,7 @@ public class EntityListener extends InsightsListener {
         if (!LIMITED_ENTITIES.contains(entityType)) return;
         removedEntities.add(entity.getUniqueId());
 
-        Chunk chunk = entity.getChunk();
+        Chunk chunk = entity.getLocation().getChunk();
         int delta = 1;
 
         Optional<Player> player = getPlayerKiller(entity);
