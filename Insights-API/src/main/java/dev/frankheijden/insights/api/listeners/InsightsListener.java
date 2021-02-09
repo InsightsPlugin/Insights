@@ -108,7 +108,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
         Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
-        if (!limitOptional.isPresent()) return true;
+        if (!limitOptional.isPresent()) return false;
         Limit limit = limitOptional.get();
 
         Consumer<DistributionStorage> storageConsumer = storage -> {
