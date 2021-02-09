@@ -113,8 +113,8 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         Consumer<DistributionStorage> storageConsumer = storage -> {
             // Subtract item if it was included in the scan, because the event was cancelled.
-            // Can't subtract one from the given map, as a copied version is stored.
-            if (included) {
+            // Only iff the block was included in the chunk AND its not a cuboid/area scan.
+            if (included && !cuboidOptional.isPresent()) {
                 storage.distribution(item).modify(item, -delta);
             }
 
@@ -214,44 +214,40 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
                     .color()
                     .sendTo(player);
 
-            // Submit the cuboid for scanning
-            plugin.getAddonScanTracker().add(cuboid.getAddon());
-            ScanTask.scan(plugin, player, cuboid.toChunkParts(), storage -> {
-                plugin.getAddonScanTracker().remove(cuboid.getAddon());
-
-                // Store the cuboid
-                plugin.getAddonStorage().put(key, storage);
-
-                // Give the result back to the consumer
-                storageConsumer.accept(storage);
-            });
-
+            scanCuboid(player, cuboid, storageConsumer);
             return Optional.empty();
         }
         return storageOptional;
     }
 
     protected void handleRemoval(Player player, Location location, Object item, int delta) {
+        Optional<AddonCuboid> cuboidOptional = plugin.getAddonManager().getCuboid(location);
         Chunk chunk = location.getChunk();
-        UUID uuid = player.getUniqueId();
         UUID worldUid = chunk.getWorld().getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
+        UUID uuid = player.getUniqueId();
 
-        // Modify the chunk to account for the broken block.
-        WorldStorage worldStorage = plugin.getWorldStorage();
-        ChunkStorage chunkStorage = worldStorage.getWorld(worldUid);
-        Optional<DistributionStorage> storageOptional = chunkStorage.get(chunkKey);
+        boolean queued;
+        LimitEnvironment env;
+        Optional<DistributionStorage> storageOptional;
+        if (cuboidOptional.isPresent()) {
+            AddonCuboid cuboid = cuboidOptional.get();
+            queued = plugin.getAddonScanTracker().isQueued(cuboid.getKey());
+            env = new LimitEnvironment(player, worldUid, cuboid.getAddon());
+            storageOptional = plugin.getAddonStorage().get(cuboid.getKey());
+        } else {
+            queued = plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey);
+            env = new LimitEnvironment(player, worldUid);
+            storageOptional = plugin.getWorldStorage().getWorld(worldUid).get(chunkKey);
+        }
+
+        // Modify the area to account for the broken block.
         storageOptional.ifPresent(storage -> storage.distribution(item).modify(item, -delta));
 
         // Notify the user (if they have permission)
         if (player.hasPermission("insights.notifications")) {
-            // If the chunk is queued, stop check here (notification will be displayed when it completes).
-            if (plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey)) {
-                return;
-            }
-
-            // Create limit environment
-            LimitEnvironment env = new LimitEnvironment(player, worldUid);
+            // If the area is queued, stop check here (notification will be displayed when it completes).
+            if (queued) return;
 
             // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
             Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
@@ -278,15 +274,38 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             // If the data is already stored, send the notification immediately.
             if (storageOptional.isPresent()) {
                 notification.accept(storageOptional.get());
-            } else { // Else, we need to scan the chunk first.
-                plugin.getChunkContainerExecutor().submit(chunk).thenAccept(storage -> {
-                    // Subtract the broken block, as the first modification failed (we had to scan the chunk)
-                    storage.distribution(item).modify(item, -delta);
+                return;
+            }
 
-                    // Notify the user
-                    notification.accept(storage);
-                });
+            // Else, we need to scan the area first.
+            Consumer<DistributionStorage> storageConsumer = storage -> {
+                // Subtract the broken block, as the first modification failed (we had to scan the chunk)
+                // Only if we're not scanning a cuboid (iff cuboid, the block is already removed from the chunk)
+                if (!cuboidOptional.isPresent()) storage.distribution(item).modify(item, -delta);
+
+                // Notify the user
+                notification.accept(storage);
+            };
+
+            if (cuboidOptional.isPresent()) {
+                scanCuboid(player, cuboidOptional.get(), storageConsumer);
+            } else {
+                plugin.getChunkContainerExecutor().submit(chunk).thenAccept(storageConsumer);
             }
         }
+    }
+
+    private void scanCuboid(Player player, AddonCuboid cuboid, Consumer<DistributionStorage> storageConsumer) {
+        // Submit the cuboid for scanning
+        plugin.getAddonScanTracker().add(cuboid.getAddon());
+        ScanTask.scan(plugin, player, cuboid.toChunkParts(), storage -> {
+            plugin.getAddonScanTracker().remove(cuboid.getAddon());
+
+            // Store the cuboid
+            plugin.getAddonStorage().put(cuboid.getKey(), storage);
+
+            // Give the result back to the consumer
+            storageConsumer.accept(storage);
+        });
     }
 }
