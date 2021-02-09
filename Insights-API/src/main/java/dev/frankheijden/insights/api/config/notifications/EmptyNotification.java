@@ -32,4 +32,9 @@ public class EmptyNotification implements Notification {
             }
         };
     }
+
+    @Override
+    public void clear() {
+        // Nothing to clear
+    }
 }
