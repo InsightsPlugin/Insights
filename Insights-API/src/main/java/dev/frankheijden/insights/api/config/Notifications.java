@@ -78,6 +78,20 @@ public class Notifications {
         return get(progressNotificationFactory, messageKey);
     }
 
+    /**
+     * Clears all notifications.
+     */
+    public void clearNotifications() {
+        for (Cache<Notification> cache : notificationMap.values()) {
+            cache.getNotification().clear();
+        }
+        notificationMap.clear();
+        for (Cache<ProgressNotification> cache : progressNotificationMap.values()) {
+            cache.getNotification().clear();
+        }
+        progressNotificationMap.clear();
+    }
+
     private static final class Cache<T extends Notification> {
 
         private final T notification;

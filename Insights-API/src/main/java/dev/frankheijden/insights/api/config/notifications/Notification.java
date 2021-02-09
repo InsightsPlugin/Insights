@@ -8,4 +8,6 @@ public interface Notification {
 
     SendableNotification create();
 
+    void clear();
+
 }

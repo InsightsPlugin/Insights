@@ -154,6 +154,11 @@ public class Insights extends InsightsPlugin {
         }
     }
 
+    @Override
+    public void onDisable() {
+        notifications.clearNotifications();
+    }
+
     public Optional<EntityTrackerTask> getEntityTracker() {
         return Optional.ofNullable(entityTrackerTask);
     }

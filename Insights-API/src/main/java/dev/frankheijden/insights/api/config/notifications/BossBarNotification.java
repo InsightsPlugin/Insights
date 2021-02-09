@@ -41,4 +41,13 @@ public class BossBarNotification implements Notification {
             }
         };
     }
+
+    @Override
+    public void clear() {
+        bossBar.removeAll();
+        bossBar.setVisible(false);
+        if (task != null) {
+            task.cancel();
+        }
+    }
 }
