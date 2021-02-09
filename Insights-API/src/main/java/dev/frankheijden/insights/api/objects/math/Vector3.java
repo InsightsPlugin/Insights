@@ -1,5 +1,7 @@
 package dev.frankheijden.insights.api.objects.math;
 
+import java.util.Objects;
+
 public class Vector3 {
 
     protected final int x;
@@ -25,5 +27,18 @@ public class Vector3 {
 
     public int getZ() {
         return z;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vector3 vector3 = (Vector3) o;
+        return x == vector3.x && y == vector3.y && z == vector3.z;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, z);
     }
 }

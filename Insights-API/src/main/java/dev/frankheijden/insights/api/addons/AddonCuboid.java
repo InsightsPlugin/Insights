@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.addons;
 import dev.frankheijden.insights.api.objects.math.Cuboid;
 import dev.frankheijden.insights.api.objects.math.Vector3;
 import org.bukkit.World;
+import java.util.Objects;
 
 public class AddonCuboid extends Cuboid {
 
@@ -25,5 +26,19 @@ public class AddonCuboid extends Cuboid {
 
     public String getKey() {
         return key;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        AddonCuboid cuboid = (AddonCuboid) o;
+        return addon.equals(cuboid.addon) && key.equals(cuboid.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), addon, key);
     }
 }

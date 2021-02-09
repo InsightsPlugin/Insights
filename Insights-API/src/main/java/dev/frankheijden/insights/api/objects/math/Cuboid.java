@@ -7,6 +7,7 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
 import org.bukkit.World;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Cuboid {
 
@@ -65,5 +66,18 @@ public class Cuboid {
             }
         }
         return parts;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Cuboid cuboid = (Cuboid) o;
+        return world.equals(cuboid.world) && min.equals(cuboid.min) && max.equals(cuboid.max);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(world, min, max);
     }
 }
