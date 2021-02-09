@@ -26,6 +26,7 @@ public class ActionBarProgressNotification extends ActionBarNotification impleme
 
     @Override
     public ActionBarProgressNotification progress(double progress) {
+        progress = Math.max(0, Math.min(1, progress));
         int cut = (int) (progress * segments);
         StringBuilder sb = new StringBuilder(segments * progressSequence.length()
                 + doneColor.length()
