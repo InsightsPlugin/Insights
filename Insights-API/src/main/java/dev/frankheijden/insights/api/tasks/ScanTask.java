@@ -94,6 +94,42 @@ public class ScanTask implements Runnable {
     }
 
     /**
+     * Creates a new ScanTask to scan a collection of ChunkPart's.
+     * Notifies the user with a ProgressNotification for the task.
+     * When this task completes, the consumer is called on the main thread.
+     */
+    public static void scan(
+            InsightsPlugin plugin,
+            Player player,
+            Collection<? extends ChunkPart> chunkParts,
+            Consumer<DistributionStorage> distributionConsumer
+    ) {
+        // Create a notification for the task
+        ProgressNotification notification = plugin.getNotifications().getCachedProgress(
+                player.getUniqueId(),
+                Messages.Key.SCAN_PROGRESS
+        );
+        notification.add(player);
+
+        new ScanTask(
+                plugin,
+                chunkParts,
+                plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
+                info -> {
+                    // Update the notification with progress
+                    double progress = (double) info.getChunksDone() / (double) info.getChunks();
+                    notification.progress(progress)
+                            .create()
+                            .replace("percentage", StringUtils.prettyOneDecimal(progress * 100.))
+                            .color()
+                            .send();
+                },
+                plugin.getSettings().SCANS_INFO_INTERVAL_MILLIS,
+                distributionConsumer
+        ).start();
+    }
+
+    /**
      * Scans the defined chunks for a given player, looking for materials.
      * The output of the task (when it completes) will be displayed to the user.
      */
@@ -117,13 +153,6 @@ public class ScanTask implements Runnable {
 
         int chunkCount = chunkParts.size();
 
-        // Create a notification for the task
-        ProgressNotification notification = plugin.getNotifications().getCachedProgress(
-                player.getUniqueId(),
-                Messages.Key.SCAN_PROGRESS
-        );
-        notification.add(player);
-
         // Notify about scan start
         plugin.getMessages().getMessage(Messages.Key.SCAN_START)
                 .replace(
@@ -134,15 +163,7 @@ public class ScanTask implements Runnable {
 
         // Start the scan
         final long start = System.nanoTime();
-        ScanTask.scan(plugin, chunkParts, info -> {
-            // Update the notification with progress
-            double progress = (double) info.getChunksDone() / (double) info.getChunks();
-            notification.progress(progress)
-                    .create()
-                    .replace("percentage", StringUtils.prettyOneDecimal(progress * 100.))
-                    .color()
-                    .send();
-        }, storage -> {
+        ScanTask.scan(plugin, player, chunkParts, storage -> {
             // The time it took to generate the results
             @SuppressWarnings("VariableDeclarationUsageDistance")
             long millis = (System.nanoTime() - start) / 1000000L;

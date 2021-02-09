@@ -1,9 +1,9 @@
 messages:
   prefix: "&b&lInsights &8&l» "
   configs-reloaded: "<prefix>&3All configurations have been reloaded!"
-  chunk-scan-started: "<prefix>&3Please wait while we scan this chunk..."
-  chunk-scan-queued: "<prefix>&cChunk is currently queued for scanning..."
-  chunk-scan-completed: "<actionbar>&bScan completed!"
+  area-scan-started: "<prefix>&3Please wait while we scan this %area%..."
+  area-scan-queued: "<prefix>&cThis %area% is currently queued for scanning..."
+  area-scan-completed: "<actionbar>&bScan completed!"
   limit-reached: "<prefix>&cYou have reached the limit of %limit%x %name% in this %area%. Please remove some."
   limit-notification: "&3%name%: &b%count%&3/&b%limit%"
   scan:

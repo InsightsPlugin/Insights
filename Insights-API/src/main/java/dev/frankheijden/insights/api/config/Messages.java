@@ -36,9 +36,9 @@ public class Messages {
     public enum Key {
         PREFIX("prefix"),
         CONFIGS_RELOADED("configs-reloaded"),
-        CHUNK_SCAN_STARTED("chunk-scan-started"),
-        CHUNK_SCAN_QUEUED("chunk-scan-queued"),
-        CHUNK_SCAN_COMPLETED("chunk-scan-completed"),
+        AREA_SCAN_STARTED("area-scan-started"),
+        AREA_SCAN_QUEUED("area-scan-queued"),
+        AREA_SCAN_COMPLETED("area-scan-completed"),
         LIMIT_REACHED("limit-reached"),
         LIMIT_NOTIFICATION("limit-notification"),
         SCAN_START("scan.start"),

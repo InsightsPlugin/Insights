@@ -8,11 +8,14 @@ import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator;
 import cloud.commandframework.meta.SimpleCommandMeta;
 import cloud.commandframework.paper.PaperCommandManager;
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
+import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
+import dev.frankheijden.insights.api.concurrent.tracker.AddonScanTracker;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
@@ -91,11 +94,14 @@ public class Insights extends InsightsPlugin {
     private Messages messages;
     private Notifications notifications;
     private Limits limits;
+    private AddonManager addonManager;
     private ContainerExecutor executor;
     private ChunkContainerExecutor chunkContainerExecutor;
     private PlayerList playerList;
     private WorldStorage worldStorage;
+    private AddonStorage addonStorage;
     private WorldChunkScanTracker worldChunkScanTracker;
+    private AddonScanTracker addonScanTracker;
     private EntityTrackerTask entityTrackerTask;
 
     @Override
@@ -109,9 +115,19 @@ public class Insights extends InsightsPlugin {
         super.onEnable();
         reloadConfigs();
 
+        addonManager = new AddonManager(this, getDataFolder().toPath().resolve("addons"));
+        try {
+            addonManager.createAddonsFolder();
+            addonManager.loadAddons();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
         worldStorage = new WorldStorage();
+        addonStorage = new AddonStorage();
         worldChunkScanTracker = new WorldChunkScanTracker();
+        addonScanTracker = new AddonScanTracker();
         executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
 
@@ -279,6 +295,11 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
+    public AddonManager getAddonManager() {
+        return addonManager;
+    }
+
+    @Override
     public Notifications getNotifications() {
         return notifications;
     }
@@ -304,8 +325,18 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
+    public AddonStorage getAddonStorage() {
+        return addonStorage;
+    }
+
+    @Override
     public WorldChunkScanTracker getWorldChunkScanTracker() {
         return worldChunkScanTracker;
+    }
+
+    @Override
+    public AddonScanTracker getAddonScanTracker() {
+        return addonScanTracker;
     }
 
     @Override
