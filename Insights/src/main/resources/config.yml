@@ -2,7 +2,7 @@ settings:
   scans:
     concurrent-threads: -1
     iteration-interval-ticks: 1
-    chunks-per-iteration: 2
+    chunks-per-iteration: 4
     info-interval-millis: 50
   chunk-scan-mode: "MODIFICATION"
   notification:
@@ -24,6 +24,8 @@ settings:
   disabled-listeners:
     - "BlockFromToEvent"
     - "FluidLevelChangeEvent"
+    - "SpongeAbsorbEvent"
+    - "LeavesDecayEvent"
   worldedit-integration:
     enabled: true
     type: "REPLACEMENT"
