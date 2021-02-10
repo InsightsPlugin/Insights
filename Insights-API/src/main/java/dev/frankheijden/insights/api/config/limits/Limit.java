@@ -19,17 +19,15 @@ public abstract class Limit {
     private static final String LIMIT_SECTION = "limit";
 
     private final LimitType type;
-    private final String name;
     private final String bypassPermission;
     private final LimitSettings settings;
 
     protected Limit(LimitType type, Info info) {
-        this(type, info.getName(), info.getBypassPermission(), info.getSettings());
+        this(type, info.getBypassPermission(), info.getSettings());
     }
 
-    protected Limit(LimitType type, String name, String bypassPermission, LimitSettings settings) {
+    protected Limit(LimitType type, String bypassPermission, LimitSettings settings) {
         this.type = type;
-        this.name = name;
         this.bypassPermission = bypassPermission;
         this.settings = settings;
     }
@@ -45,8 +43,6 @@ public abstract class Limit {
 
         LimitType type = parser.getEnum("limit.type", LimitType.class);
         if (type == null) throw new LimitParseException("Invalid limit type!");
-
-        String name = parser.getString("limit.name", null, true);
         String bypassPermission = parser.getString("limit.bypass-permission", null, false);
 
         boolean worldWhitelist = parser.getBoolean("limit.settings.enabled-worlds.whitelist", false, false);
@@ -66,7 +62,7 @@ public abstract class Limit {
 
         LimitSettings settings = new LimitSettings(worlds, worldWhitelist, addons, addonWhitelist, worldEdit);
 
-        Info info = new Info(name, bypassPermission, settings);
+        Info info = new Info(bypassPermission, settings);
         switch (type) {
             case TILE: return TileLimit.parse(parser, info);
             case GROUP: return GroupLimit.parse(parser, info);
@@ -79,15 +75,11 @@ public abstract class Limit {
         return type;
     }
 
-    public String getName() {
-        return name;
-    }
-
     /**
      * Retrieves the limit of a limited object.
      * Note: item must be of type Material or EntityType!
      */
-    public int getLimit(Object item) {
+    public LimitInfo getLimit(Object item) {
         if (item instanceof Material) {
             return getLimit((Material) item);
         } else if (item instanceof EntityType) {
@@ -96,9 +88,9 @@ public abstract class Limit {
         throw new IllegalArgumentException("Unknown limited item: " + item);
     }
 
-    public abstract int getLimit(Material m);
+    public abstract LimitInfo getLimit(Material m);
 
-    public abstract int getLimit(EntityType e);
+    public abstract LimitInfo getLimit(EntityType e);
 
     public String getBypassPermission() {
         return bypassPermission;
@@ -120,21 +112,15 @@ public abstract class Limit {
 
     public static class Info {
 
-        private final String name;
         private final String bypassPermission;
         private final LimitSettings settings;
 
         /**
          * Constructs an Info object holding basic information of a limit.
          */
-        public Info(String name, String bypassPermission, LimitSettings settings) {
-            this.name = name;
+        public Info(String bypassPermission, LimitSettings settings) {
             this.bypassPermission = bypassPermission;
             this.settings = settings;
-        }
-
-        public String getName() {
-            return name;
         }
 
         public String getBypassPermission() {

@@ -29,7 +29,7 @@ public class Limits {
      */
     public Limits() {
         limits = new ArrayList<>();
-        tileLimits = new TreeSet<>(comparingInt(tileLimit -> tileLimit.getLimit(Material.AIR)));
+        tileLimits = new TreeSet<>(comparingInt(tileLimit -> tileLimit.getLimit(Material.AIR).getLimit()));
         materialLimits = new EnumMap<>(Material.class);
         entityLimits = new EnumMap<>(EntityType.class);
     }
@@ -43,10 +43,14 @@ public class Limits {
             this.tileLimits.add((TileLimit) limit);
         } else {
             for (Material m : limit.getMaterials()) {
-                materialLimits.computeIfAbsent(m, k -> new TreeSet<>(comparingInt(l -> l.getLimit(m)))).add(limit);
+                materialLimits.computeIfAbsent(m, k -> new TreeSet<>(
+                        comparingInt(l -> l.getLimit(m).getLimit())
+                )).add(limit);
             }
             for (EntityType e : limit.getEntities()) {
-                entityLimits.computeIfAbsent(e, k -> new TreeSet<>(comparingInt(l -> l.getLimit(e)))).add(limit);
+                entityLimits.computeIfAbsent(e, k -> new TreeSet<>(
+                        comparingInt(l -> l.getLimit(e).getLimit())
+                )).add(limit);
             }
         }
     }

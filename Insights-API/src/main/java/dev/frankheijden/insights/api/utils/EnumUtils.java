@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.utils;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -40,5 +41,9 @@ public class EnumUtils {
                 .filter(str -> pattern.matcher(str).matches())
                 .map(str -> Enum.valueOf(enumClass, str))
                 .collect(Collectors.toList());
+    }
+
+    public static <E extends Enum<E>> String pretty(Enum<E> e) {
+        return StringUtils.capitalizeSentence(e.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
     }
 }

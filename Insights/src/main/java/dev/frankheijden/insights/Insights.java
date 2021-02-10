@@ -237,7 +237,7 @@ public class Insights extends InsightsPlugin {
                 if (!fileName.toLowerCase(Locale.ENGLISH).endsWith(".yml")) continue;
                 try {
                     Limit limit = Limit.parse(child.toFile());
-                    getLogger().info("Loaded limit '" + limit.getName() + "'");
+                    getLogger().info("Loaded limit '" + fileName + "'");
                     limits.addLimit(limit);
                 } catch (YamlParseException ex) {
                     getLogger().severe("Limit '" + fileName + "' could not be loaded:");

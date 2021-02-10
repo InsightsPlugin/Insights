@@ -8,7 +8,7 @@ import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.notifications.ProgressNotification;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
-import dev.frankheijden.insights.api.utils.MaterialUtils;
+import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Chunk;
@@ -186,7 +186,7 @@ public class ScanTask implements Runnable {
 
                 messages.getMessage(Messages.Key.SCAN_FINISH_FORMAT)
                         .replace(
-                                "entry", MaterialUtils.pretty(material),
+                                "entry", EnumUtils.pretty(material),
                                 "count", StringUtils.pretty(count)
                         )
                         .color()
