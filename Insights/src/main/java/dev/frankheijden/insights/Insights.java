@@ -24,6 +24,7 @@ import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.metrics.MetricsManager;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.commands.CommandInsights;
@@ -103,6 +104,7 @@ public class Insights extends InsightsPlugin {
     private WorldChunkScanTracker worldChunkScanTracker;
     private AddonScanTracker addonScanTracker;
     private EntityTrackerTask entityTrackerTask;
+    private MetricsManager metricsManager;
 
     @Override
     public void onLoad() {
@@ -137,6 +139,7 @@ public class Insights extends InsightsPlugin {
         addonScanTracker = new AddonScanTracker();
         executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
+        metricsManager = new MetricsManager(this);
 
         loadCommands();
 
@@ -175,6 +178,11 @@ public class Insights extends InsightsPlugin {
         if (settings.CHUNK_SCAN_MODE == Settings.ChunkScanMode.ALWAYS) {
             Bukkit.getScheduler().runTaskTimerAsynchronously(this, new PlayerTrackerTask(this), 0, 1);
         }
+    }
+
+    @Override
+    public void onDisable() {
+        notifications.clearNotifications();
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {
@@ -344,6 +352,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public AddonScanTracker getAddonScanTracker() {
         return addonScanTracker;
+    }
+
+    @Override
+    public MetricsManager getMetricsManager() {
+        return metricsManager;
     }
 
     @Override

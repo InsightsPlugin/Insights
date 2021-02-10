@@ -31,4 +31,9 @@ public class ActionBarNotification implements Notification {
             }
         };
     }
+
+    @Override
+    public void clear() {
+        // Actionbar clears itself
+    }
 }
