@@ -118,10 +118,17 @@ public class Insights extends InsightsPlugin {
         addonManager = new AddonManager(this, getDataFolder().toPath().resolve("addons"));
         try {
             addonManager.createAddonsFolder();
-            addonManager.loadAddons();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+
+        getServer().getScheduler().runTaskLater(this, () -> {
+            try {
+                addonManager.loadAddons();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }, 1);
 
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
         worldStorage = new WorldStorage();
