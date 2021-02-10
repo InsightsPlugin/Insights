@@ -71,6 +71,7 @@ public class AddonManager {
 
                 if (addon instanceof Listener) {
                     Bukkit.getPluginManager().registerEvents((Listener) addon, plugin);
+                    plugin.getLogger().info("Registered listener of addon '" + addon.getPluginName() + "'");
                 }
 
                 this.addons.put(addon.getPluginName(), addon);
