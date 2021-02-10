@@ -21,6 +21,7 @@ import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.metrics.MetricsManager;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.commands.CommandInsights;
@@ -97,6 +98,7 @@ public class Insights extends InsightsPlugin {
     private WorldStorage worldStorage;
     private WorldChunkScanTracker worldChunkScanTracker;
     private EntityTrackerTask entityTrackerTask;
+    private MetricsManager metricsManager;
 
     @Override
     public void onLoad() {
@@ -114,6 +116,7 @@ public class Insights extends InsightsPlugin {
         worldChunkScanTracker = new WorldChunkScanTracker();
         executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
+        metricsManager = new MetricsManager(this);
 
         loadCommands();
 
@@ -311,6 +314,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public WorldChunkScanTracker getWorldChunkScanTracker() {
         return worldChunkScanTracker;
+    }
+
+    @Override
+    public MetricsManager getMetricsManager() {
+        return metricsManager;
     }
 
     @Override
