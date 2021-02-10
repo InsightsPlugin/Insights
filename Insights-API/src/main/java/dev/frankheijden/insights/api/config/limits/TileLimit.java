@@ -10,15 +10,40 @@ import java.util.Set;
 
 public class TileLimit extends Limit {
 
-    protected TileLimit(Info info) {
+    private final String name;
+    private final int limit;
+
+    protected TileLimit(Info info, String name, int limit) {
         super(LimitType.TILE, info);
+        this.name = name;
+        this.limit = limit;
     }
 
     /**
      * Parses a TileLimit.
      */
     public static TileLimit parse(YamlParser parser, Info info) throws YamlParseException {
-        return new TileLimit(info);
+        String name = parser.getString("limit.name", null, true);
+        int limit = parser.getInt("limit.limit", -1, 0, Integer.MAX_VALUE);
+        return new TileLimit(info, name, limit);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    @Override
+    public LimitInfo getLimit(Material m) {
+        return new LimitInfo(name, limit);
+    }
+
+    @Override
+    public LimitInfo getLimit(EntityType e) {
+        return new LimitInfo(name, -1);
     }
 
     @Override

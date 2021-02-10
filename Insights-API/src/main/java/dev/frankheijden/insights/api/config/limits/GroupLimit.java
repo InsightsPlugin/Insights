@@ -11,11 +11,15 @@ import java.util.Set;
 
 public class GroupLimit extends Limit {
 
+    private final String name;
+    private final int limit;
     private final Set<Material> materials;
     private final Set<EntityType> entities;
 
-    protected GroupLimit(Info info, Set<Material> materials, Set<EntityType> entities) {
+    protected GroupLimit(Info info, String name, int limit, Set<Material> materials, Set<EntityType> entities) {
         super(LimitType.GROUP, info);
+        this.name = name;
+        this.limit = limit;
         this.materials = Collections.unmodifiableSet(materials);
         this.entities = Collections.unmodifiableSet(entities);
     }
@@ -24,6 +28,8 @@ public class GroupLimit extends Limit {
      * Parses a GroupLimit.
      */
     public static GroupLimit parse(YamlParser parser, Info info) throws YamlParseException {
+        String name = parser.getString("limit.name", null, true);
+        int limit = parser.getInt("limit.limit", -1, 0, Integer.MAX_VALUE);
         boolean regex = parser.getBoolean("limit.regex", false, false);
         List<Material> materials = regex
                 ? parser.getRegexEnums("limit.materials", Material.class)
@@ -33,9 +39,29 @@ public class GroupLimit extends Limit {
                 : parser.getEnums("limit.entities", EntityType.class, "entity");
         return new GroupLimit(
                 info,
+                name,
+                limit,
                 materials.isEmpty() ? Collections.emptySet() : EnumSet.copyOf(materials),
                 entities.isEmpty() ? Collections.emptySet() : EnumSet.copyOf(entities)
         );
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    @Override
+    public LimitInfo getLimit(Material m) {
+        return new LimitInfo(name, limit);
+    }
+
+    @Override
+    public LimitInfo getLimit(EntityType e) {
+        return new LimitInfo(name, limit);
     }
 
     @Override

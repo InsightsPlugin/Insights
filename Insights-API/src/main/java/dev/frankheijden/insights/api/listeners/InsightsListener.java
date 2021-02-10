@@ -11,6 +11,7 @@ import dev.frankheijden.insights.api.config.LimitEnvironment;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.config.limits.Limit;
+import dev.frankheijden.insights.api.config.limits.LimitInfo;
 import dev.frankheijden.insights.api.objects.InsightsBase;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
@@ -110,6 +111,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
         if (!limitOptional.isPresent()) return false;
         Limit limit = limitOptional.get();
+        LimitInfo limitInfo = limit.getLimit(item);
 
         Consumer<DistributionStorage> storageConsumer = storage -> {
             // Subtract item if it was included in the scan, because the event was cancelled.
@@ -139,11 +141,11 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         int count = storage.count(limit, item);
 
         // If count is beyond limit, act
-        if (count + delta > limit.getLimit()) {
+        if (count + delta > limitInfo.getLimit()) {
             plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED)
                     .replace(
-                            "limit", StringUtils.pretty(limit.getLimit()),
-                            "name", limit.getName(),
+                            "limit", StringUtils.pretty(limitInfo.getLimit()),
+                            "name", limitInfo.getName(),
                             "area", area
                     )
                     .color()
@@ -153,15 +155,15 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         // Else notify the user (if they have permission)
         if (player.hasPermission("insights.notifications")) {
-            double progress = (double) (count + delta) / limit.getLimit();
+            double progress = (double) (count + delta) / limitInfo.getLimit();
             plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                     .progress(progress)
                     .add(player)
                     .create()
                     .replace(
-                            "name", limit.getName(),
+                            "name", limitInfo.getName(),
                             "count", StringUtils.pretty(count + delta),
-                            "limit", StringUtils.pretty(limit.getLimit())
+                            "limit", StringUtils.pretty(limitInfo.getLimit())
                     )
                     .color()
                     .send();
@@ -253,19 +255,20 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
             if (!limitOptional.isPresent()) return;
             Limit limit = limitOptional.get();
+            LimitInfo limitInfo = limit.getLimit(item);
 
             // Create a runnable for the notification.
             Consumer<DistributionStorage> notification = storage -> {
                 int count = storage.count(limit, item);
-                double progress = (double) count / limit.getLimit();
+                double progress = (double) count / limitInfo.getLimit();
                 plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                         .progress(progress)
                         .add(player)
                         .create()
                         .replace(
-                                "name", limit.getName(),
+                                "name", limitInfo.getName(),
                                 "count", StringUtils.pretty(count),
-                                "limit", StringUtils.pretty(limit.getLimit())
+                                "limit", StringUtils.pretty(limitInfo.getLimit())
                         )
                         .color()
                         .send();
