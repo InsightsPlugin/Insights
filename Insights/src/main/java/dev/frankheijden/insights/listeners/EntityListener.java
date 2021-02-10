@@ -3,7 +3,7 @@ package dev.frankheijden.insights.listeners;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.events.EntityRemoveFromWorldEvent;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
-import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
@@ -55,7 +55,7 @@ public class EntityListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
         Block block = event.getBlock();
-        handleModification(block.getChunk(), block.getType(), event.getTo(), 1);
+        handleModification(block.getLocation(), block.getType(), event.getTo(), 1);
     }
 
     /**
@@ -88,19 +88,19 @@ public class EntityListener extends InsightsListener {
         if (!LIMITED_ENTITIES.contains(entityType)) return;
         removedEntities.add(entity.getUniqueId());
 
-        Chunk chunk = entity.getLocation().getChunk();
+        Location location = entity.getLocation();
 
         int delta = 1;
         if (event instanceof HangingBreakByEntityEvent) {
             Entity remover = ((HangingBreakByEntityEvent) event).getRemover();
             if (remover instanceof Player) {
-                handleRemoval((Player) remover, chunk, entityType, delta);
+                handleRemoval((Player) remover, location, entityType, delta);
                 return;
             }
         }
 
         // Update the cache if it was not broken by a player (but instead by e.g. physics)
-        handleModification(chunk, entityType, -delta);
+        handleModification(location, entityType, -delta);
     }
 
     /**
@@ -136,14 +136,14 @@ public class EntityListener extends InsightsListener {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return false;
 
-        Chunk chunk = entity.getLocation().getChunk();
+        Location location = entity.getLocation();
         int delta = 1;
 
-        if (handleAddition(player, chunk, entityType, delta, false)) {
+        if (handleAddition(player, location, entityType, delta, false)) {
             return true;
         }
 
-        handleModification(chunk, entityType, delta);
+        handleModification(location, entityType, delta);
         return false;
     }
 
@@ -152,17 +152,17 @@ public class EntityListener extends InsightsListener {
         if (!LIMITED_ENTITIES.contains(entityType)) return;
         removedEntities.add(entity.getUniqueId());
 
-        Chunk chunk = entity.getLocation().getChunk();
+        Location location = entity.getLocation();
         int delta = 1;
 
         Optional<Player> player = getPlayerKiller(entity);
         if (player.isPresent()) {
-            handleRemoval(player.get(), chunk, entityType, delta);
+            handleRemoval(player.get(), location, entityType, delta);
             return;
         }
 
         // Update the cache if it was not removed by a player
-        handleModification(chunk, entityType, -delta);
+        handleModification(location, entityType, -delta);
     }
 
     /**

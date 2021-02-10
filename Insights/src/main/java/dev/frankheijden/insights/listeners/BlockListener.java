@@ -4,7 +4,7 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.util.MaterialTags;
-import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -47,22 +47,22 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         Block block = event.getBlock();
+        Location location = block.getLocation();
         Material material = block.getType();
         Player player = event.getPlayer();
-        Chunk chunk = block.getChunk();
 
         // In case of BlockMultiPlaceEvent, we need to take a different delta.
         int delta = event instanceof BlockMultiPlaceEvent
                 ? ((BlockMultiPlaceEvent) event).getReplacedBlockStates().size()
                 : 1;
 
-        if (handleAddition(player, chunk, material, delta)) {
+        if (handleAddition(player, location, material, delta)) {
             event.setCancelled(true);
             return;
         }
 
         // Update the cache
-        handleModification(chunk, event.getBlockReplacedState().getType(), material, delta);
+        handleModification(location, event.getBlockReplacedState().getType(), material, delta);
     }
 
     /**
@@ -71,15 +71,15 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
+        Location location = block.getLocation();
         Material material = block.getType();
         Player player = event.getPlayer();
-        Chunk chunk = block.getChunk();
 
         // Beds account for two block updates.
         int delta = Tag.BEDS.isTagged(material) ? 2 : 1;
 
         // Handle the removal
-        handleRemoval(player, chunk, material, delta);
+        handleRemoval(player, location, material, delta);
     }
 
     @AllowDisabling
@@ -118,7 +118,7 @@ public class BlockListener extends InsightsListener {
         }
 
         if (material != null) {
-            handleModification(relative.getChunk(), relative.getType(), material, 1);
+            handleModification(relative.getLocation(), relative.getType(), material, 1);
         }
     }
 
@@ -146,7 +146,7 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockFade(BlockFadeEvent event) {
         Block block = event.getBlock();
-        handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
+        handleModification(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
     }
 
     /**
@@ -158,7 +158,7 @@ public class BlockListener extends InsightsListener {
         Block block = event.getToBlock();
 
         // For some weird reason the "ToBlock" contains the from data...
-        handleModification(block.getChunk(), block.getType(), event.getBlock().getType(), 1);
+        handleModification(block.getLocation(), block.getType(), event.getBlock().getType(), 1);
     }
 
     /**
@@ -176,7 +176,7 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockGrow(BlockGrowEvent event) {
         Block block = event.getBlock();
-        handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
+        handleModification(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
     }
 
     @AllowDisabling
@@ -205,8 +205,8 @@ public class BlockListener extends InsightsListener {
         for (Block block : blocks) {
             Block relative = block.getRelative(event.getDirection());
 
-            handleModification(block, -1);
-            handleModification(relative.getChunk(), relative.getType(), block.getType(), 1);
+            handleModification(block.getLocation(), block.getType(), -1);
+            handleModification(relative.getLocation(), block.getType(), 1);
         }
     }
 
@@ -217,7 +217,7 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockSpread(BlockSpreadEvent event) {
         Block block = event.getBlock();
-        handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
+        handleModification(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
     }
 
     /**
@@ -227,7 +227,7 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityBlockForm(EntityBlockFormEvent event) {
         Block block = event.getBlock();
-        handleModification(block.getChunk(), block.getType(), event.getNewState().getType(), 1);
+        handleModification(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
     }
 
     /**
@@ -246,9 +246,9 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSpongeAbsorb(SpongeAbsorbEvent event) {
         Block block = event.getBlock();
-        handleModification(block.getChunk(), Material.SPONGE, Material.WET_SPONGE, 1);
+        handleModification(block.getLocation(), Material.SPONGE, Material.WET_SPONGE, 1);
         for (BlockState state : event.getBlocks()) {
-            handleModification(state.getChunk(), Material.WATER, state.getType(), 1);
+            handleModification(state.getLocation(), Material.WATER, state.getType(), 1);
         }
     }
 }

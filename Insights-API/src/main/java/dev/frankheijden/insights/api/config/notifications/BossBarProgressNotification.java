@@ -11,7 +11,7 @@ public class BossBarProgressNotification extends BossBarNotification implements 
 
     @Override
     public BossBarProgressNotification progress(double progress) {
-        bossBar.setProgress(progress);
+        bossBar.setProgress(Math.max(0, Math.min(1, progress)));
         return this;
     }
 }

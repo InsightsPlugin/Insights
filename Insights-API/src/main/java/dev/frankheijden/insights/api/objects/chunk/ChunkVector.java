@@ -1,46 +1,28 @@
 package dev.frankheijden.insights.api.objects.chunk;
 
-import org.bukkit.Location;
+import dev.frankheijden.insights.api.objects.math.Vector3;
 
-public class ChunkVector {
+public class ChunkVector extends Vector3 {
 
     public static final ChunkVector MIN = new ChunkVector(0, 0, 0);
     public static final ChunkVector MAX = new ChunkVector(16, 256, 16);
-
-    private final int x;
-    private final int y;
-    private final int z;
 
     /**
      * Constructs a new ChunkVector with given x, y, z coordinates in the chunk.
      */
     public ChunkVector(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getZ() {
-        return z;
+        super(x, y, z);
     }
 
     /**
-     * Constructs a new ChunkVector from the given location.
+     * Constructs a new ChunkVector from the given vector.
      */
-    public static ChunkVector from(Location loc) {
-        int x = loc.getBlockX() % 16;
+    public static ChunkVector from(Vector3 vector) {
+        int x = vector.getX() % 16;
         if (x < 0) x += 16;
-        int z = loc.getBlockZ() % 16;
+        int z = vector.getZ() % 16;
         if (z < 0) z += 16;
-        return new ChunkVector(x, loc.getBlockY(), z);
+        return new ChunkVector(x, vector.getY(), z);
     }
 
     /**
