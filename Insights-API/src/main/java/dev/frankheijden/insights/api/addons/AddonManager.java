@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.addons;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.event.Listener;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
@@ -67,6 +68,11 @@ public class AddonManager {
                     plugin.getLogger().severe("Error loading addon: " + addon.getPluginName() + " is not enabled!");
                     continue;
                 }
+
+                if (addon instanceof Listener) {
+                    Bukkit.getPluginManager().registerEvents((Listener) addon, plugin);
+                }
+
                 this.addons.put(addon.getPluginName(), addon);
                 plugin.getLogger().info("Loaded addon '" + addon.getPluginName() + "' v" + addon.getVersion());
             }
