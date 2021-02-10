@@ -1,7 +1,7 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.addons.AddonCuboid;
+import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
@@ -57,10 +57,10 @@ public class PistonListener extends InsightsListener {
     }
 
     private boolean handlePistonBlock(Block from, Block to) {
-        Optional<AddonCuboid> cuboidOptional = plugin.getAddonManager().getCuboid(to.getLocation());
+        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(to.getLocation());
 
         // Always allow piston pushes within the same chunk
-        if (!cuboidOptional.isPresent() && BlockUtils.isSameChunk(from, to)) return false;
+        if (!regionOptional.isPresent() && BlockUtils.isSameChunk(from, to)) return false;
 
         Material material = from.getType();
         Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, limit -> true);
@@ -74,8 +74,8 @@ public class PistonListener extends InsightsListener {
 
         boolean queued;
         Optional<DistributionStorage> storageOptional;
-        if (cuboidOptional.isPresent()) {
-            String key = cuboidOptional.get().getKey();
+        if (regionOptional.isPresent()) {
+            String key = regionOptional.get().getKey();
             queued = plugin.getAddonScanTracker().isQueued(key);
             storageOptional = plugin.getAddonStorage().get(key);
         } else {
@@ -88,12 +88,12 @@ public class PistonListener extends InsightsListener {
 
         // If the storage is not present, scan it & cancel the event.
         if (!storageOptional.isPresent()) {
-            if (cuboidOptional.isPresent()) {
-                AddonCuboid cuboid = cuboidOptional.get();
-                plugin.getAddonScanTracker().add(cuboid.getAddon());
-                ScanTask.scan(plugin, cuboid.toChunkParts(), info -> {}, storage -> {
-                    plugin.getAddonScanTracker().remove(cuboid.getAddon());
-                    plugin.getAddonStorage().put(cuboid.getKey(), storage);
+            if (regionOptional.isPresent()) {
+                Region region = regionOptional.get();
+                plugin.getAddonScanTracker().add(region.getAddon());
+                ScanTask.scan(plugin, region.toChunkParts(), info -> {}, storage -> {
+                    plugin.getAddonScanTracker().remove(region.getAddon());
+                    plugin.getAddonStorage().put(region.getKey(), storage);
                 });
             } else {
                 plugin.getChunkContainerExecutor().submit(chunk);

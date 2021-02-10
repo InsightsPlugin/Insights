@@ -11,6 +11,6 @@ public interface InsightsAddon {
 
     String getVersion();
 
-    Optional<AddonCuboid> getCuboid(Location location);
+    Optional<Region> getRegion(Location location);
 
 }

@@ -131,12 +131,12 @@ public class AddonManager {
     }
 
     /**
-     * Looks up a cuboid at given location provided by the loaded addons.
+     * Looks up a region at given location provided by the loaded addons.
      */
-    public Optional<AddonCuboid> getCuboid(Location location) {
+    public Optional<Region> getRegion(Location location) {
         for (InsightsAddon addon : addons.values()) {
-            Optional<AddonCuboid> cuboidOptional = addon.getCuboid(location);
-            if (cuboidOptional.isPresent()) return cuboidOptional;
+            Optional<Region> regionOptional = addon.getRegion(location);
+            if (regionOptional.isPresent()) return regionOptional;
         }
         return Optional.empty();
     }

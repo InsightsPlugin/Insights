@@ -1,7 +1,7 @@
 package dev.frankheijden.insights.api.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.addons.AddonCuboid;
+import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.concurrent.storage.ChunkStorage;
 import dev.frankheijden.insights.api.concurrent.storage.Distribution;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
@@ -54,8 +54,8 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         UUID worldUid = chunk.getWorld().getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
         plugin.getWorldStorage().getWorld(worldUid).get(chunkKey).ifPresent(storageConsumer);
-        plugin.getAddonManager().getCuboid(location)
-                .flatMap(cuboid -> plugin.getAddonStorage().get(cuboid.getKey()))
+        plugin.getAddonManager().getRegion(location)
+                .flatMap(region -> plugin.getAddonStorage().get(region.getKey()))
                 .ifPresent(storageConsumer);
     }
 
@@ -79,7 +79,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     }
 
     protected boolean handleAddition(Player player, Location location, Object item, int delta, boolean included) {
-        Optional<AddonCuboid> cuboidOptional = plugin.getAddonManager().getCuboid(location);
+        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
         Chunk chunk = location.getChunk();
         UUID worldUid = chunk.getWorld().getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
@@ -87,11 +87,11 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         boolean queued;
         String area;
         LimitEnvironment env;
-        if (cuboidOptional.isPresent()) {
-            AddonCuboid cuboid = cuboidOptional.get();
-            queued = plugin.getAddonScanTracker().isQueued(cuboid.getKey());
-            area = plugin.getAddonManager().getAddon(cuboid.getAddon()).getAreaName();
-            env = new LimitEnvironment(player, worldUid, cuboid.getAddon());
+        if (regionOptional.isPresent()) {
+            Region region = regionOptional.get();
+            queued = plugin.getAddonScanTracker().isQueued(region.getKey());
+            area = plugin.getAddonManager().getAddon(region.getAddon()).getAreaName();
+            env = new LimitEnvironment(player, worldUid, region.getAddon());
         } else {
             queued = plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey);
             area = "chunk";
@@ -114,7 +114,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         Consumer<DistributionStorage> storageConsumer = storage -> {
             // Subtract item if it was included in the scan, because the event was cancelled.
             // Only iff the block was included in the chunk AND its not a cuboid/area scan.
-            if (included && !cuboidOptional.isPresent()) {
+            if (included && !regionOptional.isPresent()) {
                 storage.distribution(item).modify(item, -delta);
             }
 
@@ -125,8 +125,8 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         };
 
         Optional<DistributionStorage> storageOptional;
-        if (cuboidOptional.isPresent()) {
-            storageOptional = handleAddonAddition(player, cuboidOptional.get(), storageConsumer);
+        if (regionOptional.isPresent()) {
+            storageOptional = handleAddonAddition(player, regionOptional.get(), storageConsumer);
         } else {
             storageOptional = handleChunkAddition(player, chunk, storageConsumer);
         }
@@ -200,28 +200,28 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
     private Optional<DistributionStorage> handleAddonAddition(
             Player player,
-            AddonCuboid cuboid,
+            Region region,
             Consumer<DistributionStorage> storageConsumer
     ) {
-        String key = cuboid.getKey();
+        String key = region.getKey();
 
         AddonStorage addonStorage = plugin.getAddonStorage();
         Optional<DistributionStorage> storageOptional = addonStorage.get(key);
         if (!storageOptional.isPresent()) {
             // Notify the user scan started
             plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED)
-                    .replace("area", plugin.getAddonManager().getAddon(cuboid.getAddon()).getAreaName())
+                    .replace("area", plugin.getAddonManager().getAddon(region.getAddon()).getAreaName())
                     .color()
                     .sendTo(player);
 
-            scanCuboid(player, cuboid, storageConsumer);
+            scanRegion(player, region, storageConsumer);
             return Optional.empty();
         }
         return storageOptional;
     }
 
     protected void handleRemoval(Player player, Location location, Object item, int delta) {
-        Optional<AddonCuboid> cuboidOptional = plugin.getAddonManager().getCuboid(location);
+        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
         Chunk chunk = location.getChunk();
         UUID worldUid = chunk.getWorld().getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
@@ -230,11 +230,11 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         boolean queued;
         LimitEnvironment env;
         Optional<DistributionStorage> storageOptional;
-        if (cuboidOptional.isPresent()) {
-            AddonCuboid cuboid = cuboidOptional.get();
-            queued = plugin.getAddonScanTracker().isQueued(cuboid.getKey());
-            env = new LimitEnvironment(player, worldUid, cuboid.getAddon());
-            storageOptional = plugin.getAddonStorage().get(cuboid.getKey());
+        if (regionOptional.isPresent()) {
+            Region region = regionOptional.get();
+            queued = plugin.getAddonScanTracker().isQueued(region.getKey());
+            env = new LimitEnvironment(player, worldUid, region.getAddon());
+            storageOptional = plugin.getAddonStorage().get(region.getKey());
         } else {
             queued = plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey);
             env = new LimitEnvironment(player, worldUid);
@@ -281,28 +281,28 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             Consumer<DistributionStorage> storageConsumer = storage -> {
                 // Subtract the broken block, as the first modification failed (we had to scan the chunk)
                 // Only if we're not scanning a cuboid (iff cuboid, the block is already removed from the chunk)
-                if (!cuboidOptional.isPresent()) storage.distribution(item).modify(item, -delta);
+                if (!regionOptional.isPresent()) storage.distribution(item).modify(item, -delta);
 
                 // Notify the user
                 notification.accept(storage);
             };
 
-            if (cuboidOptional.isPresent()) {
-                scanCuboid(player, cuboidOptional.get(), storageConsumer);
+            if (regionOptional.isPresent()) {
+                scanRegion(player, regionOptional.get(), storageConsumer);
             } else {
                 plugin.getChunkContainerExecutor().submit(chunk).thenAccept(storageConsumer);
             }
         }
     }
 
-    private void scanCuboid(Player player, AddonCuboid cuboid, Consumer<DistributionStorage> storageConsumer) {
+    private void scanRegion(Player player, Region region, Consumer<DistributionStorage> storageConsumer) {
         // Submit the cuboid for scanning
-        plugin.getAddonScanTracker().add(cuboid.getAddon());
-        ScanTask.scan(plugin, player, cuboid.toChunkParts(), storage -> {
-            plugin.getAddonScanTracker().remove(cuboid.getAddon());
+        plugin.getAddonScanTracker().add(region.getAddon());
+        ScanTask.scan(plugin, player, region.toChunkParts(), storage -> {
+            plugin.getAddonScanTracker().remove(region.getAddon());
 
             // Store the cuboid
-            plugin.getAddonStorage().put(cuboid.getKey(), storage);
+            plugin.getAddonStorage().put(region.getKey(), storage);
 
             // Give the result back to the consumer
             storageConsumer.accept(storage);
