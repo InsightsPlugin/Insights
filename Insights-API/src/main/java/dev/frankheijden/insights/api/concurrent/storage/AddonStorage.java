@@ -19,4 +19,8 @@ public class AddonStorage {
     public void put(String key, DistributionStorage storage) {
         this.distributionMap.put(key, storage);
     }
+
+    public void remove(String key) {
+        this.distributionMap.remove(key);
+    }
 }
