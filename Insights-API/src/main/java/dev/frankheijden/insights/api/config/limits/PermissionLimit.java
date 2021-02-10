@@ -44,6 +44,16 @@ public class PermissionLimit extends Limit {
     }
 
     @Override
+    public int getLimit(Material m) {
+        return materials.getOrDefault(m, -1);
+    }
+
+    @Override
+    public int getLimit(EntityType e) {
+        return entities.getOrDefault(e, -1);
+    }
+
+    @Override
     public Set<Material> getMaterials() {
         return materials.keySet();
     }

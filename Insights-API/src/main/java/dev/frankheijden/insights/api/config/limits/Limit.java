@@ -21,18 +21,16 @@ public abstract class Limit {
     private final LimitType type;
     private final String name;
     private final String bypassPermission;
-    private final int limit;
     private final LimitSettings settings;
 
     protected Limit(LimitType type, Info info) {
-        this(type, info.getName(), info.getBypassPermission(), info.getLimit(), info.getSettings());
+        this(type, info.getName(), info.getBypassPermission(), info.getSettings());
     }
 
-    protected Limit(LimitType type, String name, String bypassPermission, int limit, LimitSettings settings) {
+    protected Limit(LimitType type, String name, String bypassPermission, LimitSettings settings) {
         this.type = type;
         this.name = name;
         this.bypassPermission = bypassPermission;
-        this.limit = limit;
         this.settings = settings;
     }
 
@@ -50,7 +48,6 @@ public abstract class Limit {
 
         String name = parser.getString("limit.name", null, true);
         String bypassPermission = parser.getString("limit.bypass-permission", null, false);
-        int limit = parser.getInt("limit.limit", -1, 0, Integer.MAX_VALUE);
 
         boolean worldWhitelist = parser.getBoolean("limit.settings.enabled-worlds.whitelist", false, false);
         Set<String> allowedWorlds = Bukkit.getWorlds().stream()
@@ -69,7 +66,7 @@ public abstract class Limit {
 
         LimitSettings settings = new LimitSettings(worlds, worldWhitelist, addons, addonWhitelist, worldEdit);
 
-        Info info = new Info(name, bypassPermission, limit, settings);
+        Info info = new Info(name, bypassPermission, settings);
         switch (type) {
             case TILE: return TileLimit.parse(parser, info);
             case GROUP: return GroupLimit.parse(parser, info);
@@ -86,9 +83,22 @@ public abstract class Limit {
         return name;
     }
 
-    public int getLimit() {
-        return limit;
+    /**
+     * Retrieves the limit of a limited object.
+     * Note: item must be of type Material or EntityType!
+     */
+    public int getLimit(Object item) {
+        if (item instanceof Material) {
+            return getLimit((Material) item);
+        } else if (item instanceof EntityType) {
+            return getLimit((EntityType) item);
+        }
+        throw new IllegalArgumentException("Unknown limited item: " + item);
     }
+
+    public abstract int getLimit(Material m);
+
+    public abstract int getLimit(EntityType e);
 
     public String getBypassPermission() {
         return bypassPermission;
@@ -112,16 +122,14 @@ public abstract class Limit {
 
         private final String name;
         private final String bypassPermission;
-        private final int limit;
         private final LimitSettings settings;
 
         /**
          * Constructs an Info object holding basic information of a limit.
          */
-        public Info(String name, String bypassPermission, int limit, LimitSettings settings) {
+        public Info(String name, String bypassPermission, LimitSettings settings) {
             this.name = name;
             this.bypassPermission = bypassPermission;
-            this.limit = limit;
             this.settings = settings;
         }
 
@@ -131,10 +139,6 @@ public abstract class Limit {
 
         public String getBypassPermission() {
             return bypassPermission;
-        }
-
-        public int getLimit() {
-            return limit;
         }
 
         public LimitSettings getSettings() {

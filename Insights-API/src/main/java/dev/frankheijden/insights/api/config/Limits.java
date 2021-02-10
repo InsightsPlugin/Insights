@@ -1,5 +1,7 @@
 package dev.frankheijden.insights.api.config;
 
+import static java.util.Comparator.comparingInt;
+
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.limits.TileLimit;
 import dev.frankheijden.insights.api.utils.BlockUtils;
@@ -7,7 +9,6 @@ import dev.frankheijden.insights.api.utils.SetUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,6 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 
 public class Limits {
-
-    private static final Comparator<Limit> ascendingLimits = Comparator.comparingInt(Limit::getLimit);
 
     private final List<Limit> limits;
     private final TreeSet<TileLimit> tileLimits;
@@ -30,7 +29,7 @@ public class Limits {
      */
     public Limits() {
         limits = new ArrayList<>();
-        tileLimits = new TreeSet<>(ascendingLimits);
+        tileLimits = new TreeSet<>(comparingInt(tileLimit -> tileLimit.getLimit(Material.AIR)));
         materialLimits = new EnumMap<>(Material.class);
         entityLimits = new EnumMap<>(EntityType.class);
     }
@@ -44,10 +43,10 @@ public class Limits {
             this.tileLimits.add((TileLimit) limit);
         } else {
             for (Material m : limit.getMaterials()) {
-                materialLimits.computeIfAbsent(m, k -> new TreeSet<>(ascendingLimits)).add(limit);
+                materialLimits.computeIfAbsent(m, k -> new TreeSet<>(comparingInt(l -> l.getLimit(m)))).add(limit);
             }
             for (EntityType e : limit.getEntities()) {
-                entityLimits.computeIfAbsent(e, k -> new TreeSet<>(ascendingLimits)).add(limit);
+                entityLimits.computeIfAbsent(e, k -> new TreeSet<>(comparingInt(l -> l.getLimit(e)))).add(limit);
             }
         }
     }

@@ -13,11 +13,13 @@ public class GroupLimit extends Limit {
 
     private final Set<Material> materials;
     private final Set<EntityType> entities;
+    private final int limit;
 
-    protected GroupLimit(Info info, Set<Material> materials, Set<EntityType> entities) {
+    protected GroupLimit(Info info, Set<Material> materials, Set<EntityType> entities, int limit) {
         super(LimitType.GROUP, info);
         this.materials = Collections.unmodifiableSet(materials);
         this.entities = Collections.unmodifiableSet(entities);
+        this.limit = limit;
     }
 
     /**
@@ -31,11 +33,23 @@ public class GroupLimit extends Limit {
         List<EntityType> entities = regex
                 ? parser.getRegexEnums("limit.entities", EntityType.class)
                 : parser.getEnums("limit.entities", EntityType.class, "entity");
+        int limit = parser.getInt("limit.limit", -1, 0, Integer.MAX_VALUE);
         return new GroupLimit(
                 info,
                 materials.isEmpty() ? Collections.emptySet() : EnumSet.copyOf(materials),
-                entities.isEmpty() ? Collections.emptySet() : EnumSet.copyOf(entities)
+                entities.isEmpty() ? Collections.emptySet() : EnumSet.copyOf(entities),
+                limit
         );
+    }
+
+    @Override
+    public int getLimit(Material m) {
+        return limit;
+    }
+
+    @Override
+    public int getLimit(EntityType e) {
+        return limit;
     }
 
     @Override

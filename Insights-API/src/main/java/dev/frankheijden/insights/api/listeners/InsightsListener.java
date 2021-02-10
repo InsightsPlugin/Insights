@@ -139,10 +139,10 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         int count = storage.count(limit, item);
 
         // If count is beyond limit, act
-        if (count + delta > limit.getLimit()) {
+        if (count + delta > limit.getLimit(item)) {
             plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED)
                     .replace(
-                            "limit", StringUtils.pretty(limit.getLimit()),
+                            "limit", StringUtils.pretty(limit.getLimit(item)),
                             "name", limit.getName(),
                             "area", area
                     )
@@ -153,7 +153,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         // Else notify the user (if they have permission)
         if (player.hasPermission("insights.notifications")) {
-            double progress = (double) (count + delta) / limit.getLimit();
+            double progress = (double) (count + delta) / limit.getLimit(item);
             plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                     .progress(progress)
                     .add(player)
@@ -161,7 +161,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
                     .replace(
                             "name", limit.getName(),
                             "count", StringUtils.pretty(count + delta),
-                            "limit", StringUtils.pretty(limit.getLimit())
+                            "limit", StringUtils.pretty(limit.getLimit(item))
                     )
                     .color()
                     .send();
@@ -257,7 +257,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             // Create a runnable for the notification.
             Consumer<DistributionStorage> notification = storage -> {
                 int count = storage.count(limit, item);
-                double progress = (double) count / limit.getLimit();
+                double progress = (double) count / limit.getLimit(item);
                 plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                         .progress(progress)
                         .add(player)
@@ -265,7 +265,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
                         .replace(
                                 "name", limit.getName(),
                                 "count", StringUtils.pretty(count),
-                                "limit", StringUtils.pretty(limit.getLimit())
+                                "limit", StringUtils.pretty(limit.getLimit(item))
                         )
                         .color()
                         .send();

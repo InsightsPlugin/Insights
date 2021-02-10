@@ -106,6 +106,6 @@ public class PistonListener extends InsightsListener {
         Limit limit = limitOptional.get();
 
         // Cache doesn't need to updated here just yet, needs to be done in MONITOR event phase.
-        return storage.count(limit, material) + 1 > limit.getLimit();
+        return storage.count(limit, material) + 1 > limit.getLimit(material);
     }
 }
