@@ -205,8 +205,8 @@ public class BlockListener extends InsightsListener {
         for (Block block : blocks) {
             Block relative = block.getRelative(event.getDirection());
 
-            handleModification(block, -1);
-            handleModification(relative.getLocation(), relative.getType(), block.getType(), 1);
+            handleModification(block.getLocation(), block.getType(), -1);
+            handleModification(relative.getLocation(), block.getType(), 1);
         }
     }
 

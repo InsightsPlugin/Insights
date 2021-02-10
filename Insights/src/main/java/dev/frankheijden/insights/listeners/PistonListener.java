@@ -1,11 +1,11 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.concurrent.storage.ChunkStorage;
+import dev.frankheijden.insights.api.addons.AddonCuboid;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
-import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.BlockUtils;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
@@ -57,8 +57,10 @@ public class PistonListener extends InsightsListener {
     }
 
     private boolean handlePistonBlock(Block from, Block to) {
-        // Always allow piston pushes within same chunk.
-        if (BlockUtils.isSameChunk(from, to)) return false;
+        Optional<AddonCuboid> cuboidOptional = plugin.getAddonManager().getCuboid(to.getLocation());
+
+        // Always allow piston pushes within the same chunk
+        if (!cuboidOptional.isPresent() && BlockUtils.isSameChunk(from, to)) return false;
 
         Material material = from.getType();
         Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, limit -> true);
@@ -70,16 +72,32 @@ public class PistonListener extends InsightsListener {
         UUID worldUid = chunk.getWorld().getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
 
-        // If the chunk is already queued, cancel the event and wait for the chunk to complete.
-        if (plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey)) return true;
+        boolean queued;
+        Optional<DistributionStorage> storageOptional;
+        if (cuboidOptional.isPresent()) {
+            String key = cuboidOptional.get().getKey();
+            queued = plugin.getAddonScanTracker().isQueued(key);
+            storageOptional = plugin.getAddonStorage().get(key);
+        } else {
+            queued = plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey);
+            storageOptional = plugin.getWorldStorage().getWorld(worldUid).get(chunkKey);
+        }
 
-        WorldStorage worldStorage = plugin.getWorldStorage();
-        ChunkStorage chunkStorage = worldStorage.getWorld(worldUid);
-        Optional<DistributionStorage> storageOptional = chunkStorage.get(chunkKey);
+        // If the area is already queued, cancel the event and wait for the area to complete scanning.
+        if (queued) return true;
 
         // If the storage is not present, scan it & cancel the event.
         if (!storageOptional.isPresent()) {
-            plugin.getChunkContainerExecutor().submit(chunk);
+            if (cuboidOptional.isPresent()) {
+                AddonCuboid cuboid = cuboidOptional.get();
+                plugin.getAddonScanTracker().add(cuboid.getAddon());
+                ScanTask.scan(plugin, cuboid.toChunkParts(), info -> {}, storage -> {
+                    plugin.getAddonScanTracker().remove(cuboid.getAddon());
+                    plugin.getAddonStorage().put(cuboid.getKey(), storage);
+                });
+            } else {
+                plugin.getChunkContainerExecutor().submit(chunk);
+            }
             return true;
         }
 
