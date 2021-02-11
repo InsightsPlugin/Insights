@@ -24,26 +24,19 @@ public class CommandScanRegion extends InsightsCommand {
 
     @CommandMethod("scanregion tile")
     @CommandPermission("insights.scanregion.tile")
-    private void handleTileScan(
-            Player player
-    ) {
+    private void handleTileScan(Player player) {
         handleScan(player, RTileEntityTypes.getTileEntityMaterials(), false);
     }
 
     @CommandMethod("scanregion all")
     @CommandPermission("insights.scanregion.all")
-    private void handleAllScan(
-            Player player
-    ) {
+    private void handleAllScan(Player player) {
         handleScan(player, null, false);
     }
 
     @CommandMethod("scanregion custom <materials>")
     @CommandPermission("insights.scanregion.custom")
-    private void handleCustomScan(
-            Player player,
-            @Argument("materials") Material[] materials
-    ) {
+    private void handleCustomScan(Player player, @Argument("materials") Material[] materials) {
         handleScan(player, new HashSet<>(Arrays.asList(materials)), true);
     }
 
