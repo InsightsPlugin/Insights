@@ -20,10 +20,17 @@
 [bStats]: https://bstats.org/plugin/bukkit/Insights/7272
 <!-- End of variables block -->
 
-
 # Insights
+Insights is a plugin which scans arbitrary regions and applies block limitations on them. 
+Insights' limits are super configurable, allowing for group limits, individual (permission-based) limits, and tile limits.
+Each limit is able to be bypassed through permissions, which you can customize in the limits configuration.
 
-For the description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
+Insights applies a mapreduce design pattern to perform scans asynchronously,
+thus keeping the main thread free from counting materials.
+Insights also provides an extensive developer API to create your own custom defined region addons,
+or to perform arbitrary scans and process those.
+
+For a full description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
 
 [![Java CI with Gradle](https://github.com/FrankHeijden/Insights/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=master)](https://github.com/FrankHeijden/Insights/actions)
 [![](https://jitpack.io/v/FrankHeijden/Insights.svg)](https://jitpack.io/#FrankHeijden/Insights)
@@ -38,9 +45,30 @@ For the description of this plugin, please refer to SpigotMC: https://www.spigot
 
 [![bStatsImg]][bStats]
 
-## How to run the project?
+## Extensions
+These plugins are extensions on Insights, they must be placed in your `plugins/` folder.
+* [InsightsWorldEditExtension](https://github.com/InsightsPlugin/InsightsWorldEditExtension) - Block materials through WorldEdit modifications.
+  Supports Insights' limits & disallows any placement of limited blocks.
+
+## Addons
+Addons define regions for Insights to limit in.
+Instead of a limit per chunk, when a block is placed in a region, it will count and enforce limits in that region.
+* [BentoBoxWorldAddon](https://github.com/InsightsPlugin/BentoBoxAddon/releases) - Limit blocks in your BentoBox world (includes bSkyBlock & AcidIslands)
+* [GriefPreventionAddon](https://github.com/InsightsPlugin/GriefPreventionAddon/releases) - Limit blocks in your GriefPrevention claims!
+* [USkyBlockAddon](https://github.com/InsightsPlugin/USkyBlockAddon/releases) - Limit blocks in your USB islands!
+* [IridiumSkyblockAddon](https://github.com/InsightsPlugin/IridiumSkyblockAddon/releases) - Limit blocks in your Iridium islands!
+* [PlotSquaredAddon](https://github.com/InsightsPlugin/PlotSquaredAddon/releases) - Limit blocks in your PlotSquared plots!
+* [SuperiorSkyblock2Addon](https://github.com/InsightsPlugin/SuperiorSkyblock2Addon/releases) - Limit blocks in your SS islands!
+
+## Compiling Insights
+There are two ways to compile Insights:
+### 1. Installing gradle (recommended)
 1. Make sure you have [gradle][gradleInstall] installed.
-2. Run the project with `gradle shadowJar` to compile it with dependencies.
+2. Run the project with `gradle build` to compile it with dependencies.
+### 2. Using the wrapper
+**Windows**: `gradlew.bat build`
+<br>
+**Linux/macOS**: `./gradlew build`
 
 ## Developer API
 ### Repository / Dependency
