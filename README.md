@@ -25,6 +25,12 @@ Insights is a plugin which scans arbitrary regions and applies block limitations
 Insights' limits are super configurable, allowing for group limits, individual (permission-based) limits, and tile limits.
 Each limit is able to be bypassed through permissions, which you can customize in the limits configuration.
 
+Apart from all placeable materials, Insights also supports the limitation of the following static entities:
+* Item Frames
+* Armor Stands
+* Paintings
+* End Crystals
+
 Insights applies a mapreduce design pattern to perform scans asynchronously,
 thus keeping the main thread free from counting materials.
 Insights also provides an extensive developer API to create your own custom defined region addons,
@@ -51,8 +57,9 @@ These plugins are extensions on Insights, they must be placed in your `plugins/`
   Supports Insights' limits & disallows any placement of limited blocks.
 
 ## Addons
-Addons define regions for Insights to limit in.
-Instead of a limit per chunk, when a block is placed in a region, it will count and enforce limits in that region.
+Addons define regions for Insights to limit blocks in.
+Instead of a limit per chunk, when a block is placed in such a region, it will first count all blocks in that region, and after enforce limits in that region.
+Regions are cached to not bother with scans each time a block has been placed.
 * [BentoBoxWorldAddon](https://github.com/InsightsPlugin/BentoBoxAddon/releases) - Limit blocks in your BentoBox world (includes bSkyBlock & AcidIslands)
 * [GriefPreventionAddon](https://github.com/InsightsPlugin/GriefPreventionAddon/releases) - Limit blocks in your GriefPrevention claims!
 * [USkyBlockAddon](https://github.com/InsightsPlugin/USkyBlockAddon/releases) - Limit blocks in your USB islands!
