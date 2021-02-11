@@ -23,6 +23,5 @@ public class ChunkListener extends InsightsListener {
     public void onChunkUnload(ChunkUnloadEvent event) {
         Chunk chunk = event.getChunk();
         plugin.getWorldStorage().getWorld(chunk.getWorld().getUID()).remove(ChunkUtils.getKey(chunk));
-        insights.getEntityTracker().ifPresent(tracker -> tracker.removeEntities(chunk.getEntities()));
     }
 }

@@ -34,19 +34,13 @@ public class EntityTrackerTask extends InsightsTask {
         trackedEntities.keySet().removeAll(entities.keySet());
 
         for (Entity entity : trackedEntities.values()) {
-            Bukkit.getPluginManager().callEvent(new EntityRemoveFromWorldEvent(entity));
+            if (entity.isTicking()) {
+                Bukkit.getPluginManager().callEvent(new EntityRemoveFromWorldEvent(entity));
+            }
         }
 
         // Update the tracked entities with the scanned entities.
+        trackedEntities.clear();
         trackedEntities = entities;
-    }
-
-    /**
-     * Removes entities from the tracker.
-     */
-    public void removeEntities(Entity... entities) {
-        for (Entity e : entities) {
-            trackedEntities.remove(e.getUniqueId());
-        }
     }
 }
