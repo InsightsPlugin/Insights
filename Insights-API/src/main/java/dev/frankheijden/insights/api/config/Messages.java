@@ -46,7 +46,8 @@ public class Messages {
         SCAN_FINISH_HEADER("scan.finish.header"),
         SCAN_FINISH_FORMAT("scan.finish.format"),
         SCAN_FINISH_FOOTER("scan.finish.footer"),
-        SCAN_PROGRESS("scan.progress");
+        SCAN_PROGRESS("scan.progress"),
+        SCANREGION_NO_REGION("scanregion.no-region");
 
         private final String path;
 
