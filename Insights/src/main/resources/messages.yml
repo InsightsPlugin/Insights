@@ -16,3 +16,5 @@ messages:
         &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks. Took &b%time%&3!
         &8&m-------------------------------------------------
     progress: "&3Progress: &b%percentage%%"
+  scanregion:
+    no-region: "<prefix>&cThere does not seem to be any region here!"
