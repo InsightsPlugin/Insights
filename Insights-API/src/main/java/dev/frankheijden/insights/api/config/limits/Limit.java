@@ -58,9 +58,7 @@ public abstract class Limit {
         boolean addonWhitelist = parser.getBoolean("limit.settings.enabled-addons.whitelist", false, false);
         Set<String> addons = parser.getSet("limit.settings.enabled-addons.addons");
 
-        boolean worldEdit = parser.getBoolean("limit.settings.worldedit", true, false);
-
-        LimitSettings settings = new LimitSettings(worlds, worldWhitelist, addons, addonWhitelist, worldEdit);
+        LimitSettings settings = new LimitSettings(worlds, worldWhitelist, addons, addonWhitelist);
 
         Info info = new Info(bypassPermission, settings);
         switch (type) {
