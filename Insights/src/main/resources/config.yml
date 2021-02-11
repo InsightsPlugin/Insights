@@ -26,7 +26,3 @@ settings:
     - "FluidLevelChangeEvent"
     - "SpongeAbsorbEvent"
     - "LeavesDecayEvent"
-  worldedit-integration:
-    enabled: true
-    type: "REPLACEMENT"
-    replacement-block: "BEDROCK"

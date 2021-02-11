@@ -3,7 +3,6 @@ package dev.frankheijden.insights.api.config;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.config.parser.PassiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
-import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
@@ -34,9 +33,6 @@ public class Settings {
     public final int SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
     public final boolean APPLY_PISTON_LIMITS;
     public final List<Class<?>> DISABLED_EVENTS;
-    public final boolean WORLDEDIT_INTEGRATION_ENABLED;
-    public final WorldEditIntegrationType WORLDEDIT_INTEGRATION_TYPE;
-    public final Material WORLDEDIT_INTEGRATION_REPLACEMENT_BLOCK;
 
     /**
      * Constructs a new Settings object from the given YamlParser.
@@ -74,10 +70,6 @@ public class Settings {
         for (String str : parser.getSet("settings.disabled-listeners", events.keySet(), "event")) {
             DISABLED_EVENTS.add(events.get(str));
         }
-
-        WORLDEDIT_INTEGRATION_ENABLED = parser.getBoolean("settings.worldedit-integration.enabled", true);
-        WORLDEDIT_INTEGRATION_TYPE = parser.getEnum("settings.worldedit-integration.type", WorldEditIntegrationType.REPLACEMENT);
-        WORLDEDIT_INTEGRATION_REPLACEMENT_BLOCK = parser.getEnum("settings.worldedit-integration.replacement-block", Material.BEDROCK);
     }
 
     /**
@@ -98,10 +90,5 @@ public class Settings {
     public enum NotificationType {
         BOSSBAR,
         ACTIONBAR
-    }
-
-    public enum WorldEditIntegrationType {
-        REPLACEMENT,
-        UNCHANGED
     }
 }

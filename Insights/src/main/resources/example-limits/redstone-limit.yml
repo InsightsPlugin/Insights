@@ -29,4 +29,3 @@ limit:
     enabled-addons:
       whitelist: false
       addons: []
-    worldedit: true
