@@ -51,7 +51,7 @@ maven { url 'https://jitpack.io' }
 ```
 and as dependency:
 ```groovy
-compileOnly 'com.github.InsightsPlugin:Insights:TAG'
+compileOnly 'com.github.InsightsPlugin:Insights:VERSION'
 ```
 #### Maven:
 ```xml
@@ -65,85 +65,13 @@ and as dependency:
 <dependency>
     <groupId>com.github.InsightsPlugin</groupId>
     <artifactId>Insights</artifactId>
-    <version>TAG</version>
+    <version>VERSION</version>
     <scope>provided</scope>
 </dependency>
 ```
 
-### Scanning
-An example of a scan can be found [here](src/main/java/net/frankheijden/insights/api/APIExample.java).
-
-### Useful
-- Main API:
-[InsightsAPI](src/main/java/net/frankheijden/insights/api)
-- Chunk scan API:
-[Scanner](src/main/java/net/frankheijden/insights/builders/Scanner.java),
-[ScanOptions](src/main/java/net/frankheijden/insights/entities/ScanOptions.java) and
-[ScanResult](src/main/java/net/frankheijden/insights/entities/ScanResult.java)
-- Easily get ChunkLocations / PartialChunks for scanning:
-[ChunkUtils](src/main/java/net/frankheijden/insights/entities/ScanResult.java)
-- Easily check for tiles:
-[TileUtils](src/main/java/net/frankheijden/insights/utils/TileUtils.java)
-- Easily get entity/block player is looking at:
-[PlayerUtils](src/main/java/net/frankheijden/insights/utils/PlayerUtils.java)
-- Check for player move per chunk (cancellable):
-[PlayerChunkMoveEvent](src/main/java/net/frankheijden/insights/events/PlayerChunkMoveEvent.java)
-- Check when player places down (any) entity:
-[PlayerEntityPlaceEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityPlaceEvent.java)
-- Check when player removes (any) entity:
-[PlayerEntityDestroyEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityDestroyEvent.java)
-- Easily send ActionBar message:
-[MessageUtils](src/main/java/net/frankheijden/insights/utils/MessageUtils.java#L76)
-- Everything is compatible from 1.8 - 1.15.2 (with some reflections)!
-
-### Hooking
-```java
-import net.frankheijden.insights.interfaces.Hook;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.plugin.Plugin;
-
-public class MyInsightsHook implements Hook {
-    
-    private final Plugin plugin;
-    
-    public MyInsightsHook(Plugin plugin) {
-       this.plugin = plugin;
-    }
-
-    @Override
-    public Plugin getPlugin() {
-        return plugin;
-    }
-
-    @Override
-    public boolean shouldCancel(Block block) {
-       // Cancel Insights for all Dirt blocks
-       return block.getType() == Material.DIRT;
-    }
-
-    @Override
-    public boolean shouldCancel(Entity entity) {
-        // Cancel Insights for all Sheep's
-        return entity.getType() == EntityType.SHEEP;
-    }
-}
-```
-```java
-import net.frankheijden.insights.api.InsightsAPI;
-
-public class MyPlugin extends JavaPlugin {
-    @Override
-    public void onEnable() {
-       super.onEnable();
-
-       // Add hook
-       InsightsAPI.getHookManager().addHook(new MyInsightsHook(this));
-    }
-}
-```
+### Addons
+See the [Insights Wiki](https://github.com/InsightsPlugin/Insights/wiki/Addon-API) on how to implement your own addon for Insights!
 
 ## Screenshots
 ### Limit blocks per group
