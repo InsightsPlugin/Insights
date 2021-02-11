@@ -20,10 +20,23 @@
 [bStats]: https://bstats.org/plugin/bukkit/Insights/7272
 <!-- End of variables block -->
 
-
 # Insights
+Insights is a plugin which scans arbitrary regions and applies block limitations on them. 
+Insights' limits are super configurable, allowing for group limits, individual (permission-based) limits, and tile limits.
+Each limit is able to be bypassed through permissions, which you can customize in the limits configuration.
 
-For the description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
+Apart from all placeable materials, Insights also supports the limitation of the following static entities:
+* Item Frames
+* Armor Stands
+* Paintings
+* End Crystals
+
+Insights applies a mapreduce design pattern to perform scans asynchronously,
+thus keeping the main thread free from counting materials.
+Insights also provides an extensive developer API to create your own custom defined region addons,
+or to perform arbitrary scans and process those.
+
+For a full description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
 
 [![Java CI with Gradle](https://github.com/FrankHeijden/Insights/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=master)](https://github.com/FrankHeijden/Insights/actions)
 [![](https://jitpack.io/v/FrankHeijden/Insights.svg)](https://jitpack.io/#FrankHeijden/Insights)
@@ -38,9 +51,31 @@ For the description of this plugin, please refer to SpigotMC: https://www.spigot
 
 [![bStatsImg]][bStats]
 
-## How to run the project?
+## Extensions
+These plugins are extensions on Insights, they must be placed in your `plugins/` folder.
+* [InsightsWorldEditExtension](https://github.com/InsightsPlugin/InsightsWorldEditExtension) - Block materials through WorldEdit modifications.
+  Supports Insights' limits & disallows any placement of limited blocks.
+
+## Addons
+Addons define regions for Insights to limit blocks in.
+Instead of a limit per chunk, when a block is placed in such a region, it will first count all blocks in that region, and after enforce limits in that region.
+Regions are cached to not bother with scans each time a block has been placed.
+* [BentoBoxWorldAddon](https://github.com/InsightsPlugin/BentoBoxAddon/releases) - Limit blocks in your BentoBox world (includes bSkyBlock & AcidIslands)
+* [GriefPreventionAddon](https://github.com/InsightsPlugin/GriefPreventionAddon/releases) - Limit blocks in your GriefPrevention claims!
+* [USkyBlockAddon](https://github.com/InsightsPlugin/USkyBlockAddon/releases) - Limit blocks in your USB islands!
+* [IridiumSkyblockAddon](https://github.com/InsightsPlugin/IridiumSkyblockAddon/releases) - Limit blocks in your Iridium islands!
+* [PlotSquaredAddon](https://github.com/InsightsPlugin/PlotSquaredAddon/releases) - Limit blocks in your PlotSquared plots!
+* [SuperiorSkyblock2Addon](https://github.com/InsightsPlugin/SuperiorSkyblock2Addon/releases) - Limit blocks in your SS islands!
+
+## Compiling Insights
+There are two ways to compile Insights:
+### 1. Installing gradle (recommended)
 1. Make sure you have [gradle][gradleInstall] installed.
-2. Run the project with `gradle shadowJar` to compile it with dependencies.
+2. Run the project with `gradle build` to compile it with dependencies.
+### 2. Using the wrapper
+**Windows**: `gradlew.bat build`
+<br>
+**Linux/macOS**: `./gradlew build`
 
 ## Developer API
 ### Repository / Dependency
@@ -51,7 +86,7 @@ maven { url 'https://jitpack.io' }
 ```
 and as dependency:
 ```groovy
-compileOnly 'com.github.InsightsPlugin:Insights:TAG'
+compileOnly 'com.github.InsightsPlugin:Insights:VERSION'
 ```
 #### Maven:
 ```xml
@@ -65,85 +100,13 @@ and as dependency:
 <dependency>
     <groupId>com.github.InsightsPlugin</groupId>
     <artifactId>Insights</artifactId>
-    <version>TAG</version>
+    <version>VERSION</version>
     <scope>provided</scope>
 </dependency>
 ```
 
-### Scanning
-An example of a scan can be found [here](src/main/java/net/frankheijden/insights/api/APIExample.java).
-
-### Useful
-- Main API:
-[InsightsAPI](src/main/java/net/frankheijden/insights/api)
-- Chunk scan API:
-[Scanner](src/main/java/net/frankheijden/insights/builders/Scanner.java),
-[ScanOptions](src/main/java/net/frankheijden/insights/entities/ScanOptions.java) and
-[ScanResult](src/main/java/net/frankheijden/insights/entities/ScanResult.java)
-- Easily get ChunkLocations / PartialChunks for scanning:
-[ChunkUtils](src/main/java/net/frankheijden/insights/entities/ScanResult.java)
-- Easily check for tiles:
-[TileUtils](src/main/java/net/frankheijden/insights/utils/TileUtils.java)
-- Easily get entity/block player is looking at:
-[PlayerUtils](src/main/java/net/frankheijden/insights/utils/PlayerUtils.java)
-- Check for player move per chunk (cancellable):
-[PlayerChunkMoveEvent](src/main/java/net/frankheijden/insights/events/PlayerChunkMoveEvent.java)
-- Check when player places down (any) entity:
-[PlayerEntityPlaceEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityPlaceEvent.java)
-- Check when player removes (any) entity:
-[PlayerEntityDestroyEvent](src/main/java/net/frankheijden/insights/events/PlayerEntityDestroyEvent.java)
-- Easily send ActionBar message:
-[MessageUtils](src/main/java/net/frankheijden/insights/utils/MessageUtils.java#L76)
-- Everything is compatible from 1.8 - 1.15.2 (with some reflections)!
-
-### Hooking
-```java
-import net.frankheijden.insights.interfaces.Hook;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.plugin.Plugin;
-
-public class MyInsightsHook implements Hook {
-    
-    private final Plugin plugin;
-    
-    public MyInsightsHook(Plugin plugin) {
-       this.plugin = plugin;
-    }
-
-    @Override
-    public Plugin getPlugin() {
-        return plugin;
-    }
-
-    @Override
-    public boolean shouldCancel(Block block) {
-       // Cancel Insights for all Dirt blocks
-       return block.getType() == Material.DIRT;
-    }
-
-    @Override
-    public boolean shouldCancel(Entity entity) {
-        // Cancel Insights for all Sheep's
-        return entity.getType() == EntityType.SHEEP;
-    }
-}
-```
-```java
-import net.frankheijden.insights.api.InsightsAPI;
-
-public class MyPlugin extends JavaPlugin {
-    @Override
-    public void onEnable() {
-       super.onEnable();
-
-       // Add hook
-       InsightsAPI.getHookManager().addHook(new MyInsightsHook(this));
-    }
-}
-```
+### Addons
+See the [Insights Wiki](https://github.com/InsightsPlugin/Insights/wiki/Addon-API) on how to implement your own addon for Insights!
 
 ## Screenshots
 ### Limit blocks per group
