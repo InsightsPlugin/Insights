@@ -34,7 +34,7 @@ public class EntityTrackerTask extends InsightsTask {
         trackedEntities.keySet().removeAll(entities.keySet());
 
         for (Entity entity : trackedEntities.values()) {
-            if (entity.isTicking()) {
+            if (entity.isDead()) {
                 Bukkit.getPluginManager().callEvent(new EntityRemoveFromWorldEvent(entity));
             }
         }
