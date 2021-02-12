@@ -7,9 +7,23 @@ public class MetricsManager {
 
     private static final int BSTATS_METRICS_ID = 7272;
 
-    private final Metrics metrics;
+    private final IntegerMetric chunkScanMetric = new IntegerMetric();
+    private final IntegerMetric limitMetric = new IntegerMetric();
 
+    /**
+     * Constructs a new MetricsManager with some extra charts.
+     */
     public MetricsManager(InsightsPlugin plugin) {
-        metrics = new Metrics(plugin, BSTATS_METRICS_ID);
+        Metrics metrics = new Metrics(plugin, BSTATS_METRICS_ID);
+        metrics.addCustomChart(new Metrics.SingleLineChart("chunks-scanned", chunkScanMetric));
+        metrics.addCustomChart(new Metrics.SingleLineChart("limits", limitMetric));
+    }
+
+    public IntegerMetric getChunkScanMetric() {
+        return chunkScanMetric;
+    }
+
+    public IntegerMetric getLimitMetric() {
+        return limitMetric;
     }
 }

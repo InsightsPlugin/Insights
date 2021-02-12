@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.concurrent;
 
+import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.containers.ChunkSnapshotContainer;
 import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
@@ -78,6 +79,7 @@ public class ChunkContainerExecutor implements ContainerExecutor {
             DistributionStorage storage = new DistributionStorage(materials, entities);
             if (options.save()) worldStorage.getWorld(worldUid).put(chunkKey, storage);
             if (options.track()) scanTracker.set(worldUid, chunkKey, false);
+            InsightsPlugin.getInstance().getMetricsManager().getChunkScanMetric().increment();
             return storage;
         });
     }
