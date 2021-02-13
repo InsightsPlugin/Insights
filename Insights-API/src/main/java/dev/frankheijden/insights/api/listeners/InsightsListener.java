@@ -51,9 +51,8 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     }
 
     protected void handleModification(Location location, Consumer<DistributionStorage> storageConsumer) {
-        Chunk chunk = location.getChunk();
-        UUID worldUid = chunk.getWorld().getUID();
-        long chunkKey = ChunkUtils.getKey(chunk);
+        UUID worldUid = location.getWorld().getUID();
+        long chunkKey = ChunkUtils.getKey(location);
         plugin.getWorldStorage().getWorld(worldUid).get(chunkKey).ifPresent(storageConsumer);
         plugin.getAddonManager().getRegion(location)
                 .flatMap(region -> plugin.getAddonStorage().get(region.getKey()))
