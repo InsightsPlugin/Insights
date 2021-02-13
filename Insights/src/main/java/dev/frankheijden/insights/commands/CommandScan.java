@@ -30,7 +30,7 @@ public class CommandScan extends InsightsCommand {
     @CommandPermission("insights.scan.tile")
     private void handleTileScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "25") int radius
+            @Argument("radius") @Range(min = "0", max = "50") int radius
     ) {
         handleScan(player, radius, RTileEntityTypes.getTileEntityMaterials(), false);
     }
@@ -39,7 +39,7 @@ public class CommandScan extends InsightsCommand {
     @CommandPermission("insights.scan.all")
     private void handleAllScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "25") int radius
+            @Argument("radius") @Range(min = "0", max = "50") int radius
     ) {
         handleScan(player, radius, null, false);
     }
@@ -48,7 +48,7 @@ public class CommandScan extends InsightsCommand {
     @CommandPermission("insights.scan.custom")
     private void handleCustomScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "25") int radius,
+            @Argument("radius") @Range(min = "0", max = "50") int radius,
             @Argument("materials") Material[] materials
     ) {
         handleScan(player, radius, new HashSet<>(Arrays.asList(materials)), true);
