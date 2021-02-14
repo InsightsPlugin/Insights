@@ -95,4 +95,19 @@ public class StringUtils {
     public static String capitalize(String str) {
         return str.substring(0, 1).toUpperCase(Locale.ENGLISH) + str.substring(1);
     }
+
+    public static String join(String[] strings, String delimiter, int fromIndex) {
+        return join(strings, delimiter, fromIndex, strings.length);
+    }
+
+    /**
+     * Joins the given string with a delimiter, starting at fromIndex (including) until toIndex (excluding).
+     */
+    public static String join(String[] strings, String delimiter, int fromIndex, int toIndex) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = fromIndex; i < toIndex; i++) {
+            sb.append(delimiter).append(strings[i]);
+        }
+        return sb.length() == 0 ? "" : sb.substring(delimiter.length());
+    }
 }

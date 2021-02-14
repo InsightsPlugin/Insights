@@ -64,7 +64,7 @@ public class AddonManager {
                     continue;
                 }
 
-                if (!Bukkit.getPluginManager().isPluginEnabled(addon.getPluginName())) {
+                if (!InsightsPlugin.getInstance().isAvailable(addon.getPluginName())) {
                     plugin.getLogger().severe("Error loading addon: " + addon.getPluginName() + " is not enabled!");
                     continue;
                 }

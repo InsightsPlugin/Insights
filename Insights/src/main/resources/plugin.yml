@@ -4,4 +4,5 @@ version: ${version}
 description: "A plugin which gives you Insights about your server, and allows for the limiting of blocks."
 author: "FrankHeijden"
 website: "https://www.spigotmc.org/resources/56489/"
+softdepend: [ "PlaceholderAPI" ]
 api-version: "1.15"

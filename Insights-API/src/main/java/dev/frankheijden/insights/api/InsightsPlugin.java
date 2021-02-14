@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api;
 
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public abstract class InsightsPlugin extends JavaPlugin implements InsightsMain {
@@ -21,5 +22,10 @@ public abstract class InsightsPlugin extends JavaPlugin implements InsightsMain 
         reloadMessages();
         reloadNotifications();
         reloadLimits();
+    }
+
+    public boolean isAvailable(String pluginName) {
+        Plugin plugin = getServer().getPluginManager().getPlugin(pluginName);
+        return plugin != null && plugin.isEnabled();
     }
 }

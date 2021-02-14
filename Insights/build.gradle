@@ -3,8 +3,13 @@ String dependencyDir = group + '.dependencies'
 version = rootProject.version
 archivesBaseName = baseName
 
+repositories {
+    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+}
+
 dependencies {
     compileOnly 'com.mojang:brigadier:1.0.17'
+    compileOnly 'me.clip:placeholderapi:2.10.9'
     implementation 'me.lucko:commodore:1.9'
     implementation 'cloud.commandframework:cloud-paper:1.4.0'
     implementation 'cloud.commandframework:cloud-annotations:1.4.0'
