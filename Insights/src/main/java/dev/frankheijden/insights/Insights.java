@@ -42,6 +42,7 @@ import dev.frankheijden.insights.listeners.PaperEntityListener;
 import dev.frankheijden.insights.listeners.PistonListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
+import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
@@ -107,6 +108,7 @@ public class Insights extends InsightsPlugin {
     private AddonScanTracker addonScanTracker;
     private EntityTrackerTask entityTrackerTask;
     private MetricsManager metricsManager;
+    private InsightsPlaceholderExpansion placeholderExpansion;
 
     @Override
     public void onLoad() {
@@ -189,11 +191,19 @@ public class Insights extends InsightsPlugin {
                     20L * settings.UPDATE_CHECKER_INTERVAL_SECONDS
             );
         }
+
+        if (isAvailable("PlaceholderAPI")) {
+            placeholderExpansion = new InsightsPlaceholderExpansion(this);
+            placeholderExpansion.register();
+        }
     }
 
     @Override
     public void onDisable() {
         notifications.clearNotifications();
+        if (placeholderExpansion != null) {
+            placeholderExpansion.unregister();
+        }
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {
