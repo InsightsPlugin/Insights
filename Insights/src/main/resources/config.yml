@@ -1,4 +1,7 @@
 settings:
+  update-checker:
+    enabled: true
+    interval-seconds: 10800
   scans:
     concurrent-threads: -1
     iteration-interval-ticks: 1
