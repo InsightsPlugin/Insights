@@ -59,6 +59,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -91,7 +92,6 @@ public class Insights extends InsightsPlugin {
 
     private static final String SETTINGS_FILE_NAME = "config.yml";
     private static final String MESSAGES_FILE_NAME = "messages.yml";
-    private static final String EXAMPLE_LIMITS_FOLDER_NAME = "example-limits";
     private static final String LIMITS_FOLDER_NAME = "limits";
 
     private Settings settings;
@@ -246,7 +246,11 @@ public class Insights extends InsightsPlugin {
         if (!Files.exists(limitsPath)) {
             try {
                 Files.createDirectory(limitsPath);
-                IOUtils.copyResourceFolder(EXAMPLE_LIMITS_FOLDER_NAME, limitsPath, getClassLoader());
+                IOUtils.copyResources(limitsPath, getClassLoader(), Arrays.asList(
+                        "bed-limit.yml",
+                        "redstone-limit.yml",
+                        "tile-limit.yml"
+                ));
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
