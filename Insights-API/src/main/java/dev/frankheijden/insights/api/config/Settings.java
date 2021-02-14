@@ -15,6 +15,8 @@ import java.util.Map;
 
 public class Settings {
 
+    public final boolean UPDATE_CHECKER_ENABLED;
+    public final int UPDATE_CHECKER_INTERVAL_SECONDS;
     public final int SCANS_CONCURRENT_THREADS;
     public final int SCANS_ITERATION_INTERVAL_TICKS;
     public final int SCANS_CHUNKS_PER_ITERATION;
@@ -39,6 +41,9 @@ public class Settings {
      */
     @SuppressWarnings("LineLength")
     public Settings(InsightsPlugin plugin, YamlParser parser) {
+        UPDATE_CHECKER_ENABLED = parser.getBoolean("settings.update-checker.enabled", true);
+        UPDATE_CHECKER_INTERVAL_SECONDS = parser.getInt("settings.update-checker.interval-seconds", 10800, 1, Integer.MAX_VALUE);
+
         int maxThreads = Runtime.getRuntime().availableProcessors();
         int threads = parser.getInt("settings.scans.concurrent-threads", -1, -1, maxThreads);
         if (threads <= 0) threads = maxThreads;

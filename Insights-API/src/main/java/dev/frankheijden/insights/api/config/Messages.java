@@ -35,6 +35,7 @@ public class Messages {
 
     public enum Key {
         PREFIX("prefix"),
+        UPDATE_AVAILABLE("update-available"),
         CONFIGS_RELOADED("configs-reloaded"),
         AREA_SCAN_STARTED("area-scan-started"),
         AREA_SCAN_QUEUED("area-scan-queued"),

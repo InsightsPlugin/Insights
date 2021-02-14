@@ -1,5 +1,6 @@
 messages:
   prefix: "&b&lInsights &8&l» "
+  update-available: "<prefix>&3Version &a%version% &3of &bInsights &3is now available! Info: &b%body%"
   configs-reloaded: "<prefix>&3All configurations have been reloaded!"
   area-scan-started: "<prefix>&3Please wait while we scan this %area%..."
   area-scan-queued: "<prefix>&cThis %area% is currently queued for scanning..."

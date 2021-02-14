@@ -25,6 +25,7 @@ import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
+import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.commands.CommandInsights;
@@ -178,6 +179,15 @@ public class Insights extends InsightsPlugin {
 
         if (settings.CHUNK_SCAN_MODE == Settings.ChunkScanMode.ALWAYS) {
             Bukkit.getScheduler().runTaskTimerAsynchronously(this, new PlayerTrackerTask(this), 0, 1);
+        }
+
+        if (settings.UPDATE_CHECKER_ENABLED) {
+            getServer().getScheduler().runTaskTimerAsynchronously(
+                    this,
+                    new UpdateCheckerTask(this),
+                    20,
+                    20L * settings.UPDATE_CHECKER_INTERVAL_SECONDS
+            );
         }
     }
 
