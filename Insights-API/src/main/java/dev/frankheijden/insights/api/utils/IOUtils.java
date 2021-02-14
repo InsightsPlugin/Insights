@@ -3,42 +3,48 @@ package dev.frankheijden.insights.api.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Collection;
 
 public class IOUtils {
 
     private IOUtils() {}
 
     /**
-     * Constructs a new FileSystem using given classloader.
+     * Copies the contents of a folder in the jar to a target folder.
      */
-    public static FileSystem getFileSystem(ClassLoader loader) throws IOException {
-        URL jar = IOUtils.class.getProtectionDomain().getCodeSource().getLocation();
-        Path jarFile = Paths.get(jar.toString().substring(5));
-        return FileSystems.newFileSystem(jarFile, loader);
-    }
-
-    /**
-     * Copies a whole folder from the jar file to given path target.
-     */
-    public static void copyResourceFolder(String folder, Path target, ClassLoader loader) {
-        try (
-                FileSystem fs = IOUtils.getFileSystem(loader);
-                DirectoryStream<Path> paths = Files.newDirectoryStream(fs.getPath(folder))
-        ) {
-            for (Path path : paths) {
-                try (InputStream in = loader.getResourceAsStream(path.toString())) {
+    public static void copyResources(
+            Path target,
+            ClassLoader loader,
+            Collection<? extends String> collection
+    ) {
+        try {
+            for (String fileName : collection) {
+                try (InputStream in = getResource(fileName, loader)) {
                     if (in == null) continue;
-                    save(in, target.resolve(path.getFileName().toString()));
+                    save(in, target.resolve(fileName));
                 }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Retrieves a resource from the ClassLoader object.
+     */
+    public static InputStream getResource(String path, ClassLoader loader) {
+        try {
+            URL url = loader.getResource(path);
+            if (url == null) return null;
+
+            URLConnection connection = url.openConnection();
+            connection.setUseCaches(false);
+            return connection.getInputStream();
+        } catch (IOException ex) {
+            return null;
         }
     }
 
