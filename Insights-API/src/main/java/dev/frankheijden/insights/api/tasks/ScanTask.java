@@ -43,7 +43,7 @@ public class ScanTask implements Runnable {
     private final Consumer<Info> infoConsumer;
     private final long infoTimeout;
     private final Consumer<DistributionStorage> distributionConsumer;
-    private final AtomicInteger iterationChunks = new AtomicInteger(0);
+    private final AtomicInteger iterationChunks;
     private final AtomicInteger chunks = new AtomicInteger(0);
     private final int chunkCount;
     private long lastInfo = 0;
@@ -70,6 +70,7 @@ public class ScanTask implements Runnable {
         this.infoConsumer = infoConsumer;
         this.infoTimeout = infoTimeoutMillis * 1000000L; // Convert to nanos
         this.distributionConsumer = distributionConsumer;
+        this.iterationChunks = new AtomicInteger(chunksPerIteration);
         this.chunkCount = chunkParts.size();
     }
 
@@ -241,11 +242,15 @@ public class ScanTask implements Runnable {
             return;
         }
 
-        // Check if we have gotten all chunks from previous iteration
-        if (iterationChunks.compareAndSet(0, chunksPerIteration)) return;
+        // Check how many chunks we did previous iteration,
+        // and do as many chunks as 'chunksPerIteration' allows us to do.
+        int previouslyDone = iterationChunks.get();
+        int chunkIterations = Math.min(previouslyDone, chunksPerIteration);
+        if (chunkIterations == 0) return;
+        iterationChunks.addAndGet(-chunkIterations);
 
-        // Iterate 'chunksPerIteration' times
-        for (int i = 0; i < chunksPerIteration; i++) {
+        // Iterate 'chunkIterations' times
+        for (int i = 0; i < chunkIterations; i++) {
             // Note: we can't cancel the task here just yet,
             // because some chunks might still need scanning (after loading).
             if (scanQueue.isEmpty()) break;
@@ -256,10 +261,10 @@ public class ScanTask implements Runnable {
             PaperLib.getChunkAtAsync(loc.getWorld(), loc.getX(), loc.getZ(), false).thenAccept(chunk -> {
                 // Add the chunk to the scan queue for the main thread to fetch the ChunkSnapshot.
                 chunkQueue.add(chunk);
-                iterationChunks.decrementAndGet();
+                iterationChunks.incrementAndGet();
             }).exceptionally(err -> {
                 // When the chunk couldn't be loaded (e.g. not generated), just skip it
-                iterationChunks.decrementAndGet();
+                iterationChunks.incrementAndGet();
                 chunks.incrementAndGet();
                 return null;
             });
