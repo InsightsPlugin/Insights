@@ -33,6 +33,7 @@ public class IOUtils {
         ) {
             for (Path path : paths) {
                 try (InputStream in = loader.getResourceAsStream(path.toString())) {
+                    if (in == null) continue;
                     save(in, target.resolve(path.getFileName().toString()));
                 }
             }
