@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.utils;
 import dev.frankheijden.insights.api.concurrent.storage.Distribution;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import java.util.EnumMap;
@@ -22,6 +23,10 @@ public class ChunkUtils {
 
     public static long getKey(Chunk chunk) {
         return getKey(chunk.getX(), chunk.getZ());
+    }
+
+    public static long getKey(Location location) {
+        return getKey(location.getBlockX() >> 4, location.getBlockZ() >> 4);
     }
 
     public static long getKey(ChunkSnapshot snapshot) {
