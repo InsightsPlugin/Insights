@@ -89,6 +89,7 @@ public class AddonManager {
      */
     public InsightsAddon loadAddon(URL url) throws AddonException {
         ClassLoader classLoader = getClass().getClassLoader();
+        InsightsAddon addon = null;
         try (
                 URLClassLoader loader = new URLClassLoader(new URL[]{ url }, classLoader);
                 JarInputStream in = new JarInputStream(url.openStream())
@@ -102,7 +103,7 @@ public class AddonManager {
                     String className = name.substring(0, name.lastIndexOf(".class"));
                     Class<?> clazz = loader.loadClass(className);
                     if (InsightsAddon.class.isAssignableFrom(clazz)) {
-                        return newAddonInstance(clazz);
+                        addon = newAddonInstance(clazz);
                     }
                 }
                 entry = in.getNextJarEntry();
@@ -110,7 +111,11 @@ public class AddonManager {
         } catch (Exception ex) {
             throw new AddonException(ex);
         }
-        return null;
+
+        if (addon == null) {
+            throw new AddonException("No main class found.");
+        }
+        return addon;
     }
 
     private InsightsAddon newAddonInstance(Class<?> clazz) throws AddonException {
