@@ -3,16 +3,11 @@ package dev.frankheijden.insights.api.config.limits;
 import dev.frankheijden.insights.api.config.parser.SensitiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public abstract class Limit {
 
@@ -46,14 +41,7 @@ public abstract class Limit {
         String bypassPermission = parser.getString("limit.bypass-permission", null, false);
 
         boolean worldWhitelist = parser.getBoolean("limit.settings.enabled-worlds.whitelist", false, false);
-        Set<String> allowedWorlds = Bukkit.getWorlds().stream()
-                .map(World::getName)
-                .collect(Collectors.toSet());
-        Set<UUID> worlds = parser.getSet("limit.settings.enabled-worlds.worlds", allowedWorlds, "world").stream()
-                .map(Bukkit::getWorld)
-                .filter(Objects::nonNull)
-                .map(World::getUID)
-                .collect(Collectors.toSet());
+        Set<String> worlds = parser.getSet("limit.settings.enabled-worlds.worlds");
 
         boolean addonWhitelist = parser.getBoolean("limit.settings.enabled-addons.whitelist", false, false);
         Set<String> addons = parser.getSet("limit.settings.enabled-addons.addons");

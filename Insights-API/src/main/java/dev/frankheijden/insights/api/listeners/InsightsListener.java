@@ -19,6 +19,7 @@ import dev.frankheijden.insights.api.utils.StringUtils;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.EntityType;
@@ -81,7 +82,8 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     protected boolean handleAddition(Player player, Location location, Object item, int delta, boolean included) {
         Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
         Chunk chunk = location.getChunk();
-        UUID worldUid = chunk.getWorld().getUID();
+        World world = location.getWorld();
+        UUID worldUid = world.getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
 
         boolean queued;
@@ -91,11 +93,11 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             Region region = regionOptional.get();
             queued = plugin.getAddonScanTracker().isQueued(region.getKey());
             area = plugin.getAddonManager().getAddon(region.getAddon()).getAreaName();
-            env = new LimitEnvironment(player, worldUid, region.getAddon());
+            env = new LimitEnvironment(player, world.getName(), region.getAddon());
         } else {
             queued = plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey);
             area = "chunk";
-            env = new LimitEnvironment(player, worldUid);
+            env = new LimitEnvironment(player, world.getName());
         }
 
         if (queued) {
@@ -224,7 +226,8 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     protected void handleRemoval(Player player, Location location, Object item, int delta) {
         Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
         Chunk chunk = location.getChunk();
-        UUID worldUid = chunk.getWorld().getUID();
+        World world = location.getWorld();
+        UUID worldUid = world.getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
         UUID uuid = player.getUniqueId();
 
@@ -234,11 +237,11 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         if (regionOptional.isPresent()) {
             Region region = regionOptional.get();
             queued = plugin.getAddonScanTracker().isQueued(region.getKey());
-            env = new LimitEnvironment(player, worldUid, region.getAddon());
+            env = new LimitEnvironment(player, world.getName(), region.getAddon());
             storageOptional = plugin.getAddonStorage().get(region.getKey());
         } else {
             queued = plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey);
-            env = new LimitEnvironment(player, worldUid);
+            env = new LimitEnvironment(player, world.getName());
             storageOptional = plugin.getWorldStorage().getWorld(worldUid).get(chunkKey);
         }
 
