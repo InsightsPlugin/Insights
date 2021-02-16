@@ -136,7 +136,6 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         if (!storageOptional.isPresent()) return true;
 
         DistributionStorage storage = storageOptional.get();
-        UUID uuid = player.getUniqueId();
         int count = storage.count(limit, item);
 
         // If count is beyond limit, act
@@ -151,8 +150,38 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
                     .sendTo(player);
             return true;
         }
+        return false;
+    }
 
-        // Else notify the user (if they have permission)
+    protected void evaluateAddition(Player player, Location location, Object item, int delta) {
+        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
+        UUID worldUid = location.getWorld().getUID();
+        long chunkKey = ChunkUtils.getKey(location);
+        UUID uuid = player.getUniqueId();
+
+        LimitEnvironment env;
+        Optional<DistributionStorage> storageOptional;
+        if (regionOptional.isPresent()) {
+            Region region = regionOptional.get();
+            env = new LimitEnvironment(player, worldUid, region.getAddon());
+            storageOptional = plugin.getAddonStorage().get(region.getKey());
+        } else {
+            env = new LimitEnvironment(player, worldUid);
+            storageOptional = plugin.getWorldStorage().getWorld(worldUid).get(chunkKey);
+        }
+
+        if (!storageOptional.isPresent()) return;
+        DistributionStorage storage = storageOptional.get();
+
+        // If limit is not present, stop here
+        Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
+        if (!limitOptional.isPresent()) return;
+
+        Limit limit = limitOptional.get();
+        LimitInfo limitInfo = limit.getLimit(item);
+        int count = storage.count(limit, item);
+
+        // Notify the user (if they have permission)
         if (player.hasPermission("insights.notifications")) {
             double progress = (double) (count + delta) / limitInfo.getLimit();
             plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
@@ -167,7 +196,6 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
                     .color()
                     .send();
         }
-        return false;
     }
 
     private Optional<DistributionStorage> handleChunkAddition(

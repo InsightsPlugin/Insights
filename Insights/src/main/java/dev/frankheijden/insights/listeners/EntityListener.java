@@ -69,6 +69,15 @@ public class EntityListener extends InsightsListener {
     }
 
     /**
+     * Monitors the HangingPlaceEvent for Item Frames and Paintings.
+     * This event does not limit, it only monitors results from the event.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onHangingPlaceMonitor(HangingPlaceEvent event) {
+        evaluateEntityPlace(event.getPlayer(), event.getEntity());
+    }
+
+    /**
      * Handles the EntityPlaceEvent for Armor Stands and End Crystals.
      */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -76,6 +85,15 @@ public class EntityListener extends InsightsListener {
         if (handleEntityPlace(event.getPlayer(), event.getEntity())) {
             event.setCancelled(true);
         }
+    }
+
+    /**
+     * Monitors the EntityPlaceEvent for Armor Stands and End Crystals.
+     * This event does not limit, it only monitors results from the event.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onEntityPlaceMonitor(EntityPlaceEvent event) {
+        evaluateEntityPlace(event.getPlayer(), event.getEntity());
     }
 
     /**
@@ -138,16 +156,18 @@ public class EntityListener extends InsightsListener {
     protected boolean handleEntityPlace(Player player, Entity entity) {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return false;
+        return handleAddition(player, entity.getLocation(), entityType, 1, false);
+    }
+
+    protected void evaluateEntityPlace(Player player, Entity entity) {
+        EntityType entityType = entity.getType();
+        if (!LIMITED_ENTITIES.contains(entityType)) return;
 
         Location location = entity.getLocation();
         int delta = 1;
 
-        if (handleAddition(player, location, entityType, delta, false)) {
-            return true;
-        }
-
+        evaluateAddition(player, location, entityType, delta);
         handleModification(location, entityType, delta);
-        return false;
     }
 
     protected void handleEntityRemoval(Entity entity, boolean add) {
