@@ -58,8 +58,26 @@ public class BlockListener extends InsightsListener {
 
         if (handleAddition(player, location, material, delta)) {
             event.setCancelled(true);
-            return;
         }
+    }
+
+    /**
+     * Handles the BlockPlaceEvent for players, monitoring changes
+     * Chunk limitations are not applied here, they are only monitored and displayed to the player.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPlaceMonitor(BlockPlaceEvent event) {
+        Block block = event.getBlock();
+        Location location = block.getLocation();
+        Material material = block.getType();
+        Player player = event.getPlayer();
+
+        // In case of BlockMultiPlaceEvent, we need to take a different delta.
+        int delta = event instanceof BlockMultiPlaceEvent
+                ? ((BlockMultiPlaceEvent) event).getReplacedBlockStates().size()
+                : 1;
+
+        evaluateAddition(player, location, material, delta);
 
         // Update the cache
         handleModification(location, event.getBlockReplacedState().getType(), material, delta);
