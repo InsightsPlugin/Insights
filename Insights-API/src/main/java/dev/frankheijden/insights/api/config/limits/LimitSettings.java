@@ -1,11 +1,10 @@
 package dev.frankheijden.insights.api.config.limits;
 
 import java.util.Set;
-import java.util.UUID;
 
 public class LimitSettings {
 
-    private final Set<UUID> worlds;
+    private final Set<String> worlds;
     private final boolean worldWhitelist;
     private final Set<String> addons;
     private final boolean addonWhitelist;
@@ -13,14 +12,14 @@ public class LimitSettings {
     /**
      * Constructs a new LimitSettings object.
      */
-    public LimitSettings(Set<UUID> worlds, boolean worldWhitelist, Set<String> addons, boolean addonWhitelist) {
+    public LimitSettings(Set<String> worlds, boolean worldWhitelist, Set<String> addons, boolean addonWhitelist) {
         this.worlds = worlds;
         this.worldWhitelist = worldWhitelist;
         this.addons = addons;
         this.addonWhitelist = addonWhitelist;
     }
 
-    public Set<UUID> getWorlds() {
+    public Set<String> getWorlds() {
         return worlds;
     }
 
@@ -31,11 +30,11 @@ public class LimitSettings {
     /**
      * Checks whether this limit can be applied on given world.
      */
-    public boolean appliesToWorld(UUID worldUid) {
+    public boolean appliesToWorld(String worldName) {
         if (worldWhitelist) {
-            return worlds.contains(worldUid);
+            return worlds.contains(worldName);
         } else {
-            return !worlds.contains(worldUid);
+            return !worlds.contains(worldName);
         }
     }
 

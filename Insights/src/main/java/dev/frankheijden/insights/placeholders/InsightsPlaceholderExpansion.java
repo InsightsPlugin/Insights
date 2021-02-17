@@ -11,6 +11,7 @@ import dev.frankheijden.insights.api.utils.StringUtils;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import java.util.Locale;
@@ -53,8 +54,9 @@ public class InsightsPlaceholderExpansion extends PlaceholderExpansion {
                 if (item == null) return "";
 
                 Location location = player.getLocation();
-                UUID worldUid = location.getWorld().getUID();
-                LimitEnvironment env = new LimitEnvironment(player, worldUid);
+                World world = location.getWorld();
+                UUID worldUid = world.getUID();
+                LimitEnvironment env = new LimitEnvironment(player, world.getName());
                 Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
                 if (!limitOptional.isPresent()) break;
 
