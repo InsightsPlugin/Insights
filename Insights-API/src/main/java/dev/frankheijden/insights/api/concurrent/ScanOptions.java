@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.concurrent;
 public final class ScanOptions {
 
     private static ScanOptions ALL = new ScanOptions(true, true, true);
+    private static ScanOptions NONE = new ScanOptions(false, false, false);
 
     private final boolean save;
     private final boolean track;
@@ -16,6 +17,10 @@ public final class ScanOptions {
 
     public static ScanOptions all() {
         return ALL;
+    }
+
+    public static ScanOptions none() {
+        return NONE;
     }
 
     public static Builder newBuilder() {

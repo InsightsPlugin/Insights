@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.tasks;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.Distribution;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.config.Messages;
@@ -227,7 +228,7 @@ public class ScanTask implements Runnable {
         // Empty the queue with available chunks (after loading)
         while (!chunkQueue.isEmpty()) {
             // Scan each chunk, merging the result with the distributionMap.
-            executor.submit(chunkQueue.poll()).thenAccept(storage -> {
+            executor.submit(chunkQueue.poll(), ScanOptions.none()).thenAccept(storage -> {
                 storage.mergeRight(distributionStorage);
                 chunks.incrementAndGet();
             });
