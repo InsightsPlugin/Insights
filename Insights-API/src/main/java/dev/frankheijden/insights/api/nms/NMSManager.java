@@ -5,8 +5,6 @@ import dev.frankheijden.minecraftreflection.exceptions.MinecraftReflectionExcept
 
 public class NMSManager {
 
-    private static final String factoryClass = "dev.frankheijden.insights.nms.%s.ChunkFactoryImpl";
-
     private final NMSChunkFactory factory;
 
     public NMSManager(NMSChunkFactory factory) {
@@ -18,6 +16,6 @@ public class NMSManager {
     }
 
     public static NMSManager init() throws MinecraftReflectionException {
-        return new NMSManager(MinecraftReflection.of(factoryClass).newInstance());
+        return new NMSManager(MinecraftReflection.of("dev.frankheijden.insights.nms.ChunkFactoryImpl").newInstance());
     }
 }

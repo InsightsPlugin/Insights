@@ -1,4 +1,4 @@
-package dev.frankheijden.insights.nms.v1_16_R3;
+package dev.frankheijden.insights.nms;
 
 import dev.frankheijden.insights.api.nms.NMSChunkSection;
 import net.minecraft.server.v1_16_R3.ChunkSection;
