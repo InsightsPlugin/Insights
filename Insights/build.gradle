@@ -15,6 +15,7 @@ dependencies {
     implementation 'cloud.commandframework:cloud-annotations:1.4.0'
     implementation 'org.bstats:bstats-bukkit:1.8'
     implementation project(":Insights-API")
+    implementation project(":Insights-NMS:v1_16_R3")
 }
 
 processResources {

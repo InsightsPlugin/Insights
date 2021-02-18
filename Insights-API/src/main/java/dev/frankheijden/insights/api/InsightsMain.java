@@ -13,6 +13,7 @@ import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Notifications;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
+import dev.frankheijden.insights.api.nms.NMSManager;
 import java.util.Map;
 
 public interface InsightsMain {
@@ -50,6 +51,8 @@ public interface InsightsMain {
     AddonScanTracker getAddonScanTracker();
 
     MetricsManager getMetricsManager();
+
+    NMSManager getNMSManager();
 
     Map<String, Class<?>> getAllowedDisableEvents();
 }

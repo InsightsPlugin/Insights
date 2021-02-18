@@ -25,6 +25,7 @@ import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
+import dev.frankheijden.insights.api.nms.NMSManager;
 import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
@@ -46,6 +47,7 @@ import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
+import dev.frankheijden.minecraftreflection.exceptions.MinecraftReflectionException;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
@@ -108,6 +110,7 @@ public class Insights extends InsightsPlugin {
     private AddonScanTracker addonScanTracker;
     private EntityTrackerTask entityTrackerTask;
     private MetricsManager metricsManager;
+    private NMSManager nmsManager;
     private InsightsPlaceholderExpansion placeholderExpansion;
 
     @Override
@@ -119,6 +122,15 @@ public class Insights extends InsightsPlugin {
     @Override
     public void onEnable() {
         super.onEnable();
+
+        try {
+            nmsManager = NMSManager.init();
+        } catch (MinecraftReflectionException ex) {
+            getLogger().severe("Your minecraft version is unsupported.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         reloadConfigs();
 
         addonManager = new AddonManager(this, getDataFolder().toPath().resolve("addons"));
@@ -383,6 +395,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public MetricsManager getMetricsManager() {
         return metricsManager;
+    }
+
+    @Override
+    public NMSManager getNMSManager() {
+        return nmsManager;
     }
 
     @Override

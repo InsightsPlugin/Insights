@@ -1,0 +1,8 @@
+group = rootProject.group + '.nms.v1_16_R3'
+version = rootProject.version
+archivesBaseName = baseName + '-NMS-v1_16_R3'
+
+dependencies {
+    compileOnly project(":Insights-API")
+    compileOnly 'com.destroystokyo.paper:paper:1.16.5-R0.1-SNAPSHOT'
+}
