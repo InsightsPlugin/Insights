@@ -1,10 +1,3 @@
 rootProject.name = 'InsightsParent'
 include 'Insights-API'
 include 'Insights'
-includeNMS("v1_16_R3")
-
-def includeNMS(String nms) {
-    include(":Insights-NMS:$nms")
-    project(":Insights-NMS:$nms").projectDir = file("Insights-NMS/$nms")
-}
-

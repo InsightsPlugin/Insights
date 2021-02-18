@@ -1,10 +1,10 @@
 package dev.frankheijden.insights.api.concurrent.containers;
 
-import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.nms.NMSChunk;
-import dev.frankheijden.insights.api.nms.NMSChunkSection;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
+import dev.frankheijden.insights.api.reflection.RChunk;
+import dev.frankheijden.insights.api.reflection.RChunkSection;
+import dev.frankheijden.insights.api.reflection.RCraftChunk;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Material;
 import java.util.EnumMap;
@@ -48,8 +48,8 @@ public class ChunkContainer extends DistributionContainer<Material> {
 
     @Override
     public void run() {
-        NMSChunk chunk = InsightsPlugin.getInstance().getNMSManager().getFactory().create(bukkitChunk);
-        NMSChunkSection[] sections = chunk.getSections();
+        Object chunk = RCraftChunk.getReflection().invoke(bukkitChunk, "getHandle");
+        Object[] sections = RChunk.getReflection().invoke(chunk, "getSections");
 
         ChunkVector min = cuboid.getMin();
         ChunkVector max = cuboid.getMax();
@@ -60,22 +60,26 @@ public class ChunkContainer extends DistributionContainer<Material> {
         int minSectionY = min.getY() >> 4;
         int maxSectionY = max.getY() >> 4;
 
-        for (int sectionY = minSectionY; sectionY < maxSectionY; sectionY++) {
-            NMSChunkSection section = sections[sectionY];
-            if (section.isEmpty()) {
-                distributionMap.merge(Material.AIR, 16 * 16 * 16, Integer::sum);
-            } else {
-                int minY = sectionY == minSectionY ? min.getY() & 15 : 0;
-                int maxY = sectionY == (maxSectionY - 1) ? (max.getY() - 1) & 15 : 15;
+        try {
+            for (int sectionY = minSectionY; sectionY < maxSectionY; sectionY++) {
+                Object section = sections[sectionY];
+                if (RChunkSection.isEmpty(section)) {
+                    distributionMap.merge(Material.AIR, 16 * 16 * 16, Integer::sum);
+                } else {
+                    int minY = sectionY == minSectionY ? min.getY() & 15 : 0;
+                    int maxY = sectionY == (maxSectionY - 1) ? (max.getY() - 1) & 15 : 15;
 
-                for (int x = minX; x <= maxX; x++) {
-                    for (int y = minY; y <= maxY; y++) {
-                        for (int z = minZ; z <= maxZ; z++) {
-                            distributionMap.merge(section.getType(x, y, z), 1, Integer::sum);
+                    for (int x = minX; x <= maxX; x++) {
+                        for (int y = minY; y <= maxY; y++) {
+                            for (int z = minZ; z <= maxZ; z++) {
+                                distributionMap.merge(RChunkSection.getType(section, x, y, z), 1, Integer::sum);
+                            }
                         }
                     }
                 }
             }
+        } catch (Throwable th) {
+            //
         }
     }
 }
