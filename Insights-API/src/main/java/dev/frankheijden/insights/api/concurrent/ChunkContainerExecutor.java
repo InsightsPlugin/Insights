@@ -1,7 +1,7 @@
 package dev.frankheijden.insights.api.concurrent;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.concurrent.containers.ChunkSnapshotContainer;
+import dev.frankheijden.insights.api.concurrent.containers.ChunkContainer;
 import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
 import dev.frankheijden.insights.api.concurrent.storage.Distribution;
@@ -11,7 +11,6 @@ import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
 import org.bukkit.entity.EntityType;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -55,7 +54,7 @@ public class ChunkContainerExecutor implements ContainerExecutor {
         Distribution<EntityType> entities = options.entities()
                 ? ChunkUtils.countEntities(chunk)
                 : new Distribution<>(new ConcurrentHashMap<>());
-        return submit(chunk.getChunkSnapshot(), entities, chunk.getWorld().getUID(), cuboid, options);
+        return submit(chunk, entities, chunk.getWorld().getUID(), cuboid, options);
     }
 
     /**
@@ -63,19 +62,18 @@ public class ChunkContainerExecutor implements ContainerExecutor {
      * DistributionStorage is essentially merged from the scan result and given entities Distribution.
      */
     public CompletableFuture<DistributionStorage> submit(
-            ChunkSnapshot snapshot,
+            Chunk chunk,
             Distribution<EntityType> entities,
             UUID worldUid,
             ChunkCuboid cuboid,
             ScanOptions options
     ) {
-        long chunkKey = ChunkUtils.getKey(snapshot);
+        long chunkKey = ChunkUtils.getKey(chunk);
         if (options.track()) {
             scanTracker.set(worldUid, chunkKey, true);
         }
 
-        ChunkSnapshotContainer container = new ChunkSnapshotContainer(snapshot, worldUid, cuboid);
-        return submit(container).thenApply(materials -> {
+        return submit(new ChunkContainer(chunk, worldUid, cuboid)).thenApply(materials -> {
             DistributionStorage storage = new DistributionStorage(materials, entities);
             if (options.save()) worldStorage.getWorld(worldUid).put(chunkKey, storage);
             if (options.track()) scanTracker.set(worldUid, chunkKey, false);

@@ -1,4 +1,3 @@
 rootProject.name = 'InsightsParent'
 include 'Insights-API'
 include 'Insights'
-
