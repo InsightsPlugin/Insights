@@ -2,7 +2,6 @@ package dev.frankheijden.insights.api.reflection;
 
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import dev.frankheijden.minecraftreflection.Reflection;
-import org.bukkit.Material;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 
@@ -10,13 +9,13 @@ public class RIBlockData {
 
     private static final MinecraftReflection reflection = MinecraftReflection
             .of("net.minecraft.server.%s.IBlockData");
-    private static MethodHandle getBukkitMaterialMethodHandle;
+    private static MethodHandle getBlockMethodHandle;
 
     static {
         try {
-            getBukkitMaterialMethodHandle = MethodHandles.lookup().unreflect(Reflection.getAccessibleMethod(
+            getBlockMethodHandle = MethodHandles.lookup().unreflect(Reflection.getAccessibleMethod(
                     reflection.getClazz(),
-                    "getBukkitMaterial"
+                    "getBlock"
             ));
         } catch (Throwable th) {
             th.printStackTrace();
@@ -25,7 +24,7 @@ public class RIBlockData {
 
     private RIBlockData() {}
 
-    public static Material getBukkitMaterial(Object blockData) throws Throwable {
-        return (Material) getBukkitMaterialMethodHandle.invoke(blockData);
+    public static Object getBlock(Object blockData) throws Throwable {
+        return getBlockMethodHandle.invoke(blockData);
     }
 }

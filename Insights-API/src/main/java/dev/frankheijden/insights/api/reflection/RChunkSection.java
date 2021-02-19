@@ -43,6 +43,6 @@ public class RChunkSection {
     }
 
     public static Material getType(Object chunkSection, int x, int y, int z) throws Throwable {
-        return RIBlockData.getBukkitMaterial(getTypeMethodHandle.invoke(chunkSection, x, y, z));
+        return RCraftMagicNumbers.getMaterial(RIBlockData.getBlock(getTypeMethodHandle.invoke(chunkSection, x, y, z)));
     }
 }
