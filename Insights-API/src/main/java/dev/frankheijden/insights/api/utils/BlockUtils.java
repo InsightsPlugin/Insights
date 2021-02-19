@@ -6,7 +6,11 @@ import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Bed;
+import java.util.Optional;
 
 public class BlockUtils {
 
@@ -70,5 +74,25 @@ public class BlockUtils {
      */
     public static boolean isSameChunk(Block x, Block y) {
         return ((x.getX() >> 4) == (y.getX() >> 4)) && (x.getZ() >> 4) == (y.getZ() >> 4);
+    }
+
+    /**
+     * Checks whether two x,z block location pairs are within the same chunk.
+     */
+    public static boolean isSameChunk(int x1, int z1, int x2, int z2) {
+        return ((x1 >> 4) == (x2 >> 4)) && (z1 >> 4) == (z2 >> 4);
+    }
+
+    /**
+     * Attempts to retrieve the other half of a block.
+     */
+    public static Optional<Block> getOtherHalf(Block block) {
+        BlockData data = block.getBlockData();
+        if (data instanceof Bed) {
+            Bed bed = (Bed) data;
+            BlockFace facing = bed.getFacing();
+            return Optional.of(block.getRelative(bed.getPart() == Bed.Part.HEAD ? facing.getOppositeFace() : facing));
+        }
+        return Optional.empty();
     }
 }

@@ -1,9 +1,10 @@
 package dev.frankheijden.insights.listeners;
 
-import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.Insights;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.util.MaterialTags;
+import dev.frankheijden.insights.api.utils.BlockUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -33,10 +34,11 @@ import org.bukkit.event.block.FluidLevelChangeEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.block.SpongeAbsorbEvent;
 import java.util.List;
+import java.util.Optional;
 
 public class BlockListener extends InsightsListener {
 
-    public BlockListener(InsightsPlugin plugin) {
+    public BlockListener(Insights plugin) {
         super(plugin);
     }
 
@@ -51,12 +53,20 @@ public class BlockListener extends InsightsListener {
         Material material = block.getType();
         Player player = event.getPlayer();
 
-        // In case of BlockMultiPlaceEvent, we need to take a different delta.
-        int delta = event instanceof BlockMultiPlaceEvent
-                ? ((BlockMultiPlaceEvent) event).getReplacedBlockStates().size()
-                : 1;
+        // In case of BlockMultiPlaceEvent, we may need to take a different delta.
+        int delta = 0;
+        if (event instanceof BlockMultiPlaceEvent) {
+            List<BlockState> replacedBlockStates = ((BlockMultiPlaceEvent) event).getReplacedBlockStates();
+            for (BlockState state : replacedBlockStates) {
+                if (BlockUtils.isSameChunk(location.getBlockX(), location.getBlockZ(), state.getX(), state.getZ())) {
+                    delta++;
+                }
+            }
+        } else {
+            delta = 1;
+        }
 
-        if (handleAddition(player, location, material, delta)) {
+        if (handleAddition(player, location, material, delta, false)) {
             event.setCancelled(true);
         }
     }
@@ -72,15 +82,19 @@ public class BlockListener extends InsightsListener {
         Material material = block.getType();
         Player player = event.getPlayer();
 
-        // In case of BlockMultiPlaceEvent, we need to take a different delta.
-        int delta = event instanceof BlockMultiPlaceEvent
-                ? ((BlockMultiPlaceEvent) event).getReplacedBlockStates().size()
-                : 1;
+        // In case of BlockMultiPlaceEvent, we need to update the cache differently.
+        if (event instanceof BlockMultiPlaceEvent) {
+            List<BlockState> replacedBlockStates = ((BlockMultiPlaceEvent) event).getReplacedBlockStates();
+            for (BlockState state : replacedBlockStates) {
+                Location loc = state.getLocation();
+                handleModification(loc, state.getType(), material, 1);
+            }
+        } else {
+            handleModification(location, event.getBlockReplacedState().getType(), material, 1);
+        }
 
-        evaluateAddition(player, location, material, delta);
-
-        // Update the cache
-        handleModification(location, event.getBlockReplacedState().getType(), material, delta);
+        // No need to add any delta, cache is already updated
+        evaluateAddition(player, location, material, 0);
     }
 
     /**
@@ -93,11 +107,18 @@ public class BlockListener extends InsightsListener {
         Material material = block.getType();
         Player player = event.getPlayer();
 
-        // Beds account for two block updates.
-        int delta = Tag.BEDS.isTagged(material) ? 2 : 1;
+        if (Tag.BEDS.isTagged(material)) {
+            Optional<Block> blockOptional = BlockUtils.getOtherHalf(block);
+            if (blockOptional.isPresent()) {
+                Block otherHalf = blockOptional.get();
+
+                // Update the other half's location
+                handleModification(otherHalf.getLocation(), material, -1);
+            }
+        }
 
         // Handle the removal
-        handleRemoval(player, location, material, delta);
+        handleRemoval(player, location, material, 1, false);
     }
 
     @AllowDisabling
@@ -147,10 +168,18 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
         Block block = event.getBlock();
+        Location location = block.getLocation();
 
-        // Beds account for two block updates.
-        int delta = Tag.BEDS.isTagged(block.getType()) ? 2 : 1;
-        handleModification(block, -delta);
+        PlayerListener playerListener = ((Insights) plugin).getPlayerListener();
+        Optional<PlayerListener.ExplodedBed> bedOptional = playerListener.getIntentionalDesignBugAt(location);
+        if (bedOptional.isPresent()) {
+            PlayerListener.ExplodedBed explodedBed = bedOptional.get();
+            Material material = explodedBed.getMaterial();
+            handleModification(explodedBed.getHead(), material, -1);
+            handleModification(explodedBed.getFoot(), material, -1);
+        } else {
+            handleModification(location, block.getType(), -1);
+        }
 
         for (Block explodedBlock : event.blockList()) {
             handleModification(explodedBlock, -1);

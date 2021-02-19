@@ -252,6 +252,10 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     }
 
     protected void handleRemoval(Player player, Location location, Object item, int delta) {
+        handleRemoval(player, location, item, delta, true);
+    }
+
+    protected void handleRemoval(Player player, Location location, Object item, int delta, boolean included) {
         Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
         Chunk chunk = location.getChunk();
         World world = location.getWorld();
@@ -314,7 +318,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             Consumer<DistributionStorage> storageConsumer = storage -> {
                 // Subtract the broken block, as the first modification failed (we had to scan the chunk)
                 // Only if we're not scanning a cuboid (iff cuboid, the block is already removed from the chunk)
-                if (!regionOptional.isPresent()) storage.distribution(item).modify(item, -delta);
+                if (included && !regionOptional.isPresent()) storage.distribution(item).modify(item, -delta);
 
                 // Notify the user
                 notification.accept(storage);
