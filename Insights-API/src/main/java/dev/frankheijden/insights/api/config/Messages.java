@@ -134,10 +134,12 @@ public class Messages {
          * Sends the message to given receiver, using the message type defined.
          */
         public void sendTo(CommandSender sender) {
-            if (type == Type.ACTIONBAR && sender instanceof Player) {
-                PlayerUtils.sendActionBar(((Player) sender), content);
-            } else {
-                sender.sendMessage(content);
+            if (content != null && !content.isEmpty()) {
+                if (type == Type.ACTIONBAR && sender instanceof Player) {
+                    PlayerUtils.sendActionBar(((Player) sender), content);
+                } else {
+                    sender.sendMessage(content);
+                }
             }
         }
     }
