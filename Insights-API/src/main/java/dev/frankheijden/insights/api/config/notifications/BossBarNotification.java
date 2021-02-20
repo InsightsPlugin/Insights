@@ -5,12 +5,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class BossBarNotification implements Notification {
 
     protected final InsightsPlugin plugin;
     protected final BossBar bossBar;
     protected final String content;
+    protected final Queue<Player> receivers = new LinkedList<>();
     protected final int ticks;
     protected BukkitTask task;
 
@@ -23,7 +26,7 @@ public class BossBarNotification implements Notification {
 
     @Override
     public BossBarNotification add(Player player) {
-        bossBar.addPlayer(player);
+        receivers.add(player);
         return this;
     }
 
@@ -37,6 +40,9 @@ public class BossBarNotification implements Notification {
                 }
                 bossBar.setTitle(content);
                 bossBar.setVisible(true);
+                while (!receivers.isEmpty()) {
+                    bossBar.addPlayer(receivers.poll());
+                }
                 task = Bukkit.getScheduler().runTaskLater(plugin, () -> bossBar.setVisible(false), ticks);
             }
         };

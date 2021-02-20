@@ -122,7 +122,11 @@ public class ScanTask implements Runnable {
                     double progress = (double) info.getChunksDone() / (double) info.getChunks();
                     notification.progress(progress)
                             .create()
-                            .replace("percentage", StringUtils.prettyOneDecimal(progress * 100.))
+                            .replace(
+                                    "percentage", StringUtils.prettyOneDecimal(progress * 100.),
+                                    "count", StringUtils.pretty(info.getChunksDone()),
+                                    "total", StringUtils.pretty(info.getChunks())
+                            )
                             .color()
                             .send();
                 },
