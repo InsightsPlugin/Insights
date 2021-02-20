@@ -108,6 +108,7 @@ public class Insights extends InsightsPlugin {
     private AddonScanTracker addonScanTracker;
     private EntityTrackerTask entityTrackerTask;
     private MetricsManager metricsManager;
+    private PlayerListener playerListener;
     private InsightsPlaceholderExpansion placeholderExpansion;
 
     @Override
@@ -153,9 +154,10 @@ public class Insights extends InsightsPlugin {
         };
 
         registerEvents(disableListeners);
+        playerListener = new PlayerListener(this);
         registerEvents(
                 new ChunkListener(this),
-                new PlayerListener(this)
+                playerListener
         );
 
         if (PaperLib.isPaper()) {
@@ -204,6 +206,10 @@ public class Insights extends InsightsPlugin {
         if (placeholderExpansion != null) {
             placeholderExpansion.unregister();
         }
+    }
+
+    public PlayerListener getPlayerListener() {
+        return playerListener;
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {
