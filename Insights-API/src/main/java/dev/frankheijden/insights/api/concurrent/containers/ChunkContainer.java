@@ -53,22 +53,23 @@ public class ChunkContainer extends DistributionContainer<Material> {
 
         ChunkVector min = cuboid.getMin();
         ChunkVector max = cuboid.getMax();
-        int minX = min.getX() & 15;
-        int maxX = (max.getX() - 1) & 15;
-        int minZ = min.getZ() & 15;
-        int maxZ = (max.getZ() - 1) & 15;
+        int minX = min.getX();
+        int maxX = max.getX();
+        int minZ = min.getZ();
+        int maxZ = max.getZ();
         int minSectionY = min.getY() >> 4;
         int maxSectionY = max.getY() >> 4;
 
         try {
-            for (int sectionY = minSectionY; sectionY < maxSectionY; sectionY++) {
+            for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+                int minY = sectionY == minSectionY ? min.getY() & 15 : 0;
+                int maxY = sectionY == maxSectionY ? max.getY() & 15 : 15;
+
                 Object section = sections[sectionY];
                 if (RChunkSection.isEmpty(section)) {
-                    distributionMap.merge(Material.AIR, 16 * 16 * 16, Integer::sum);
+                    int count = (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+                    distributionMap.merge(Material.AIR, count, Integer::sum);
                 } else {
-                    int minY = sectionY == minSectionY ? min.getY() & 15 : 0;
-                    int maxY = sectionY == (maxSectionY - 1) ? (max.getY() - 1) & 15 : 15;
-
                     for (int x = minX; x <= maxX; x++) {
                         for (int y = minY; y <= maxY; y++) {
                             for (int z = minZ; z <= maxZ; z++) {

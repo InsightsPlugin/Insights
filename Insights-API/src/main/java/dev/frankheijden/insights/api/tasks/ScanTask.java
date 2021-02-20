@@ -7,6 +7,7 @@ import dev.frankheijden.insights.api.concurrent.storage.Distribution;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.notifications.ProgressNotification;
+import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.utils.EnumUtils;
@@ -34,11 +35,12 @@ import java.util.function.Consumer;
 public class ScanTask implements Runnable {
 
     private static final Set<UUID> scanners = new HashSet<>();
+    private static final ScanOptions options = ScanOptions.newBuilder().entities().build();
 
     private final InsightsPlugin plugin;
     private final ChunkContainerExecutor executor;
     private final Queue<ChunkPart> scanQueue;
-    private final Queue<Chunk> chunkQueue;
+    private final Queue<LoadedChunk> chunkQueue;
     private final DistributionStorage distributionStorage;
     private final int chunksPerIteration;
     private final Consumer<Info> infoConsumer;
@@ -203,7 +205,7 @@ public class ScanTask implements Runnable {
             messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER)
                     .replace(
                             "chunks", StringUtils.pretty(chunkCount),
-                            "blocks", StringUtils.pretty(chunkCount * 256 * 16 * 16),
+                            "blocks", StringUtils.pretty(distribution.count()),
                             "time", StringUtils.pretty(Duration.ofMillis(millis))
                     )
                     .color()
@@ -231,8 +233,10 @@ public class ScanTask implements Runnable {
     public void run() {
         // Empty the queue with available chunks (after loading)
         while (!chunkQueue.isEmpty()) {
+            LoadedChunk loadedChunk = chunkQueue.poll();
+
             // Scan each chunk, merging the result with the distributionMap.
-            executor.submit(chunkQueue.poll(), ScanOptions.none()).thenAccept(storage -> {
+            executor.submit(loadedChunk.chunk, loadedChunk.chunkCuboid, options).thenAccept(storage -> {
                 storage.mergeRight(distributionStorage);
                 chunks.incrementAndGet();
             });
@@ -261,11 +265,11 @@ public class ScanTask implements Runnable {
             if (scanQueue.isEmpty()) break;
 
             // Load the chunk
-            ChunkPart cuboidPart = scanQueue.poll();
-            ChunkLocation loc = cuboidPart.getChunkLocation();
+            ChunkPart chunkPart = scanQueue.poll();
+            ChunkLocation loc = chunkPart.getChunkLocation();
             PaperLib.getChunkAtAsync(loc.getWorld(), loc.getX(), loc.getZ(), false).thenAccept(chunk -> {
                 // Add the chunk to the scan queue for the main thread to fetch the ChunkSnapshot.
-                chunkQueue.add(chunk);
+                chunkQueue.add(new LoadedChunk(chunk, chunkPart.getChunkCuboid()));
                 iterationChunks.incrementAndGet();
             }).exceptionally(err -> {
                 // When the chunk couldn't be loaded (e.g. not generated), just skip it
@@ -286,6 +290,17 @@ public class ScanTask implements Runnable {
 
     private void sendInfo() {
         infoConsumer.accept(new Info(chunks.get(), chunkCount));
+    }
+
+    private static final class LoadedChunk {
+
+        private final Chunk chunk;
+        private final ChunkCuboid chunkCuboid;
+
+        private LoadedChunk(Chunk chunk, ChunkCuboid chunkCuboid) {
+            this.chunk = chunk;
+            this.chunkCuboid = chunkCuboid;
+        }
     }
 
     public static final class Info {

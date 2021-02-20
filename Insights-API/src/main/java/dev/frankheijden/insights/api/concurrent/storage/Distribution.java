@@ -14,6 +14,17 @@ public class Distribution<E> {
     }
 
     /**
+     * Retrieves the distribution of all items.
+     */
+    public int count() {
+        int count = 0;
+        for (int distribution : distributionMap.values()) {
+            count += distribution;
+        }
+        return count;
+    }
+
+    /**
      * Retrieves the distribution of a single item.
      */
     public int count(E item) {

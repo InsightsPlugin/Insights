@@ -4,8 +4,15 @@ import dev.frankheijden.insights.api.objects.math.Vector3;
 
 public class ChunkVector extends Vector3 {
 
+    /**
+     * Minimum ChunkVector (including).
+     */
     public static final ChunkVector MIN = new ChunkVector(0, 0, 0);
-    public static final ChunkVector MAX = new ChunkVector(16, 256, 16);
+
+    /**
+     * Maximum ChunkVector (including).
+     */
+    public static final ChunkVector MAX = new ChunkVector(15, 255, 15);
 
     /**
      * Constructs a new ChunkVector with given x, y, z coordinates in the chunk.
@@ -18,11 +25,7 @@ public class ChunkVector extends Vector3 {
      * Constructs a new ChunkVector from the given vector.
      */
     public static ChunkVector from(Vector3 vector) {
-        int x = vector.getX() % 16;
-        if (x < 0) x += 16;
-        int z = vector.getZ() % 16;
-        if (z < 0) z += 16;
-        return new ChunkVector(x, vector.getY(), z);
+        return new ChunkVector(vector.getX() & 15, vector.getY(), vector.getZ() & 15);
     }
 
     /**
