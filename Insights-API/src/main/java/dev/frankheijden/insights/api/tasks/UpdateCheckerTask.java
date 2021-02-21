@@ -130,7 +130,7 @@ public class UpdateCheckerTask extends InsightsAsyncTask {
 
             if (VersionUtils.isNewVersion(plugin.getDescription().getVersion(), version)) {
                 plugin.getLogger().log(Level.INFO, UPDATE_AVAILABLE, version);
-                plugin.getLogger().log(Level.SEVERE, RELEASE_INFO, body);
+                plugin.getLogger().log(Level.INFO, RELEASE_INFO, body);
                 cachedUpdate = new Update(version, body);
             } else {
                 plugin.getLogger().info(UP_TO_DATE);
