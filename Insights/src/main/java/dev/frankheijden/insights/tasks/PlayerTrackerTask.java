@@ -2,12 +2,13 @@ package dev.frankheijden.insights.tasks;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.tasks.InsightsAsyncTask;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
-import dev.frankheijden.insights.api.utils.SetUtils;
+import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PlayerTrackerTask extends InsightsAsyncTask {
 
@@ -33,11 +34,13 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
         }
 
         for (Map.Entry<UUID, Player> entry : playerList) {
-            Chunk chunk = entry.getValue().getLocation().getChunk();
-            Set<Long> worldChunks = worldChunkMap.get(chunk.getWorld().getUID());
+            Location loc = entry.getValue().getLocation();
+            int chunkX = loc.getBlockX() >> 4;
+            int chunkZ = loc.getBlockZ() >> 4;
+            Set<Long> worldChunks = worldChunkMap.get(loc.getWorld().getUID());
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
-                    worldChunks.add(ChunkUtils.getKey(chunk.getX() + x, chunk.getZ() + z));
+                    worldChunks.add(ChunkUtils.getKey(chunkX + x, chunkZ + z));
                 }
             }
         }
@@ -46,8 +49,7 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
         for (Map.Entry<UUID, Set<Long>> entry : worldChunkMap.entrySet()) {
             Set<Long> loadedChunks = worldStorage.getWorld(entry.getKey()).getChunks();
             Set<Long> playerChunks = entry.getValue();
-            Set<Long> intersected = SetUtils.intersect(loadedChunks, playerChunks);
-            playerChunks.removeIf(intersected::contains);
+            playerChunks.removeIf(loadedChunks::contains);
         }
 
         int chunkCount = 0;
@@ -55,23 +57,38 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
             chunkCount += chunks.size();
         }
 
-        if (chunkCount == 0) return;
-        int size = chunkCount;
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            CompletableFuture<?>[] futures = new CompletableFuture[size];
-            int i = 0;
+        if (chunkCount == 0) {
+            run.set(true);
+            return;
+        }
 
+        final int size = chunkCount;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            AtomicInteger counter = new AtomicInteger();
             for (Map.Entry<UUID, Set<Long>> entry : worldChunkMap.entrySet()) {
                 World world = Bukkit.getWorld(entry.getKey());
-                if (world == null) continue;
+                if (world == null) {
+                    if (counter.addAndGet(entry.getValue().size()) >= size) {
+                        run.set(true);
+                    }
+                    continue;
+                }
 
                 for (Long key : entry.getValue()) {
-                    Chunk chunk = world.getChunkAt(ChunkUtils.getX(key), ChunkUtils.getZ(key));
-                    futures[i++] = plugin.getChunkContainerExecutor().submit(chunk);
+                    PaperLib.getChunkAtAsync(world, ChunkUtils.getX(key), ChunkUtils.getZ(key)).thenAccept(chunk -> {
+                        plugin.getChunkContainerExecutor().submit(chunk, ScanOptions.all()).whenComplete((s, e) -> {
+                            if (counter.incrementAndGet() >= size) {
+                                run.set(true);
+                            }
+                        });
+                    }).exceptionally(err -> {
+                        if (counter.incrementAndGet() >= size) {
+                            run.set(true);
+                        }
+                        return null;
+                    });
                 }
             }
-
-            CompletableFuture.allOf(futures).whenComplete((v, err) -> run.set(true));
         });
     }
 }
