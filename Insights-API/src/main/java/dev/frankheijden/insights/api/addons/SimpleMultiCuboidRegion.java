@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.addons;
 
 import dev.frankheijden.insights.api.objects.math.Cuboid;
 import java.util.List;
+import java.util.Objects;
 
 public class SimpleMultiCuboidRegion extends MultiCuboidRegion {
 
@@ -20,11 +21,24 @@ public class SimpleMultiCuboidRegion extends MultiCuboidRegion {
 
     @Override
     public String getAddon() {
-        return null;
+        return addon;
     }
 
     @Override
     public String getKey() {
-        return null;
+        return key;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleMultiCuboidRegion that = (SimpleMultiCuboidRegion) o;
+        return addon.equals(that.addon) && key.equals(that.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(addon, key);
     }
 }
