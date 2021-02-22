@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntConsumer;
 
 public class PlayerTrackerTask extends InsightsAsyncTask {
 
@@ -63,28 +64,33 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
         }
 
         final int size = chunkCount;
+        AtomicInteger counter = new AtomicInteger();
+        IntConsumer checker = i -> {
+            if (counter.addAndGet(i) >= size) {
+                run.set(true);
+            }
+        };
+
         Bukkit.getScheduler().runTask(plugin, () -> {
-            AtomicInteger counter = new AtomicInteger();
             for (Map.Entry<UUID, Set<Long>> entry : worldChunkMap.entrySet()) {
                 World world = Bukkit.getWorld(entry.getKey());
                 if (world == null) {
-                    if (counter.addAndGet(entry.getValue().size()) >= size) {
-                        run.set(true);
-                    }
+                    checker.accept(entry.getValue().size());
                     continue;
                 }
 
                 for (Long key : entry.getValue()) {
                     PaperLib.getChunkAtAsync(world, ChunkUtils.getX(key), ChunkUtils.getZ(key)).thenAccept(chunk -> {
+                        if (chunk == null) {
+                            checker.accept(1);
+                            return;
+                        }
+
                         plugin.getChunkContainerExecutor().submit(chunk, ScanOptions.all()).whenComplete((s, e) -> {
-                            if (counter.incrementAndGet() >= size) {
-                                run.set(true);
-                            }
+                            checker.accept(1);
                         });
                     }).exceptionally(err -> {
-                        if (counter.incrementAndGet() >= size) {
-                            run.set(true);
-                        }
+                        checker.accept(1);
                         return null;
                     });
                 }
