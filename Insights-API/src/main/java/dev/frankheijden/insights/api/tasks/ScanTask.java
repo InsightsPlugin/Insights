@@ -269,7 +269,11 @@ public class ScanTask implements Runnable {
             ChunkLocation loc = chunkPart.getChunkLocation();
             PaperLib.getChunkAtAsync(loc.getWorld(), loc.getX(), loc.getZ(), false).thenAccept(chunk -> {
                 // Add the chunk to the scan queue for the main thread to fetch the ChunkSnapshot.
-                if (chunk != null) chunkQueue.add(new LoadedChunk(chunk, chunkPart.getChunkCuboid()));
+                if (chunk != null) {
+                    chunkQueue.add(new LoadedChunk(chunk, chunkPart.getChunkCuboid()));
+                } else {
+                    chunks.incrementAndGet();
+                }
                 iterationChunks.incrementAndGet();
             }).exceptionally(err -> {
                 // When the chunk couldn't be loaded (e.g. not generated), just skip it
