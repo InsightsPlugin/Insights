@@ -11,6 +11,7 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
+import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -33,6 +34,15 @@ public class CommandScan extends InsightsCommand {
             @Argument("radius") @Range(min = "0", max = "50") int radius
     ) {
         handleScan(player, radius, RTileEntityTypes.getTileEntities(), false);
+    }
+
+    @CommandMethod("scan <radius> entity")
+    @CommandPermission("insights.scan.entity")
+    private void handleEntityScan(
+            Player player,
+            @Argument("radius") @Range(min = "0", max = "50") int radius
+    ) {
+        handleScan(player, radius, Constants.SCAN_ENTITIES, false);
     }
 
     @CommandMethod("scan <radius> all")

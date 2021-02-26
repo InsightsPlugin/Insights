@@ -10,6 +10,7 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
+import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -29,6 +30,12 @@ public class CommandScanWorld extends InsightsCommand {
     @CommandPermission("insights.scanworld.tile")
     private void handleTileScan(Player player) {
         handleScan(player, RTileEntityTypes.getTileEntities(), false);
+    }
+
+    @CommandMethod("scanworld entity")
+    @CommandPermission("insights.scanworld.entity")
+    private void handleEntityScan(Player player) {
+        handleScan(player, Constants.SCAN_ENTITIES, false);
     }
 
     @CommandMethod("scanworld all")

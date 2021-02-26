@@ -7,7 +7,7 @@ import cloud.commandframework.arguments.parser.ArgumentParser;
 import cloud.commandframework.context.CommandContext;
 import cloud.commandframework.exceptions.parsing.NoInputProvidedException;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
-import dev.frankheijden.insights.api.utils.MaterialUtils;
+import dev.frankheijden.insights.api.utils.Constants;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import io.leangen.geantyref.TypeToken;
 import org.bukkit.command.CommandSender;
@@ -21,8 +21,8 @@ import java.util.stream.Stream;
 public class ScanObjectArrayArgument extends CommandArgument<CommandSender, ScanObject<?>[]> {
 
     protected static final Set<String> SUGGESTIONS = Stream.<Enum<?>>concat(
-            MaterialUtils.BLOCKS.stream(),
-            MaterialUtils.ENTITIES.stream()
+            Constants.BLOCKS.stream(),
+            Constants.ENTITIES.stream()
     ).map(Enum::name).map(String::toLowerCase).collect(Collectors.toSet());
 
     /**

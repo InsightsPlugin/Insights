@@ -12,6 +12,7 @@ import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import dev.frankheijden.insights.api.utils.EnumUtils;
+import dev.frankheijden.insights.api.utils.Constants;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -31,6 +32,12 @@ public class CommandScanCache extends InsightsCommand {
     @CommandPermission("insights.scancache.tile")
     private void handleTileScan(Player player) {
         handleScan(player, RTileEntityTypes.getTileEntities(), false);
+    }
+
+    @CommandMethod("scancache entity")
+    @CommandPermission("insights.scancache.entity")
+    private void handleEntityScan(Player player) {
+        handleScan(player, Constants.SCAN_ENTITIES, false);
     }
 
     @CommandMethod("scancache all")

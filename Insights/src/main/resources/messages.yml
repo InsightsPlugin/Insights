@@ -14,7 +14,7 @@ messages:
       header: "&8&m----------------=&r&8[&b&l Insights Scan&r &8]&m=---------------"
       format: "&b %entry%&8: &7&l%count%"
       footer: |-
-        &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks. Took &b%time%&3!
+        &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks and &b&l%entities% &3entities. Took &b%time%&3!
         &8&m-------------------------------------------------
     progress: "&3Progress: &b&l%count%&3/&b&l%total% &3Chunks (&b&l%percentage%%&3)"
   scanregion:

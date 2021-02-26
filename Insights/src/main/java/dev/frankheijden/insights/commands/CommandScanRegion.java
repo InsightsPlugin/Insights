@@ -10,6 +10,7 @@ import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
+import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,6 +27,12 @@ public class CommandScanRegion extends InsightsCommand {
     @CommandPermission("insights.scanregion.tile")
     private void handleTileScan(Player player) {
         handleScan(player, RTileEntityTypes.getTileEntities(), false);
+    }
+
+    @CommandMethod("scanregion entity")
+    @CommandPermission("insights.scanregion.entity")
+    private void handleEntityScan(Player player) {
+        handleScan(player, Constants.SCAN_ENTITIES, false);
     }
 
     @CommandMethod("scanregion all")

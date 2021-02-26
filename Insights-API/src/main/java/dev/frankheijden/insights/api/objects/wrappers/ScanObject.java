@@ -1,6 +1,6 @@
 package dev.frankheijden.insights.api.objects.wrappers;
 
-import dev.frankheijden.insights.api.utils.MaterialUtils;
+import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import java.util.Collection;
@@ -58,7 +58,7 @@ public abstract class ScanObject<T extends Enum<T>> {
         String upperCased = str.toUpperCase(Locale.ENGLISH);
         try {
             Material material = Material.valueOf(upperCased);
-            if (MaterialUtils.BLOCKS.contains(material)) {
+            if (Constants.BLOCKS.contains(material)) {
                 return of(material);
             }
         } catch (IllegalArgumentException ignored) {

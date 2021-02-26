@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
 
 public class RTileEntityTypes {
 
@@ -37,22 +36,7 @@ public class RTileEntityTypes {
         TILE_ENTITY_MATERIALS = Collections.unmodifiableSet(EnumSet.copyOf(materials));
         TILE_ENTITIES = TILE_ENTITY_MATERIALS.stream()
                 .map(ScanObject::of)
-                .collect(new SetCollector<ScanObject.MaterialObject>() {
-                    @Override
-                    public Set<ScanObject.MaterialObject> supplySet() {
-                        return new HashSet<>();
-                    }
-
-                    @Override
-                    public Function<Set<ScanObject.MaterialObject>, Set<ScanObject.MaterialObject>> finisher() {
-                        return Collections::unmodifiableSet;
-                    }
-
-                    @Override
-                    public Set<Characteristics> characteristics() {
-                        return Collections.singleton(Characteristics.UNORDERED);
-                    }
-                });
+                .collect(SetCollector.unmodifiableSet());
     }
 
     private RTileEntityTypes() {}
