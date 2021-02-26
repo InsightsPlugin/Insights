@@ -1,6 +1,6 @@
 package dev.frankheijden.insights.api.util;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -10,6 +10,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 public interface SetCollector<T> extends Collector<T, Set<T>, Set<T>> {
+
+    Set<Characteristics> defaultCharacteristics = new HashSet<>(Arrays.asList(
+            Characteristics.UNORDERED,
+            Characteristics.IDENTITY_FINISH
+    ));
 
     Set<T> supplySet();
 
@@ -38,6 +43,6 @@ public interface SetCollector<T> extends Collector<T, Set<T>, Set<T>> {
 
     @Override
     default Set<Collector.Characteristics> characteristics() {
-        return new HashSet<>(Collections.singleton(Collector.Characteristics.UNORDERED));
+        return defaultCharacteristics;
     }
 }

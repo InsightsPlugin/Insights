@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.config.limits;
 import dev.frankheijden.insights.api.config.parser.SensitiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import java.io.File;
@@ -65,13 +66,12 @@ public abstract class Limit {
      * Retrieves the limit of a limited object.
      * Note: item must be of type Material or EntityType!
      */
-    public LimitInfo getLimit(Object item) {
-        if (item instanceof Material) {
-            return getLimit((Material) item);
-        } else if (item instanceof EntityType) {
-            return getLimit((EntityType) item);
+    public LimitInfo getLimit(ScanObject<?> item) {
+        switch (item.getType()) {
+            case MATERIAL: return getLimit((Material) item.getObject());
+            case ENTITY: return getLimit((EntityType) item.getObject());
+            default: throw new IllegalArgumentException("Unknown limited item: " + item);
         }
-        throw new IllegalArgumentException("Unknown limited item: " + item);
     }
 
     public abstract LimitInfo getLimit(Material m);

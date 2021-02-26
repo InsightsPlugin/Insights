@@ -19,3 +19,12 @@ messages:
     progress: "&3Progress: &b&l%count%&3/&b&l%total% &3Chunks (&b&l%percentage%%&3)"
   scanregion:
     no-region: "<prefix>&cThere does not seem to be any region here!"
+  scancache:
+    no-cache: "<prefix>&cThere does not seem to be any cache present here!"
+    cleared: "<prefix>&3Cache from this &b%area%&3 has been deleted!"
+    result:
+      header: "&8&m---------------=&r&8[&b&l Insights Cache&r &8]&m=---------------"
+      format: "&b %entry%&8: &7&l%count%"
+      footer: |-
+        &3 Cached result from this &b%area%&3.
+        &8&m-------------------------------------------------

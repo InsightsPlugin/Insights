@@ -1,5 +1,7 @@
 package dev.frankheijden.insights.api.reflection;
 
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
+import dev.frankheijden.insights.api.util.SetCollector;
 import dev.frankheijden.minecraftreflection.ClassObject;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import org.bukkit.Material;
@@ -9,12 +11,14 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 public class RTileEntityTypes {
 
     private static final MinecraftReflection reflection = MinecraftReflection
             .of("net.minecraft.server.%s.TileEntityTypes");
     private static final Set<Material> TILE_ENTITY_MATERIALS;
+    private static final Set<ScanObject.MaterialObject> TILE_ENTITIES;
 
     static {
         Set<Material> materials = new HashSet<>();
@@ -31,6 +35,24 @@ public class RTileEntityTypes {
         }
         materials.removeIf(Material::isAir);
         TILE_ENTITY_MATERIALS = Collections.unmodifiableSet(EnumSet.copyOf(materials));
+        TILE_ENTITIES = TILE_ENTITY_MATERIALS.stream()
+                .map(ScanObject::of)
+                .collect(new SetCollector<ScanObject.MaterialObject>() {
+                    @Override
+                    public Set<ScanObject.MaterialObject> supplySet() {
+                        return new HashSet<>();
+                    }
+
+                    @Override
+                    public Function<Set<ScanObject.MaterialObject>, Set<ScanObject.MaterialObject>> finisher() {
+                        return Collections::unmodifiableSet;
+                    }
+
+                    @Override
+                    public Set<Characteristics> characteristics() {
+                        return Collections.singleton(Characteristics.UNORDERED);
+                    }
+                });
     }
 
     private RTileEntityTypes() {}
@@ -41,5 +63,9 @@ public class RTileEntityTypes {
 
     public static Set<Material> getTileEntityMaterials() {
         return TILE_ENTITY_MATERIALS;
+    }
+
+    public static Set<ScanObject.MaterialObject> getTileEntities() {
+        return TILE_ENTITIES;
     }
 }

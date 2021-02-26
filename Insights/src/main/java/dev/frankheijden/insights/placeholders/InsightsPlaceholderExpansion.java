@@ -5,14 +5,12 @@ import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.config.LimitEnvironment;
 import dev.frankheijden.insights.api.config.limits.Limit;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
-import dev.frankheijden.insights.api.utils.MaterialUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import java.util.Locale;
 import java.util.Optional;
@@ -50,8 +48,12 @@ public class InsightsPlaceholderExpansion extends PlaceholderExpansion {
                 if (args.length < 3) break;
 
                 String itemString = StringUtils.join(args, "_", 2).toUpperCase(Locale.ENGLISH);
-                final Object item = parseItem(itemString);
-                if (item == null) return "";
+                final ScanObject<?> item;
+                try {
+                    item = ScanObject.parse(itemString);
+                } catch (IllegalArgumentException ex) {
+                    return "";
+                }
 
                 Location location = player.getLocation();
                 World world = location.getWorld();
@@ -82,23 +84,5 @@ public class InsightsPlaceholderExpansion extends PlaceholderExpansion {
             default: break;
         }
         return "";
-    }
-
-    private Object parseItem(String itemString) {
-        try {
-            Material m = Material.valueOf(itemString);
-            if (MaterialUtils.BLOCKS.contains(m)) {
-                return m;
-            }
-        } catch (IllegalArgumentException ignored) {
-            //
-        }
-
-        try {
-            return EntityType.valueOf(itemString);
-        } catch (IllegalArgumentException ignored) {
-            //
-        }
-        return null;
     }
 }
