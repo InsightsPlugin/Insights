@@ -24,6 +24,8 @@ public abstract class InsightsPlugin extends JavaPlugin implements InsightsMain 
         reloadLimits();
     }
 
+    public abstract void reload();
+
     public boolean isAvailable(String pluginName) {
         Plugin plugin = getServer().getPluginManager().getPlugin(pluginName);
         return plugin != null && plugin.isEnabled();

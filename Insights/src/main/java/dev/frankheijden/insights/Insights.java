@@ -53,6 +53,7 @@ import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
+import org.bukkit.scheduler.BukkitTask;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -111,6 +112,7 @@ public class Insights extends InsightsPlugin {
     private MetricsManager metricsManager;
     private PlayerListener playerListener;
     private InsightsPlaceholderExpansion placeholderExpansion;
+    private BukkitTask playerTracker = null;
 
     @Override
     public void onLoad() {
@@ -182,14 +184,7 @@ public class Insights extends InsightsPlugin {
             getLogger().info("Unregistered listener of '" + clazz.getSimpleName() + "'");
         }
 
-        if (settings.CHUNK_SCANS_MODE == Settings.ChunkScanMode.ALWAYS) {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(
-                    this,
-                    new PlayerTrackerTask(this),
-                    0,
-                    settings.CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS
-            );
-        }
+        reload();
 
         if (settings.UPDATE_CHECKER_ENABLED) {
             getServer().getScheduler().runTaskTimerAsynchronously(
@@ -406,6 +401,22 @@ public class Insights extends InsightsPlugin {
     private void registerEvents(InsightsListener... listeners) {
         for (InsightsListener listener : listeners) {
             Bukkit.getPluginManager().registerEvents(listener, this);
+        }
+    }
+
+    @Override
+    public void reload() {
+        if (playerTracker != null) {
+            playerTracker.cancel();
+        }
+
+        if (settings.CHUNK_SCANS_MODE == Settings.ChunkScanMode.ALWAYS) {
+            playerTracker = getServer().getScheduler().runTaskTimerAsynchronously(
+                    this,
+                    new PlayerTrackerTask(this),
+                    0,
+                    settings.CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS
+            );
         }
     }
 }

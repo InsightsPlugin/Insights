@@ -30,6 +30,7 @@ public class CommandInsights extends InsightsCommand {
     @CommandPermission("insights.reload")
     private void reloadConfigurations(CommandSender sender) {
         plugin.reloadConfigs();
+        plugin.reload();
         plugin.getMessages().getMessage(Messages.Key.CONFIGS_RELOADED)
                 .color()
                 .sendTo(sender);
