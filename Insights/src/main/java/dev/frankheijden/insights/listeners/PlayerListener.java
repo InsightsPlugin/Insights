@@ -38,7 +38,7 @@ public class PlayerListener extends InsightsListener {
     /**
      * Handles the PlayerJoinEvent, updating the concurrent PlayerList and checking for updates.
      */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         plugin.getPlayerList().addPlayer(player);

@@ -70,7 +70,7 @@ public class UpdateCheckerTask extends InsightsAsyncTask {
     }
 
     @Override
-    protected void runInternal() {
+    public void run() {
         plugin.getLogger().info(UPDATE_CHECK_START);
 
         try {
