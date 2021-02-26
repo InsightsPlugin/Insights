@@ -3,6 +3,7 @@ package dev.frankheijden.insights.listeners;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.events.EntityRemoveFromWorldEvent;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.AnimalTamer;
@@ -112,7 +113,7 @@ public class EntityListener extends InsightsListener {
         if (event instanceof HangingBreakByEntityEvent) {
             Entity remover = ((HangingBreakByEntityEvent) event).getRemover();
             if (remover instanceof Player) {
-                handleRemoval((Player) remover, location, entityType, delta);
+                handleRemoval((Player) remover, location, ScanObject.of(entityType), delta);
                 return;
             }
         }
@@ -156,7 +157,7 @@ public class EntityListener extends InsightsListener {
     protected boolean handleEntityPlace(Player player, Entity entity) {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return false;
-        return handleAddition(player, entity.getLocation(), entityType, 1, false);
+        return handleAddition(player, entity.getLocation(), ScanObject.of(entityType), 1, false);
     }
 
     protected void evaluateEntityPlace(Player player, Entity entity) {
@@ -166,7 +167,7 @@ public class EntityListener extends InsightsListener {
         Location location = entity.getLocation();
         int delta = 1;
 
-        evaluateAddition(player, location, entityType, delta);
+        evaluateAddition(player, location, ScanObject.of(entityType), delta);
         handleModification(location, entityType, delta);
     }
 
@@ -181,7 +182,7 @@ public class EntityListener extends InsightsListener {
         if (entity.isDead()) {
             Optional<Player> player = getPlayerKiller(entity);
             if (player.isPresent()) {
-                handleRemoval(player.get(), location, entityType, delta);
+                handleRemoval(player.get(), location, ScanObject.of(entityType), delta);
                 return;
             }
         }

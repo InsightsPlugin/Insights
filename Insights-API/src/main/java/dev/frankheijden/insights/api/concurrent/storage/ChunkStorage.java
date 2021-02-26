@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkStorage {
 
-    private final Map<Long, DistributionStorage> distributionMap;
+    private final Map<Long, Storage> distributionMap;
 
     public ChunkStorage() {
         this.distributionMap = new ConcurrentHashMap<>();
@@ -17,12 +17,12 @@ public class ChunkStorage {
         return distributionMap.keySet();
     }
 
-    public Optional<DistributionStorage> get(long chunkKey) {
+    public Optional<Storage> get(long chunkKey) {
         return Optional.ofNullable(distributionMap.get(chunkKey));
     }
 
-    public void put(long chunkKey, DistributionStorage chunkDistribution) {
-        distributionMap.put(chunkKey, chunkDistribution);
+    public void put(long chunkKey, Storage storage) {
+        distributionMap.put(chunkKey, storage);
     }
 
     public void remove(long chunkKey) {

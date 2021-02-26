@@ -2,10 +2,11 @@ package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.Region;
-import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.limits.LimitInfo;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.BlockUtils;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
@@ -74,7 +75,7 @@ public class PistonListener extends InsightsListener {
         long chunkKey = ChunkUtils.getKey(chunk);
 
         boolean queued;
-        Optional<DistributionStorage> storageOptional;
+        Optional<Storage> storageOptional;
         if (regionOptional.isPresent()) {
             String key = regionOptional.get().getKey();
             queued = plugin.getAddonScanTracker().isQueued(key);
@@ -103,11 +104,11 @@ public class PistonListener extends InsightsListener {
         }
 
         // Else, the storage is present, and we can apply a limit.
-        DistributionStorage storage = storageOptional.get();
+        Storage storage = storageOptional.get();
         Limit limit = limitOptional.get();
         LimitInfo limitInfo = limit.getLimit(material);
 
         // Cache doesn't need to updated here just yet, needs to be done in MONITOR event phase.
-        return storage.count(limit, material) + 1 > limitInfo.getLimit();
+        return storage.count(limit, ScanObject.of(material)) + 1 > limitInfo.getLimit();
     }
 }

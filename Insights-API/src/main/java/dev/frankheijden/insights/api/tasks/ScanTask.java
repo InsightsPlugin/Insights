@@ -3,18 +3,17 @@ package dev.frankheijden.insights.api.tasks;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
-import dev.frankheijden.insights.api.concurrent.storage.Distribution;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.notifications.ProgressNotification;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -145,7 +144,7 @@ public class ScanTask implements Runnable {
             InsightsPlugin plugin,
             Player player,
             Collection<? extends ChunkPart> chunkParts,
-            Set<Material> materials,
+            Set<? extends ScanObject<?>> items,
             boolean displayZeros
     ) {
         UUID uuid = player.getUniqueId();
@@ -180,21 +179,19 @@ public class ScanTask implements Runnable {
             Messages messages = plugin.getMessages();
             messages.getMessage(Messages.Key.SCAN_FINISH_HEADER).color().sendTo(player);
 
-            Distribution<Material> distribution = storage.materials();
-
-            // Check which materials we need to display & sort them based on their name.
-            List<Material> displayMaterials = new ArrayList<>(materials == null ? distribution.keys() : materials);
-            displayMaterials.sort(Comparator.comparing(Enum::name));
+            // Check which items we need to display & sort them based on their name.
+            List<ScanObject<?>> displayItems = new ArrayList<>(items == null ? storage.keys() : items);
+            displayItems.sort(Comparator.comparing(ScanObject::name));
 
             // Send each entry
-            for (Material material : displayMaterials) {
+            for (ScanObject<?> item : displayItems) {
                 // Only display format if nonzero, or displayZeros is set to true.
-                int count = distribution.count(material);
+                int count = storage.count(item);
                 if (count == 0 && !displayZeros) continue;
 
                 messages.getMessage(Messages.Key.SCAN_FINISH_FORMAT)
                         .replace(
-                                "entry", EnumUtils.pretty(material),
+                                "entry", EnumUtils.pretty(item.getObject()),
                                 "count", StringUtils.pretty(count)
                         )
                         .color()
@@ -205,7 +202,8 @@ public class ScanTask implements Runnable {
             messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER)
                     .replace(
                             "chunks", StringUtils.pretty(chunkCount),
-                            "blocks", StringUtils.pretty(distribution.count()),
+                            "blocks", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL)),
+                            "entities", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY)),
                             "time", StringUtils.pretty(Duration.ofMillis(millis))
                     )
                     .color()

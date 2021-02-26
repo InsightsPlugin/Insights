@@ -7,10 +7,11 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
+import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import java.util.ArrayList;
@@ -28,7 +29,13 @@ public class CommandScanWorld extends InsightsCommand {
     @CommandMethod("scanworld tile")
     @CommandPermission("insights.scanworld.tile")
     private void handleTileScan(Player player) {
-        handleScan(player, RTileEntityTypes.getTileEntityMaterials(), false);
+        handleScan(player, RTileEntityTypes.getTileEntities(), false);
+    }
+
+    @CommandMethod("scanworld entity")
+    @CommandPermission("insights.scanworld.entity")
+    private void handleEntityScan(Player player) {
+        handleScan(player, Constants.SCAN_ENTITIES, false);
     }
 
     @CommandMethod("scanworld all")
@@ -37,16 +44,16 @@ public class CommandScanWorld extends InsightsCommand {
         handleScan(player, null, false);
     }
 
-    @CommandMethod("scanworld custom <materials>")
+    @CommandMethod("scanworld custom <items>")
     @CommandPermission("insights.scanworld.custom")
-    private void handleCustomScan(Player player, @Argument("materials") Material[] materials) {
-        handleScan(player, new HashSet<>(Arrays.asList(materials)), true);
+    private void handleCustomScan(Player player, @Argument("items") ScanObject<?>[] items) {
+        handleScan(player, new HashSet<>(Arrays.asList(items)), true);
     }
 
     /**
      * Scans chunks in the world of a player.
      */
-    public void handleScan(Player player, Set<Material> materials, boolean displayZeros) {
+    public void handleScan(Player player, Set<? extends ScanObject<?>> items, boolean displayZeros) {
         World world = player.getWorld();
 
         // Generate chunk parts
@@ -56,6 +63,6 @@ public class CommandScanWorld extends InsightsCommand {
             chunkParts.add(ChunkLocation.of(chunk).toPart());
         }
 
-        ScanTask.scanAndDisplay(plugin, player, chunkParts, materials, displayZeros);
+        ScanTask.scanAndDisplay(plugin, player, chunkParts, items, displayZeros);
     }
 }

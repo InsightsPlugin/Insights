@@ -4,6 +4,7 @@ import static java.util.Comparator.comparingInt;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.config.limits.Limit;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.utils.SetUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -56,13 +57,12 @@ public class Limits {
      * Retrieves the first limit (sorted ascending on limit, such that the smallest limit is applied).
      * Item must be of type Material or EntityType.
      */
-    public Optional<Limit> getFirstLimit(Object item, Predicate<Limit> limitPredicate) {
-        if (item instanceof Material) {
-            return getFirstLimit((Material) item, limitPredicate);
-        } else if (item instanceof EntityType) {
-            return getFirstLimit((EntityType) item, limitPredicate);
+    public Optional<Limit> getFirstLimit(ScanObject<?> item, Predicate<Limit> limitPredicate) {
+        switch (item.getType()) {
+            case MATERIAL: return getFirstLimit((Material) item.getObject(), limitPredicate);
+            case ENTITY: return getFirstLimit((EntityType) item.getObject(), limitPredicate);
+            default: throw new IllegalArgumentException("Item is of unsupported limit type '" + item.getClass() + "'");
         }
-        throw new IllegalArgumentException("Item is of unsupported limit type '" + item.getClass() + "'");
     }
 
     /**

@@ -25,15 +25,17 @@ import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.commands.CommandInsights;
 import dev.frankheijden.insights.commands.CommandScan;
+import dev.frankheijden.insights.commands.CommandScanCache;
 import dev.frankheijden.insights.commands.CommandScanRegion;
 import dev.frankheijden.insights.commands.CommandScanWorld;
 import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
-import dev.frankheijden.insights.commands.parser.MaterialArrayArgument;
+import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
@@ -49,7 +51,6 @@ import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
 import java.io.File;
@@ -302,8 +303,8 @@ public class Insights extends InsightsPlugin {
         // Register parsers
         ParserRegistry<CommandSender> parserRegistry = commandManager.getParserRegistry();
         parserRegistry.registerParserSupplier(
-                TypeToken.get(Material[].class),
-                options -> new MaterialArrayArgument.MaterialArrayParser()
+                TypeToken.get(new TypeToken<ScanObject<?>[]>() {}.getType()),
+                options -> new ScanObjectArrayArgument.ScanObjectArrayParser()
         );
 
         // Register capabilities if allowed
@@ -327,6 +328,7 @@ public class Insights extends InsightsPlugin {
         // Parse commands
         annotationParser.parse(new CommandInsights(this));
         annotationParser.parse(new CommandScan(this));
+        annotationParser.parse(new CommandScanCache(this));
         annotationParser.parse(new CommandScanWorld(this));
         annotationParser.parse(new CommandScanRegion(this));
     }

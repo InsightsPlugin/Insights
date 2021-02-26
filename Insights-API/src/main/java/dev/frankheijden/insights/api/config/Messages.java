@@ -48,7 +48,12 @@ public class Messages {
         SCAN_FINISH_FORMAT("scan.finish.format"),
         SCAN_FINISH_FOOTER("scan.finish.footer"),
         SCAN_PROGRESS("scan.progress"),
-        SCANREGION_NO_REGION("scanregion.no-region");
+        SCANREGION_NO_REGION("scanregion.no-region"),
+        SCANCACHE_NO_CACHE("scancache.no-cache"),
+        SCANCACHE_CLEARED("scancache.cleared"),
+        SCANCACHE_RESULT_HEADER("scancache.result.header"),
+        SCANCACHE_RESULT_FORMAT("scancache.result.format"),
+        SCANCACHE_RESULT_FOOTER("scancache.result.footer");
 
         private final String path;
 

@@ -3,6 +3,7 @@ package dev.frankheijden.insights.listeners;
 import dev.frankheijden.insights.Insights;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.MaterialTags;
 import dev.frankheijden.insights.api.utils.BlockUtils;
 import org.bukkit.Location;
@@ -66,7 +67,7 @@ public class BlockListener extends InsightsListener {
             delta = 1;
         }
 
-        if (handleAddition(player, location, material, delta, false)) {
+        if (handleAddition(player, location, ScanObject.of(material), delta, false)) {
             event.setCancelled(true);
         }
     }
@@ -94,7 +95,7 @@ public class BlockListener extends InsightsListener {
         }
 
         // No need to add any delta, cache is already updated
-        evaluateAddition(player, location, material, 0);
+        evaluateAddition(player, location, ScanObject.of(material), 0);
     }
 
     /**
@@ -118,7 +119,7 @@ public class BlockListener extends InsightsListener {
         }
 
         // Handle the removal
-        handleRemoval(player, location, material, 1, false);
+        handleRemoval(player, location, ScanObject.of(material), 1, false);
     }
 
     @AllowDisabling

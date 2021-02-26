@@ -1,5 +1,7 @@
 package dev.frankheijden.insights.api.reflection;
 
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
+import dev.frankheijden.insights.api.util.SetCollector;
 import dev.frankheijden.minecraftreflection.ClassObject;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import org.bukkit.Material;
@@ -15,6 +17,7 @@ public class RTileEntityTypes {
     private static final MinecraftReflection reflection = MinecraftReflection
             .of("net.minecraft.server.%s.TileEntityTypes");
     private static final Set<Material> TILE_ENTITY_MATERIALS;
+    private static final Set<ScanObject.MaterialObject> TILE_ENTITIES;
 
     static {
         Set<Material> materials = new HashSet<>();
@@ -31,6 +34,9 @@ public class RTileEntityTypes {
         }
         materials.removeIf(Material::isAir);
         TILE_ENTITY_MATERIALS = Collections.unmodifiableSet(EnumSet.copyOf(materials));
+        TILE_ENTITIES = TILE_ENTITY_MATERIALS.stream()
+                .map(ScanObject::of)
+                .collect(SetCollector.unmodifiableSet());
     }
 
     private RTileEntityTypes() {}
@@ -41,5 +47,9 @@ public class RTileEntityTypes {
 
     public static Set<Material> getTileEntityMaterials() {
         return TILE_ENTITY_MATERIALS;
+    }
+
+    public static Set<ScanObject.MaterialObject> getTileEntities() {
+        return TILE_ENTITIES;
     }
 }

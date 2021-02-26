@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.config.limits;
 
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -54,5 +55,10 @@ public class TileLimit extends Limit {
     @Override
     public Set<EntityType> getEntities() {
         return Collections.emptySet();
+    }
+
+    @Override
+    public Set<? extends ScanObject<?>> getScanObjects() {
+        return RTileEntityTypes.getTileEntities();
     }
 }
