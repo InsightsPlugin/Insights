@@ -181,8 +181,13 @@ public class Insights extends InsightsPlugin {
             getLogger().info("Unregistered listener of '" + clazz.getSimpleName() + "'");
         }
 
-        if (settings.CHUNK_SCAN_MODE == Settings.ChunkScanMode.ALWAYS) {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(this, new PlayerTrackerTask(this), 0, 1);
+        if (settings.CHUNK_SCANS_MODE == Settings.ChunkScanMode.ALWAYS) {
+            Bukkit.getScheduler().runTaskTimerAsynchronously(
+                    this,
+                    new PlayerTrackerTask(this),
+                    0,
+                    settings.CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS
+            );
         }
 
         if (settings.UPDATE_CHECKER_ENABLED) {

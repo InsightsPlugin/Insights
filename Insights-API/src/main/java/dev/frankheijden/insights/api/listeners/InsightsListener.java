@@ -9,7 +9,6 @@ import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.config.LimitEnvironment;
 import dev.frankheijden.insights.api.config.Messages;
-import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.limits.LimitInfo;
 import dev.frankheijden.insights.api.objects.InsightsBase;
@@ -212,9 +211,8 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         ChunkStorage chunkStorage = worldStorage.getWorld(worldUid);
         Optional<DistributionStorage> storageOptional = chunkStorage.get(chunkKey);
 
-        // If the chunk is not known and ChunkScanMode is set to MODIFICATION, scan the chunk
-        if (!storageOptional.isPresent()
-                && plugin.getSettings().CHUNK_SCAN_MODE == Settings.ChunkScanMode.MODIFICATION) {
+        // If the chunk is not known
+        if (!storageOptional.isPresent()) {
             // Notify the user scan started
             plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED)
                     .replace("area", "chunk")
@@ -223,8 +221,6 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
             // Submit the chunk for scanning
             plugin.getChunkContainerExecutor().submit(chunk).thenAccept(storageConsumer);
-
-            return Optional.empty();
         }
         return storageOptional;
     }
