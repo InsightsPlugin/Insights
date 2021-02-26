@@ -10,9 +10,7 @@ import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.utils.MaterialUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import io.leangen.geantyref.TypeToken;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EntityType;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -58,12 +56,7 @@ public class ScanObjectArrayArgument extends CommandArgument<CommandSender, Scan
             try {
                 ScanObject<?>[] items = new ScanObject[inputQueue.size()];
                 for (int i = 0; i < items.length; i++) {
-                    String str = inputQueue.peek().toUpperCase();
-                    try {
-                        items[i] = ScanObject.of(Material.valueOf(str));
-                    } catch (IllegalArgumentException ex) {
-                        items[i] = ScanObject.of(EntityType.valueOf(str));
-                    }
+                    items[i] = ScanObject.parse(inputQueue.peek());
                     inputQueue.remove();
                 }
                 return ArgumentParseResult.success(items);

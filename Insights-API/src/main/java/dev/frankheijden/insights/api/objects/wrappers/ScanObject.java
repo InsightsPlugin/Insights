@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.objects.wrappers;
 
+import dev.frankheijden.insights.api.utils.MaterialUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import java.util.Collection;
@@ -54,9 +55,12 @@ public abstract class ScanObject<T extends Enum<T>> {
      * @throws IllegalArgumentException iff parsing of the given object failed.
      */
     public static ScanObject<?> parse(String str) {
-        String upperCased = str.toLowerCase(Locale.ENGLISH);
+        String upperCased = str.toUpperCase(Locale.ENGLISH);
         try {
-            return of(Material.valueOf(upperCased));
+            Material material = Material.valueOf(upperCased);
+            if (MaterialUtils.BLOCKS.contains(material)) {
+                return of(material);
+            }
         } catch (IllegalArgumentException ignored) {
             //
         }
