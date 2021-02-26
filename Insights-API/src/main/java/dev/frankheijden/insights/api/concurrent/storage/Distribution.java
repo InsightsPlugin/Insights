@@ -1,9 +1,9 @@
 package dev.frankheijden.insights.api.concurrent.storage;
 
 import dev.frankheijden.insights.api.utils.MapUtils;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class Distribution<E> {
 
@@ -32,12 +32,14 @@ public class Distribution<E> {
     }
 
     /**
-     * Retrieves and combines the distribution of specified items.
+     * Retrieves the distribution of items which match the predicate.
      */
-    public int count(Collection<? extends E> items) {
+    public int count(Predicate<E> predicate) {
         int count = 0;
-        for (E item : items) {
-            count += distributionMap.getOrDefault(item, 0);
+        for (Map.Entry<E, Integer> entry : distributionMap.entrySet()) {
+            if (predicate.test(entry.getKey())) {
+                count += entry.getValue();
+            }
         }
         return count;
     }

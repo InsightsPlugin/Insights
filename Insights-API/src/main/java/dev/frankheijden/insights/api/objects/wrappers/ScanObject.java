@@ -6,14 +6,17 @@ import org.bukkit.entity.EntityType;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 public abstract class ScanObject<T extends Enum<T>> {
 
     private final T object;
+    private final Type type;
 
-    protected ScanObject(T object) {
+    protected ScanObject(T object, Type type) {
         this.object = object;
+        this.type = type;
     }
 
     public static MaterialObject of(Material material) {
@@ -51,6 +54,23 @@ public abstract class ScanObject<T extends Enum<T>> {
     }
 
     /**
+     * Creates a new Set of ScanObjects based on given materials and entities.
+     */
+    public static Set<ScanObject<?>> of(
+            Collection<? extends Material> materials,
+            Collection<? extends EntityType> entities
+    ) {
+        Set<ScanObject<?>> scanObjects = new HashSet<>(materials.size() + entities.size());
+        for (Material item : materials) {
+            scanObjects.add(of(item));
+        }
+        for (EntityType item : entities) {
+            scanObjects.add(of(item));
+        }
+        return scanObjects;
+    }
+
+    /**
      * Parses the given string to a ScanObject.
      * @throws IllegalArgumentException iff parsing of the given object failed.
      */
@@ -77,11 +97,26 @@ public abstract class ScanObject<T extends Enum<T>> {
         return object;
     }
 
+    public Type getType() {
+        return type;
+    }
+
     public String name() {
         return object.name();
     }
 
-    public abstract Type getType();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ScanObject<?> that = (ScanObject<?>) o;
+        return object.equals(that.object) && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(object, type);
+    }
 
     public enum Type {
         MATERIAL,
@@ -91,24 +126,14 @@ public abstract class ScanObject<T extends Enum<T>> {
     public static final class MaterialObject extends ScanObject<Material> {
 
         protected MaterialObject(Material object) {
-            super(object);
-        }
-
-        @Override
-        public Type getType() {
-            return Type.MATERIAL;
+            super(object, Type.MATERIAL);
         }
     }
 
     public static final class EntityObject extends ScanObject<EntityType> {
 
         protected EntityObject(EntityType object) {
-            super(object);
-        }
-
-        @Override
-        public Type getType() {
-            return Type.ENTITY;
+            super(object, Type.ENTITY);
         }
     }
 }

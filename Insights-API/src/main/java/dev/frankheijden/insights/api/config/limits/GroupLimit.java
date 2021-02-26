@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.config.limits;
 
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
+import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import java.util.Collections;
@@ -15,6 +16,7 @@ public class GroupLimit extends Limit {
     private final int limit;
     private final Set<Material> materials;
     private final Set<EntityType> entities;
+    private final Set<ScanObject<?>> scanObjects;
 
     protected GroupLimit(Info info, String name, int limit, Set<Material> materials, Set<EntityType> entities) {
         super(LimitType.GROUP, info);
@@ -22,6 +24,7 @@ public class GroupLimit extends Limit {
         this.limit = limit;
         this.materials = Collections.unmodifiableSet(materials);
         this.entities = Collections.unmodifiableSet(entities);
+        this.scanObjects = Collections.unmodifiableSet(ScanObject.of(materials, entities));
     }
 
     /**
@@ -72,5 +75,10 @@ public class GroupLimit extends Limit {
     @Override
     public Set<EntityType> getEntities() {
         return entities;
+    }
+
+    @Override
+    public Set<? extends ScanObject<?>> getScanObjects() {
+        return scanObjects;
     }
 }

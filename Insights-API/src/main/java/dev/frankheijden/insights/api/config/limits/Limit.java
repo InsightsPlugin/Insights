@@ -96,6 +96,11 @@ public abstract class Limit {
      */
     public abstract Set<EntityType> getEntities();
 
+    /**
+     * Returns the set of ScanObjects that this limit consists of.
+     */
+    public abstract Set<? extends ScanObject<?>> getScanObjects();
+
     public static class Info {
 
         private final String bypassPermission;

@@ -2,7 +2,7 @@ package dev.frankheijden.insights.placeholders;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.Region;
-import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.LimitEnvironment;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
@@ -68,7 +68,7 @@ public class InsightsPlaceholderExpansion extends PlaceholderExpansion {
                     case "max": return String.valueOf(limit.getLimit(item).getLimit());
                     case "count":
                         Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
-                        Optional<DistributionStorage> storageOptional;
+                        Optional<Storage> storageOptional;
                         if (regionOptional.isPresent()) {
                             Region region = regionOptional.get();
                             storageOptional = plugin.getAddonStorage().get(region.getKey());

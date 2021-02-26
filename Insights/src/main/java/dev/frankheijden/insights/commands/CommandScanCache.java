@@ -6,7 +6,7 @@ import cloud.commandframework.annotations.CommandPermission;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
-import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
@@ -80,7 +80,7 @@ public class CommandScanCache extends InsightsCommand {
     public void handleScan(Player player, Set<? extends ScanObject<?>> items, boolean displayZeros) {
         Location loc = player.getLocation();
         Optional<Region> optionalRegion = plugin.getAddonManager().getRegion(loc);
-        Optional<DistributionStorage> optionalStorage;
+        Optional<Storage> optionalStorage;
 
         // If a region is present, try to fetch cache of the region.
         if (optionalRegion.isPresent()) {
@@ -92,7 +92,7 @@ public class CommandScanCache extends InsightsCommand {
         }
 
         if (optionalStorage.isPresent()) {
-            DistributionStorage storage = optionalStorage.get();
+            Storage storage = optionalStorage.get();
 
             Messages messages = plugin.getMessages();
             messages.getMessage(Messages.Key.SCANCACHE_RESULT_HEADER).color().sendTo(player);

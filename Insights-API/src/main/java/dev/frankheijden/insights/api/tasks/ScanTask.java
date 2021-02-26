@@ -202,8 +202,8 @@ public class ScanTask implements Runnable {
             messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER)
                     .replace(
                             "chunks", StringUtils.pretty(chunkCount),
-                            "blocks", StringUtils.pretty(storage.materials().count()),
-                            "entities", StringUtils.pretty(storage.entities().count()),
+                            "blocks", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL)),
+                            "entities", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY)),
                             "time", StringUtils.pretty(Duration.ofMillis(millis))
                     )
                     .color()
