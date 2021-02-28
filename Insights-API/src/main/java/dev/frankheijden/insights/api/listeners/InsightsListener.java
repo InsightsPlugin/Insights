@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.Region;
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.ChunkStorage;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
@@ -333,7 +334,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     private void scanRegion(Player player, Region region, Consumer<Storage> storageConsumer) {
         // Submit the cuboid for scanning
         plugin.getAddonScanTracker().add(region.getAddon());
-        ScanTask.scan(plugin, player, region.toChunkParts(), storage -> {
+        ScanTask.scan(plugin, player, region.toChunkParts(), ScanOptions.scanOnly(), storage -> {
             plugin.getAddonScanTracker().remove(region.getAddon());
 
             // Store the cuboid

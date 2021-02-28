@@ -20,11 +20,18 @@ public class DistributionStorage extends Distribution<ScanObject<?>> implements 
      * Constructs a new DistributionStorage from given material and entity distributions.
      */
     public static DistributionStorage of(Distribution<Material> materials, Distribution<EntityType> entities) {
+        return of(materials.distributionMap, entities.distributionMap);
+    }
+
+    /**
+     * Constructs a new DistributionStorage from given material and entity distribution maps.
+     */
+    public static DistributionStorage of(Map<Material, Integer> materials, Map<EntityType, Integer> entities) {
         Map<ScanObject<?>, Integer> map = new ConcurrentHashMap<>();
-        for (Map.Entry<Material, Integer> entry : materials.distributionMap.entrySet()) {
+        for (Map.Entry<Material, Integer> entry : materials.entrySet()) {
             map.put(ScanObject.of(entry.getKey()), entry.getValue());
         }
-        for (Map.Entry<EntityType, Integer> entry : entities.distributionMap.entrySet()) {
+        for (Map.Entry<EntityType, Integer> entry : entities.entrySet()) {
             map.put(ScanObject.of(entry.getKey()), entry.getValue());
         }
         return new DistributionStorage(map);

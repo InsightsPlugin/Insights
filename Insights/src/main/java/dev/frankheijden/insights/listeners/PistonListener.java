@@ -2,6 +2,7 @@ package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.Region;
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.limits.LimitInfo;
@@ -93,7 +94,7 @@ public class PistonListener extends InsightsListener {
             if (regionOptional.isPresent()) {
                 Region region = regionOptional.get();
                 plugin.getAddonScanTracker().add(region.getAddon());
-                ScanTask.scan(plugin, region.toChunkParts(), info -> {}, storage -> {
+                ScanTask.scan(plugin, region.toChunkParts(), ScanOptions.scanOnly(), info -> {}, storage -> {
                     plugin.getAddonScanTracker().remove(region.getAddon());
                     plugin.getAddonStorage().put(region.getKey(), storage);
                 });

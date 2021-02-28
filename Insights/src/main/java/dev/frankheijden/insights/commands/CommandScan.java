@@ -6,6 +6,7 @@ import cloud.commandframework.annotations.CommandPermission;
 import cloud.commandframework.annotations.specifier.Range;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
@@ -33,7 +34,7 @@ public class CommandScan extends InsightsCommand {
             Player player,
             @Argument("radius") @Range(min = "0", max = "50") int radius
     ) {
-        handleScan(player, radius, RTileEntityTypes.getTileEntities(), false);
+        handleScan(player, radius, RTileEntityTypes.getTileEntities(), ScanOptions.materialsOnly(), false);
     }
 
     @CommandMethod("scan <radius> entity")
@@ -42,7 +43,7 @@ public class CommandScan extends InsightsCommand {
             Player player,
             @Argument("radius") @Range(min = "0", max = "50") int radius
     ) {
-        handleScan(player, radius, Constants.SCAN_ENTITIES, false);
+        handleScan(player, radius, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false);
     }
 
     @CommandMethod("scan <radius> all")
@@ -51,7 +52,7 @@ public class CommandScan extends InsightsCommand {
             Player player,
             @Argument("radius") @Range(min = "0", max = "50") int radius
     ) {
-        handleScan(player, radius, null, false);
+        handleScan(player, radius, null, ScanOptions.scanOnly(), false);
     }
 
     @CommandMethod("scan <radius> custom <items>")
@@ -61,13 +62,19 @@ public class CommandScan extends InsightsCommand {
             @Argument("radius") @Range(min = "0", max = "50") int radius,
             @Argument("items") ScanObject<?>[] items
     ) {
-        handleScan(player, radius, new HashSet<>(Arrays.asList(items)), true);
+        handleScan(player, radius, new HashSet<>(Arrays.asList(items)), ScanOptions.scanOnly(), true);
     }
 
     /**
      * Scans chunks in a radius around a player.
      */
-    public void handleScan(Player player, int radius, Set<? extends ScanObject<?>> items, boolean displayZeros) {
+    public void handleScan(
+            Player player,
+            int radius,
+            Set<? extends ScanObject<?>> items,
+            ScanOptions options,
+            boolean displayZeros
+    ) {
         Chunk chunk = player.getLocation().getChunk();
         World world = chunk.getWorld();
         int chunkX = chunk.getX();
@@ -83,6 +90,6 @@ public class CommandScan extends InsightsCommand {
             }
         }
 
-        ScanTask.scanAndDisplay(plugin, player, chunkParts, items, displayZeros);
+        ScanTask.scanAndDisplay(plugin, player, chunkParts, options, items, displayZeros);
     }
 }
