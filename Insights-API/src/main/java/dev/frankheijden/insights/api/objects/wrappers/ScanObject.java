@@ -4,12 +4,26 @@ import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 public abstract class ScanObject<T extends Enum<T>> {
+
+    private static final Map<Material, MaterialObject> materialMap = new EnumMap<>(Material.class);
+    private static final Map<EntityType, EntityObject> entityMap = new EnumMap<>(EntityType.class);
+
+    static {
+        for (Material material : Material.values()) {
+            materialMap.put(material, new MaterialObject(material));
+        }
+        for (EntityType entity : EntityType.values()) {
+            entityMap.put(entity, new EntityObject(entity));
+        }
+    }
 
     private final T object;
     private final Type type;
@@ -20,11 +34,11 @@ public abstract class ScanObject<T extends Enum<T>> {
     }
 
     public static MaterialObject of(Material material) {
-        return new MaterialObject(material);
+        return materialMap.get(material);
     }
 
     public static EntityObject of(EntityType entityType) {
-        return new EntityObject(entityType);
+        return entityMap.get(entityType);
     }
 
     /**
@@ -33,9 +47,9 @@ public abstract class ScanObject<T extends Enum<T>> {
      */
     public static ScanObject<?> of(Object item) {
         if (item instanceof Material) {
-            return new MaterialObject((Material) item);
+            return of((Material) item);
         } else if (item instanceof EntityType) {
-            return new EntityObject((EntityType) item);
+            return of((EntityType) item);
         } else {
             throw new IllegalArgumentException("Unknown ScanObject of type " + item.getClass());
         }
