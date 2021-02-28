@@ -34,12 +34,12 @@ import java.util.function.Consumer;
 public class ScanTask implements Runnable {
 
     private static final Set<UUID> scanners = new HashSet<>();
-    private static final ScanOptions options = ScanOptions.newBuilder().entities().build();
 
     private final InsightsPlugin plugin;
     private final ChunkContainerExecutor executor;
     private final Queue<ChunkPart> scanQueue;
     private final Queue<LoadedChunk> chunkQueue;
+    private final ScanOptions options;
     private final DistributionStorage distributionStorage;
     private final int chunksPerIteration;
     private final Consumer<Info> infoConsumer;
@@ -58,6 +58,7 @@ public class ScanTask implements Runnable {
     private ScanTask(
             InsightsPlugin plugin,
             Collection<? extends ChunkPart> chunkParts,
+            ScanOptions options,
             int chunksPerIteration,
             Consumer<Info> infoConsumer,
             long infoTimeoutMillis,
@@ -68,6 +69,7 @@ public class ScanTask implements Runnable {
         this.scanQueue = new LinkedList<>(chunkParts);
         this.chunkQueue = new ConcurrentLinkedQueue<>();
         this.distributionStorage = new DistributionStorage();
+        this.options = options;
         this.chunksPerIteration = chunksPerIteration;
         this.infoConsumer = infoConsumer;
         this.infoTimeout = infoTimeoutMillis * 1000000L; // Convert to nanos
@@ -83,12 +85,14 @@ public class ScanTask implements Runnable {
     public static void scan(
             InsightsPlugin plugin,
             Collection<? extends ChunkPart> chunkParts,
+            ScanOptions options,
             Consumer<Info> infoConsumer,
             Consumer<DistributionStorage> distributionConsumer
     ) {
         new ScanTask(
                 plugin,
                 chunkParts,
+                options,
                 plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
                 infoConsumer,
                 plugin.getSettings().SCANS_INFO_INTERVAL_MILLIS,
@@ -105,6 +109,7 @@ public class ScanTask implements Runnable {
             InsightsPlugin plugin,
             Player player,
             Collection<? extends ChunkPart> chunkParts,
+            ScanOptions options,
             Consumer<DistributionStorage> distributionConsumer
     ) {
         // Create a notification for the task
@@ -117,6 +122,7 @@ public class ScanTask implements Runnable {
         new ScanTask(
                 plugin,
                 chunkParts,
+                options,
                 plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
                 info -> {
                     // Update the notification with progress
@@ -144,6 +150,7 @@ public class ScanTask implements Runnable {
             InsightsPlugin plugin,
             Player player,
             Collection<? extends ChunkPart> chunkParts,
+            ScanOptions options,
             Set<? extends ScanObject<?>> items,
             boolean displayZeros
     ) {
@@ -170,7 +177,7 @@ public class ScanTask implements Runnable {
 
         // Start the scan
         final long start = System.nanoTime();
-        ScanTask.scan(plugin, player, chunkParts, storage -> {
+        ScanTask.scan(plugin, player, chunkParts, options, storage -> {
             // The time it took to generate the results
             @SuppressWarnings("VariableDeclarationUsageDistance")
             long millis = (System.nanoTime() - start) / 1000000L;
