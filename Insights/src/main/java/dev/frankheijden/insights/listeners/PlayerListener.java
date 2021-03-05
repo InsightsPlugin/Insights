@@ -18,6 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +50,7 @@ public class PlayerListener extends InsightsListener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerQuit(PlayerJoinEvent event) {
+    public void onPlayerQuit(PlayerQuitEvent event) {
         plugin.getPlayerList().removePlayer(event.getPlayer());
     }
 
