@@ -28,7 +28,7 @@ public class Distribution<E> {
      * Retrieves the distribution of a single item.
      */
     public int count(E item) {
-        return distributionMap.getOrDefault(item, 0);
+        return item == null ? 0 : distributionMap.getOrDefault(item, 0);
     }
 
     /**
@@ -48,6 +48,7 @@ public class Distribution<E> {
      * Modifies the distribution of given item by an integer amount.
      */
     public void modify(E item, int amount) {
+        if (item == null) return;
         distributionMap.compute(item, (e, count) -> {
             if (count == null) count = 0;
             return Math.max(0, count + amount);
