@@ -53,7 +53,7 @@ public class Settings {
         SCANS_CHUNKS_PER_ITERATION = parser.getInt("settings.scans.chunks-per-iteration", 2, 1, Integer.MAX_VALUE);
         SCANS_INFO_INTERVAL_MILLIS = parser.getInt("settings.scans.info-interval-millis", 50, 1, Integer.MAX_VALUE);
 
-        CHUNK_SCANS_MODE = parser.getEnum("settings.chunk-scans.mode", ChunkScanMode.MODIFICATION);
+        CHUNK_SCANS_MODE = parser.getEnum("settings.chunk-scans.mode", ChunkScanMode.ALWAYS);
         CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS = parser.getInt("settings.chunk-scans.player-tracker-interval-ticks", 5, 1, Integer.MAX_VALUE);
 
         NOTIFICATION_TYPE = parser.getEnum("settings.notification.type", NotificationType.BOSSBAR);
