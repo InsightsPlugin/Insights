@@ -69,8 +69,16 @@ public abstract class YamlParser {
      * Returns the keys at a given path. If no keys exist, an empty set is returned.
      */
     public Set<String> getKeys(String path) {
-        MemorySection section = (MemorySection) yaml.get(path);
-        return section == null ? new HashSet<>() : section.getKeys(false);
+        Object obj = yaml.get(path);
+        if (obj instanceof MemorySection) {
+            return ((MemorySection) obj).getKeys(false);
+        }
+
+        // If object is not a memory section, display error.
+        if (obj != null) {
+            errorConsumer.accept(new ConfigError(name, path, "value is not a section " + obj));
+        }
+        return new HashSet<>();
     }
 
     /**
