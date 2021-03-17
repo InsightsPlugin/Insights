@@ -120,6 +120,11 @@ public class BlockListener extends InsightsListener {
 
         // Handle the removal
         handleRemoval(player, location, ScanObject.of(material), 1, false);
+
+        // Reschedule the chunk for scanning
+        // Hacky way of allowing indirect block breaks,
+        // such as redstone wire popping off when the block below it is being broken.
+        plugin.getChunkContainerExecutor().submit(block.getChunk());
     }
 
     @AllowDisabling
