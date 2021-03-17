@@ -40,6 +40,7 @@ import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
 import dev.frankheijden.insights.listeners.EntityListener;
+import dev.frankheijden.insights.listeners.PaperBlockListener;
 import dev.frankheijden.insights.listeners.PaperEntityListener;
 import dev.frankheijden.insights.listeners.PistonListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
@@ -80,6 +81,9 @@ public class Insights extends InsightsPlugin {
         List<Method> listenerMethods = new ArrayList<>();
         listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(BlockListener.class, AllowDisabling.class));
         listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(WorldListener.class, AllowDisabling.class));
+        if (PaperLib.isPaper()) {
+            listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(PaperBlockListener.class, AllowDisabling.class));
+        }
 
         for (Method method : listenerMethods) {
             Class<?>[] params = method.getParameterTypes();
@@ -151,30 +155,31 @@ public class Insights extends InsightsPlugin {
 
         loadCommands();
 
-        InsightsListener[] disableListeners = new InsightsListener[] {
-                new BlockListener(this),
-                new WorldListener(this)
-        };
-
-        registerEvents(disableListeners);
+        List<InsightsListener> listeners = new ArrayList<>();
         playerListener = new PlayerListener(this);
-        registerEvents(
-                new ChunkListener(this),
-                playerListener
-        );
+        listeners.add(playerListener);
+        listeners.add(new ChunkListener(this));
+
+        List<InsightsListener> disableListeners = new ArrayList<>();
+        disableListeners.add(new BlockListener(this));
+        disableListeners.add(new WorldListener(this));
 
         if (PaperLib.isPaper()) {
-            registerEvents(new PaperEntityListener(this));
+            listeners.add(new PaperEntityListener(this));
+            disableListeners.add(new PaperBlockListener(this));
         } else {
-            registerEvents(new EntityListener(this));
+            listeners.add(new EntityListener(this));
             entityTrackerTask = new EntityTrackerTask(this);
             int interval = settings.SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
             Bukkit.getScheduler().runTaskTimer(this, entityTrackerTask, 0, interval);
         }
 
         if (settings.APPLY_PISTON_LIMITS) {
-            registerEvents(new PistonListener(this));
+            listeners.add(new PistonListener(this));
         }
+
+        registerEvents(listeners.toArray(new InsightsListener[0]));
+        registerEvents(disableListeners.toArray(new InsightsListener[0]));
 
         for (Class<?> clazz : settings.DISABLED_EVENTS) {
             HandlerList list = MinecraftReflection.of(clazz).invoke(null, "getHandlerList");
