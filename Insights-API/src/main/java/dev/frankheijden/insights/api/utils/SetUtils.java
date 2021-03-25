@@ -18,6 +18,15 @@ public class SetUtils {
     }
 
     /**
+     * Returns the difference of two sets. This method does not assume anything about mutability of the two sets.
+     */
+    public static <T> Set<T> difference(Set<T> a, Set<T> b) {
+        Set<T> set = new HashSet<>(a);
+        set.removeAll(b);
+        return set;
+    }
+
+    /**
      * Finds the first item in a given set that tests positive to the predicate.
      */
     public static <T> T findFirst(Set<T> set, Predicate<? super T> predicate) {
