@@ -2,7 +2,6 @@ package dev.frankheijden.insights.api.reflection;
 
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.SetCollector;
-import dev.frankheijden.minecraftreflection.ClassObject;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import org.bukkit.Material;
 import java.lang.reflect.Field;
@@ -21,22 +20,27 @@ public class RTileEntityTypes {
 
     static {
         Set<Material> materials = new HashSet<>();
-        for (Field field : reflection.getClazz().getFields()) {
-            if (!Modifier.isStatic(field.getModifiers()) || !field.getType().equals(reflection.getClazz())) continue;
+        try {
+            for (Field field : reflection.getClazz().getFields()) {
+                if (!Modifier.isStatic(field.getModifiers()) || !field.getType().equals(reflection.getClazz()))
+                    continue;
 
-            Object tileEntityTypes = reflection.get(null, field.getName());
-            Set<?> set = reflection.get(tileEntityTypes, "J");
-            for (Object block : set) {
-                Object item = RBlock.getReflection().invoke(block, "getItem");
-                ClassObject<?> param = ClassObject.of(RItem.getReflection().getClazz(), item);
-                materials.add(RCraftMagicNumbers.getReflection().invoke(item, "getMaterial", param));
+                Object tileEntityTypes = reflection.get(null, field.getName());
+                Set<?> set = reflection.get(tileEntityTypes, "J");
+                for (Object block : set) {
+                    materials.add(RCraftMagicNumbers.getMaterial(block));
+                }
             }
+        } catch (Throwable th) {
+            th.printStackTrace();
         }
+
         materials.removeIf(Material::isAir);
         TILE_ENTITY_MATERIALS = Collections.unmodifiableSet(EnumSet.copyOf(materials));
         TILE_ENTITIES = TILE_ENTITY_MATERIALS.stream()
                 .map(ScanObject::of)
                 .collect(SetCollector.unmodifiableSet());
+        System.out.println(TILE_ENTITY_MATERIALS);
     }
 
     private RTileEntityTypes() {}
