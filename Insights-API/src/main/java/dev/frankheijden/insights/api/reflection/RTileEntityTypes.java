@@ -40,7 +40,6 @@ public class RTileEntityTypes {
         TILE_ENTITIES = TILE_ENTITY_MATERIALS.stream()
                 .map(ScanObject::of)
                 .collect(SetCollector.unmodifiableSet());
-        System.out.println(TILE_ENTITY_MATERIALS);
     }
 
     private RTileEntityTypes() {}
