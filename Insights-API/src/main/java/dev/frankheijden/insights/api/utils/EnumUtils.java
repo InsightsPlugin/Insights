@@ -1,6 +1,7 @@
 package dev.frankheijden.insights.api.utils;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -45,5 +46,12 @@ public class EnumUtils {
 
     public static <E extends Enum<E>> String pretty(Enum<E> e) {
         return StringUtils.capitalizeSentence(e.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
+    }
+
+    /**
+     * Returns the difference of two sets. This method does not assume anything about mutability of the two sets.
+     */
+    public static <E extends Enum<E>> Set<E> difference(Set<E> left, Set<E> right) {
+        return EnumSet.copyOf(SetUtils.difference(left, right));
     }
 }
