@@ -92,7 +92,7 @@ public class EntityListener extends InsightsListener {
      * Monitors the EntityPlaceEvent for Armor Stands and End Crystals.
      * This event does not limit, it only monitors results from the event.
      */
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityPlaceMonitor(EntityPlaceEvent event) {
         evaluateEntityPlace(event.getPlayer(), event.getEntity());
     }
@@ -171,15 +171,15 @@ public class EntityListener extends InsightsListener {
         handleModification(location, entityType, delta);
     }
 
-    protected void handleEntityRemoval(Entity entity, boolean add) {
+    protected void handleEntityRemoval(Entity entity, boolean isPlayer) {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return;
-        if (add) removedEntities.add(entity.getUniqueId());
 
         Location location = entity.getLocation();
         int delta = 1;
 
-        if (entity.isDead()) {
+        if (isPlayer) {
+            removedEntities.add(entity.getUniqueId());
             Optional<Player> player = getPlayerKiller(entity);
             if (player.isPresent()) {
                 handleRemoval(player.get(), location, ScanObject.of(entityType), delta);
