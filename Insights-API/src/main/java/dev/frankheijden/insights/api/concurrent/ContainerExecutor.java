@@ -10,4 +10,5 @@ public interface ContainerExecutor {
 
     CompletableFuture<Void> submit(RunnableContainer container);
 
+    void shutdown();
 }

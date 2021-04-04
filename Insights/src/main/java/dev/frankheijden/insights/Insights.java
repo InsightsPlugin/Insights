@@ -212,6 +212,7 @@ public class Insights extends InsightsPlugin {
         if (placeholderExpansion != null) {
             placeholderExpansion.unregister();
         }
+        chunkContainerExecutor.shutdown();
     }
 
     public PlayerListener getPlayerListener() {

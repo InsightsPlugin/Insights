@@ -43,4 +43,9 @@ public class ContainerExecutorService implements ContainerExecutor {
     public CompletableFuture<Void> submit(RunnableContainer container) {
         return CompletableFuture.runAsync(container, executorService);
     }
+
+    @Override
+    public void shutdown() {
+        executorService.shutdownNow();
+    }
 }
