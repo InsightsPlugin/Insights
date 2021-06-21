@@ -78,4 +78,9 @@ public class ChunkContainerExecutor implements ContainerExecutor {
     public CompletableFuture<Void> submit(RunnableContainer container) {
         return containerExecutor.submit(container);
     }
+
+    @Override
+    public void shutdown() {
+        containerExecutor.shutdown();
+    }
 }

@@ -14,7 +14,7 @@ import java.util.Set;
 public class RTileEntityTypes {
 
     private static final MinecraftReflection reflection = MinecraftReflection
-            .of("net.minecraft.server.%s.TileEntityTypes");
+            .of("net.minecraft.world.level.block.entity.TileEntityTypes");
     private static final Set<Material> TILE_ENTITY_MATERIALS;
     private static final Set<ScanObject.MaterialObject> TILE_ENTITIES;
 
@@ -26,7 +26,7 @@ public class RTileEntityTypes {
                     continue;
 
                 Object tileEntityTypes = reflection.get(null, field.getName());
-                Set<?> set = reflection.get(tileEntityTypes, "J");
+                Set<?> set = reflection.get(tileEntityTypes, "K");
                 for (Object block : set) {
                     materials.add(RCraftMagicNumbers.getMaterial(block));
                 }

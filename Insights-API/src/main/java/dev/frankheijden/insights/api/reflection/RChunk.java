@@ -4,7 +4,8 @@ import dev.frankheijden.minecraftreflection.MinecraftReflection;
 
 public class RChunk {
 
-    private static final MinecraftReflection reflection = MinecraftReflection.of("net.minecraft.server.%s.Chunk");
+    private static final MinecraftReflection reflection = MinecraftReflection
+            .of("net.minecraft.world.level.chunk.Chunk");
 
     private RChunk() {}
 

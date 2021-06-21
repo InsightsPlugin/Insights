@@ -7,15 +7,20 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
 import dev.frankheijden.insights.api.reflection.RChunk;
 import dev.frankheijden.insights.api.reflection.RChunkSection;
 import dev.frankheijden.insights.api.reflection.RCraftChunk;
-import dev.frankheijden.insights.api.reflection.REntity;
-import dev.frankheijden.insights.api.reflection.RUnsafeList;
+import dev.frankheijden.insights.api.reflection.RPersistentEntitySectionManager;
+import dev.frankheijden.insights.api.reflection.RWorldServer;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.ChunkCoordIntPair;
+import net.minecraft.world.level.entity.EntitySection;
+import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.NumberConversions;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class ChunkContainer implements SupplierContainer<DistributionStorage> {
 
@@ -107,24 +112,26 @@ public class ChunkContainer implements SupplierContainer<DistributionStorage> {
         }
 
         if (options.entities()) {
-            Object[] entitySlices = RChunk.getReflection().invoke(chunk, "getEntitySlices");
-
             try {
-                for (int i = 0; i < entitySlices.length; i++) {
-                    Object entitySlice = entitySlices[i];
-                    Object[] entities = RUnsafeList.getData(entitySlice);
+                PersistentEntitySectionManager<Entity> entityManager = RWorldServer.getPersistentEntityManager(
+                        bukkitChunk.getWorld()
+                );
 
-                    for (int j = 0; j < RUnsafeList.size(entitySlice); j++) {
-                        Object entity = entities[j];
-                        if (entity == null) continue;
-
-                        int x = NumberConversions.floor(REntity.locX(entity)) & 15;
-                        int y = NumberConversions.floor(REntity.locY(entity));
-                        int z = NumberConversions.floor(REntity.locZ(entity)) & 15;
-                        if (minX <= x && x <= maxX && blockMinY <= y && y <= blockMaxY && minZ <= z && z <= maxZ) {
-                            entityMap.merge(REntity.getBukkitEntity(entity).getType(), 1, Integer::sum);
-                        }
+                Consumer<Entity> entityConsumer = entity -> {
+                    int x = NumberConversions.floor(entity.locX()) & 15;
+                    int y = NumberConversions.floor(entity.locY());
+                    int z = NumberConversions.floor(entity.locZ()) & 15;
+                    if (minX <= x && x <= maxX && blockMinY <= y && y <= blockMaxY && minZ <= z && z <= maxZ) {
+                        entityMap.merge(entity.getBukkitEntity().getType(), 1, Integer::sum);
                     }
+                };
+
+                if (entityManager.a(getChunkKey())) {
+                    RPersistentEntitySectionManager.getSectionStorage(entityManager)
+                            .b(getChunkKey()).flatMap(EntitySection::b).forEach(entityConsumer);
+                } else {
+                    RPersistentEntitySectionManager.getPermanentStorage(entityManager)
+                            .a(new ChunkCoordIntPair(getX(), getZ())).join().b().forEach(entityConsumer);
                 }
             } catch (Throwable th) {
                 //

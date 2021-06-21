@@ -4,27 +4,28 @@ import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import dev.frankheijden.minecraftreflection.Reflection;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import org.bukkit.World;
 
-public class RIBlockData {
+public class RCraftWorld {
 
     private static final MinecraftReflection reflection = MinecraftReflection
-            .of("net.minecraft.world.level.block.state.IBlockData");
-    private static MethodHandle getBlockMethodHandle;
+            .of("org.bukkit.craftbukkit.%s.CraftWorld");
+    private static MethodHandle worldMethodHandle;
 
     static {
         try {
-            getBlockMethodHandle = MethodHandles.lookup().unreflect(Reflection.getAccessibleMethod(
+            worldMethodHandle = MethodHandles.lookup().unreflectGetter(Reflection.getAccessibleField(
                     reflection.getClazz(),
-                    "getBlock"
+                    "world"
             ));
         } catch (Throwable th) {
             th.printStackTrace();
         }
     }
 
-    private RIBlockData() {}
+    private RCraftWorld() {}
 
-    public static Object getBlock(Object blockData) throws Throwable {
-        return getBlockMethodHandle.invoke(blockData);
+    public static Object getServerLevel(World world) throws Throwable {
+        return worldMethodHandle.invoke(world);
     }
 }

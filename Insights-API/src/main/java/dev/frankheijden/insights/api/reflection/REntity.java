@@ -8,8 +8,7 @@ import java.lang.invoke.MethodHandles;
 
 public class REntity {
 
-    private static final MinecraftReflection reflection = MinecraftReflection
-            .of("net.minecraft.server.%s.Entity");
+    private static final MinecraftReflection reflection = MinecraftReflection.of("net.minecraft.world.entity.Entity");
     private static MethodHandle getBukkitEntityMethodHandle;
     private static MethodHandle locXMethodHandle;
     private static MethodHandle locYMethodHandle;
