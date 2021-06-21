@@ -5,4 +5,4 @@ description: "A plugin which gives you Insights about your server, and allows fo
 author: "FrankHeijden"
 website: "https://www.spigotmc.org/resources/56489/"
 softdepend: [ "PlaceholderAPI" ]
-api-version: "1.15"
+api-version: "1.17"

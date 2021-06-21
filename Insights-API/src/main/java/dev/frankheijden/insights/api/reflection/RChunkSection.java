@@ -9,7 +9,7 @@ import java.lang.invoke.MethodHandles;
 public class RChunkSection {
 
     private static final MinecraftReflection reflection = MinecraftReflection
-            .of("net.minecraft.server.%s.ChunkSection");
+            .of("net.minecraft.world.level.chunk.ChunkSection");
     private static MethodHandle isEmptyMethodHandle;
     private static MethodHandle getTypeMethodHandle;
 
