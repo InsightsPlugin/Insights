@@ -3,6 +3,8 @@ package dev.frankheijden.insights.api.reflection;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.SetCollector;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.TileEntityTypes;
 import org.bukkit.Material;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -13,8 +15,7 @@ import java.util.Set;
 
 public class RTileEntityTypes {
 
-    private static final MinecraftReflection reflection = MinecraftReflection
-            .of("net.minecraft.world.level.block.entity.TileEntityTypes");
+    private static final MinecraftReflection reflection = MinecraftReflection.of(TileEntityTypes.class);
     private static final Set<Material> TILE_ENTITY_MATERIALS;
     private static final Set<ScanObject.MaterialObject> TILE_ENTITIES;
 
@@ -22,12 +23,12 @@ public class RTileEntityTypes {
         Set<Material> materials = new HashSet<>();
         try {
             for (Field field : reflection.getClazz().getFields()) {
-                if (!Modifier.isStatic(field.getModifiers()) || !field.getType().equals(reflection.getClazz()))
+                if (!Modifier.isStatic(field.getModifiers()) || !field.getType().equals(TileEntityTypes.class))
                     continue;
 
-                Object tileEntityTypes = reflection.get(null, field.getName());
-                Set<?> set = reflection.get(tileEntityTypes, "K");
-                for (Object block : set) {
+                TileEntityTypes<?> tileEntityTypes = reflection.get(null, field.getName());
+                Set<Block> set = reflection.get(tileEntityTypes, "K");
+                for (Block block : set) {
                     materials.add(RCraftMagicNumbers.getMaterial(block));
                 }
             }

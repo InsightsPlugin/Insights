@@ -6,6 +6,11 @@ import org.bukkit.entity.Entity;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 
+/**
+ * Deprecated.
+ * @deprecated Removal in v6.5.0
+ */
+@Deprecated(since = "v6.4.3")
 public class REntity {
 
     private static final MinecraftReflection reflection = MinecraftReflection.of("net.minecraft.world.entity.Entity");

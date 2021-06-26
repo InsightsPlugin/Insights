@@ -4,14 +4,15 @@ import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
-import dev.frankheijden.insights.api.reflection.RChunk;
-import dev.frankheijden.insights.api.reflection.RChunkSection;
 import dev.frankheijden.insights.api.reflection.RCraftChunk;
+import dev.frankheijden.insights.api.reflection.RCraftMagicNumbers;
 import dev.frankheijden.insights.api.reflection.RPersistentEntitySectionManager;
 import dev.frankheijden.insights.api.reflection.RWorldServer;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkCoordIntPair;
+import net.minecraft.world.level.chunk.Chunk;
+import net.minecraft.world.level.chunk.ChunkSection;
 import net.minecraft.world.level.entity.EntitySection;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import org.bukkit.Material;
@@ -70,7 +71,7 @@ public class ChunkContainer implements SupplierContainer<DistributionStorage> {
 
     @Override
     public DistributionStorage get() {
-        Object chunk = RCraftChunk.getReflection().invoke(bukkitChunk, "getHandle");
+        Chunk chunk = RCraftChunk.getReflection().invoke(bukkitChunk, "getHandle");
 
         ChunkVector min = cuboid.getMin();
         ChunkVector max = cuboid.getMax();
@@ -82,32 +83,33 @@ public class ChunkContainer implements SupplierContainer<DistributionStorage> {
         int blockMaxY = max.getY();
 
         if (options.materials()) {
-            Object[] sections = RChunk.getReflection().invoke(chunk, "getSections");
+            ChunkSection[] sections = chunk.getSections();
 
             int minSectionY = blockMinY >> 4;
             int maxSectionY = blockMaxY >> 4;
 
-            try {
-                for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
-                    int minY = sectionY == minSectionY ? blockMinY & 15 : 0;
-                    int maxY = sectionY == maxSectionY ? blockMaxY & 15 : 15;
+            for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+                int minY = sectionY == minSectionY ? blockMinY & 15 : 0;
+                int maxY = sectionY == maxSectionY ? blockMaxY & 15 : 15;
 
-                    Object section = sections[sectionY];
-                    if (RChunkSection.isEmpty(section)) {
-                        int count = (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
-                        materialMap.merge(Material.AIR, count, Integer::sum);
-                    } else {
+                ChunkSection section = sections[sectionY];
+                if (ChunkSection.a(section)) {
+                    int count = (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+                    materialMap.merge(Material.AIR, count, Integer::sum);
+                } else {
+                    try {
                         for (int x = minX; x <= maxX; x++) {
                             for (int y = minY; y <= maxY; y++) {
                                 for (int z = minZ; z <= maxZ; z++) {
-                                    materialMap.merge(RChunkSection.getType(section, x, y, z), 1, Integer::sum);
+                                    var material = RCraftMagicNumbers.getMaterial(section.getType(x, y, z).getBlock());
+                                    materialMap.merge(material, 1, Integer::sum);
                                 }
                             }
                         }
+                    } catch (Throwable th) {
+                        th.printStackTrace();
                     }
                 }
-            } catch (Throwable th) {
-                //
             }
         }
 
