@@ -37,6 +37,7 @@ public class EntityListener extends InsightsListener {
             EntityType.ARMOR_STAND,
             EntityType.ENDER_CRYSTAL,
             EntityType.ITEM_FRAME,
+            EntityType.GLOW_ITEM_FRAME,
             EntityType.PAINTING
     );
 
