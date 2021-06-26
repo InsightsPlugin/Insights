@@ -27,6 +27,7 @@ Each limit is able to be bypassed through permissions, which you can customize i
 
 Apart from all placeable materials, Insights also supports the limitation of the following static entities:
 * Item Frames
+* Glow Item Frames
 * Armor Stands
 * Paintings
 * End Crystals
