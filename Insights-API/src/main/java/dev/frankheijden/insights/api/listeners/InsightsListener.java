@@ -83,8 +83,8 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             boolean included
     ) {
         Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
-        Chunk chunk = location.getChunk();
-        World world = location.getWorld();
+        var chunk = location.getChunk();
+        var world = location.getWorld();
         UUID worldUid = world.getUID();
         long chunkKey = ChunkUtils.getKey(chunk);
 
@@ -92,7 +92,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         String area;
         LimitEnvironment env;
         if (regionOptional.isPresent()) {
-            Region region = regionOptional.get();
+            var region = regionOptional.get();
             queued = plugin.getAddonScanTracker().isQueued(region.getKey());
             area = plugin.getAddonManager().getAddon(region.getAddon()).getAreaName();
             env = new LimitEnvironment(player, world.getName(), region.getAddon());
@@ -112,14 +112,25 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
         Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
-        if (!limitOptional.isPresent()) return false;
-        Limit limit = limitOptional.get();
-        LimitInfo limitInfo = limit.getLimit(item);
+        if (limitOptional.isEmpty()) return false;
+        var limit = limitOptional.get();
+        var limitInfo = limit.getLimit(item);
+
+        if (regionOptional.isEmpty() && limit.getSettings().isDisallowedPlacementOutsideRegion()) {
+            plugin.getMessages().getMessage(Messages.Key.LIMIT_DISALLOWED_PLACEMENT)
+                    .replace(
+                            "name", limitInfo.getName(),
+                            "area", area
+                    )
+                    .color()
+                    .sendTo(player);
+            return true;
+        }
 
         Consumer<Storage> storageConsumer = storage -> {
             // Subtract item if it was included in the scan, because the event was cancelled.
             // Only iff the block was included in the chunk AND its not a cuboid/area scan.
-            if (included && !regionOptional.isPresent()) {
+            if (included && regionOptional.isEmpty()) {
                 storage.modify(item, -delta);
             }
 
@@ -137,9 +148,9 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         }
 
         // If the storage is not present, cancel.
-        if (!storageOptional.isPresent()) return true;
+        if (storageOptional.isEmpty()) return true;
 
-        Storage storage = storageOptional.get();
+        var storage = storageOptional.get();
         int count = storage.count(limit, item);
 
         // If count is beyond limit, act

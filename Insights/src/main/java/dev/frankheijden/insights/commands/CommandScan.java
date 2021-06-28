@@ -62,7 +62,22 @@ public class CommandScan extends InsightsCommand {
             @Argument("radius") @Range(min = "0", max = "50") int radius,
             @Argument("items") ScanObject<?>[] items
     ) {
-        handleScan(player, radius, new HashSet<>(Arrays.asList(items)), ScanOptions.scanOnly(), true);
+        List<ScanObject<?>> scanObjects = Arrays.asList(items);
+        boolean hasOnlyEntities = scanObjects.stream()
+                .allMatch(s -> s.getType() == ScanObject.Type.ENTITY);
+        boolean hasOnlyMaterials = scanObjects.stream()
+                .allMatch(s -> s.getType() == ScanObject.Type.MATERIAL);
+
+        ScanOptions options;
+        if (hasOnlyEntities) {
+            options = ScanOptions.entitiesOnly();
+        } else if (hasOnlyMaterials) {
+            options = ScanOptions.materialsOnly();
+        } else {
+            options = ScanOptions.scanOnly();
+        }
+
+        handleScan(player, radius, new HashSet<>(scanObjects), options, true);
     }
 
     /**

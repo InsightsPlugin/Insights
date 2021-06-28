@@ -4,6 +4,7 @@ import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import dev.frankheijden.minecraftreflection.Reflection;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import net.minecraft.server.level.WorldServer;
 import org.bukkit.World;
 
 public class RCraftWorld {
@@ -25,7 +26,7 @@ public class RCraftWorld {
 
     private RCraftWorld() {}
 
-    public static Object getServerLevel(World world) throws Throwable {
-        return worldMethodHandle.invoke(world);
+    public static WorldServer getServerLevel(World world) throws Throwable {
+        return (WorldServer) worldMethodHandle.invoke(world);
     }
 }
