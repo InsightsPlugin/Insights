@@ -42,6 +42,7 @@ public class Messages {
         AREA_SCAN_COMPLETED("area-scan-completed"),
         LIMIT_REACHED("limit-reached"),
         LIMIT_NOTIFICATION("limit-notification"),
+        LIMIT_DISALLOWED_PLACEMENT("limit-disallowed-placement"),
         SCAN_START("scan.start"),
         SCAN_ALREADY_SCANNING("scan.already-scanning"),
         SCAN_FINISH_HEADER("scan.finish.header"),

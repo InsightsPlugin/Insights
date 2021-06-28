@@ -6,6 +6,7 @@ messages:
   area-scan-queued: "<prefix>&cThis %area% is currently queued for scanning..."
   area-scan-completed: "<actionbar>&bScan completed!"
   limit-reached: "<prefix>&cYou have reached the limit of %limit%x %name% in this %area%. Please remove some."
+  limit-disallowed-placement: "<prefix>&cYou can't place %name% in this %area%!"
   limit-notification: "&3%name%: &b%count%&3/&b%limit%"
   scan:
     start: "<prefix>&3Scanning &b&l%count%&3 chunks..."

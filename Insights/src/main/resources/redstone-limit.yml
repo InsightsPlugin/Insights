@@ -29,3 +29,4 @@ limit:
     enabled-addons:
       whitelist: false
       addons: []
+    disallow-placement-outside-region: false

@@ -8,15 +8,23 @@ public class LimitSettings {
     private final boolean worldWhitelist;
     private final Set<String> addons;
     private final boolean addonWhitelist;
+    private final boolean disallowPlacementOutsideRegion;
 
     /**
      * Constructs a new LimitSettings object.
      */
-    public LimitSettings(Set<String> worlds, boolean worldWhitelist, Set<String> addons, boolean addonWhitelist) {
+    public LimitSettings(
+            Set<String> worlds,
+            boolean worldWhitelist,
+            Set<String> addons,
+            boolean addonWhitelist,
+            boolean disallowPlacementOutsideRegion
+    ) {
         this.worlds = worlds;
         this.worldWhitelist = worldWhitelist;
         this.addons = addons;
         this.addonWhitelist = addonWhitelist;
+        this.disallowPlacementOutsideRegion = disallowPlacementOutsideRegion;
     }
 
     public Set<String> getWorlds() {
@@ -44,6 +52,10 @@ public class LimitSettings {
 
     public boolean isAddonWhitelist() {
         return addonWhitelist;
+    }
+
+    public boolean isDisallowedPlacementOutsideRegion() {
+        return disallowPlacementOutsideRegion;
     }
 
     /**

@@ -39,23 +39,25 @@ public abstract class Limit {
 
         LimitType type = parser.getEnum("limit.type", LimitType.class);
         if (type == null) throw new LimitParseException("Invalid limit type!");
-        String bypassPermission = parser.getString("limit.bypass-permission", null, false);
+        var bypassPermission = parser.getString("limit.bypass-permission", null, false);
 
-        boolean worldWhitelist = parser.getBoolean("limit.settings.enabled-worlds.whitelist", false, false);
+        var worldWhitelist = parser.getBoolean("limit.settings.enabled-worlds.whitelist", false, false);
         Set<String> worlds = parser.getSet("limit.settings.enabled-worlds.worlds");
 
-        boolean addonWhitelist = parser.getBoolean("limit.settings.enabled-addons.whitelist", false, false);
+        var addonWhitelist = parser.getBoolean("limit.settings.enabled-addons.whitelist", false, false);
         Set<String> addons = parser.getSet("limit.settings.enabled-addons.addons");
 
-        LimitSettings settings = new LimitSettings(worlds, worldWhitelist, addons, addonWhitelist);
+        var disallowPlacement = parser.getBoolean("limit.settings.disallow-placement-outside-region", false, false);
 
-        Info info = new Info(bypassPermission, settings);
-        switch (type) {
-            case TILE: return TileLimit.parse(parser, info);
-            case GROUP: return GroupLimit.parse(parser, info);
-            case PERMISSION: return PermissionLimit.parse(parser, info);
-            default: throw new LimitParseException("Limit implementation is missing!");
-        }
+        var settings = new LimitSettings(worlds, worldWhitelist, addons, addonWhitelist, disallowPlacement);
+        var info = new Info(bypassPermission, settings);
+
+        return switch (type) {
+            case TILE -> TileLimit.parse(parser, info);
+            case GROUP -> GroupLimit.parse(parser, info);
+            case PERMISSION -> PermissionLimit.parse(parser, info);
+            default -> throw new LimitParseException("Limit implementation is missing!");
+        };
     }
 
     public LimitType getType() {
@@ -67,11 +69,11 @@ public abstract class Limit {
      * Note: item must be of type Material or EntityType!
      */
     public LimitInfo getLimit(ScanObject<?> item) {
-        switch (item.getType()) {
-            case MATERIAL: return getLimit((Material) item.getObject());
-            case ENTITY: return getLimit((EntityType) item.getObject());
-            default: throw new IllegalArgumentException("Unknown limited item: " + item);
-        }
+        return switch (item.getType()) {
+            case MATERIAL -> getLimit((Material) item.getObject());
+            case ENTITY -> getLimit((EntityType) item.getObject());
+            default -> throw new IllegalArgumentException("Unknown limited item: " + item);
+        };
     }
 
     public abstract LimitInfo getLimit(Material m);
