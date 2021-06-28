@@ -6,6 +6,7 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
 import dev.frankheijden.insights.api.reflection.RCraftMagicNumbers;
 import dev.frankheijden.insights.api.reflection.RCraftWorld;
+import dev.frankheijden.insights.api.reflection.REntitySection;
 import dev.frankheijden.insights.api.reflection.RPersistentEntitySectionManager;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import net.minecraft.server.level.WorldServer;
@@ -21,6 +22,7 @@ import org.bukkit.util.NumberConversions;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public abstract class ChunkContainer implements SupplierContainer<DistributionStorage> {
 
@@ -129,8 +131,13 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                 };
 
                 if (entityManager.a(getChunkKey())) {
-                    RPersistentEntitySectionManager.getSectionStorage(entityManager)
-                            .b(getChunkKey()).flatMap(EntitySection::b).forEach(entityConsumer);
+                    var entitySections = RPersistentEntitySectionManager.getSectionStorage(entityManager)
+                            .b(getChunkKey())
+                            .collect(Collectors.toList());
+
+                    for (EntitySection<Entity> entitySection : entitySections) {
+                        REntitySection.iterate(entitySection, entityConsumer);
+                    }
                 } else {
                     RPersistentEntitySectionManager.getPermanentStorage(entityManager)
                             .a(new ChunkCoordIntPair(chunkX, chunkZ)).join().b().forEach(entityConsumer);
