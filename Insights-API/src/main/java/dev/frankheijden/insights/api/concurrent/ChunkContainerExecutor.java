@@ -2,14 +2,16 @@ package dev.frankheijden.insights.api.concurrent;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.containers.ChunkContainer;
+import dev.frankheijden.insights.api.concurrent.containers.LoadedChunkContainer;
 import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
+import dev.frankheijden.insights.api.concurrent.containers.UnloadedChunkContainer;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
-import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
+import org.bukkit.World;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -39,29 +41,38 @@ public class ChunkContainerExecutor implements ContainerExecutor {
         return submit(chunk, ScanOptions.all());
     }
 
+    public CompletableFuture<Storage> submit(World world, int x, int z) {
+        return submit(world, x, z, ScanOptions.all());
+    }
+
     public CompletableFuture<Storage> submit(Chunk chunk, ScanOptions options) {
         return submit(chunk, ChunkCuboid.MAX, options);
     }
 
-    /**
-     * Submits a chunk for scanning, which will be scanned within given cuboid, and using given options.
-     * Note: this method MUST be called on the main thread!
-     */
+    public CompletableFuture<Storage> submit(World world, int x, int z, ScanOptions options) {
+        return submit(world, x, z, ChunkCuboid.MAX, options);
+    }
+
     public CompletableFuture<Storage> submit(Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
-        return submit(chunk, chunk.getWorld().getUID(), cuboid, options);
+        return submit(new LoadedChunkContainer(chunk, cuboid, options), options);
+    }
+
+    public CompletableFuture<Storage> submit(World world, int x, int z, ChunkCuboid cuboid, ScanOptions options) {
+        return submit(new UnloadedChunkContainer(world, x, z, cuboid, options), options);
     }
 
     /**
-     * Submits a ChunkSnapshot for scanning, returning a DistributionStorage object.
+     * Submits a ChunkContainer for scanning, returning a DistributionStorage object.
      * DistributionStorage is essentially merged from the scan result and given entities Distribution.
      */
-    public CompletableFuture<Storage> submit(Chunk chunk, UUID worldUid, ChunkCuboid cuboid, ScanOptions options) {
-        long chunkKey = ChunkUtils.getKey(chunk);
+    public CompletableFuture<Storage> submit(ChunkContainer container, ScanOptions options) {
+        UUID worldUid = container.getWorld().getUID();
+        long chunkKey = container.getChunkKey();
         if (options.track()) {
             scanTracker.set(worldUid, chunkKey, true);
         }
 
-        return submit(new ChunkContainer(chunk, worldUid, cuboid, options)).thenApply(storage -> {
+        return submit(container).thenApply(storage -> {
             if (options.save()) worldStorage.getWorld(worldUid).put(chunkKey, storage);
             if (options.track()) scanTracker.set(worldUid, chunkKey, false);
             InsightsPlugin.getInstance().getMetricsManager().getChunkScanMetric().increment();
