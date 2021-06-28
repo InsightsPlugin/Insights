@@ -4,7 +4,6 @@ import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
-import dev.frankheijden.insights.api.reflection.RChunkSection;
 import dev.frankheijden.insights.api.reflection.RCraftMagicNumbers;
 import dev.frankheijden.insights.api.reflection.RCraftWorld;
 import dev.frankheijden.insights.api.reflection.RPersistentEntitySectionManager;
@@ -108,7 +107,8 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                         for (int x = minX; x <= maxX; x++) {
                             for (int y = minY; y <= maxY; y++) {
                                 for (int z = minZ; z <= maxZ; z++) {
-                                    materialMap.merge(RChunkSection.getType(section, x, y, z), 1, Integer::sum);
+                                    var material = RCraftMagicNumbers.getMaterial(section.getType(x, y, z).getBlock());
+                                    materialMap.merge(material, 1, Integer::sum);
                                 }
                             }
                         }
