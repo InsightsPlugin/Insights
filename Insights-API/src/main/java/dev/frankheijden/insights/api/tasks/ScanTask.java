@@ -260,7 +260,11 @@ public class ScanTask implements Runnable {
 
             CompletableFuture<Storage> storageFuture;
             if (world.isChunkLoaded(loc.getX(), loc.getZ())) {
-                storageFuture = executor.submit(world.getChunkAt(loc.getX(), loc.getZ()));
+                storageFuture = executor.submit(
+                        world.getChunkAt(loc.getX(), loc.getZ()),
+                        chunkPart.getChunkCuboid(),
+                        options
+                );
             } else {
                 storageFuture = executor.submit(
                         loc.getWorld(),
