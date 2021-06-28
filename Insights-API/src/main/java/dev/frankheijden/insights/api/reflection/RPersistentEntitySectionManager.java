@@ -7,11 +7,11 @@ import java.lang.invoke.MethodHandles;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityPersistentStorage;
 import net.minecraft.world.level.entity.EntitySectionStorage;
+import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 
 public class RPersistentEntitySectionManager {
 
-    private static final MinecraftReflection reflection = MinecraftReflection
-            .of("net.minecraft.world.level.entity.PersistentEntitySectionManager");
+    private static final MinecraftReflection reflection = MinecraftReflection.of(PersistentEntitySectionManager.class);
 
     private static MethodHandle sectionStorageMethodHandle;
     private static MethodHandle permanentStorageMethodHandle;
