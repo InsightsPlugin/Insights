@@ -4,6 +4,7 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
+import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.notifications.ProgressNotification;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -254,13 +256,22 @@ public class ScanTask implements Runnable {
             // Load the chunk
             var chunkPart = scanQueue.poll();
             var loc = chunkPart.getChunkLocation();
-            executor.submit(
-                    loc.getWorld(),
-                    loc.getX(),
-                    loc.getZ(),
-                    chunkPart.getChunkCuboid(),
-                    options
-            ).thenAccept(storage -> {
+            var world = loc.getWorld();
+
+            CompletableFuture<Storage> storageFuture;
+            if (world.isChunkLoaded(loc.getX(), loc.getZ())) {
+                storageFuture = executor.submit(world.getChunkAt(loc.getX(), loc.getZ()));
+            } else {
+                storageFuture = executor.submit(
+                        loc.getWorld(),
+                        loc.getX(),
+                        loc.getZ(),
+                        chunkPart.getChunkCuboid(),
+                        options
+                );
+            }
+
+            storageFuture.thenAccept(storage -> {
                 storage.mergeRight(distributionStorage);
                 iterationChunks.incrementAndGet();
                 chunks.incrementAndGet();
