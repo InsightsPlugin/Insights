@@ -5,7 +5,7 @@ settings:
   scans:
     concurrent-threads: -1
     iteration-interval-ticks: 1
-    chunks-per-iteration: 16
+    chunks-per-iteration: 256
     info-interval-millis: 100
   chunk-scans:
     mode: "ALWAYS"
