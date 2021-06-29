@@ -23,12 +23,14 @@ public class UnloadedChunkContainer extends ChunkContainer {
     public ChunkSection[] getChunkSections() throws Throwable {
         WorldServer serverLevel = RCraftWorld.getServerLevel(world);
 
-        NBTTagCompound nbt = serverLevel.getChunkProvider().a.read(new ChunkCoordIntPair(chunkX, chunkZ));
-        NBTTagCompound levelNbt = nbt.getCompound("Level");
-        NBTTagList sectionsNbtList = levelNbt.getList("Sections", 10);
-
         int sectionsCount = serverLevel.getSectionsCount();
         var chunkSections = new ChunkSection[sectionsCount];
+
+        NBTTagCompound nbt = serverLevel.getChunkProvider().a.read(new ChunkCoordIntPair(chunkX, chunkZ));
+        if (nbt == null) return chunkSections;
+
+        NBTTagCompound levelNbt = nbt.getCompound("Level");
+        NBTTagList sectionsNbtList = levelNbt.getList("Sections", 10);
 
         for (var i = 0; i < sectionsNbtList.size(); i++) {
             NBTTagCompound sectionNbt = sectionsNbtList.getCompound(i);
