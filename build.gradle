@@ -98,6 +98,16 @@ task cleanJars() {
 }
 
 publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = name
+            version = rootProject.version
+
+            from components.java
+        }
+    }
+
     repositories {
         maven {
             name = "GitHubPackages"
