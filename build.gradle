@@ -15,6 +15,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'checkstyle'
     apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'maven-publish'
 
     sourceCompatibility = targetCompatibility = JavaVersion.VERSION_16
 
@@ -98,16 +99,6 @@ task cleanJars() {
 }
 
 publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = rootProject.group
-            artifactId = name
-            version = rootProject.version
-
-            from components.java
-        }
-    }
-
     repositories {
         maven {
             name = "GitHubPackages"

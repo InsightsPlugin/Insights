@@ -33,3 +33,15 @@ shadowJar {
     relocate 'io.leangen.geantyref', dependencyDir + '.typetoken'
     relocate 'me.lucko.commodore', dependencyDir + '.commodore'
 }
+
+publishing {
+    publications {
+        plugin(MavenPublication) {
+            groupId = this.group
+            artifactId = this.archivesBaseName
+            version = this.version
+
+            from components.java
+        }
+    }
+}
