@@ -1,18 +1,9 @@
 package dev.frankheijden.insights.api.objects.chunk;
 
 import dev.frankheijden.insights.api.objects.math.Vector3;
+import org.bukkit.World;
 
 public class ChunkVector extends Vector3 {
-
-    /**
-     * Minimum ChunkVector (including).
-     */
-    public static final ChunkVector MIN = new ChunkVector(0, 0, 0);
-
-    /**
-     * Maximum ChunkVector (including).
-     */
-    public static final ChunkVector MAX = new ChunkVector(15, 255, 15);
 
     /**
      * Constructs a new ChunkVector with given x, y, z coordinates in the chunk.
@@ -26,6 +17,14 @@ public class ChunkVector extends Vector3 {
      */
     public static ChunkVector from(Vector3 vector) {
         return new ChunkVector(vector.getX() & 15, vector.getY(), vector.getZ() & 15);
+    }
+
+    public static ChunkVector minVector() {
+        return new ChunkVector(0, 0, 0); // May change with 1.18
+    }
+
+    public static ChunkVector maxVector(World world) {
+        return new ChunkVector(15, Math.abs(world.getMinHeight()) + world.getMaxHeight() - 1, 15);
     }
 
     /**

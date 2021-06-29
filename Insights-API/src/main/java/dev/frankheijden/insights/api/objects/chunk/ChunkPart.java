@@ -6,7 +6,7 @@ public class ChunkPart {
     private final ChunkCuboid chunkCuboid;
 
     public ChunkPart(ChunkLocation chunkLocation) {
-        this(chunkLocation, ChunkCuboid.MAX);
+        this(chunkLocation, ChunkCuboid.maxCuboid(chunkLocation.getWorld()));
     }
 
     public ChunkPart(ChunkLocation chunkLocation, ChunkCuboid chunkCuboid) {

@@ -46,11 +46,11 @@ public class ChunkContainerExecutor implements ContainerExecutor {
     }
 
     public CompletableFuture<Storage> submit(Chunk chunk, ScanOptions options) {
-        return submit(chunk, ChunkCuboid.MAX, options);
+        return submit(chunk, ChunkCuboid.maxCuboid(chunk.getWorld()), options);
     }
 
     public CompletableFuture<Storage> submit(World world, int x, int z, ScanOptions options) {
-        return submit(world, x, z, ChunkCuboid.MAX, options);
+        return submit(world, x, z, ChunkCuboid.maxCuboid(world), options);
     }
 
     public CompletableFuture<Storage> submit(Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
