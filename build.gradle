@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'maven-publish'
 }
 
 String name = "Insights"
@@ -95,6 +96,19 @@ task copyJars(type: Copy) {
 
 task cleanJars() {
     delete file('jars')
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/InsightsPlugin/Insights"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
 
 clean.dependsOn cleanJars
