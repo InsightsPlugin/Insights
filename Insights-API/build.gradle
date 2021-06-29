@@ -1,3 +1,15 @@
 group = rootProject.group + '.api'
 version = rootProject.version
 archivesBaseName = baseName + '-API'
+
+publishing {
+    publications {
+        api(MavenPublication) {
+            groupId = this.group
+            artifactId = this.archivesBaseName
+            version = this.version
+
+            from components.java
+        }
+    }
+}
