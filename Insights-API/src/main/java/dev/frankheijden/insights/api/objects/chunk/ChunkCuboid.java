@@ -1,8 +1,13 @@
 package dev.frankheijden.insights.api.objects.chunk;
 
+import org.bukkit.World;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class ChunkCuboid {
 
-    public static final ChunkCuboid MAX = new ChunkCuboid(ChunkVector.MIN, ChunkVector.MAX);
+    private static final Map<UUID, ChunkCuboid> maxCuboidCache = new HashMap<>();
 
     private final ChunkVector min;
     private final ChunkVector max;
@@ -18,5 +23,15 @@ public class ChunkCuboid {
 
     public ChunkVector getMax() {
         return max;
+    }
+
+    /**
+     * Determines the maximum ChunkCuboid of a given world, and caches the result.
+     */
+    public static ChunkCuboid maxCuboid(World world) {
+        return maxCuboidCache.computeIfAbsent(world.getUID(), k -> new ChunkCuboid(
+                ChunkVector.minVector(),
+                ChunkVector.maxVector(world)
+        ));
     }
 }
