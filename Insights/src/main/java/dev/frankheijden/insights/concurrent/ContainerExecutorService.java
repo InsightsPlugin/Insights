@@ -5,25 +5,28 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
+import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class ContainerExecutorService implements ContainerExecutor {
 
-    private final ExecutorService executorService;
+    private final ThreadPoolExecutor executor;
 
-    private ContainerExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
+    private ContainerExecutorService(ThreadPoolExecutor executor) {
+        this.executor = executor;
     }
 
     /**
      * Constructs a new containerexecutor with given amount of worker threads.
      */
-    public static ContainerExecutor newExecutor(int nThreads) {
-        return new ContainerExecutorService(Executors.newFixedThreadPool(
-                nThreads,
+    public static ContainerExecutorService newExecutor(int nThreads) {
+        return new ContainerExecutorService(new ThreadPoolExecutor(nThreads, nThreads,
+                0L, TimeUnit.MILLISECONDS,
+                new PriorityBlockingQueue<>(1024, Comparator.comparing(Runnable::hashCode)),
                 new ThreadFactoryBuilder()
                         .setNameFormat("Insights-worker-%d")
                         .setUncaughtExceptionHandler((t, e) -> InsightsPlugin.getInstance().getLogger().log(
@@ -36,16 +39,24 @@ public class ContainerExecutorService implements ContainerExecutor {
 
     @Override
     public <T> CompletableFuture<T> submit(SupplierContainer<T> container) {
-        return CompletableFuture.supplyAsync(container, executorService);
+        return CompletableFuture.supplyAsync(container, executor);
     }
 
     @Override
     public CompletableFuture<Void> submit(RunnableContainer container) {
-        return CompletableFuture.runAsync(container, executorService);
+        return CompletableFuture.runAsync(container, executor);
+    }
+
+    public int getQueueSize() {
+        return executor.getQueue().size();
+    }
+
+    public long getCompletedTaskCount() {
+        return executor.getCompletedTaskCount();
     }
 
     @Override
     public void shutdown() {
-        executorService.shutdownNow();
+        executor.shutdownNow();
     }
 }

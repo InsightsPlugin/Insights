@@ -2,6 +2,8 @@ package dev.frankheijden.insights.tasks;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
+import dev.frankheijden.insights.api.concurrent.containers.ContainerPriority;
+import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.tasks.InsightsAsyncTask;
 import org.bukkit.entity.Player;
@@ -52,7 +54,12 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
                     this.scanLocations.put(loc, now);
 
                     var chunk = world.getChunkAt(loc.getX(), loc.getZ());
-                    plugin.getChunkContainerExecutor().submit(chunk, ScanOptions.all()).whenComplete((s, e) -> {
+                    plugin.getChunkContainerExecutor().submit(
+                            chunk,
+                            ChunkCuboid.maxCuboid(loc.getWorld()),
+                            ScanOptions.all(),
+                            ContainerPriority.HIGH
+                    ).whenComplete((s, e) -> {
                         if (s == null) {
                             plugin.getLogger().warning("Error occurred while scanning " + loc);
                         }

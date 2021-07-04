@@ -15,8 +15,15 @@ public class UnloadedChunkContainer extends ChunkContainer {
     /**
      * Constructs a new UnloadedChunkContainer, for scanning of an unloaded chunk.
      */
-    public UnloadedChunkContainer(World world, int chunkX, int chunkZ, ChunkCuboid cuboid, ScanOptions options) {
-        super(world, chunkX, chunkZ, cuboid, options);
+    public UnloadedChunkContainer(
+            World world,
+            int chunkX,
+            int chunkZ,
+            ChunkCuboid cuboid,
+            ScanOptions options,
+            ContainerPriority priority
+    ) {
+        super(world, chunkX, chunkZ, cuboid, options, priority);
     }
 
     @Override

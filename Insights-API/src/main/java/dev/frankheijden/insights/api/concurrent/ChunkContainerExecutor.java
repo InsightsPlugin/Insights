@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.concurrent;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.containers.ChunkContainer;
+import dev.frankheijden.insights.api.concurrent.containers.ContainerPriority;
 import dev.frankheijden.insights.api.concurrent.containers.LoadedChunkContainer;
 import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
@@ -54,11 +55,31 @@ public class ChunkContainerExecutor implements ContainerExecutor {
     }
 
     public CompletableFuture<Storage> submit(Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
-        return submit(new LoadedChunkContainer(chunk, cuboid, options), options);
+        return submit(new LoadedChunkContainer(chunk, cuboid, options, ContainerPriority.MEDIUM), options);
+    }
+
+    public CompletableFuture<Storage> submit(
+            Chunk chunk,
+            ChunkCuboid cuboid,
+            ScanOptions options,
+            ContainerPriority priority
+    ) {
+        return submit(new LoadedChunkContainer(chunk, cuboid, options, priority), options);
     }
 
     public CompletableFuture<Storage> submit(World world, int x, int z, ChunkCuboid cuboid, ScanOptions options) {
-        return submit(new UnloadedChunkContainer(world, x, z, cuboid, options), options);
+        return submit(new UnloadedChunkContainer(world, x, z, cuboid, options, ContainerPriority.MEDIUM), options);
+    }
+
+    public CompletableFuture<Storage> submit(
+            World world,
+            int x,
+            int z,
+            ChunkCuboid cuboid,
+            ScanOptions options,
+            ContainerPriority priority
+    ) {
+        return submit(new UnloadedChunkContainer(world, x, z, cuboid, options, priority), options);
     }
 
     /**
