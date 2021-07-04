@@ -31,7 +31,6 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
     protected final int chunkZ;
     protected final ChunkCuboid cuboid;
     protected final ScanOptions options;
-    protected final ContainerPriority priority;
     protected final Map<Material, Integer> materialMap;
     protected final Map<EntityType, Integer> entityMap;
 
@@ -43,15 +42,13 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
             int chunkX,
             int chunkZ,
             ChunkCuboid cuboid,
-            ScanOptions options,
-            ContainerPriority priority
+            ScanOptions options
     ) {
         this.world = world;
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
         this.cuboid = cuboid;
         this.options = options;
-        this.priority = priority;
         this.materialMap = new EnumMap<>(Material.class);
         this.entityMap = new EnumMap<>(EntityType.class);
     }
@@ -70,6 +67,10 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
 
     public int getZ() {
         return chunkZ;
+    }
+
+    public ChunkCuboid getChunkCuboid() {
+        return cuboid;
     }
 
     public abstract ChunkSection[] getChunkSections() throws Throwable;

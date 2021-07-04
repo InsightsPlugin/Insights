@@ -5,9 +5,8 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
-import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -26,7 +25,7 @@ public class ContainerExecutorService implements ContainerExecutor {
     public static ContainerExecutorService newExecutor(int nThreads) {
         return new ContainerExecutorService(new ThreadPoolExecutor(nThreads, nThreads,
                 0L, TimeUnit.MILLISECONDS,
-                new PriorityBlockingQueue<>(1024, Comparator.comparing(Runnable::hashCode)),
+                new LinkedBlockingQueue<>(),
                 new ThreadFactoryBuilder()
                         .setNameFormat("Insights-worker-%d")
                         .setUncaughtExceptionHandler((t, e) -> InsightsPlugin.getInstance().getLogger().log(

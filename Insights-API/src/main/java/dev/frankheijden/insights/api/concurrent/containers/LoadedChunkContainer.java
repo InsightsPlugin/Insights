@@ -13,8 +13,8 @@ public class LoadedChunkContainer extends ChunkContainer {
     /**
      * Constructs a new LoadedChunkContainer, for scanning of a loaded chunk.
      */
-    public LoadedChunkContainer(Chunk chunk, ChunkCuboid cuboid, ScanOptions options, ContainerPriority priority) {
-        super(chunk.getWorld(), chunk.getX(), chunk.getZ(), cuboid, options, priority);
+    public LoadedChunkContainer(Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
+        super(chunk.getWorld(), chunk.getX(), chunk.getZ(), cuboid, options);
 
         this.chunk = chunk;
     }
