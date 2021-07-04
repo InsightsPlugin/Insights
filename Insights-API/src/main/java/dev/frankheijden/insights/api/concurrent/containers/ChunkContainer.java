@@ -37,13 +37,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
     /**
      * Constructs a new ChunkSnapshotContainer, with the area to be scanned as a cuboid.
      */
-    protected ChunkContainer(
-            World world,
-            int chunkX,
-            int chunkZ,
-            ChunkCuboid cuboid,
-            ScanOptions options
-    ) {
+    protected ChunkContainer(World world, int chunkX, int chunkZ, ChunkCuboid cuboid, ScanOptions options) {
         this.world = world;
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
