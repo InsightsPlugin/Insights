@@ -44,7 +44,7 @@ public class StringUtils {
         return sb.toString();
     }
 
-    public static String pretty(int n) {
+    public static String pretty(long n) {
         return NumberFormat.getIntegerInstance().format(n);
     }
 

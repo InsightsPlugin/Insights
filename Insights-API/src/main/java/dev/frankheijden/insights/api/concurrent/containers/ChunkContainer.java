@@ -63,6 +63,10 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         return chunkZ;
     }
 
+    public ChunkCuboid getChunkCuboid() {
+        return cuboid;
+    }
+
     public abstract ChunkSection[] getChunkSections() throws Throwable;
 
     @Override

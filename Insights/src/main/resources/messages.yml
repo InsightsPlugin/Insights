@@ -29,3 +29,9 @@ messages:
       footer: |-
         &3 Cached result from this &b%area%&3.
         &8&m-------------------------------------------------
+  stats: |-
+    &8&m---------------=&r&8[&b&l Insights Stats&r &8]&m=---------------
+    &3 Chunks Scanned&8: &b&l%chunks_scanned%
+    &3 Blocks Scanned&8: &b&l%blocks_scanned%
+    &3 Current Queue Size&8: &b&l%queue_size%
+    &8&m-------------------------------------------------

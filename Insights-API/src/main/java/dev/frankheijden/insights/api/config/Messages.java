@@ -54,7 +54,8 @@ public class Messages {
         SCANCACHE_CLEARED("scancache.cleared"),
         SCANCACHE_RESULT_HEADER("scancache.result.header"),
         SCANCACHE_RESULT_FORMAT("scancache.result.format"),
-        SCANCACHE_RESULT_FOOTER("scancache.result.footer");
+        SCANCACHE_RESULT_FOOTER("scancache.result.footer"),
+        STATS("stats");
 
         private final String path;
 
