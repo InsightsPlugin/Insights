@@ -35,6 +35,7 @@ public class Settings {
     public final String NOTIFICATION_ACTIONBAR_SEPARATOR;
     public final int SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
     public final boolean APPLY_PISTON_LIMITS;
+    public final int PAGINATION_RESULTS_PER_PAGE;
     public final List<Class<?>> DISABLED_EVENTS;
 
     /**
@@ -71,6 +72,7 @@ public class Settings {
 
         SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS = parser.getInt("settings.spigot.entity-tracker-interval-ticks", 10, 1, Integer.MAX_VALUE);
         APPLY_PISTON_LIMITS = parser.getBoolean("settings.apply-piston-limits", true);
+        PAGINATION_RESULTS_PER_PAGE = parser.getInt("settings.pagination-results-per-page", 6, 1, Integer.MAX_VALUE);
 
         DISABLED_EVENTS = new ArrayList<>();
         Map<String, Class<?>> events = plugin.getAllowedDisableEvents();

@@ -38,6 +38,8 @@ subprojects {
         implementation 'com.github.FrankHeijden:MinecraftReflection:123e2f546c'
         implementation 'io.papermc:paperlib:1.0.6'
         implementation 'org.bstats:bstats-bukkit:1.8'
+        implementation 'net.kyori:adventure-api:4.8.1'
+        implementation 'net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT'
     }
 
     compileJava {
@@ -62,6 +64,8 @@ subprojects {
         relocate 'dev.frankheijden.minecraftreflection', dependencyDir + '.minecraftreflection'
         relocate 'io.papermc.lib', dependencyDir + '.paperlib'
         relocate 'org.bstats', dependencyDir + '.bstats'
+        relocate 'net.kyori.adventure', dependencyDir + '.adventure'
+        relocate 'net.kyori.examination', dependencyDir + '.examination'
     }
 
     shadowJar.dependsOn checkstyleMain, checkstyleTest, test

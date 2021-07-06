@@ -26,6 +26,7 @@ settings:
   spigot:
     entity-tracker-interval-ticks: 10
   apply-piston-limits: true
+  pagination-results-per-page: 6
   disabled-listeners:
     - "BlockFromToEvent"
     - "FluidLevelChangeEvent"

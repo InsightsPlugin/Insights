@@ -16,7 +16,6 @@ messages:
       format: "&b %entry%&8: &7&l%count%"
       footer: |-
         &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks and &b&l%entities% &3entities. Took &b%time%&3!
-        &8&m-------------------------------------------------
     progress: "&3Progress: &b&l%count%&3/&b&l%total% &3Chunks (&b&l%percentage%%&3)"
   scanregion:
     no-region: "<prefix>&cThere does not seem to be any region here!"
@@ -28,10 +27,19 @@ messages:
       format: "&b %entry%&8: &7&l%count%"
       footer: |-
         &3 Cached result from this &b%area%&3.
-        &8&m-------------------------------------------------
   stats: |-
     &8&m---------------=&r&8[&b&l Insights Stats&r &8]&m=---------------
     &3 Chunks Scanned&8: &b&l%chunks_scanned%
     &3 Blocks Scanned&8: &b&l%blocks_scanned%
     &3 Current Queue Size&8: &b&l%queue_size%
     &8&m-------------------------------------------------
+  scanhistory:
+    no-history: "<prefix>&cYou don't seem to have any scan history!"
+  pagination:
+    button-left: "<<<"
+    button-right: ">>>"
+    button-color-active: "&b"
+    button-color-inactive: "&7"
+    button-hover: "&7Click to go to page &b%page%&7!"
+    footer-format: "&8&m-------------=&r&8[%button-left%&r&8] &3Page &b%current-page% &3of &b%page-amount% &8[%button-right%&r&8]&m=-------------"
+    no-page: "&cThat page does not exist!"

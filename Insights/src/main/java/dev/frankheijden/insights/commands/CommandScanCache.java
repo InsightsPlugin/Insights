@@ -11,16 +11,16 @@ import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
-import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.Constants;
-import dev.frankheijden.insights.api.utils.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CommandScanCache extends InsightsCommand {
 
@@ -92,32 +92,30 @@ public class CommandScanCache extends InsightsCommand {
         }
 
         if (optionalStorage.isPresent()) {
-            Storage storage = optionalStorage.get();
+            var storage = optionalStorage.get();
+            var messages = plugin.getMessages();
 
-            Messages messages = plugin.getMessages();
-            messages.getMessage(Messages.Key.SCANCACHE_RESULT_HEADER).color().sendTo(player);
+            // Check which items we need to display & sort them based on their name.
+            List<ScanObject<?>> displayItems = (items == null ? storage.keys() : items).stream()
+                    .filter(item -> storage.count(item) != 0 || displayZeros)
+                    .sorted(Comparator.comparing(ScanObject::name))
+                    .collect(Collectors.toList());
 
-            Collection<? extends ScanObject<?>> displayItems = items == null ? storage.keys() : items;
-            for (ScanObject<?> item : displayItems) {
-                int count = storage.count(item);
-                if (count == 0 && !displayZeros) continue;
+            var footer = messages.getMessage(Messages.Key.SCANCACHE_RESULT_FOOTER).replace(
+                    "area", optionalRegion.map(r -> plugin.getAddonManager().getAddon(r.getAddon()).getAreaName())
+                            .orElse("chunk")
+            );
 
-                messages.getMessage(Messages.Key.SCANCACHE_RESULT_FORMAT)
-                        .replace(
-                                "entry", EnumUtils.pretty(item.getObject()),
-                                "count", StringUtils.pretty(count)
-                        )
-                        .color()
-                        .sendTo(player);
-            }
+            var message = messages.createPaginatedMessage(
+                    messages.getMessage(Messages.Key.SCANCACHE_RESULT_HEADER),
+                    Messages.Key.SCANCACHE_RESULT_FORMAT,
+                    footer,
+                    storage,
+                    displayItems
+            );
 
-            String areaName = optionalRegion
-                    .map(r -> plugin.getAddonManager().getAddon(r.getAddon()).getAreaName())
-                    .orElse("chunk");
-            messages.getMessage(Messages.Key.SCANCACHE_RESULT_FOOTER)
-                    .replace("area", areaName)
-                    .color()
-                    .sendTo(player);
+            plugin.getScanHistory().setHistory(player.getUniqueId(), message);
+            message.sendTo(player, 0);
         } else {
             plugin.getMessages().getMessage(Messages.Key.SCANCACHE_NO_CACHE)
                     .color()

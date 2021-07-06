@@ -5,6 +5,7 @@ import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
+import dev.frankheijden.insights.api.concurrent.storage.ScanHistory;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.AddonScanTracker;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
@@ -50,6 +51,8 @@ public interface InsightsMain {
     AddonScanTracker getAddonScanTracker();
 
     MetricsManager getMetricsManager();
+
+    ScanHistory getScanHistory();
 
     Map<String, Class<?>> getAllowedDisableEvents();
 }
