@@ -1,6 +1,7 @@
 package dev.frankheijden.insights.api.metrics;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import java.util.concurrent.atomic.LongAdder;
 import org.bstats.bukkit.Metrics;
 
 public class MetricsManager {
@@ -9,6 +10,7 @@ public class MetricsManager {
 
     private final IntegerMetric chunkScanMetric = new IntegerMetric();
     private final IntegerMetric limitMetric = new IntegerMetric();
+    private final LongAdder totalBlocksScanned = new LongAdder();
 
     /**
      * Constructs a new MetricsManager with some extra charts.
@@ -25,5 +27,9 @@ public class MetricsManager {
 
     public IntegerMetric getLimitMetric() {
         return limitMetric;
+    }
+
+    public LongAdder getTotalBlocksScanned() {
+        return totalBlocksScanned;
     }
 }

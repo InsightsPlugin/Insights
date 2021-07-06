@@ -137,6 +137,7 @@ public class Messages {
         PAGINATION_ENTRY_FORMAT("pagination.entry-format"),
         PAGINATION_FOOTER_FORMAT("pagination.footer-format"),
         PAGINATION_NO_PAGE("pagination.no-page"),
+        STATS("stats"),
         ;
 
         private final String path;

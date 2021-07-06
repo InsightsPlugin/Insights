@@ -11,7 +11,6 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
-import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.ScanHistory;
@@ -109,7 +108,7 @@ public class Insights extends InsightsPlugin {
     private Notifications notifications;
     private Limits limits;
     private AddonManager addonManager;
-    private ContainerExecutor executor;
+    private ContainerExecutorService executor;
     private ChunkContainerExecutor chunkContainerExecutor;
     private PlayerList playerList;
     private WorldStorage worldStorage;
@@ -374,7 +373,7 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
-    public ContainerExecutor getExecutor() {
+    public ContainerExecutorService getExecutor() {
         return executor;
     }
 

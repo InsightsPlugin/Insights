@@ -25,6 +25,10 @@ public class ChunkCuboid {
         return max;
     }
 
+    public long getVolume() {
+        return (max.getX() - min.getX() + 1L) * (max.getY() - min.getY() + 1L) * (max.getX() - min.getZ() + 1L);
+    }
+
     /**
      * Determines the maximum ChunkCuboid of a given world, and caches the result.
      */
