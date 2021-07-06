@@ -14,6 +14,7 @@ import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
+import dev.frankheijden.insights.api.concurrent.storage.ScanHistory;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.AddonScanTracker;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
@@ -32,9 +33,11 @@ import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.commands.CommandInsights;
 import dev.frankheijden.insights.commands.CommandScan;
 import dev.frankheijden.insights.commands.CommandScanCache;
+import dev.frankheijden.insights.commands.CommandScanHistory;
 import dev.frankheijden.insights.commands.CommandScanRegion;
 import dev.frankheijden.insights.commands.CommandScanWorld;
 import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
+import dev.frankheijden.insights.commands.parser.ScanHistoryPageArgument;
 import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.BlockListener;
@@ -51,6 +54,7 @@ import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
@@ -101,7 +105,7 @@ public class Insights extends InsightsPlugin {
     private static final String LIMITS_FOLDER_NAME = "limits";
 
     private Settings settings;
-    private Messages messages;
+    private Messages messages = null;
     private Notifications notifications;
     private Limits limits;
     private AddonManager addonManager;
@@ -114,9 +118,11 @@ public class Insights extends InsightsPlugin {
     private AddonScanTracker addonScanTracker;
     private EntityTrackerTask entityTrackerTask;
     private MetricsManager metricsManager;
+    private ScanHistory scanHistory;
     private PlayerListener playerListener;
     private InsightsPlaceholderExpansion placeholderExpansion;
     private BukkitTask playerTracker = null;
+    private BukkitAudiences audiences = null;
 
     @Override
     public void onLoad() {
@@ -127,6 +133,7 @@ public class Insights extends InsightsPlugin {
     @Override
     public void onEnable() {
         super.onEnable();
+        this.audiences = BukkitAudiences.create(this);
         reloadConfigs();
 
         addonManager = new AddonManager(this, getDataFolder().toPath().resolve("addons"));
@@ -152,6 +159,7 @@ public class Insights extends InsightsPlugin {
         executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
         metricsManager = new MetricsManager(this);
+        scanHistory = new ScanHistory();
 
         loadCommands();
 
@@ -213,6 +221,7 @@ public class Insights extends InsightsPlugin {
             placeholderExpansion.unregister();
         }
         chunkContainerExecutor.shutdown();
+        audiences.close();
     }
 
     public PlayerListener getPlayerListener() {
@@ -237,7 +246,7 @@ public class Insights extends InsightsPlugin {
     public void reloadMessages() {
         File file = new File(getDataFolder(), MESSAGES_FILE_NAME);
         try {
-            messages = Messages.load(file, getResource(MESSAGES_FILE_NAME));
+            messages = Messages.load(this, this.audiences, file, getResource(MESSAGES_FILE_NAME));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -307,6 +316,10 @@ public class Insights extends InsightsPlugin {
                 TypeToken.get(new TypeToken<ScanObject<?>[]>() {}.getType()),
                 options -> new ScanObjectArrayArgument.ScanObjectArrayParser()
         );
+        parserRegistry.registerParserSupplier(
+                TypeToken.get(new TypeToken<CommandScanHistory.Page>() {}.getType()),
+                options -> new ScanHistoryPageArgument.ScanHistoryPageParser()
+        );
 
         // Register capabilities if allowed
         if (commandManager.queryCapability(CloudBukkitCapabilities.BRIGADIER)) {
@@ -332,6 +345,7 @@ public class Insights extends InsightsPlugin {
         annotationParser.parse(new CommandScanCache(this));
         annotationParser.parse(new CommandScanWorld(this));
         annotationParser.parse(new CommandScanRegion(this));
+        annotationParser.parse(new CommandScanHistory(this));
     }
 
     @Override
@@ -397,6 +411,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public MetricsManager getMetricsManager() {
         return metricsManager;
+    }
+
+    @Override
+    public ScanHistory getScanHistory() {
+        return scanHistory;
     }
 
     @Override

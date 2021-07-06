@@ -9,13 +9,11 @@ import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.notifications.ProgressNotification;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
-import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -27,6 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class ScanTask implements Runnable {
 
@@ -177,39 +176,31 @@ public class ScanTask implements Runnable {
             @SuppressWarnings("VariableDeclarationUsageDistance")
             long millis = (System.nanoTime() - start) / 1000000L;
 
-            // Send header
-            Messages messages = plugin.getMessages();
-            messages.getMessage(Messages.Key.SCAN_FINISH_HEADER).color().sendTo(player);
+            var messages = plugin.getMessages();
 
             // Check which items we need to display & sort them based on their name.
-            List<ScanObject<?>> displayItems = new ArrayList<>(items == null ? storage.keys() : items);
-            displayItems.sort(Comparator.comparing(ScanObject::name));
+            List<ScanObject<?>> displayItems = (items == null ? storage.keys() : items).stream()
+                    .filter(item -> storage.count(item) != 0 || displayZeros)
+                    .sorted(Comparator.comparing(ScanObject::name))
+                    .collect(Collectors.toList());
 
-            // Send each entry
-            for (ScanObject<?> item : displayItems) {
-                // Only display format if nonzero, or displayZeros is set to true.
-                int count = storage.count(item);
-                if (count == 0 && !displayZeros) continue;
+            var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).replace(
+                    "chunks", StringUtils.pretty(chunkCount),
+                    "blocks", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL)),
+                    "entities", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY)),
+                    "time", StringUtils.pretty(Duration.ofMillis(millis))
+            );
 
-                messages.getMessage(Messages.Key.SCAN_FINISH_FORMAT)
-                        .replace(
-                                "entry", EnumUtils.pretty(item.getObject()),
-                                "count", StringUtils.pretty(count)
-                        )
-                        .color()
-                        .sendTo(player);
-            }
+            var message = messages.createPaginatedMessage(
+                    messages.getMessage(Messages.Key.SCAN_FINISH_HEADER),
+                    Messages.Key.SCAN_FINISH_FORMAT,
+                    footer,
+                    storage,
+                    displayItems
+            );
 
-            // Send the footer
-            messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER)
-                    .replace(
-                            "chunks", StringUtils.pretty(chunkCount),
-                            "blocks", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL)),
-                            "entities", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY)),
-                            "time", StringUtils.pretty(Duration.ofMillis(millis))
-                    )
-                    .color()
-                    .sendTo(player);
+            plugin.getScanHistory().setHistory(player.getUniqueId(), message);
+            message.sendTo(player, 0);
 
             // Remove player from scanners
             scanners.remove(uuid);
