@@ -13,9 +13,12 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.IOException;
@@ -59,13 +62,32 @@ public class Messages {
 
         var serializer = LegacyComponentSerializer.legacyAmpersand();
         for (ScanObject<?> item : keys) {
-            content.add(serializer.deserialize(getMessage(formatKey).replace(
-                    "entry", EnumUtils.pretty(item.getObject()),
+            var obj = item.getObject();
+            var entry = serializer.deserialize(getMessage(formatKey).replace(
+                    "entry", EnumUtils.pretty(obj),
                     "count", StringUtils.pretty(storage.count(item))
-            ).content).hoverEvent(HoverEvent.showItem(
-                    net.kyori.adventure.key.Key.key(item.name().toLowerCase(Locale.ROOT)),
-                    1
-            )));
+            ).content);
+
+            if (obj instanceof Material material) {
+                var key = material.getKey();
+                if (material.isItem()) {
+                    entry = entry.hoverEvent(HoverEvent.showItem(
+                            net.kyori.adventure.key.Key.key(key.namespace(), key.value()),
+                            1
+                    ));
+                } else {
+                    entry = entry.hoverEvent(HoverEvent.showText(Component.text(EnumUtils.pretty(obj))
+                            .append(Component.newline())
+                            .append(Component.text(key.asString(), NamedTextColor.DARK_GRAY))));
+                }
+            } else if (obj instanceof EntityType type) {
+                var key = type.getKey();
+                entry = entry.hoverEvent(HoverEvent.showText(Component.text("Type: " + EnumUtils.pretty(obj))
+                        .append(Component.newline())
+                        .append(Component.text(key.asString(), NamedTextColor.DARK_GRAY))));
+            }
+
+            content.add(entry);
         }
 
         return new PaginatedMessage(header, footer, content, plugin.getSettings().PAGINATION_RESULTS_PER_PAGE);
