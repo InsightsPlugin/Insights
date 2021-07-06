@@ -72,19 +72,19 @@ public class Messages {
                 var key = material.getKey();
                 if (material.isItem()) {
                     entry = entry.hoverEvent(HoverEvent.showItem(
-                            net.kyori.adventure.key.Key.key(key.namespace(), key.value()),
+                            net.kyori.adventure.key.Key.key(key.getNamespace(), key.getKey()),
                             1
                     ));
                 } else {
                     entry = entry.hoverEvent(HoverEvent.showText(Component.text(EnumUtils.pretty(obj))
                             .append(Component.newline())
-                            .append(Component.text(key.asString(), NamedTextColor.DARK_GRAY))));
+                            .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
                 }
             } else if (obj instanceof EntityType type) {
                 var key = type.getKey();
                 entry = entry.hoverEvent(HoverEvent.showText(Component.text("Type: " + EnumUtils.pretty(obj))
                         .append(Component.newline())
-                        .append(Component.text(key.asString(), NamedTextColor.DARK_GRAY))));
+                        .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
             }
 
             content.add(entry);
