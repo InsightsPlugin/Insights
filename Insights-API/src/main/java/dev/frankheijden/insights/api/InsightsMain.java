@@ -14,6 +14,7 @@ import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Notifications;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 public interface InsightsMain {
@@ -54,5 +55,7 @@ public interface InsightsMain {
 
     ScanHistory getScanHistory();
 
-    Map<String, Class<?>> getAllowedDisableEvents();
+    Map<String, Method> getAllowedDisableMethods();
+
+    Map<String, Method> getAllowedPriorityOverrideMethods();
 }

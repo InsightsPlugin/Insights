@@ -10,6 +10,7 @@ import cloud.commandframework.paper.PaperCommandManager;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
+import dev.frankheijden.insights.api.annotations.AllowPriorityOverride;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
@@ -56,7 +57,11 @@ import io.papermc.lib.PaperLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.EventExecutor;
+import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.scheduler.BukkitTask;
 import java.io.File;
 import java.io.IOException;
@@ -76,27 +81,36 @@ import java.util.function.Function;
 
 public class Insights extends InsightsPlugin {
 
-    private static final Map<String, Class<?>> ALLOWED_DISABLED_EVENTS;
+    private static final Map<String, Method> ALLOWED_DISABLE_EVENTS;
+    private static final Map<String, Method> ALLOWED_PRIORITY_OVERRIDE_EVENTS;
 
     static {
-        Map<String, Class<?>> map = new HashMap<>();
-
-        List<Method> listenerMethods = new ArrayList<>();
-        listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(BlockListener.class, AllowDisabling.class));
-        listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(WorldListener.class, AllowDisabling.class));
+        List<Method> disableMethods = new ArrayList<>();
+        disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(BlockListener.class, AllowDisabling.class));
+        disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(WorldListener.class, AllowDisabling.class));
         if (PaperLib.isPaper()) {
-            listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(PaperBlockListener.class, AllowDisabling.class));
+            disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(PaperBlockListener.class, AllowDisabling.class));
         }
+        ALLOWED_DISABLE_EVENTS = getEventClassMap(disableMethods);
+
+        List<Method> priorityMethods = new ArrayList<>();
+        priorityMethods.addAll(ReflectionUtils.getAnnotatedMethods(BlockListener.class, AllowPriorityOverride.class));
+        priorityMethods.addAll(ReflectionUtils.getAnnotatedMethods(EntityListener.class, AllowPriorityOverride.class));
+        priorityMethods.addAll(ReflectionUtils.getAnnotatedMethods(PistonListener.class, AllowPriorityOverride.class));
+        ALLOWED_PRIORITY_OVERRIDE_EVENTS = getEventClassMap(priorityMethods);
+    }
+
+    private static Map<String, Method> getEventClassMap(List<Method> listenerMethods) {
+        Map<String, Method> map = new HashMap<>();
 
         for (Method method : listenerMethods) {
             Class<?>[] params = method.getParameterTypes();
-            if (params.length != 1) continue;
+            if (params.length != 1 || !Event.class.isAssignableFrom(params[0])) continue;
 
-            Class<?> clazz = params[0];
-            map.put(clazz.getSimpleName().toUpperCase(Locale.ENGLISH), clazz);
+            map.put(params[0].getSimpleName().toUpperCase(Locale.ENGLISH), method);
         }
 
-        ALLOWED_DISABLED_EVENTS = Collections.unmodifiableMap(map);
+        return Collections.unmodifiableMap(map);
     }
 
     private static final String SETTINGS_FILE_NAME = "config.yml";
@@ -194,6 +208,34 @@ public class Insights extends InsightsPlugin {
                 list.unregister(listener);
             }
             getLogger().info("Unregistered listener of '" + clazz.getSimpleName() + "'");
+        }
+
+        for (Map.Entry<Class<? extends Event>, EventPriority> entry : settings.LISTENER_PRIORITIES.entrySet()) {
+            if (entry.getValue() == EventPriority.LOWEST) continue;
+
+            HandlerList list = MinecraftReflection.of(entry.getKey()).invoke(null, "getHandlerList");
+
+            List<RegisteredListener> listenersToUnregister = new ArrayList<>();
+            List<RegisteredListener> listenersToRegister = new ArrayList<>();
+            for (RegisteredListener listener : list.getRegisteredListeners()) {
+                if (this.equals(listener.getPlugin()) && listener.getPriority() == EventPriority.LOWEST) {
+                    listenersToUnregister.add(listener);
+
+                    String event = entry.getKey().getSimpleName();
+                    String eventUppercase = event.toUpperCase(Locale.ENGLISH);
+                    listenersToRegister.add(new RegisteredListener(
+                            listener.getListener(),
+                            EventExecutor.create(ALLOWED_PRIORITY_OVERRIDE_EVENTS.get(eventUppercase), entry.getKey()),
+                            entry.getValue(),
+                            this,
+                            listener.isIgnoringCancelled()
+                    ));
+
+                    getLogger().info("Remapped EventPriority of '" + event + "' to '" + entry.getValue() + "'");
+                }
+            }
+            listenersToUnregister.forEach(list::unregister);
+            listenersToRegister.forEach(list::register);
         }
 
         reload();
@@ -418,8 +460,13 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
-    public Map<String, Class<?>> getAllowedDisableEvents() {
-        return ALLOWED_DISABLED_EVENTS;
+    public Map<String, Method> getAllowedDisableMethods() {
+        return ALLOWED_DISABLE_EVENTS;
+    }
+
+    @Override
+    public Map<String, Method> getAllowedPriorityOverrideMethods() {
+        return ALLOWED_PRIORITY_OVERRIDE_EVENTS;
     }
 
     private void registerEvents(InsightsListener... listeners) {

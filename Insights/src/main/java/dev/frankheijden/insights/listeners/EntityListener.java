@@ -1,6 +1,7 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.annotations.AllowPriorityOverride;
 import dev.frankheijden.insights.api.events.EntityRemoveFromWorldEvent;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
@@ -63,6 +64,7 @@ public class EntityListener extends InsightsListener {
     /**
      * Handles the HangingPlaceEvent for Item Frames and Paintings.
      */
+    @AllowPriorityOverride
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onHangingPlace(HangingPlaceEvent event) {
         if (handleEntityPlace(event.getPlayer(), event.getEntity())) {
@@ -82,6 +84,7 @@ public class EntityListener extends InsightsListener {
     /**
      * Handles the EntityPlaceEvent for Armor Stands and End Crystals.
      */
+    @AllowPriorityOverride
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onEntityPlace(EntityPlaceEvent event) {
         if (handleEntityPlace(event.getPlayer(), event.getEntity())) {

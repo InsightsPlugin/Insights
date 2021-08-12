@@ -2,6 +2,7 @@ package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.Region;
+import dev.frankheijden.insights.api.annotations.AllowPriorityOverride;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.limits.Limit;
@@ -29,11 +30,13 @@ public class PistonListener extends InsightsListener {
         super(plugin);
     }
 
+    @AllowPriorityOverride
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPistonExtend(BlockPistonExtendEvent event) {
         handlePistonEvent(event, event.getBlocks());
     }
 
+    @AllowPriorityOverride
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPistonRetract(BlockPistonRetractEvent event) {
         handlePistonEvent(event, event.getBlocks());
