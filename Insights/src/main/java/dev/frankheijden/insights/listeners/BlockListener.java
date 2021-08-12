@@ -186,7 +186,7 @@ public class BlockListener extends InsightsListener {
         var block = event.getBlock();
         var location = block.getLocation();
 
-        var playerListener = ((Insights) plugin).getPlayerListener();
+        var playerListener = ((Insights) plugin).getListenerManager().getPlayerListener();
         Optional<PlayerListener.ExplodedBed> bedOptional = playerListener.getIntentionalDesignBugAt(location);
         if (bedOptional.isPresent()) {
             var explodedBed = bedOptional.get();
