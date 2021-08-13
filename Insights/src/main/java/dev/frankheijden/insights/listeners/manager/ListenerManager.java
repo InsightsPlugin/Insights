@@ -64,36 +64,53 @@ public class ListenerManager implements InsightsListenerManager {
     }
 
     private final Insights plugin;
-    private PlayerListener playerListener;
+    private final PlayerListener playerListener;
+    private final ChunkListener chunkListener;
+    private final BlockListener blockListener;
+    private final WorldListener worldListener;
+    private final PaperEntityListener paperEntityListener;
+    private final PaperBlockListener paperBlockListener;
+    private final EntityListener entityListener;
+    private final PistonListener pistonListener;
 
+    /**
+     * Constructs the ListenerManager with all Insights listeners.
+     */
     public ListenerManager(Insights plugin) {
         this.plugin = plugin;
+        this.playerListener = new PlayerListener(plugin);
+        this.chunkListener = new ChunkListener(plugin);
+        this.blockListener = new BlockListener(plugin);
+        this.worldListener = new WorldListener(plugin);
+        this.paperEntityListener = PaperLib.isPaper() ? new PaperEntityListener(plugin) : null;
+        this.paperBlockListener = PaperLib.isPaper() ? new PaperBlockListener(plugin) : null;
+        this.entityListener = PaperLib.isPaper() ? null : new EntityListener(plugin);
+        this.pistonListener = new PistonListener(plugin);
     }
 
     @Override
     public void register() {
         List<InsightsListener> listeners = new ArrayList<>();
-        playerListener = new PlayerListener(plugin);
         listeners.add(playerListener);
-        listeners.add(new ChunkListener(plugin));
+        listeners.add(chunkListener);
 
         List<InsightsListener> disableListeners = new ArrayList<>();
-        disableListeners.add(new BlockListener(plugin));
-        disableListeners.add(new WorldListener(plugin));
+        disableListeners.add(blockListener);
+        disableListeners.add(worldListener);
 
         if (PaperLib.isPaper()) {
-            listeners.add(new PaperEntityListener(plugin));
-            disableListeners.add(new PaperBlockListener(plugin));
+            listeners.add(paperEntityListener);
+            disableListeners.add(paperBlockListener);
         } else {
-            listeners.add(new EntityListener(plugin));
+            listeners.add(entityListener);
         }
 
         if (plugin.getSettings().APPLY_PISTON_LIMITS) {
-            listeners.add(new PistonListener(plugin));
+            listeners.add(pistonListener);
         }
 
+        listeners.addAll(disableListeners);
         listeners.forEach(listener -> plugin.getServer().getPluginManager().registerEvents(listener, plugin));
-        disableListeners.forEach(listener -> plugin.getServer().getPluginManager().registerEvents(listener, plugin));
 
         for (Class<?> clazz : plugin.getSettings().DISABLED_EVENTS) {
             HandlerList list = MinecraftReflection.of(clazz).invoke(null, "getHandlerList");
@@ -130,6 +147,11 @@ public class ListenerManager implements InsightsListenerManager {
             listenersToUnregister.forEach(list::unregister);
             listenersToRegister.forEach(list::register);
         }
+    }
+
+    @Override
+    public void unregister() {
+        HandlerList.unregisterAll(plugin);
     }
 
     @Override

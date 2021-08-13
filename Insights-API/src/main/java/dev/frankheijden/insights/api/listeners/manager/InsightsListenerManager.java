@@ -7,6 +7,8 @@ public interface InsightsListenerManager {
 
     void register();
 
+    void unregister();
+
     Map<String, Method> getAllowedDisableMethods();
 
     Map<String, Method> getAllowedPriorityOverrideMethods();
