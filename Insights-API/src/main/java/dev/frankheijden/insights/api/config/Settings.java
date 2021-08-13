@@ -43,6 +43,10 @@ public class Settings {
     public final int PAGINATION_RESULTS_PER_PAGE;
     public final List<Class<? extends Event>> DISABLED_EVENTS;
     public final Map<Class<? extends Event>, EventPriority> LISTENER_PRIORITIES;
+    public final boolean REDSTONE_UPDATE_LIMITER_ENABLED;
+    public final int REDSTONE_UPDATE_LIMITER_LIMIT;
+    public final int REDSTONE_UPDATE_LIMITER_RESET_TICKS;
+    public final boolean REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION;
 
     /**
      * Constructs a new Settings object from the given YamlParser.
@@ -102,6 +106,11 @@ public class Settings {
                     parser.getEnum("settings.listener-priorities." + event, EventPriority.LOWEST)
             );
         }
+
+        REDSTONE_UPDATE_LIMITER_ENABLED = parser.getBoolean("settings.redstone-update-limiter.enabled", false);
+        REDSTONE_UPDATE_LIMITER_LIMIT = parser.getInt("settings.redstone-update-limiter.limit", 50000, 0, Integer.MAX_VALUE);
+        REDSTONE_UPDATE_LIMITER_RESET_TICKS = parser.getInt("settings.redstone-update-limiter.reset-ticks", 600, 1, Integer.MAX_VALUE);
+        REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION = parser.getBoolean("settings.redstone-update-limiter.block-outside-region", false);
     }
 
     /**

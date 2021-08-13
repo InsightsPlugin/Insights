@@ -81,6 +81,7 @@ public class Insights extends InsightsPlugin {
     private InsightsPlaceholderExpansion placeholderExpansion;
     private BukkitTask playerTracker = null;
     private BukkitTask updateChecker = null;
+    private BukkitTask redstoneResetter = null;
     private BukkitAudiences audiences = null;
 
     @Override
@@ -365,6 +366,16 @@ public class Insights extends InsightsPlugin {
                     20,
                     20L * settings.UPDATE_CHECKER_INTERVAL_SECONDS
             );
+        }
+
+        if (redstoneResetter != null) {
+            redstoneResetter.cancel();
+        }
+
+        if (settings.REDSTONE_UPDATE_LIMITER_ENABLED) {
+            redstoneResetter = getServer().getScheduler().runTaskTimer(this, () -> {
+                listenerManager.getBlockListener().resetRedstoneCounts();
+            }, settings.REDSTONE_UPDATE_LIMITER_RESET_TICKS, settings.REDSTONE_UPDATE_LIMITER_RESET_TICKS);
         }
 
         listenerManager.unregister();
