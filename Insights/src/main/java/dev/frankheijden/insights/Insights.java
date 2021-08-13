@@ -80,6 +80,7 @@ public class Insights extends InsightsPlugin {
     private ListenerManager listenerManager;
     private InsightsPlaceholderExpansion placeholderExpansion;
     private BukkitTask playerTracker = null;
+    private BukkitTask updateChecker = null;
     private BukkitAudiences audiences = null;
 
     @Override
@@ -121,7 +122,6 @@ public class Insights extends InsightsPlugin {
         scanHistory = new ScanHistory();
 
         loadCommands();
-        listenerManager.register();
 
         if (!PaperLib.isPaper()) {
             entityTrackerTask = new EntityTrackerTask(this);
@@ -130,27 +130,15 @@ public class Insights extends InsightsPlugin {
         }
 
         reload();
-
-        if (settings.UPDATE_CHECKER_ENABLED) {
-            getServer().getScheduler().runTaskTimerAsynchronously(
-                    this,
-                    new UpdateCheckerTask(this),
-                    20,
-                    20L * settings.UPDATE_CHECKER_INTERVAL_SECONDS
-            );
-        }
-
-        if (isAvailable("PlaceholderAPI")) {
-            placeholderExpansion = new InsightsPlaceholderExpansion(this);
-            placeholderExpansion.register();
-        }
     }
 
     @Override
     public void onDisable() {
+        listenerManager.unregister();
         notifications.clearNotifications();
         if (placeholderExpansion != null) {
             placeholderExpansion.unregister();
+            placeholderExpansion = null;
         }
         chunkContainerExecutor.shutdown();
         audiences.close();
@@ -364,6 +352,27 @@ public class Insights extends InsightsPlugin {
                     0,
                     settings.CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS
             );
+        }
+
+        if (updateChecker != null) {
+            updateChecker.cancel();
+        }
+
+        if (settings.UPDATE_CHECKER_ENABLED) {
+            updateChecker = getServer().getScheduler().runTaskTimerAsynchronously(
+                    this,
+                    new UpdateCheckerTask(this),
+                    20,
+                    20L * settings.UPDATE_CHECKER_INTERVAL_SECONDS
+            );
+        }
+
+        listenerManager.unregister();
+        listenerManager.register();
+
+        if (placeholderExpansion == null && isAvailable("PlaceholderAPI")) {
+            placeholderExpansion = new InsightsPlaceholderExpansion(this);
+            placeholderExpansion.register();
         }
     }
 }
