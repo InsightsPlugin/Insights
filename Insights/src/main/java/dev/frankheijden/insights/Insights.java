@@ -81,8 +81,8 @@ public class Insights extends InsightsPlugin {
     private InsightsPlaceholderExpansion placeholderExpansion;
     private BukkitTask playerTracker = null;
     private BukkitTask updateChecker = null;
-    private BukkitTask redstoneResetter = null;
     private BukkitAudiences audiences = null;
+    private int currentTick = 0;
 
     @Override
     public void onLoad() {
@@ -130,6 +130,19 @@ public class Insights extends InsightsPlugin {
             Bukkit.getScheduler().runTaskTimer(this, entityTrackerTask, 0, interval);
         }
 
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            currentTick += 1;
+            if (currentTick >= settings.REDSTONE_UPDATE_AGGREGATE_SIZE) {
+                currentTick = 0;
+            }
+
+            int nextTick = currentTick + 1;
+            if (nextTick >= settings.REDSTONE_UPDATE_AGGREGATE_SIZE) {
+                nextTick = 0;
+            }
+            listenerManager.getBlockListener().resetRedstoneCounts(nextTick);
+        }, 0, settings.REDSTONE_UPDATE_AGGREGATE_TICKS);
+
         reload();
     }
 
@@ -148,6 +161,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public ListenerManager getListenerManager() {
         return listenerManager;
+    }
+
+    @Override
+    public int getCurrentTick() {
+        return currentTick;
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {
@@ -366,16 +384,6 @@ public class Insights extends InsightsPlugin {
                     20,
                     20L * settings.UPDATE_CHECKER_INTERVAL_SECONDS
             );
-        }
-
-        if (redstoneResetter != null) {
-            redstoneResetter.cancel();
-        }
-
-        if (settings.REDSTONE_UPDATE_LIMITER_ENABLED) {
-            redstoneResetter = getServer().getScheduler().runTaskTimer(this, () -> {
-                listenerManager.getBlockListener().resetRedstoneCounts();
-            }, settings.REDSTONE_UPDATE_LIMITER_RESET_TICKS, settings.REDSTONE_UPDATE_LIMITER_RESET_TICKS);
         }
 
         listenerManager.unregister();

@@ -45,7 +45,8 @@ public class Settings {
     public final Map<Class<? extends Event>, EventPriority> LISTENER_PRIORITIES;
     public final boolean REDSTONE_UPDATE_LIMITER_ENABLED;
     public final int REDSTONE_UPDATE_LIMITER_LIMIT;
-    public final int REDSTONE_UPDATE_LIMITER_RESET_TICKS;
+    public final int REDSTONE_UPDATE_AGGREGATE_TICKS;
+    public final int REDSTONE_UPDATE_AGGREGATE_SIZE;
     public final boolean REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION;
 
     /**
@@ -109,7 +110,8 @@ public class Settings {
 
         REDSTONE_UPDATE_LIMITER_ENABLED = parser.getBoolean("settings.redstone-update-limiter.enabled", false);
         REDSTONE_UPDATE_LIMITER_LIMIT = parser.getInt("settings.redstone-update-limiter.limit", 50000, 0, Integer.MAX_VALUE);
-        REDSTONE_UPDATE_LIMITER_RESET_TICKS = parser.getInt("settings.redstone-update-limiter.reset-ticks", 600, 1, Integer.MAX_VALUE);
+        REDSTONE_UPDATE_AGGREGATE_TICKS = parser.getInt("settings.redstone-update-limiter.aggregate-ticks", 10, 1, 20 * 60 * 60);
+        REDSTONE_UPDATE_AGGREGATE_SIZE = (parser.getInt("settings.redstone-update-limiter.aggregate-size-ticks", 600, 1, 20 * 60 * 60) / REDSTONE_UPDATE_AGGREGATE_TICKS) + 1;
         REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION = parser.getBoolean("settings.redstone-update-limiter.block-outside-region", false);
     }
 

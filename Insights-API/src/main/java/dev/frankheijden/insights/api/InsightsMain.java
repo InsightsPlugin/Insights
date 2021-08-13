@@ -56,4 +56,6 @@ public interface InsightsMain {
 
     InsightsListenerManager getListenerManager();
 
+    int getCurrentTick();
+
 }

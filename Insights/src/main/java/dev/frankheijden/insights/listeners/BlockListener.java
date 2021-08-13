@@ -334,35 +334,58 @@ public class BlockListener extends InsightsListener {
 
         final IntegerCount count;
         if (regionOptional.isPresent()) {
-            count = addonRedstoneMap.computeIfAbsent(regionOptional.get().getKey(), k -> new IntegerCount());
+            count = addonRedstoneMap.computeIfAbsent(regionOptional.get().getKey(), k -> new IntegerCount(
+                    plugin.getSettings().REDSTONE_UPDATE_AGGREGATE_SIZE
+            ));
         } else if (plugin.getSettings().REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION) {
             event.setNewCurrent(0);
             return;
         } else {
-            count = chunkRedstoneMap.computeIfAbsent(ChunkUtils.getKey(loc), k -> new IntegerCount());
+            count = chunkRedstoneMap.computeIfAbsent(ChunkUtils.getKey(loc), k -> new IntegerCount(
+                    plugin.getSettings().REDSTONE_UPDATE_AGGREGATE_SIZE
+            ));
         }
 
-        if (count.increment() > plugin.getSettings().REDSTONE_UPDATE_LIMITER_LIMIT) {
+        if (count.increment(plugin.getCurrentTick()) > plugin.getSettings().REDSTONE_UPDATE_LIMITER_LIMIT) {
             event.setNewCurrent(0);
         }
     }
 
-    public void resetRedstoneCounts() {
-        addonRedstoneMap.values().forEach(IntegerCount::reset);
-        chunkRedstoneMap.values().forEach(IntegerCount::reset);
+    /**
+     * Resets the redstone counts for given tick.
+     */
+    public void resetRedstoneCounts(int tick) {
+        for (IntegerCount count : addonRedstoneMap.values()) {
+            count.reset(tick);
+        }
+        for (IntegerCount count : chunkRedstoneMap.values()) {
+            count.reset(tick);
+        }
+    }
+
+    public void removeChunk(long chunkKey) {
+        chunkRedstoneMap.remove(chunkKey);
     }
 
     private static class IntegerCount {
 
-        private int count = 0;
+        private final int[] counts;
+        private int total = 0;
 
-        public int increment() {
-            count += 1;
-            return count;
+        public IntegerCount(int ticks) {
+            this.counts = new int[ticks];
         }
 
-        public void reset() {
-            count = 0;
+        public int increment(int tick) {
+            counts[tick] += 1;
+            total += 1;
+
+            return total;
+        }
+
+        public void reset(int tick) {
+            total -= counts[tick];
+            counts[tick] = 0;
         }
     }
 }

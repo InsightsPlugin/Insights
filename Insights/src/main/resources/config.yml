@@ -41,5 +41,6 @@ settings:
   redstone-update-limiter:
     enabled: false
     limit: 50000
-    reset-ticks: 600
+    aggregate-ticks: 10
+    aggregate-size-ticks: 600
     block-outside-region: false
