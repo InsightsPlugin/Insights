@@ -111,7 +111,7 @@ public class Settings {
         REDSTONE_UPDATE_LIMITER_ENABLED = parser.getBoolean("settings.redstone-update-limiter.enabled", false);
         REDSTONE_UPDATE_LIMITER_LIMIT = parser.getInt("settings.redstone-update-limiter.limit", 50000, 0, Integer.MAX_VALUE);
         REDSTONE_UPDATE_AGGREGATE_TICKS = parser.getInt("settings.redstone-update-limiter.aggregate-ticks", 10, 1, 20 * 60 * 60);
-        REDSTONE_UPDATE_AGGREGATE_SIZE = (parser.getInt("settings.redstone-update-limiter.aggregate-size-ticks", 600, 1, 20 * 60 * 60) / REDSTONE_UPDATE_AGGREGATE_TICKS) + 1;
+        REDSTONE_UPDATE_AGGREGATE_SIZE = parser.getInt("settings.redstone-update-limiter.aggregate-size-ticks", 600, 1, 20 * 60 * 60) + 1;
         REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION = parser.getBoolean("settings.redstone-update-limiter.block-outside-region", false);
     }
 

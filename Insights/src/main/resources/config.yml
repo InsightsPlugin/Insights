@@ -42,5 +42,5 @@ settings:
     enabled: false
     limit: 50000
     aggregate-ticks: 10
-    aggregate-size-ticks: 600
+    aggregate-size: 60
     block-outside-region: false
