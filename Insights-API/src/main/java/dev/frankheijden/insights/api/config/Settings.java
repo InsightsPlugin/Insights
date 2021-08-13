@@ -6,11 +6,16 @@ import dev.frankheijden.insights.api.config.parser.YamlParser;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class Settings {
@@ -36,7 +41,8 @@ public class Settings {
     public final int SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
     public final boolean APPLY_PISTON_LIMITS;
     public final int PAGINATION_RESULTS_PER_PAGE;
-    public final List<Class<?>> DISABLED_EVENTS;
+    public final List<Class<? extends Event>> DISABLED_EVENTS;
+    public final Map<Class<? extends Event>, EventPriority> LISTENER_PRIORITIES;
 
     /**
      * Constructs a new Settings object from the given YamlParser.
@@ -75,9 +81,26 @@ public class Settings {
         PAGINATION_RESULTS_PER_PAGE = parser.getInt("settings.pagination-results-per-page", 6, 1, Integer.MAX_VALUE);
 
         DISABLED_EVENTS = new ArrayList<>();
-        Map<String, Class<?>> events = plugin.getAllowedDisableEvents();
-        for (String str : parser.getSet("settings.disabled-listeners", events.keySet(), "event")) {
-            DISABLED_EVENTS.add(events.get(str));
+        Map<String, Method> disableEvents = plugin.getListenerManager().getAllowedDisableMethods();
+        for (String str : parser.getSet("settings.disabled-listeners", disableEvents.keySet(), "event")) {
+            @SuppressWarnings("unchecked")
+            var eventClass = (Class<? extends Event>) disableEvents.get(str).getParameterTypes()[0];
+            DISABLED_EVENTS.add(eventClass);
+        }
+
+        LISTENER_PRIORITIES = new HashMap<>();
+        Map<String, Method> overrideEvents = plugin.getListenerManager().getAllowedPriorityOverrideMethods();
+        for (String event : parser.getKeys("settings.listener-priorities")) {
+            String eventUppercase = event.toUpperCase(Locale.ENGLISH);
+
+            @SuppressWarnings("unchecked")
+            var eventClass = (Class<? extends Event>) overrideEvents.get(eventUppercase).getParameterTypes()[0];
+            if (eventClass == null) continue;
+
+            LISTENER_PRIORITIES.put(
+                    eventClass,
+                    parser.getEnum("settings.listener-priorities." + event, EventPriority.LOWEST)
+            );
         }
     }
 

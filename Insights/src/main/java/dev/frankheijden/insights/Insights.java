@@ -9,7 +9,6 @@ import cloud.commandframework.meta.SimpleCommandMeta;
 import cloud.commandframework.paper.PaperCommandManager;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.AddonManager;
-import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
@@ -23,12 +22,10 @@ import dev.frankheijden.insights.api.config.Notifications;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
-import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
 import dev.frankheijden.insights.api.utils.IOUtils;
-import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import dev.frankheijden.insights.commands.CommandInsights;
 import dev.frankheijden.insights.commands.CommandScan;
 import dev.frankheijden.insights.commands.CommandScanCache;
@@ -39,65 +36,27 @@ import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
 import dev.frankheijden.insights.commands.parser.ScanHistoryPageArgument;
 import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
-import dev.frankheijden.insights.listeners.BlockListener;
-import dev.frankheijden.insights.listeners.ChunkListener;
-import dev.frankheijden.insights.listeners.EntityListener;
-import dev.frankheijden.insights.listeners.PaperBlockListener;
-import dev.frankheijden.insights.listeners.PaperEntityListener;
-import dev.frankheijden.insights.listeners.PistonListener;
-import dev.frankheijden.insights.listeners.PlayerListener;
-import dev.frankheijden.insights.listeners.WorldListener;
+import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
-import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.event.HandlerList;
 import org.bukkit.scheduler.BukkitTask;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
 public class Insights extends InsightsPlugin {
-
-    private static final Map<String, Class<?>> ALLOWED_DISABLED_EVENTS;
-
-    static {
-        Map<String, Class<?>> map = new HashMap<>();
-
-        List<Method> listenerMethods = new ArrayList<>();
-        listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(BlockListener.class, AllowDisabling.class));
-        listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(WorldListener.class, AllowDisabling.class));
-        if (PaperLib.isPaper()) {
-            listenerMethods.addAll(ReflectionUtils.getAnnotatedMethods(PaperBlockListener.class, AllowDisabling.class));
-        }
-
-        for (Method method : listenerMethods) {
-            Class<?>[] params = method.getParameterTypes();
-            if (params.length != 1) continue;
-
-            Class<?> clazz = params[0];
-            map.put(clazz.getSimpleName().toUpperCase(Locale.ENGLISH), clazz);
-        }
-
-        ALLOWED_DISABLED_EVENTS = Collections.unmodifiableMap(map);
-    }
 
     private static final String SETTINGS_FILE_NAME = "config.yml";
     private static final String MESSAGES_FILE_NAME = "messages.yml";
@@ -118,7 +77,7 @@ public class Insights extends InsightsPlugin {
     private EntityTrackerTask entityTrackerTask;
     private MetricsManager metricsManager;
     private ScanHistory scanHistory;
-    private PlayerListener playerListener;
+    private ListenerManager listenerManager;
     private InsightsPlaceholderExpansion placeholderExpansion;
     private BukkitTask playerTracker = null;
     private BukkitAudiences audiences = null;
@@ -133,6 +92,7 @@ public class Insights extends InsightsPlugin {
     public void onEnable() {
         super.onEnable();
         this.audiences = BukkitAudiences.create(this);
+        this.listenerManager = new ListenerManager(this);
         reloadConfigs();
 
         addonManager = new AddonManager(this, getDataFolder().toPath().resolve("addons"));
@@ -161,39 +121,12 @@ public class Insights extends InsightsPlugin {
         scanHistory = new ScanHistory();
 
         loadCommands();
+        listenerManager.register();
 
-        List<InsightsListener> listeners = new ArrayList<>();
-        playerListener = new PlayerListener(this);
-        listeners.add(playerListener);
-        listeners.add(new ChunkListener(this));
-
-        List<InsightsListener> disableListeners = new ArrayList<>();
-        disableListeners.add(new BlockListener(this));
-        disableListeners.add(new WorldListener(this));
-
-        if (PaperLib.isPaper()) {
-            listeners.add(new PaperEntityListener(this));
-            disableListeners.add(new PaperBlockListener(this));
-        } else {
-            listeners.add(new EntityListener(this));
+        if (!PaperLib.isPaper()) {
             entityTrackerTask = new EntityTrackerTask(this);
-            int interval = settings.SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
+            var interval = settings.SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
             Bukkit.getScheduler().runTaskTimer(this, entityTrackerTask, 0, interval);
-        }
-
-        if (settings.APPLY_PISTON_LIMITS) {
-            listeners.add(new PistonListener(this));
-        }
-
-        registerEvents(listeners.toArray(new InsightsListener[0]));
-        registerEvents(disableListeners.toArray(new InsightsListener[0]));
-
-        for (Class<?> clazz : settings.DISABLED_EVENTS) {
-            HandlerList list = MinecraftReflection.of(clazz).invoke(null, "getHandlerList");
-            for (InsightsListener listener : disableListeners) {
-                list.unregister(listener);
-            }
-            getLogger().info("Unregistered listener of '" + clazz.getSimpleName() + "'");
         }
 
         reload();
@@ -223,8 +156,9 @@ public class Insights extends InsightsPlugin {
         audiences.close();
     }
 
-    public PlayerListener getPlayerListener() {
-        return playerListener;
+    @Override
+    public ListenerManager getListenerManager() {
+        return listenerManager;
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {
@@ -415,17 +349,6 @@ public class Insights extends InsightsPlugin {
     @Override
     public ScanHistory getScanHistory() {
         return scanHistory;
-    }
-
-    @Override
-    public Map<String, Class<?>> getAllowedDisableEvents() {
-        return ALLOWED_DISABLED_EVENTS;
-    }
-
-    private void registerEvents(InsightsListener... listeners) {
-        for (InsightsListener listener : listeners) {
-            Bukkit.getPluginManager().registerEvents(listener, this);
-        }
     }
 
     @Override

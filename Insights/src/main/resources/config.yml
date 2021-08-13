@@ -32,3 +32,9 @@ settings:
     - "FluidLevelChangeEvent"
     - "SpongeAbsorbEvent"
     - "LeavesDecayEvent"
+  listener-priorities:
+    BlockPlaceEvent: LOWEST
+    HangingPlaceEvent: LOWEST
+    EntityPlaceEvent: LOWEST
+    BlockPistonExtendEvent: LOWEST
+    BlockPistonRetractEvent: LOWEST

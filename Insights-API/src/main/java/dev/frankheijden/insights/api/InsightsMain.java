@@ -13,8 +13,8 @@ import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Notifications;
 import dev.frankheijden.insights.api.config.Settings;
+import dev.frankheijden.insights.api.listeners.manager.InsightsListenerManager;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
-import java.util.Map;
 
 public interface InsightsMain {
 
@@ -54,5 +54,6 @@ public interface InsightsMain {
 
     ScanHistory getScanHistory();
 
-    Map<String, Class<?>> getAllowedDisableEvents();
+    InsightsListenerManager getListenerManager();
+
 }

@@ -2,6 +2,7 @@ package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.Insights;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
+import dev.frankheijden.insights.api.annotations.AllowPriorityOverride;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.MaterialTags;
@@ -45,6 +46,7 @@ public class BlockListener extends InsightsListener {
      * Handles the BlockPlaceEvent for players.
      * Chunk limitations are applied in here on the lowest (first) event priority.
      */
+    @AllowPriorityOverride
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         var block = event.getBlock();
@@ -184,7 +186,7 @@ public class BlockListener extends InsightsListener {
         var block = event.getBlock();
         var location = block.getLocation();
 
-        var playerListener = ((Insights) plugin).getPlayerListener();
+        var playerListener = ((Insights) plugin).getListenerManager().getPlayerListener();
         Optional<PlayerListener.ExplodedBed> bedOptional = playerListener.getIntentionalDesignBugAt(location);
         if (bedOptional.isPresent()) {
             var explodedBed = bedOptional.get();
