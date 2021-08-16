@@ -4,6 +4,7 @@ import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
+import dev.frankheijden.insights.api.concurrent.count.RedstoneUpdateCount;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.ScanHistory;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
@@ -56,6 +57,6 @@ public interface InsightsMain {
 
     InsightsListenerManager getListenerManager();
 
-    int getCurrentTick();
+    RedstoneUpdateCount getRedstoneUpdateCount();
 
 }

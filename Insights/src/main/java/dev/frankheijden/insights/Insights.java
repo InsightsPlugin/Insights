@@ -11,6 +11,7 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
+import dev.frankheijden.insights.api.concurrent.count.RedstoneUpdateCount;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.ScanHistory;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
@@ -82,7 +83,7 @@ public class Insights extends InsightsPlugin {
     private BukkitTask playerTracker = null;
     private BukkitTask updateChecker = null;
     private BukkitAudiences audiences = null;
-    private int currentTick = 0;
+    private RedstoneUpdateCount redstoneUpdateCount;
 
     @Override
     public void onLoad() {
@@ -121,6 +122,8 @@ public class Insights extends InsightsPlugin {
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
         metricsManager = new MetricsManager(this);
         scanHistory = new ScanHistory();
+        redstoneUpdateCount = new RedstoneUpdateCount(this);
+        redstoneUpdateCount.start();
 
         loadCommands();
 
@@ -130,25 +133,13 @@ public class Insights extends InsightsPlugin {
             Bukkit.getScheduler().runTaskTimer(this, entityTrackerTask, 0, interval);
         }
 
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            currentTick += 1;
-            if (currentTick >= settings.REDSTONE_UPDATE_AGGREGATE_SIZE) {
-                currentTick = 0;
-            }
-
-            int nextTick = currentTick + 1;
-            if (nextTick >= settings.REDSTONE_UPDATE_AGGREGATE_SIZE) {
-                nextTick = 0;
-            }
-            listenerManager.getBlockListener().resetRedstoneCounts(nextTick);
-        }, 0, settings.REDSTONE_UPDATE_AGGREGATE_TICKS);
-
         reload();
     }
 
     @Override
     public void onDisable() {
         listenerManager.unregister();
+        redstoneUpdateCount.stop();
         notifications.clearNotifications();
         if (placeholderExpansion != null) {
             placeholderExpansion.unregister();
@@ -164,8 +155,8 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
-    public int getCurrentTick() {
-        return currentTick;
+    public RedstoneUpdateCount getRedstoneUpdateCount() {
+        return redstoneUpdateCount;
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {

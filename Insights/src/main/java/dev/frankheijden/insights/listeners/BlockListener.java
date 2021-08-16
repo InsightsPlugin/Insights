@@ -36,9 +36,7 @@ import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.block.FluidLevelChangeEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.block.SpongeAbsorbEvent;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class BlockListener extends InsightsListener {
@@ -320,9 +318,6 @@ public class BlockListener extends InsightsListener {
         }
     }
 
-    private final Map<String, IntegerCount> addonRedstoneMap = new HashMap<>();
-    private final Map<Long, IntegerCount> chunkRedstoneMap = new HashMap<>();
-
     /**
      * Handles redstone.
      */
@@ -332,60 +327,18 @@ public class BlockListener extends InsightsListener {
         var loc = block.getLocation();
         Optional<Region> regionOptional = plugin.getAddonManager().getRegion(loc);
 
-        final IntegerCount count;
+        int count;
         if (regionOptional.isPresent()) {
-            count = addonRedstoneMap.computeIfAbsent(regionOptional.get().getKey(), k -> new IntegerCount(
-                    plugin.getSettings().REDSTONE_UPDATE_AGGREGATE_SIZE
-            ));
+            count = plugin.getRedstoneUpdateCount().increment(regionOptional.get().getKey());
         } else if (plugin.getSettings().REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION) {
             event.setNewCurrent(0);
             return;
         } else {
-            count = chunkRedstoneMap.computeIfAbsent(ChunkUtils.getKey(loc), k -> new IntegerCount(
-                    plugin.getSettings().REDSTONE_UPDATE_AGGREGATE_SIZE
-            ));
+            count = plugin.getRedstoneUpdateCount().increment(ChunkUtils.getKey(loc));
         }
 
-        if (count.increment(plugin.getCurrentTick()) > plugin.getSettings().REDSTONE_UPDATE_LIMITER_LIMIT) {
+        if (count > plugin.getSettings().REDSTONE_UPDATE_LIMITER_LIMIT) {
             event.setNewCurrent(0);
-        }
-    }
-
-    /**
-     * Resets the redstone counts for given tick.
-     */
-    public void resetRedstoneCounts(int tick) {
-        for (IntegerCount count : addonRedstoneMap.values()) {
-            count.reset(tick);
-        }
-        for (IntegerCount count : chunkRedstoneMap.values()) {
-            count.reset(tick);
-        }
-    }
-
-    public void removeChunk(long chunkKey) {
-        chunkRedstoneMap.remove(chunkKey);
-    }
-
-    private static class IntegerCount {
-
-        private final int[] counts;
-        private int total = 0;
-
-        public IntegerCount(int ticks) {
-            this.counts = new int[ticks];
-        }
-
-        public int increment(int tick) {
-            counts[tick] += 1;
-            total += 1;
-
-            return total;
-        }
-
-        public void reset(int tick) {
-            total -= counts[tick];
-            counts[tick] = 0;
         }
     }
 }
