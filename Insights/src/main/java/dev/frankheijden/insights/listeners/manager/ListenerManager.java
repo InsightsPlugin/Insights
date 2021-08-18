@@ -152,6 +152,10 @@ public class ListenerManager implements InsightsListenerManager {
             listenersToUnregister.forEach(list::unregister);
             listenersToRegister.forEach(list::register);
         }
+
+        if (!plugin.getSettings().REDSTONE_UPDATE_LIMITER_ENABLED) {
+            BlockRedstoneEvent.getHandlerList().unregister(blockListener);
+        }
     }
 
     @Override
@@ -171,9 +175,5 @@ public class ListenerManager implements InsightsListenerManager {
 
     public PlayerListener getPlayerListener() {
         return playerListener;
-    }
-
-    public BlockListener getBlockListener() {
-        return blockListener;
     }
 }
