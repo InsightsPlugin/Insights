@@ -103,10 +103,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         }
 
         if (queued) {
-            plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_QUEUED)
-                    .replace("area", area)
-                    .color()
-                    .sendTo(player);
+            if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
+                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_QUEUED)
+                        .replace("area", area)
+                        .color()
+                        .sendTo(player);
+            }
             return true;
         }
 
@@ -135,9 +137,11 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             }
 
             // Notify the user scan completed
-            plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_COMPLETED)
-                    .color()
-                    .sendTo(player);
+            if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
+                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_COMPLETED)
+                        .color()
+                        .sendTo(player);
+            }
         };
 
         Optional<Storage> storageOptional;
@@ -228,10 +232,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         // If the chunk is not known
         if (!storageOptional.isPresent()) {
             // Notify the user scan started
-            plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED)
-                    .replace("area", "chunk")
-                    .color()
-                    .sendTo(player);
+            if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
+                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED)
+                        .replace("area", "chunk")
+                        .color()
+                        .sendTo(player);
+            }
 
             // Submit the chunk for scanning
             plugin.getChunkContainerExecutor().submit(chunk).thenAccept(storageConsumer);
@@ -250,10 +256,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         Optional<Storage> storageOptional = addonStorage.get(key);
         if (!storageOptional.isPresent()) {
             // Notify the user scan started
-            plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED)
-                    .replace("area", plugin.getAddonManager().getAddon(region.getAddon()).getAreaName())
-                    .color()
-                    .sendTo(player);
+            if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
+                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED)
+                        .replace("area", plugin.getAddonManager().getAddon(region.getAddon()).getAreaName())
+                        .color()
+                        .sendTo(player);
+            }
 
             scanRegion(player, region, storageConsumer);
             return Optional.empty();
