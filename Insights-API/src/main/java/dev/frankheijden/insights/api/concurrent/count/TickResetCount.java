@@ -84,7 +84,6 @@ public class TickResetCount<T> {
 
             for (IntegerCount value : counts.values()) {
                 value.reset(nextTick);
-                plugin.getLogger().info("Count => " + value.getTotal());
             }
 
             this.tick = nextTick;

@@ -7,7 +7,7 @@ plugins {
 String name = "Insights"
 group = 'dev.frankheijden.insights'
 String dependencyDir = group + '.dependencies'
-version = '6.6.0'
+version = '6.6.1'
 
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_16
 
