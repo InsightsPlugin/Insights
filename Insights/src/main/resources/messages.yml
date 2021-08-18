@@ -13,6 +13,7 @@ messages:
     already-scanning: "<prefix>&cPlease wait for your other scan to finish before requesting another one."
     finish:
       header: "&8&m----------------=&r&8[&b&l Insights Scan&r &8]&m=---------------"
+      chunk-format: "&3Chunk &b%chunk-x%&3, &b%chunk-z%"
       format: "&b %entry%&8: &7&l%count%"
       footer: |-
         &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks and &b&l%entities% &3entities. Took &b%time%&3!

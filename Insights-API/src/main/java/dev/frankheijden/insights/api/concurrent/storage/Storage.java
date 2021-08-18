@@ -5,10 +5,15 @@ import dev.frankheijden.insights.api.config.limits.LimitType;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public interface Storage {
 
     Set<ScanObject<?>> keys();
+
+    default int count() {
+        return count(keys());
+    }
 
     int count(ScanObject<?> item);
 
@@ -36,6 +41,19 @@ public interface Storage {
      */
     default int count(Limit limit, ScanObject<?> item) {
         return limit.getType() == LimitType.PERMISSION ? count(item) : count(limit);
+    }
+
+    /**
+     * Counts the distribution of items which match the predicate.
+     */
+    default int count(Predicate<ScanObject<?>> predicate) {
+        int count = 0;
+        for (ScanObject<?> key : keys()) {
+            if (predicate.test(key)) {
+                count += count(key);
+            }
+        }
+        return count;
     }
 
     void modify(ScanObject<?> item, int amount);

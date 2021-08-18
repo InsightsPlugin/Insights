@@ -3,6 +3,7 @@ package dev.frankheijden.insights.commands;
 import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.CommandMethod;
 import cloud.commandframework.annotations.CommandPermission;
+import cloud.commandframework.annotations.Flag;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
@@ -29,26 +30,39 @@ public class CommandScanWorld extends InsightsCommand {
 
     @CommandMethod("scanworld tile")
     @CommandPermission("insights.scanworld.tile")
-    private void handleTileScan(Player player) {
-        handleScan(player, RTileEntityTypes.getTileEntities(), ScanOptions.materialsOnly(), false);
+    private void handleTileScan(
+            Player player,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
+    ) {
+        handleScan(player, RTileEntityTypes.getTileEntities(), ScanOptions.materialsOnly(), false, groupByChunk);
     }
 
     @CommandMethod("scanworld entity")
     @CommandPermission("insights.scanworld.entity")
-    private void handleEntityScan(Player player) {
-        handleScan(player, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false);
+    private void handleEntityScan(
+            Player player,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
+    ) {
+        handleScan(player, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false, groupByChunk);
     }
 
     @CommandMethod("scanworld all")
     @CommandPermission("insights.scanworld.all")
-    private void handleAllScan(Player player) {
-        handleScan(player, null, ScanOptions.scanOnly(), false);
+    private void handleAllScan(
+            Player player,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
+    ) {
+        handleScan(player, null, ScanOptions.scanOnly(), false, groupByChunk);
     }
 
     @CommandMethod("scanworld custom <items>")
     @CommandPermission("insights.scanworld.custom")
-    private void handleCustomScan(Player player, @Argument("items") ScanObject<?>[] items) {
-        handleScan(player, new HashSet<>(Arrays.asList(items)), ScanOptions.scanOnly(), true);
+    private void handleCustomScan(
+            Player player,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk,
+            @Argument("items") ScanObject<?>[] items
+    ) {
+        handleScan(player, new HashSet<>(Arrays.asList(items)), ScanOptions.scanOnly(), true, groupByChunk);
     }
 
     /**
@@ -58,7 +72,8 @@ public class CommandScanWorld extends InsightsCommand {
             Player player,
             Set<? extends ScanObject<?>> items,
             ScanOptions options,
-            boolean displayZeros
+            boolean displayZeros,
+            boolean groupByChunk
     ) {
         World world = player.getWorld();
 
@@ -69,6 +84,10 @@ public class CommandScanWorld extends InsightsCommand {
             chunkParts.add(ChunkLocation.of(chunk).toPart());
         }
 
-        ScanTask.scanAndDisplay(plugin, player, chunkParts, options, items, displayZeros);
+        if (groupByChunk) {
+            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, chunkParts, options, items, false);
+        } else {
+            ScanTask.scanAndDisplay(plugin, player, chunkParts, options, items, displayZeros);
+        }
     }
 }

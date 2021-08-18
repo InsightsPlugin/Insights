@@ -3,6 +3,7 @@ package dev.frankheijden.insights.commands;
 import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.CommandMethod;
 import cloud.commandframework.annotations.CommandPermission;
+import cloud.commandframework.annotations.Flag;
 import cloud.commandframework.annotations.specifier.Range;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
@@ -32,27 +33,37 @@ public class CommandScan extends InsightsCommand {
     @CommandPermission("insights.scan.tile")
     private void handleTileScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "50") int radius
+            @Argument("radius") @Range(min = "0", max = "50") int radius,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
     ) {
-        handleScan(player, radius, RTileEntityTypes.getTileEntities(), ScanOptions.materialsOnly(), false);
+        handleScan(
+                player,
+                radius,
+                RTileEntityTypes.getTileEntities(),
+                ScanOptions.materialsOnly(),
+                false,
+                groupByChunk
+        );
     }
 
     @CommandMethod("scan <radius> entity")
     @CommandPermission("insights.scan.entity")
     private void handleEntityScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "50") int radius
+            @Argument("radius") @Range(min = "0", max = "50") int radius,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
     ) {
-        handleScan(player, radius, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false);
+        handleScan(player, radius, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false, groupByChunk);
     }
 
     @CommandMethod("scan <radius> all")
     @CommandPermission("insights.scan.all")
     private void handleAllScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "50") int radius
+            @Argument("radius") @Range(min = "0", max = "50") int radius,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
     ) {
-        handleScan(player, radius, null, ScanOptions.scanOnly(), false);
+        handleScan(player, radius, null, ScanOptions.scanOnly(), false, groupByChunk);
     }
 
     @CommandMethod("scan <radius> custom <items>")
@@ -60,6 +71,7 @@ public class CommandScan extends InsightsCommand {
     private void handleCustomScan(
             Player player,
             @Argument("radius") @Range(min = "0", max = "50") int radius,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk,
             @Argument("items") ScanObject<?>[] items
     ) {
         List<ScanObject<?>> scanObjects = Arrays.asList(items);
@@ -77,7 +89,7 @@ public class CommandScan extends InsightsCommand {
             options = ScanOptions.scanOnly();
         }
 
-        handleScan(player, radius, new HashSet<>(scanObjects), options, true);
+        handleScan(player, radius, new HashSet<>(scanObjects), options, true, groupByChunk);
     }
 
     /**
@@ -88,7 +100,8 @@ public class CommandScan extends InsightsCommand {
             int radius,
             Set<? extends ScanObject<?>> items,
             ScanOptions options,
-            boolean displayZeros
+            boolean displayZeros,
+            boolean groupByChunk
     ) {
         Chunk chunk = player.getLocation().getChunk();
         World world = chunk.getWorld();
@@ -105,6 +118,10 @@ public class CommandScan extends InsightsCommand {
             }
         }
 
-        ScanTask.scanAndDisplay(plugin, player, chunkParts, options, items, displayZeros);
+        if (groupByChunk) {
+            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, chunkParts, options, items, false);
+        } else {
+            ScanTask.scanAndDisplay(plugin, player, chunkParts, options, items, displayZeros);
+        }
     }
 }

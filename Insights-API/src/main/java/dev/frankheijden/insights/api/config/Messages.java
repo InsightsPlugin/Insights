@@ -1,11 +1,9 @@
 package dev.frankheijden.insights.api.config;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.parser.PassiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
-import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.PlayerUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -27,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 public class Messages {
 
@@ -51,40 +51,45 @@ public class Messages {
     /**
      * Creates a paginated message from a DistributionStorage.
      */
-    public PaginatedMessage createPaginatedMessage(
+    public <T> PaginatedMessage createPaginatedMessage(
             Message header,
             Key formatKey,
             Message footer,
-            Storage storage,
-            List<ScanObject<?>> keys
+            List<T> keys,
+            ToIntFunction<T> countFunction,
+            Function<T, String> displayNameFunction
     ) {
-        List<Component> content = new ArrayList<>(storage.keys().size());
+        List<Component> content = new ArrayList<>(keys.size());
 
         var serializer = LegacyComponentSerializer.legacyAmpersand();
-        for (ScanObject<?> item : keys) {
-            var obj = item.getObject();
+        for (T element : keys) {
+            String displayName = displayNameFunction.apply(element);
             var entry = serializer.deserialize(getMessage(formatKey).replace(
-                    "entry", EnumUtils.pretty(obj),
-                    "count", StringUtils.pretty(storage.count(item))
+                    "entry", displayName,
+                    "count", StringUtils.pretty(countFunction.applyAsInt(element))
             ).content);
 
-            if (obj instanceof Material material) {
-                var key = material.getKey();
-                if (material.isItem()) {
-                    entry = entry.hoverEvent(HoverEvent.showItem(
-                            net.kyori.adventure.key.Key.key(key.getNamespace(), key.getKey()),
-                            1
-                    ));
-                } else {
-                    entry = entry.hoverEvent(HoverEvent.showText(Component.text(EnumUtils.pretty(obj))
+            if (element instanceof ScanObject<?> scanObject) {
+                Object obj = scanObject.getObject();
+
+                if (obj instanceof Material material) {
+                    var key = material.getKey();
+                    if (material.isItem()) {
+                        entry = entry.hoverEvent(HoverEvent.showItem(
+                                net.kyori.adventure.key.Key.key(key.getNamespace(), key.getKey()),
+                                1
+                        ));
+                    } else {
+                        entry = entry.hoverEvent(HoverEvent.showText(Component.text(displayName)
+                                .append(Component.newline())
+                                .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
+                    }
+                } else if (obj instanceof EntityType type) {
+                    var key = type.getKey();
+                    entry = entry.hoverEvent(HoverEvent.showText(Component.text("Type: " + displayName)
                             .append(Component.newline())
                             .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
                 }
-            } else if (obj instanceof EntityType type) {
-                var key = type.getKey();
-                entry = entry.hoverEvent(HoverEvent.showText(Component.text("Type: " + EnumUtils.pretty(obj))
-                        .append(Component.newline())
-                        .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
             }
 
             content.add(entry);
@@ -119,6 +124,7 @@ public class Messages {
         SCAN_START("scan.start"),
         SCAN_ALREADY_SCANNING("scan.already-scanning"),
         SCAN_FINISH_HEADER("scan.finish.header"),
+        SCAN_FINISH_CHUNK_FORMAT("scan.finish.chunk-format"),
         SCAN_FINISH_FORMAT("scan.finish.format"),
         SCAN_FINISH_FOOTER("scan.finish.footer"),
         SCAN_PROGRESS("scan.progress"),
