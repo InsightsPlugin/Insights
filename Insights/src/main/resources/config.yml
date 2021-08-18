@@ -23,6 +23,9 @@ settings:
       done-color: "&a"
       total-color: "&8"
       separator: " "
+  area-scan-notifications:
+    enabled: true
+    permission: ""
   spigot:
     entity-tracker-interval-ticks: 10
   apply-piston-limits: true

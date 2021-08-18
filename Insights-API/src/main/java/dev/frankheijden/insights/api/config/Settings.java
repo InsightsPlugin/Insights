@@ -6,6 +6,7 @@ import dev.frankheijden.insights.api.config.parser.YamlParser;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import java.io.File;
@@ -38,6 +39,8 @@ public class Settings {
     public final String NOTIFICATION_ACTIONBAR_DONE_COLOR;
     public final String NOTIFICATION_ACTIONBAR_TOTAL_COLOR;
     public final String NOTIFICATION_ACTIONBAR_SEPARATOR;
+    public final boolean AREA_SCAN_NOTIFICATIONS_ENABLED;
+    public final String AREA_SCAN_NOTIFICATIONS_PERMISSION;
     public final int SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
     public final boolean APPLY_PISTON_LIMITS;
     public final int PAGINATION_RESULTS_PER_PAGE;
@@ -81,6 +84,9 @@ public class Settings {
         NOTIFICATION_ACTIONBAR_TOTAL_COLOR = parser.getString("settings.notification.actionbar.total-color", "&8");
         NOTIFICATION_ACTIONBAR_SEPARATOR = parser.getString("settings.notification.actionbar.separator", " ");
 
+        AREA_SCAN_NOTIFICATIONS_ENABLED = parser.getBoolean("settings.area-scan-notifications.enabled", true);
+        AREA_SCAN_NOTIFICATIONS_PERMISSION = parser.getString("settings.area-scan-notifications.permission", "");
+
         SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS = parser.getInt("settings.spigot.entity-tracker-interval-ticks", 10, 1, Integer.MAX_VALUE);
         APPLY_PISTON_LIMITS = parser.getBoolean("settings.apply-piston-limits", true);
         PAGINATION_RESULTS_PER_PAGE = parser.getInt("settings.pagination-results-per-page", 6, 1, Integer.MAX_VALUE);
@@ -123,6 +129,10 @@ public class Settings {
         PassiveYamlParser parser = PassiveYamlParser.load(file, defaultSettings);
         Settings settings = new Settings(plugin, parser);
         return parser.toMonad(settings);
+    }
+
+    public boolean canReceiveAreaScanNotifications(Player player) {
+        return AREA_SCAN_NOTIFICATIONS_ENABLED && player.hasPermission(AREA_SCAN_NOTIFICATIONS_PERMISSION);
     }
 
     public enum ChunkScanMode {
