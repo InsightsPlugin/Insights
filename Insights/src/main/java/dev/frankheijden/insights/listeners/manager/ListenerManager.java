@@ -26,6 +26,7 @@ import java.util.Map;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.RegisteredListener;
 
@@ -98,6 +99,10 @@ public class ListenerManager implements InsightsListenerManager {
         disableListeners.add(blockListener);
         disableListeners.add(worldListener);
 
+        if (!plugin.getSettings().REDSTONE_UPDATE_LIMITER_ENABLED) {
+            BlockRedstoneEvent.getHandlerList().unregister(blockListener);
+        }
+
         if (PaperLib.isPaper()) {
             listeners.add(paperEntityListener);
             disableListeners.add(paperBlockListener);
@@ -146,6 +151,10 @@ public class ListenerManager implements InsightsListenerManager {
             }
             listenersToUnregister.forEach(list::unregister);
             listenersToRegister.forEach(list::register);
+        }
+
+        if (!plugin.getSettings().REDSTONE_UPDATE_LIMITER_ENABLED) {
+            BlockRedstoneEvent.getHandlerList().unregister(blockListener);
         }
     }
 

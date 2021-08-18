@@ -22,6 +22,8 @@ public class ChunkListener extends InsightsListener {
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         Chunk chunk = event.getChunk();
-        plugin.getWorldStorage().getWorld(chunk.getWorld().getUID()).remove(ChunkUtils.getKey(chunk));
+        long chunkKey = ChunkUtils.getKey(chunk);
+        plugin.getWorldStorage().getWorld(chunk.getWorld().getUID()).remove(chunkKey);
+        insights.getRedstoneUpdateCount().remove(chunkKey);
     }
 }

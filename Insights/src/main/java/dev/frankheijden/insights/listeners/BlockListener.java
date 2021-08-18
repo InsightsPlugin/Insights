@@ -1,12 +1,14 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.Insights;
+import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.annotations.AllowPriorityOverride;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.MaterialTags;
 import dev.frankheijden.insights.api.utils.BlockUtils;
+import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -28,6 +30,7 @@ import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.block.FluidLevelChangeEvent;
@@ -312,6 +315,30 @@ public class BlockListener extends InsightsListener {
         handleModification(block.getLocation(), Material.SPONGE, Material.WET_SPONGE, 1);
         for (BlockState state : event.getBlocks()) {
             handleModification(state.getLocation(), Material.WATER, state.getType(), 1);
+        }
+    }
+
+    /**
+     * Handles redstone.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onBlockRedstone(BlockRedstoneEvent event) {
+        var block = event.getBlock();
+        var loc = block.getLocation();
+        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(loc);
+
+        int count;
+        if (regionOptional.isPresent()) {
+            count = plugin.getRedstoneUpdateCount().increment(regionOptional.get().getKey());
+        } else if (plugin.getSettings().REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION) {
+            event.setNewCurrent(0);
+            return;
+        } else {
+            count = plugin.getRedstoneUpdateCount().increment(ChunkUtils.getKey(loc));
+        }
+
+        if (count > plugin.getSettings().REDSTONE_UPDATE_LIMITER_LIMIT) {
+            event.setNewCurrent(0);
         }
     }
 }

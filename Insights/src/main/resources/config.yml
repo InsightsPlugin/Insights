@@ -38,3 +38,9 @@ settings:
     EntityPlaceEvent: LOWEST
     BlockPistonExtendEvent: LOWEST
     BlockPistonRetractEvent: LOWEST
+  redstone-update-limiter:
+    enabled: false
+    limit: 50000
+    aggregate-ticks: 10
+    aggregate-size: 30
+    block-outside-region: false

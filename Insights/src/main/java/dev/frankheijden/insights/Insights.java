@@ -11,6 +11,7 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
+import dev.frankheijden.insights.api.concurrent.count.RedstoneUpdateCount;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.ScanHistory;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
@@ -82,6 +83,7 @@ public class Insights extends InsightsPlugin {
     private BukkitTask playerTracker = null;
     private BukkitTask updateChecker = null;
     private BukkitAudiences audiences = null;
+    private RedstoneUpdateCount redstoneUpdateCount;
 
     @Override
     public void onLoad() {
@@ -120,6 +122,8 @@ public class Insights extends InsightsPlugin {
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
         metricsManager = new MetricsManager(this);
         scanHistory = new ScanHistory();
+        redstoneUpdateCount = new RedstoneUpdateCount(this);
+        redstoneUpdateCount.start();
 
         loadCommands();
 
@@ -135,6 +139,7 @@ public class Insights extends InsightsPlugin {
     @Override
     public void onDisable() {
         listenerManager.unregister();
+        redstoneUpdateCount.stop();
         notifications.clearNotifications();
         if (placeholderExpansion != null) {
             placeholderExpansion.unregister();
@@ -147,6 +152,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public ListenerManager getListenerManager() {
         return listenerManager;
+    }
+
+    @Override
+    public RedstoneUpdateCount getRedstoneUpdateCount() {
+        return redstoneUpdateCount;
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {
