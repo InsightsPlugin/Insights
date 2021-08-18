@@ -5,6 +5,7 @@ import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.ChunkStorage;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
+import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.config.LimitEnvironment;
@@ -353,14 +354,23 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     private void scanRegion(Player player, Region region, Consumer<Storage> storageConsumer) {
         // Submit the cuboid for scanning
         plugin.getAddonScanTracker().add(region.getAddon());
-        ScanTask.scan(plugin, player, region.toChunkParts(), ScanOptions.scanOnly(), storage -> {
-            plugin.getAddonScanTracker().remove(region.getAddon());
+        ScanTask.scan(
+                plugin,
+                player,
+                region.toChunkParts(),
+                ScanOptions.scanOnly(),
+                player.hasPermission("insights.notifications"),
+                DistributionStorage::new,
+                (storage, loc, acc) -> storage.mergeRight(acc),
+                storage -> {
+                    plugin.getAddonScanTracker().remove(region.getAddon());
 
-            // Store the cuboid
-            plugin.getAddonStorage().put(region.getKey(), storage);
+                    // Store the cuboid
+                    plugin.getAddonStorage().put(region.getKey(), storage);
 
-            // Give the result back to the consumer
-            storageConsumer.accept(storage);
-        });
+                    // Give the result back to the consumer
+                    storageConsumer.accept(storage);
+                }
+        );
     }
 }

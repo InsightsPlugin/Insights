@@ -112,34 +112,12 @@ public class ScanTask<R> implements Runnable {
      * Notifies the user with a ProgressNotification for the task.
      * When this task completes, the consumer is called on the main thread.
      */
-    public static void scan(
-            InsightsPlugin plugin,
-            Player player,
-            Collection<? extends ChunkPart> chunkParts,
-            ScanOptions options,
-            Consumer<DistributionStorage> distributionConsumer
-    ) {
-        scan(
-                plugin,
-                player,
-                chunkParts,
-                options,
-                DistributionStorage::new,
-                (storage, loc, acc) -> storage.mergeRight(acc),
-                distributionConsumer
-        );
-    }
-
-    /**
-     * Creates a new ScanTask to scan a collection of ChunkPart's.
-     * Notifies the user with a ProgressNotification for the task.
-     * When this task completes, the consumer is called on the main thread.
-     */
     public static <R> void scan(
             InsightsPlugin plugin,
             Player player,
             Collection<? extends ChunkPart> chunkParts,
             ScanOptions options,
+            boolean notify,
             Supplier<R> resultSupplier,
             TriConsumer<Storage, ChunkLocation, R> resultMerger,
             Consumer<R> resultConsumer
@@ -149,7 +127,9 @@ public class ScanTask<R> implements Runnable {
                 player.getUniqueId(),
                 Messages.Key.SCAN_PROGRESS
         );
-        notification.add(player);
+        if (notify) {
+            notification.add(player);
+        }
 
         new ScanTask<>(
                 plugin,
@@ -157,6 +137,8 @@ public class ScanTask<R> implements Runnable {
                 options,
                 plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
                 info -> {
+                    if (!notify) return;
+
                     // Update the notification with progress
                     double progress = (double) info.getChunksDone() / (double) info.getChunks();
                     notification.progress(progress)
@@ -273,6 +255,7 @@ public class ScanTask<R> implements Runnable {
                 player,
                 chunkParts,
                 options,
+                true,
                 resultSupplier,
                 resultMerger,
                 resultConsumer.andThen(r -> scanners.remove(uuid))
