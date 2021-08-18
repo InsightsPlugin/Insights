@@ -12,6 +12,7 @@ import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import dev.frankheijden.insights.api.utils.Constants;
+import dev.frankheijden.insights.api.utils.EnumUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import java.util.Arrays;
@@ -110,8 +111,9 @@ public class CommandScanCache extends InsightsCommand {
                     messages.getMessage(Messages.Key.SCANCACHE_RESULT_HEADER),
                     Messages.Key.SCANCACHE_RESULT_FORMAT,
                     footer,
-                    storage,
-                    displayItems
+                    displayItems,
+                    storage::count,
+                    item -> EnumUtils.pretty(item.getObject())
             );
 
             plugin.getScanHistory().setHistory(player.getUniqueId(), message);

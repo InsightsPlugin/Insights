@@ -11,6 +11,7 @@ import dev.frankheijden.insights.api.utils.Constants;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import io.leangen.geantyref.TypeToken;
 import org.bukkit.command.CommandSender;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -54,12 +55,19 @@ public class ScanObjectArrayArgument extends CommandArgument<CommandSender, Scan
             }
 
             try {
-                ScanObject<?>[] items = new ScanObject[inputQueue.size()];
-                for (int i = 0; i < items.length; i++) {
-                    items[i] = ScanObject.parse(inputQueue.peek());
+                List<ScanObject<?>> items = new ArrayList<>(inputQueue.size());
+                for (var i = 0; i < (inputQueue.size() - 1); i++) {
+                    items.add(ScanObject.parse(inputQueue.peek()));
                     inputQueue.remove();
                 }
-                return ArgumentParseResult.success(items);
+
+                String last = inputQueue.peek();
+                if (!last.equalsIgnoreCase("-c") && !last.equalsIgnoreCase("--group-by-chunk")) {
+                    items.add(ScanObject.parse(last));
+                    inputQueue.remove();
+                }
+
+                return ArgumentParseResult.success(items.toArray(ScanObject[]::new));
             } catch (IllegalArgumentException ex) {
                 return ArgumentParseResult.failure(new IllegalArgumentException(
                         "Invalid Material '" + inputQueue.peek() + "'"

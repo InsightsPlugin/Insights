@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.concurrent.storage;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -27,5 +28,13 @@ public class ChunkStorage {
 
     public void remove(long chunkKey) {
         distributionMap.remove(chunkKey);
+    }
+
+    public Collection<Storage> values() {
+        return distributionMap.values();
+    }
+
+    public Set<Map.Entry<Long, Storage>> entrySet() {
+        return distributionMap.entrySet();
     }
 }
