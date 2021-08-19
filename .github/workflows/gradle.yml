@@ -23,15 +23,12 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/Insights/.gradle/caches
-            ~/Insights-API/.gradle/caches
+            ~/**/.gradle
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build
-        run: ./gradlew build --stacktrace
+        run: ./gradlew clean build --stacktrace
       - name: Upload artififacts
         uses: actions/upload-artifact@v2.2.1
         with:
