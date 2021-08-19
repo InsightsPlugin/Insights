@@ -1,25 +1,32 @@
 package dev.frankheijden.insights.api.reflection;
 
-import dev.frankheijden.minecraftreflection.MinecraftReflection;
-import dev.frankheijden.minecraftreflection.Reflection;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityPersistentStorage;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 
 public class RPersistentEntitySectionManager {
 
-    private static final MinecraftReflection reflection = MinecraftReflection.of(PersistentEntitySectionManager.class);
-
     private static MethodHandle permanentStorageMethodHandle;
 
     static {
         try {
-            permanentStorageMethodHandle = MethodHandles.lookup().unreflectGetter(Reflection.getAccessibleField(
-                    reflection.getClazz(),
-                    "d"
-            ));
+            Field permanentStorageField = null;
+            for (Field field : PersistentEntitySectionManager.class.getDeclaredFields()) {
+                if (field.getType().equals(EntityPersistentStorage.class)) {
+                    permanentStorageField = field;
+                    break;
+                }
+            }
+
+            if (permanentStorageField == null) {
+                throw new IllegalStateException("Could not find field PersistentEntitySectionManager#permanentStorage");
+            }
+
+            permanentStorageField.setAccessible(true);
+            permanentStorageMethodHandle = MethodHandles.lookup().unreflectGetter(permanentStorageField);
         } catch (Throwable th) {
             th.printStackTrace();
         }
@@ -29,8 +36,8 @@ public class RPersistentEntitySectionManager {
 
     @SuppressWarnings("unchecked")
     public static EntityPersistentStorage<Entity> getPermanentStorage(
-            Object persistentEntitySectionManager
+            PersistentEntitySectionManager<Entity> entityManager
     ) throws Throwable {
-        return (EntityPersistentStorage<Entity>) permanentStorageMethodHandle.invoke(persistentEntitySectionManager);
+        return (EntityPersistentStorage<Entity>) permanentStorageMethodHandle.invoke(entityManager);
     }
 }

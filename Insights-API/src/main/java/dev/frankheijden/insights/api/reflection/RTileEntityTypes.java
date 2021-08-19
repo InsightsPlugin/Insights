@@ -26,7 +26,9 @@ public class RTileEntityTypes {
     static {
         Map<Material, BlockState> blockStateMap = new EnumMap<>(Material.class);
         for (Material m : Material.values()) {
-            blockStateMap.put(m, ((CraftBlockData) Bukkit.createBlockData(m)).getState());
+            if (m.isBlock()) {
+                blockStateMap.put(m, ((CraftBlockData) Bukkit.createBlockData(m)).getState());
+            }
         }
 
         Set<Material> materials = new HashSet<>();
