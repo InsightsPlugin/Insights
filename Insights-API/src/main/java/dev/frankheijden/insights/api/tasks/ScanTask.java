@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -32,7 +31,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class ScanTask<R> implements Runnable {
 
@@ -188,10 +186,10 @@ public class ScanTask<R> implements Runnable {
                     var messages = plugin.getMessages();
 
                     // Check which items we need to display & sort them based on their name.
-                    List<ScanObject<?>> displayItems = (items == null ? storage.keys() : items).stream()
+                    ScanObject<?>[] displayItems = (items == null ? storage.keys() : items).stream()
                             .filter(item -> storage.count(item) != 0 || displayZeros)
                             .sorted(Comparator.comparing(ScanObject::name))
-                            .collect(Collectors.toList());
+                            .toArray(ScanObject[]::new);
 
                     var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).replace(
                             "chunks", StringUtils.pretty(chunkCount),
@@ -292,9 +290,9 @@ public class ScanTask<R> implements Runnable {
                     var messages = plugin.getMessages();
 
                     // Check which items we need to display & sort them based on their name.
-                    List<Long> keys = chunkStorage.entrySet().stream()
+                    Long[] keys = chunkStorage.entrySet().stream()
                             .filter(entry -> {
-                                Storage storage = entry.getValue();
+                                var storage = entry.getValue();
                                 return displayZeros || storage.count(items == null ? storage.keys() : items) != 0;
                             })
                             .sorted(Comparator.<Map.Entry<Long, Storage>>comparingInt(entry -> {
@@ -302,7 +300,7 @@ public class ScanTask<R> implements Runnable {
                                 return storage.count(items == null ? storage.keys() : items);
                             }).reversed())
                             .map(Map.Entry::getKey)
-                            .toList();
+                            .toArray(Long[]::new);
 
                     int blockCount = chunkStorage.values()
                             .stream()
@@ -320,18 +318,18 @@ public class ScanTask<R> implements Runnable {
                             "time", StringUtils.pretty(Duration.ofMillis(millis))
                     );
 
-                    var message = messages.createPaginatedMessage(
+                    var message = messages.<Long>createPaginatedMessage(
                             messages.getMessage(Messages.Key.SCAN_FINISH_HEADER),
                             Messages.Key.SCAN_FINISH_FORMAT,
                             footer,
                             keys,
                             key -> {
-                                Storage storage = chunkStorage.get(key).get();
+                                var storage = chunkStorage.get(key).get();
                                 return storage.count(items == null ? storage.keys() : items);
                             },
                             key -> {
-                                String x = Integer.toString(ChunkUtils.getX(key));
-                                String z = Integer.toString(ChunkUtils.getZ(key));
+                                var x = Integer.toString(ChunkUtils.getX(key));
+                                var z = Integer.toString(ChunkUtils.getZ(key));
 
                                 return messages.getMessage(Messages.Key.SCAN_FINISH_CHUNK_FORMAT).replace(
                                         "chunk-x", x,

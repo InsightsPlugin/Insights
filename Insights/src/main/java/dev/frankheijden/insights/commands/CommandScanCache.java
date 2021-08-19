@@ -18,10 +18,8 @@ import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class CommandScanCache extends InsightsCommand {
 
@@ -97,10 +95,10 @@ public class CommandScanCache extends InsightsCommand {
             var messages = plugin.getMessages();
 
             // Check which items we need to display & sort them based on their name.
-            List<ScanObject<?>> displayItems = (items == null ? storage.keys() : items).stream()
+            ScanObject<?>[] displayItems = (items == null ? storage.keys() : items).stream()
                     .filter(item -> storage.count(item) != 0 || displayZeros)
                     .sorted(Comparator.comparing(ScanObject::name))
-                    .collect(Collectors.toList());
+                    .toArray(ScanObject[]::new);
 
             var footer = messages.getMessage(Messages.Key.SCANCACHE_RESULT_FOOTER).replace(
                     "area", optionalRegion.map(r -> plugin.getAddonManager().getAddon(r.getAddon()).getAreaName())
