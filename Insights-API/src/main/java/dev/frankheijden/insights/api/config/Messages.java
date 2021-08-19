@@ -8,6 +8,7 @@ import dev.frankheijden.insights.api.utils.PlayerUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -51,55 +52,56 @@ public class Messages {
     /**
      * Creates a paginated message from a DistributionStorage.
      */
-    public <T> PaginatedMessage createPaginatedMessage(
+    public <T> PaginatedMessage<T> createPaginatedMessage(
             Message header,
             Key formatKey,
             Message footer,
-            List<T> keys,
+            T[] keys,
             ToIntFunction<T> countFunction,
             Function<T, String> displayNameFunction
     ) {
-        List<Component> content = new ArrayList<>(keys.size());
-
         var serializer = LegacyComponentSerializer.legacyAmpersand();
-        for (T element : keys) {
-            String displayName = displayNameFunction.apply(element);
-            var entry = serializer.deserialize(getMessage(formatKey).replace(
-                    "entry", displayName,
-                    "count", StringUtils.pretty(countFunction.applyAsInt(element))
-            ).content);
+        return new PaginatedMessage<>(
+                header,
+                footer,
+                keys,
+                element -> {
+                    String displayName = displayNameFunction.apply(element);
+                    var component = serializer.deserialize(getMessage(formatKey).replace(
+                            "entry", displayName,
+                            "count", StringUtils.pretty(countFunction.applyAsInt(element))
+                    ).content);
 
-            if (element instanceof ScanObject<?> scanObject) {
-                Object obj = scanObject.getObject();
+                    return addHover(component, element, displayName);
+                },
+                plugin.getSettings().PAGINATION_RESULTS_PER_PAGE
+        );
+    }
 
-                if (obj instanceof Material material) {
-                    var key = material.getKey();
-                    if (material.isItem()) {
-                        entry = entry.hoverEvent(HoverEvent.showItem(
-                                net.kyori.adventure.key.Key.key(key.getNamespace(), key.getKey()),
-                                1
-                        ));
-                    } else {
-                        entry = entry.hoverEvent(HoverEvent.showText(Component.text(displayName)
-                                .append(Component.newline())
-                                .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
-                    }
-                } else if (obj instanceof EntityType type) {
-                    var key = type.getKey();
-                    entry = entry.hoverEvent(HoverEvent.showText(Component.text("Type: " + displayName)
+    private <T> TextComponent addHover(TextComponent component, T element, String displayName) {
+        if (element instanceof ScanObject<?> scanObject) {
+            Object obj = scanObject.getObject();
+
+            if (obj instanceof Material material) {
+                var key = material.getKey();
+                if (material.isItem()) {
+                    return component.hoverEvent(HoverEvent.showItem(
+                            net.kyori.adventure.key.Key.key(key.getNamespace(), key.getKey()),
+                            1
+                    ));
+                } else {
+                    return component.hoverEvent(HoverEvent.showText(Component.text(displayName)
                             .append(Component.newline())
                             .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
                 }
+            } else if (obj instanceof EntityType type) {
+                var key = type.getKey();
+                return component.hoverEvent(HoverEvent.showText(Component.text("Type: " + displayName)
+                        .append(Component.newline())
+                        .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
             }
-
-            content.add(entry);
         }
-
-        return new PaginatedMessage(header, footer, content, plugin.getSettings().PAGINATION_RESULTS_PER_PAGE);
-    }
-
-    public void close() {
-        this.audiences.close();
+        return component;
     }
 
     public static Messages load(
@@ -240,7 +242,7 @@ public class Messages {
         }
     }
 
-    public class PaginatedMessage {
+    public class PaginatedMessage<T> {
 
         private enum ButtonType {
             LEFT(Key.PAGINATION_BUTTON_LEFT),
@@ -256,18 +258,26 @@ public class Messages {
 
         private final Message header;
         private final Message footer;
-        private final List<Component> content;
+        private final T[] elements;
+        private final Function<T, Component> elementFormatFunction;
         private final int amountPerPage;
 
-        private PaginatedMessage(Message header, Message footer, List<Component> content, int amountPerPage) {
+        private PaginatedMessage(
+                Message header,
+                Message footer,
+                T[] elements,
+                Function<T, Component> elementFormatFunction,
+                int amountPerPage
+        ) {
             this.header = header;
             this.footer = footer;
-            this.content = content;
+            this.elements = elements;
+            this.elementFormatFunction = elementFormatFunction;
             this.amountPerPage = amountPerPage;
         }
 
         public int getPageAmount() {
-            return (int) Math.ceil((double) this.content.size() / this.amountPerPage);
+            return (int) Math.ceil((double) this.elements.length / this.amountPerPage);
         }
 
         private Component createFooter(int page) {
@@ -315,27 +325,24 @@ public class Messages {
          * Sends a page of the paginated result.
          */
         public void sendTo(CommandSender sender, int page) {
-            int offsetStart = this.amountPerPage * page;
-            int offsetEnd = Math.min(offsetStart + this.amountPerPage, content.size());
-
-            if (offsetStart >= content.size()) {
+            int offsetStart = amountPerPage * page;
+            int offsetEnd = Math.min(offsetStart + amountPerPage, elements.length);
+            if (offsetStart >= elements.length) {
                 getMessage(Key.PAGINATION_NO_PAGE).color().sendTo(sender);
                 return;
             }
 
-            var component = Component.empty().toBuilder();
-            var serializer = LegacyComponentSerializer.legacyAmpersand();
-
-            component.append(serializer.deserialize(header.content)).append(Component.newline());
-
-            for (int i = offsetStart; i < offsetEnd; i++) {
-                component.append(content.get(i)).append(Component.newline());
+            List<Component> components = new ArrayList<>(amountPerPage);
+            for (var i = offsetStart; i < offsetEnd; i++) {
+                components.add(elementFormatFunction.apply(elements[i]));
             }
 
-            component.append(serializer.deserialize(footer.content)).append(Component.newline());
-            component.append(createFooter(page));
+            var audience = audiences.sender(sender);
 
-            audiences.sender(sender).sendMessage(component);
+            header.color().sendTo(sender);
+            components.forEach(audience::sendMessage);
+            footer.color().sendTo(sender);
+            audience.sendMessage(createFooter(page));
         }
     }
 }

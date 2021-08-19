@@ -160,7 +160,14 @@ public class ListenerManager implements InsightsListenerManager {
 
     @Override
     public void unregister() {
-        HandlerList.unregisterAll(plugin);
+        HandlerList.unregisterAll(playerListener);
+        HandlerList.unregisterAll(chunkListener);
+        HandlerList.unregisterAll(blockListener);
+        HandlerList.unregisterAll(worldListener);
+        if (paperEntityListener != null) HandlerList.unregisterAll(paperEntityListener);
+        if (paperBlockListener != null) HandlerList.unregisterAll(paperBlockListener);
+        if (entityListener != null) HandlerList.unregisterAll(entityListener);
+        HandlerList.unregisterAll(pistonListener);
     }
 
     @Override
