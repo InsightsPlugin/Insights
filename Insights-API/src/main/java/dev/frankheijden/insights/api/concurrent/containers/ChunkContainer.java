@@ -4,25 +4,22 @@ import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
-import dev.frankheijden.insights.api.reflection.RCraftMagicNumbers;
-import dev.frankheijden.insights.api.reflection.RCraftWorld;
-import dev.frankheijden.insights.api.reflection.REntitySection;
 import dev.frankheijden.insights.api.reflection.RPersistentEntitySectionManager;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
-import net.minecraft.server.level.WorldServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.ChunkCoordIntPair;
-import net.minecraft.world.level.chunk.ChunkSection;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.entity.EntitySection;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.EntityType;
-import org.bukkit.util.NumberConversions;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class ChunkContainer implements SupplierContainer<DistributionStorage> {
 
@@ -67,7 +64,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         return cuboid;
     }
 
-    public abstract ChunkSection[] getChunkSections() throws Throwable;
+    public abstract LevelChunkSection[] getChunkSections() throws Throwable;
 
     @Override
     public DistributionStorage get() {
@@ -81,10 +78,10 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         int blockMaxY = max.getY();
 
         try {
-            WorldServer serverLevel = RCraftWorld.getServerLevel(world);
+            ServerLevel serverLevel = ((CraftWorld) world).getHandle();
 
             if (options.materials()) {
-                ChunkSection[] chunkSections = getChunkSections();
+                LevelChunkSection[] chunkSections = getChunkSections();
 
                 int minSectionY = blockMinY >> 4;
                 int maxSectionY = blockMaxY >> 4;
@@ -93,17 +90,20 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                     int minY = sectionY == minSectionY ? blockMinY & 15 : 0;
                     int maxY = sectionY == maxSectionY ? blockMaxY & 15 : 15;
 
-                    ChunkSection section = chunkSections[sectionY];
+                    LevelChunkSection section = chunkSections[sectionY];
                     if (section == null) {
                         // Section is empty, count everything as air
                         int count = (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
                         materialMap.merge(Material.AIR, count, Integer::sum);
                     } else if (minX == 0 && maxX == 15 && minY == 0 && maxY == 15 && minZ == 0 && maxZ == 15) {
                         // Section can be counted as a whole
-                        section.getBlocks().a((state, count) -> {
+                        section.getStates().count((state, count) -> {
                             try {
-                                var material = RCraftMagicNumbers.getMaterial(state.getBlock());
-                                materialMap.merge(material, count, Integer::sum);
+                                materialMap.merge(
+                                        CraftMagicNumbers.getMaterial(state.getBlock()),
+                                        count,
+                                        Integer::sum
+                                );
                             } catch (Throwable th) {
                                 th.printStackTrace();
                             }
@@ -113,8 +113,11 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                         for (int x = minX; x <= maxX; x++) {
                             for (int y = minY; y <= maxY; y++) {
                                 for (int z = minZ; z <= maxZ; z++) {
-                                    var material = RCraftMagicNumbers.getMaterial(section.getType(x, y, z).getBlock());
-                                    materialMap.merge(material, 1, Integer::sum);
+                                    materialMap.merge(
+                                            CraftMagicNumbers.getMaterial(section.getBlockState(x, y, z).getBlock()),
+                                            1,
+                                            Integer::sum
+                                    );
                                 }
                             }
                         }
@@ -123,29 +126,27 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
             }
 
             if (options.entities()) {
-                PersistentEntitySectionManager<Entity> entityManager = serverLevel.G;
+                PersistentEntitySectionManager<Entity> entityManager = serverLevel.entityManager;
 
-                Consumer<Entity> entityConsumer = entity -> {
-                    int x = NumberConversions.floor(entity.locX()) & 15;
-                    int y = NumberConversions.floor(entity.locY());
-                    int z = NumberConversions.floor(entity.locZ()) & 15;
-                    if (minX <= x && x <= maxX && blockMinY <= y && y <= blockMaxY && minZ <= z && z <= maxZ) {
-                        entityMap.merge(entity.getBukkitEntity().getType(), 1, Integer::sum);
-                    }
-                };
-
-                if (entityManager.a(getChunkKey())) {
-                    var entitySections = RPersistentEntitySectionManager.getSectionStorage(entityManager)
-                            .b(getChunkKey())
-                            .collect(Collectors.toList());
-
-                    for (EntitySection<Entity> entitySection : entitySections) {
-                        REntitySection.iterate(entitySection, entityConsumer);
-                    }
+                long chunkKey = getChunkKey();
+                final Stream<Entity> entityStream;
+                if (entityManager.areEntitiesLoaded(chunkKey)) {
+                    entityStream = entityManager.sectionStorage
+                            .getExistingSectionsInChunk(chunkKey)
+                            .flatMap(EntitySection::getEntities);
                 } else {
-                    RPersistentEntitySectionManager.getPermanentStorage(entityManager)
-                            .a(new ChunkCoordIntPair(chunkX, chunkZ)).join().b().forEach(entityConsumer);
+                    entityStream = RPersistentEntitySectionManager.getPermanentStorage(entityManager)
+                            .loadEntities(new ChunkPos(chunkX, chunkZ))
+                            .join()
+                            .getEntities();
                 }
+
+                entityStream.filter(entity -> {
+                    int x = entity.getBlockX() & 15;
+                    int y = entity.getBlockY();
+                    int z = entity.getBlockZ() & 15;
+                    return minX <= x && x <= maxX && blockMinY <= y && y <= blockMaxY && minZ <= z && z <= maxZ;
+                }).forEach(entity -> entityMap.merge(entity.getBukkitEntity().getType(), 1, Integer::sum));
             }
         } catch (Throwable th) {
             th.printStackTrace();

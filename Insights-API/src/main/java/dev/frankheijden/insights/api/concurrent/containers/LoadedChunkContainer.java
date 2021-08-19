@@ -2,9 +2,9 @@ package dev.frankheijden.insights.api.concurrent.containers;
 
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
-import dev.frankheijden.insights.api.reflection.RCraftChunk;
-import net.minecraft.world.level.chunk.ChunkSection;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.bukkit.Chunk;
+import org.bukkit.craftbukkit.v1_17_R1.CraftChunk;
 
 public class LoadedChunkContainer extends ChunkContainer {
 
@@ -20,8 +20,7 @@ public class LoadedChunkContainer extends ChunkContainer {
     }
 
     @Override
-    public ChunkSection[] getChunkSections() {
-        net.minecraft.world.level.chunk.Chunk nmsChunk = RCraftChunk.getReflection().invoke(chunk, "getHandle");
-        return nmsChunk.getSections();
+    public LevelChunkSection[] getChunkSections() {
+        return ((CraftChunk) chunk).getHandle().getSections();
     }
 }
