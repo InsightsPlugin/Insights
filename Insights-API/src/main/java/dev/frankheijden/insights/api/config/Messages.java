@@ -98,10 +98,6 @@ public class Messages {
         return new PaginatedMessage(header, footer, content, plugin.getSettings().PAGINATION_RESULTS_PER_PAGE);
     }
 
-    public void close() {
-        this.audiences.close();
-    }
-
     public static Messages load(
             InsightsPlugin plugin,
             BukkitAudiences audiences,
@@ -323,19 +319,19 @@ public class Messages {
                 return;
             }
 
-            var component = Component.empty().toBuilder();
+            var builder = Component.empty().toBuilder();
             var serializer = LegacyComponentSerializer.legacyAmpersand();
 
-            component.append(serializer.deserialize(header.content)).append(Component.newline());
+            builder.append(serializer.deserialize(header.content)).append(Component.newline());
 
             for (int i = offsetStart; i < offsetEnd; i++) {
-                component.append(content.get(i)).append(Component.newline());
+                builder.append(content.get(i)).append(Component.newline());
             }
 
-            component.append(serializer.deserialize(footer.content)).append(Component.newline());
-            component.append(createFooter(page));
+            builder.append(serializer.deserialize(footer.content)).append(Component.newline());
+            builder.append(createFooter(page));
 
-            audiences.sender(sender).sendMessage(component);
+            audiences.sender(sender).sendMessage(builder);
         }
     }
 }
