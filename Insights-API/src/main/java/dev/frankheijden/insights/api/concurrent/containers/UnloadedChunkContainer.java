@@ -2,13 +2,12 @@ package dev.frankheijden.insights.api.concurrent.containers;
 
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
-import dev.frankheijden.insights.api.reflection.RCraftWorld;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.level.ChunkCoordIntPair;
-import net.minecraft.world.level.chunk.ChunkSection;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 
 public class UnloadedChunkContainer extends ChunkContainer {
 
@@ -20,28 +19,27 @@ public class UnloadedChunkContainer extends ChunkContainer {
     }
 
     @Override
-    public ChunkSection[] getChunkSections() throws Throwable {
-        WorldServer serverLevel = RCraftWorld.getServerLevel(world);
+    public LevelChunkSection[] getChunkSections() throws Throwable {
+        var serverLevel = ((CraftWorld) world).getHandle();
 
         int sectionsCount = serverLevel.getSectionsCount();
-        var chunkSections = new ChunkSection[sectionsCount];
+        var chunkSections = new LevelChunkSection[sectionsCount];
 
-        NBTTagCompound nbt = serverLevel.getChunkProvider().a.read(new ChunkCoordIntPair(chunkX, chunkZ));
-        if (nbt == null) return chunkSections;
+        CompoundTag tag = serverLevel.getChunkSource().chunkMap.read(new ChunkPos(chunkX, chunkZ));
+        if (tag == null) return chunkSections;
 
-        NBTTagCompound levelNbt = nbt.getCompound("Level");
-        NBTTagList sectionsNbtList = levelNbt.getList("Sections", 10);
+        CompoundTag levelTag = tag.getCompound("Level");
+        ListTag sectionsTagList = levelTag.getList("Sections", 10);
 
-        for (var i = 0; i < sectionsNbtList.size(); i++) {
-            NBTTagCompound sectionNbt = sectionsNbtList.getCompound(i);
-            var chunkSectionPart = sectionNbt.getByte("Y");
+        for (var i = 0; i < sectionsTagList.size(); i++) {
+            CompoundTag sectionTag = sectionsTagList.getCompound(i);
+            var chunkSectionPart = sectionTag.getByte("Y");
 
-            if (sectionNbt.hasKeyOfType("Palette", 9) && sectionNbt.hasKeyOfType("BlockStates", 12)) {
-                var chunkSection = new ChunkSection(chunkSectionPart);
-
-                chunkSection.getBlocks().a(
-                        sectionNbt.getList("Palette", 10),
-                        sectionNbt.getLongArray("BlockStates")
+            if (sectionTag.contains("Palette", 9) && sectionTag.contains("BlockStates", 12)) {
+                var chunkSection = new LevelChunkSection(chunkSectionPart, null, null, true);
+                chunkSection.getStates().read(
+                        sectionTag.getList("Palette", 10),
+                        sectionTag.getLongArray("BlockStates")
                 );
                 chunkSections[serverLevel.getSectionIndexFromSectionY(chunkSectionPart)] = chunkSection;
             }
