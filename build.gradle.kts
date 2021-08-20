@@ -124,7 +124,12 @@ publishing {
     repositories {
         maven {
             name = "fvdh"
-            url = uri("https://repo.fvdh.dev/snapshots")
+            url = if (version.toString().endsWith("-SNAPSHOT")) {
+                uri("https://repo.fvdh.dev/snapshots")
+            } else {
+                uri("https://repo.fvdh.dev/releases")
+            }
+
             credentials {
                 username = System.getenv("FVDH_USERNAME")
                 password = System.getenv("FVDH_TOKEN")
