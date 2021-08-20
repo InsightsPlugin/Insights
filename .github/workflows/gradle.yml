@@ -34,3 +34,9 @@ jobs:
         with:
           name: Insights
           path: jars/*.jar
+      - name: Publish
+        if: ${{ github.event_name == 'push' }}
+        env:
+          FVDH_USERNAME: ${{ secrets.FVDH_USERNAME }}
+          FVDH_TOKEN: ${{ secrets.FVDH_TOKEN }}
+        run: ./gradlew publish --stacktrace
