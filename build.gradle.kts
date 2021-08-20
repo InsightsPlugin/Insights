@@ -2,6 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     `java-library`
+    `maven-publish`
     id("com.github.johnrengelman.shadow") version "7.0.0"
     id("io.papermc.paperweight.userdev") version "1.1.11"
 }
@@ -108,4 +109,33 @@ tasks.register<Copy>("copyJars") {
     })
     into(file("jars"))
     rename("(.+)Parent(.+)", "$1$2")
+}
+
+val artifactFile = tasks.findByPath("reobfJar")!!.outputs.files.singleFile
+val artifact = artifacts.add("archives", artifactFile) {
+    type = "jar"
+    name = name.replace("Parent", "")
+    group = rootProject.group
+    version = rootProject.version
+    builtBy("reobfJar")
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "fvdh"
+            url = uri("https://repo.fvdh.dev/snapshots")
+            credentials {
+                username = System.getenv("FVDH_USERNAME")
+                password = System.getenv("FVDH_TOKEN")
+            }
+        }
+    }
+
+    publications {
+        create<MavenPublication>("Insights") {
+            artifact(artifact)
+            artifactId = "Insights"
+        }
+    }
 }
