@@ -82,30 +82,43 @@ There are two ways to compile Insights:
 
 ## Developer API
 ### Repository / Dependency
-Please use the following maven repository:
+If you wish to use snapshot version of Insights, you can use the following repo:
+```
+https://repo.fvdh.dev/snapshots
+```
+
 #### Gradle:
-```groovy
-maven { url 'https://jitpack.io' }
+```kotlin
+repositories {
+  compileOnly("dev.frankheijden.insights:Insights:VERSION")
+}
+
+dependencies {
+  maven("https://repo.fvdh.dev/releases")
+}
 ```
-and as dependency:
-```groovy
-compileOnly 'com.github.InsightsPlugin:Insights:VERSION'
-```
+
 #### Maven:
 ```xml
-<repository>
-    <id>jitpack.io</id>
-    <url>https://jitpack.io</url>
-</repository>
-```
-and as dependency:
-```xml
-<dependency>
-    <groupId>com.github.InsightsPlugin</groupId>
-    <artifactId>Insights</artifactId>
-    <version>VERSION</version>
-    <scope>provided</scope>
-</dependency>
+<project>
+  <repositories>
+    <!-- Insights repo -->
+    <repository>
+      <id>fvdh</id>
+      <url>https://repo.fvdh.dev/releases</url>
+    </repository>
+  </repositories>
+  
+  <dependencies>
+    <!-- Insights dependency -->
+    <dependency>
+      <groupId>dev.frankheijden.insights</groupId>
+      <artifactId>Insights</artifactId>
+      <version>VERSION</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>
 ```
 
 ### Addons
