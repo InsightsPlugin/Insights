@@ -55,9 +55,9 @@ public class ScanObjectArrayArgument extends CommandArgument<CommandSender, Scan
             }
 
             try {
-                int queueSize = inputQueue.size() - 1;
+                int queueSize = inputQueue.size();
                 List<ScanObject<?>> items = new ArrayList<>(queueSize);
-                for (var i = 0; i < queueSize; i++) {
+                for (var i = 0; i < (queueSize - 1); i++) {
                     items.add(ScanObject.parse(inputQueue.peek()));
                     inputQueue.remove();
                 }
