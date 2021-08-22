@@ -3,7 +3,6 @@ package dev.frankheijden.insights.api.tasks;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
-import dev.frankheijden.insights.api.concurrent.storage.ChunkStorage;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.Messages;
@@ -12,7 +11,6 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.TriConsumer;
-import dev.frankheijden.insights.api.utils.ChunkUtils;
 import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import org.bukkit.entity.Player;
@@ -28,6 +26,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -280,9 +279,9 @@ public class ScanTask<R> implements Runnable {
                 player,
                 chunkParts,
                 options,
-                ChunkStorage::new,
-                (storage, loc, chunkStorage) -> chunkStorage.put(loc.getKey(), storage),
-                chunkStorage -> {
+                (Supplier<ConcurrentHashMap<ChunkLocation, Storage>>) ConcurrentHashMap::new,
+                (storage, loc, map) -> map.put(loc, storage),
+                map -> {
                     // The time it took to generate the results
                     @SuppressWarnings("VariableDeclarationUsageDistance")
                     long millis = (System.nanoTime() - start) / 1000000L;
@@ -290,23 +289,23 @@ public class ScanTask<R> implements Runnable {
                     var messages = plugin.getMessages();
 
                     // Check which items we need to display & sort them based on their name.
-                    Long[] keys = chunkStorage.entrySet().stream()
+                    ChunkLocation[] keys = map.entrySet().stream()
                             .filter(entry -> {
                                 var storage = entry.getValue();
                                 return displayZeros || storage.count(items == null ? storage.keys() : items) != 0;
                             })
-                            .sorted(Comparator.<Map.Entry<Long, Storage>>comparingInt(entry -> {
+                            .sorted(Comparator.<Map.Entry<ChunkLocation, Storage>>comparingInt(entry -> {
                                 var storage = entry.getValue();
                                 return storage.count(items == null ? storage.keys() : items);
                             }).reversed())
                             .map(Map.Entry::getKey)
-                            .toArray(Long[]::new);
+                            .toArray(ChunkLocation[]::new);
 
-                    int blockCount = chunkStorage.values()
+                    int blockCount = map.values()
                             .stream()
                             .mapToInt(storage -> storage.count(i -> i.getType() == ScanObject.Type.MATERIAL))
                             .sum();
-                    int entityCount = chunkStorage.values()
+                    int entityCount = map.values()
                             .stream()
                             .mapToInt(storage -> storage.count(i -> i.getType() == ScanObject.Type.ENTITY))
                             .sum();
@@ -318,23 +317,25 @@ public class ScanTask<R> implements Runnable {
                             "time", StringUtils.pretty(Duration.ofMillis(millis))
                     );
 
-                    var message = messages.<Long>createPaginatedMessage(
+                    var message = messages.<ChunkLocation>createPaginatedMessage(
                             messages.getMessage(Messages.Key.SCAN_FINISH_HEADER),
                             Messages.Key.SCAN_FINISH_FORMAT,
                             footer,
                             keys,
                             key -> {
-                                var storage = chunkStorage.get(key).get();
+                                var storage = map.get(key);
                                 return storage.count(items == null ? storage.keys() : items);
                             },
                             key -> {
-                                var x = Integer.toString(ChunkUtils.getX(key));
-                                var z = Integer.toString(ChunkUtils.getZ(key));
+                                var worldName = key.getWorld().getName();
+                                var x = Integer.toString(key.getX());
+                                var z = Integer.toString(key.getZ());
 
                                 return messages.getMessage(Messages.Key.SCAN_FINISH_CHUNK_FORMAT).replace(
+                                        "world", worldName,
                                         "chunk-x", x,
                                         "chunk-z", z
-                                ).getMessage().orElse(x + ", " + z);
+                                ).getMessage().orElse(worldName + " @ " + x + ", " + z);
                             }
                     );
 

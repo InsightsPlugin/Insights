@@ -10,6 +10,7 @@ import cloud.commandframework.paper.PaperCommandManager;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
+import dev.frankheijden.insights.api.concurrent.ChunkTeleport;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.count.RedstoneUpdateCount;
 import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
@@ -33,9 +34,11 @@ import dev.frankheijden.insights.commands.CommandScanCache;
 import dev.frankheijden.insights.commands.CommandScanHistory;
 import dev.frankheijden.insights.commands.CommandScanRegion;
 import dev.frankheijden.insights.commands.CommandScanWorld;
+import dev.frankheijden.insights.commands.CommandTeleportChunk;
 import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
 import dev.frankheijden.insights.commands.parser.ScanHistoryPageArgument;
 import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
+import dev.frankheijden.insights.commands.parser.WorldArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
@@ -45,6 +48,7 @@ import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitTask;
 import java.io.File;
@@ -84,6 +88,7 @@ public class Insights extends InsightsPlugin {
     private BukkitTask updateChecker = null;
     private BukkitAudiences audiences = null;
     private RedstoneUpdateCount redstoneUpdateCount;
+    private ChunkTeleport chunkTeleport;
 
     @Override
     public void onLoad() {
@@ -124,6 +129,7 @@ public class Insights extends InsightsPlugin {
         scanHistory = new ScanHistory();
         redstoneUpdateCount = new RedstoneUpdateCount(this);
         redstoneUpdateCount.start();
+        chunkTeleport = new ChunkTeleport(this);
 
         loadCommands();
 
@@ -157,6 +163,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public RedstoneUpdateCount getRedstoneUpdateCount() {
         return redstoneUpdateCount;
+    }
+
+    @Override
+    public ChunkTeleport getChunkTeleport() {
+        return chunkTeleport;
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {
@@ -251,12 +262,16 @@ public class Insights extends InsightsPlugin {
                 TypeToken.get(new TypeToken<CommandScanHistory.Page>() {}.getType()),
                 options -> new ScanHistoryPageArgument.ScanHistoryPageParser()
         );
+        parserRegistry.registerParserSupplier(
+                TypeToken.get(new TypeToken<World>() {}.getType()),
+                options -> new WorldArgument.WorldParser()
+        );
 
         // Register capabilities if allowed
         if (commandManager.queryCapability(CloudBukkitCapabilities.BRIGADIER)) {
             commandManager.registerBrigadier();
             CloudBrigadierManager<CommandSender, ?> brigadierManager = commandManager.brigadierManager();
-            BrigadierHandler handler = new BrigadierHandler(brigadierManager);
+            var handler = new BrigadierHandler(brigadierManager);
             handler.registerTypes();
         }
         if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
@@ -277,6 +292,7 @@ public class Insights extends InsightsPlugin {
         annotationParser.parse(new CommandScanWorld(this));
         annotationParser.parse(new CommandScanRegion(this));
         annotationParser.parse(new CommandScanHistory(this));
+        annotationParser.parse(new CommandTeleportChunk(this));
     }
 
     @Override
