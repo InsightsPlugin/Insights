@@ -131,7 +131,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                 long chunkKey = getChunkKey();
                 final Stream<Entity> entityStream;
                 if (entityManager.areEntitiesLoaded(chunkKey)) {
-                    entityStream = entityManager.sectionStorage
+                    entityStream = RPersistentEntitySectionManager.getSectionStorage(entityManager)
                             .getExistingSectionsInChunk(chunkKey)
                             .flatMap(EntitySection::getEntities);
                 } else {

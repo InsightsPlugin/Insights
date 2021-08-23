@@ -36,7 +36,7 @@ public class UnloadedChunkContainer extends ChunkContainer {
             var chunkSectionPart = sectionTag.getByte("Y");
 
             if (sectionTag.contains("Palette", 9) && sectionTag.contains("BlockStates", 12)) {
-                var chunkSection = new LevelChunkSection(chunkSectionPart, null, null, true);
+                var chunkSection = new LevelChunkSection(chunkSectionPart);
                 chunkSection.getStates().read(
                         sectionTag.getList("Palette", 10),
                         sectionTag.getLongArray("BlockStates")
