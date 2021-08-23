@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api;
 
 import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
+import dev.frankheijden.insights.api.concurrent.ChunkTeleport;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.count.RedstoneUpdateCount;
@@ -58,5 +59,7 @@ public interface InsightsMain {
     InsightsListenerManager getListenerManager();
 
     RedstoneUpdateCount getRedstoneUpdateCount();
+
+    ChunkTeleport getChunkTeleport();
 
 }

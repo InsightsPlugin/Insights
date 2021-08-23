@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.config;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.config.parser.PassiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
+import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.utils.PlayerUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
@@ -79,6 +80,7 @@ public class Messages {
     }
 
     private <T> TextComponent addHover(TextComponent component, T element, String displayName) {
+        var serializer = LegacyComponentSerializer.legacyAmpersand();
         if (element instanceof ScanObject<?> scanObject) {
             Object obj = scanObject.getObject();
 
@@ -100,6 +102,12 @@ public class Messages {
                         .append(Component.newline())
                         .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
             }
+        } else if (element instanceof ChunkLocation chunkLoc) {
+            var hoverComponent = serializer.deserialize(getMessage(Key.SCAN_FINISH_CHUNK_HOVER).content);
+            var tpCommand = "/tpchunk " + chunkLoc.getWorld().getName() + ' ' + chunkLoc.getX() + ' ' + chunkLoc.getZ();
+            return component
+                    .hoverEvent(HoverEvent.showText(hoverComponent))
+                    .clickEvent(ClickEvent.runCommand(tpCommand));
         }
         return component;
     }
@@ -127,6 +135,7 @@ public class Messages {
         SCAN_ALREADY_SCANNING("scan.already-scanning"),
         SCAN_FINISH_HEADER("scan.finish.header"),
         SCAN_FINISH_CHUNK_FORMAT("scan.finish.chunk-format"),
+        SCAN_FINISH_CHUNK_HOVER("scan.finish.chunk-hover"),
         SCAN_FINISH_FORMAT("scan.finish.format"),
         SCAN_FINISH_FOOTER("scan.finish.footer"),
         SCAN_PROGRESS("scan.progress"),
@@ -146,6 +155,10 @@ public class Messages {
         PAGINATION_FOOTER_FORMAT("pagination.footer-format"),
         PAGINATION_NO_PAGE("pagination.no-page"),
         STATS("stats"),
+        TELEPORTCHUNK_ERROR("teleportchunk.error"),
+        TELEPORTCHUNK_NOT_GENERATED("teleportchunk.not-generated"),
+        TELEPORTCHUNK_FAILED("teleportchunk.failed"),
+        TELEPORTCHUNK_SUCCESS("teleportchunk.success"),
         ;
 
         private final String path;

@@ -13,7 +13,8 @@ messages:
     already-scanning: "<prefix>&cPlease wait for your other scan to finish before requesting another one."
     finish:
       header: "&8&m----------------=&r&8[&b&l Insights Scan&r &8]&m=---------------"
-      chunk-format: "&3Chunk &b%chunk-x%&3, &b%chunk-z%"
+      chunk-format: "&3Chunk &b%world%&3 @ &b%chunk-x%&3, &b%chunk-z%"
+      chunk-hover: "&3Click to teleport!"
       format: "&b %entry%&8: &7&l%count%"
       footer: |-
         &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks and &b&l%entities% &3entities. Took &b%time%&3!
@@ -34,6 +35,11 @@ messages:
     &3 Blocks Scanned&8: &b&l%blocks_scanned%
     &3 Current Queue Size&8: &b&l%queue_size%
     &8&m-------------------------------------------------
+  teleportchunk:
+    error: "<prefix>&cAn error occurred, please check the console."
+    not-generated: "<prefix>&cCan't teleport you to that chunk, it has not yet been generated. Use the &4--generate &cflag to override."
+    failed: "<prefix>&cTeleportation failed for unknown reasons, maybe the console contains a stacktrace?"
+    success: "<prefix>&3Teleported you to chunk &b%world% &3@ &b%chunk-x%&3, &b%chunk-z%&3!"
   scanhistory:
     no-history: "<prefix>&cYou don't seem to have any scan history!"
   pagination:
