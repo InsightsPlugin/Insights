@@ -50,3 +50,4 @@ messages:
     button-hover: "&7Click to go to page &b%page%&7!"
     footer-format: "&8&m-------------=&r&8[%button-left%&r&8] &3Page &b%current-page% &3of &b%page-amount% &8[%button-right%&r&8]&m=-------------"
     no-page: "&cThat page does not exist!"
+    no-results: "<prefix>&cNo results were present to display."

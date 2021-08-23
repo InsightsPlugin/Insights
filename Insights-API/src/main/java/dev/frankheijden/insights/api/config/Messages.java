@@ -154,6 +154,7 @@ public class Messages {
         PAGINATION_ENTRY_FORMAT("pagination.entry-format"),
         PAGINATION_FOOTER_FORMAT("pagination.footer-format"),
         PAGINATION_NO_PAGE("pagination.no-page"),
+        PAGINATION_NO_RESULTS("pagination.no-results"),
         STATS("stats"),
         TELEPORTCHUNK_ERROR("teleportchunk.error"),
         TELEPORTCHUNK_NOT_GENERATED("teleportchunk.not-generated"),
@@ -338,6 +339,11 @@ public class Messages {
          * Sends a page of the paginated result.
          */
         public void sendTo(CommandSender sender, int page) {
+            if (elements.length == 0) {
+                getMessage(Key.PAGINATION_NO_RESULTS).color().sendTo(sender);
+                return;
+            }
+
             int offsetStart = amountPerPage * page;
             int offsetEnd = Math.min(offsetStart + amountPerPage, elements.length);
             if (offsetStart >= elements.length) {
