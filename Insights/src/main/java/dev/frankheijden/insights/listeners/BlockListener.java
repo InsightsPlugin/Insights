@@ -268,12 +268,25 @@ public class BlockListener extends InsightsListener {
      * Handles pistons.
      */
     private void handlePistonEvent(BlockPistonEvent event, List<Block> blocks) {
-        for (Block block : blocks) {
-            var relative = block.getRelative(event.getDirection());
+        if (blocks.isEmpty()) return;
 
-            handleModification(block.getLocation(), block.getType(), -1);
-            handleModification(relative.getLocation(), block.getType(), 1);
+        var materials = new Material[blocks.size()];
+        for (var i = 0; i < blocks.size(); i++) {
+            var block = blocks.get(i);
+            var material = block.getType();
+            handleModification(block.getLocation(), material, -1);
+            materials[i] = material;
         }
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            for (var i = 0; i < blocks.size(); i++) {
+                var relative = blocks.get(i).getRelative(event.getDirection());
+                var material = relative.getType();
+                if (materials[i] == material) {
+                    handleModification(relative.getLocation(), material, 1);
+                }
+            }
+        }, 5L);
     }
 
     /**
