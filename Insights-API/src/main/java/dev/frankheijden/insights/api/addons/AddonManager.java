@@ -168,7 +168,7 @@ public class AddonManager {
         for (String pluginName : addonsToRemove) {
             InsightsAddon addon = addons.remove(pluginName);
             if (addon != null) {
-                plugin.getLogger().info("Unloaded addon '" + addon.getPluginName() + "' v" + addon.getVersion()
+                plugin.getLogger().warning("Unloaded addon '" + addon.getPluginName() + "' v" + addon.getVersion()
                         + ", because the plugin disappeared.");
             }
         }
