@@ -286,7 +286,7 @@ public class BlockListener extends InsightsListener {
                     handleModification(relative.getLocation(), material, 1);
                 }
             }
-        }, 5L);
+        }, 3L); // Ensures blocks have been updated after piston move
     }
 
     /**
