@@ -12,7 +12,9 @@ import java.net.URLClassLoader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.jar.JarEntry;
@@ -144,12 +146,33 @@ public class AddonManager {
 
     /**
      * Looks up a region at given location provided by the loaded addons.
+     * If the plugin of the addon unloaded, this method will also remove the addon.
      */
     public Optional<Region> getRegion(Location location) {
+        List<String> addonsToRemove = new ArrayList<>();
+        Optional<Region> regionOptional = Optional.empty();
+
         for (InsightsAddon addon : addons.values()) {
-            Optional<Region> regionOptional = addon.getRegion(location);
-            if (regionOptional.isPresent()) return regionOptional;
+            var pluginName = addon.getPluginName();
+            if (!plugin.isAvailable(pluginName)) {
+                addonsToRemove.add(addon.getPluginName());
+                continue;
+            }
+
+            regionOptional = addon.getRegion(location);
+            if (regionOptional.isPresent()) {
+                break;
+            }
         }
-        return Optional.empty();
+
+        for (String pluginName : addonsToRemove) {
+            InsightsAddon addon = addons.remove(pluginName);
+            if (addon != null) {
+                plugin.getLogger().warning("Unloaded addon '" + addon.getPluginName() + "' v" + addon.getVersion()
+                        + ", because the plugin disappeared.");
+            }
+        }
+
+        return regionOptional;
     }
 }
