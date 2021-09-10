@@ -12,11 +12,14 @@ group = "dev.frankheijden.insights"
 val dependencyDir = "${group}.dependencies"
 version = "6.7.3-SNAPSHOT"
 
+object VersionConstants {
+    const val minecraftVersion = "1.17.1-R0.1-SNAPSHOT"
+}
+
 subprojects {
     apply(plugin = "java")
     apply(plugin = "checkstyle")
     apply(plugin = "com.github.johnrengelman.shadow")
-    apply(plugin = "io.papermc.paperweight.userdev")
 
     repositories {
         mavenCentral()
@@ -25,10 +28,18 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://papermc.io/repo/repository/maven-public/")
         maven("https://libraries.minecraft.net")
+        ivy {
+            url = uri("$projectDir/../.gradle/caches/paperweight/ivyRepository")
+            patternLayout {
+                artifact("[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+                setM2compatible(true)
+            }
+        }
     }
 
     dependencies {
-        paperDevBundle("1.17.1-R0.1-SNAPSHOT")
+        compileOnly("io.papermc.paper:paper-server:${VersionConstants.minecraftVersion}")
+        compileOnly("io.papermc.paper:paper-api:${VersionConstants.minecraftVersion}")
         implementation("com.github.FrankHeijden:MinecraftReflection:123e2f546c")
         implementation("io.papermc:paperlib:1.0.6")
         implementation("org.bstats:bstats-bukkit:1.8")
@@ -80,7 +91,7 @@ repositories {
 }
 
 dependencies {
-    paperDevBundle("1.17.1-R0.1-SNAPSHOT")
+    paperDevBundle(VersionConstants.minecraftVersion)
     implementation(project(":Insights-API", "shadow"))
     implementation(project(":Insights", "shadow"))
 }
@@ -93,10 +104,6 @@ tasks {
     build {
         dependsOn(reobfJar, "copyJars")
     }
-}
-
-fun outputTasks(): List<Task?> {
-    return listOf("reobfJar").map { tasks.findByPath(it) }
 }
 
 tasks.register("cleanJars") {
