@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.concurrent.containers;
 
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
+import io.papermc.lib.PaperLib;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.ChunkPos;
@@ -25,7 +26,15 @@ public class UnloadedChunkContainer extends ChunkContainer {
         int sectionsCount = serverLevel.getSectionsCount();
         var chunkSections = new LevelChunkSection[sectionsCount];
 
-        CompoundTag tag = serverLevel.getChunkSource().chunkMap.read(new ChunkPos(chunkX, chunkZ));
+        var chunkMap = serverLevel.getChunkSource().chunkMap;
+        var chunkPos = new ChunkPos(chunkX, chunkZ);
+
+        final CompoundTag tag;
+        if (PaperLib.isPaper()) {
+            tag = chunkMap.regionFileCache.read(chunkPos);
+        } else {
+            tag = chunkMap.read(chunkPos);
+        }
         if (tag == null) return chunkSections;
 
         CompoundTag levelTag = tag.getCompound("Level");
