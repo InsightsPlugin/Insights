@@ -42,7 +42,7 @@ subprojects {
         compileOnly("io.papermc.paper:paper-api:${VersionConstants.minecraftVersion}")
         implementation("com.github.FrankHeijden:MinecraftReflection:123e2f546c")
         implementation("io.papermc:paperlib:1.0.6")
-        implementation("org.bstats:bstats-bukkit:1.8")
+        implementation("org.bstats:bstats-bukkit:2.2.1")
         implementation("net.kyori:adventure-api:4.8.1")
         implementation("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
     }

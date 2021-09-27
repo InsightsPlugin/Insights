@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.metrics;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import java.util.concurrent.atomic.LongAdder;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SingleLineChart;
 
 public class MetricsManager {
 
@@ -16,9 +17,9 @@ public class MetricsManager {
      * Constructs a new MetricsManager with some extra charts.
      */
     public MetricsManager(InsightsPlugin plugin) {
-        Metrics metrics = new Metrics(plugin, BSTATS_METRICS_ID);
-        metrics.addCustomChart(new Metrics.SingleLineChart("chunks-scanned", chunkScanMetric));
-        metrics.addCustomChart(new Metrics.SingleLineChart("limits", limitMetric));
+        var metrics = new Metrics(plugin, BSTATS_METRICS_ID);
+        metrics.addCustomChart(new SingleLineChart("chunks-scanned", chunkScanMetric));
+        metrics.addCustomChart(new SingleLineChart("limits", limitMetric));
     }
 
     public IntegerMetric getChunkScanMetric() {

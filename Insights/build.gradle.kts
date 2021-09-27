@@ -18,9 +18,9 @@ dependencies {
     compileOnly("com.mojang:brigadier:1.0.17")
     compileOnly("me.clip:placeholderapi:2.10.9")
     implementation("me.lucko:commodore:1.10")
-    implementation("cloud.commandframework:cloud-paper:1.5.0-SNAPSHOT")
-    implementation("cloud.commandframework:cloud-annotations:1.5.0-SNAPSHOT")
-    implementation("org.bstats:bstats-bukkit:1.8")
+    implementation("cloud.commandframework:cloud-paper:1.6.0-SNAPSHOT")
+    implementation("cloud.commandframework:cloud-annotations:1.6.0-SNAPSHOT")
+    implementation("org.bstats:bstats-bukkit:2.2.1")
     implementation(project(":Insights-API"))
 }
 
