@@ -11,13 +11,14 @@ import dev.frankheijden.insights.api.utils.StringUtils;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import org.bukkit.command.CommandSender;
 
+@CommandMethod("insights|in")
 public class CommandInsights extends InsightsCommand {
 
     public CommandInsights(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("insights|in")
+    @CommandMethod("")
     private void showBase(CommandSender sender) {
         sender.sendMessage(ColorUtils.colorize(
                 "&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------",
@@ -29,7 +30,7 @@ public class CommandInsights extends InsightsCommand {
         ));
     }
 
-    @CommandMethod("insights|in reload")
+    @CommandMethod("reload")
     @CommandPermission("insights.reload")
     private void reloadConfigurations(CommandSender sender) {
         plugin.reloadConfigs();
@@ -39,7 +40,7 @@ public class CommandInsights extends InsightsCommand {
                 .sendTo(sender);
     }
 
-    @CommandMethod("insights|in stats")
+    @CommandMethod("stats")
     @CommandPermission("insights.stats")
     private void displayStatistics(CommandSender sender) {
         ContainerExecutorService executor = ((Insights) plugin).getExecutor();

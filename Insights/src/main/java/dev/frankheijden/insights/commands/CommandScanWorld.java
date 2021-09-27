@@ -22,13 +22,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@CommandMethod("scanworld")
 public class CommandScanWorld extends InsightsCommand {
 
     public CommandScanWorld(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("scanworld tile")
+    @CommandMethod("tile")
     @CommandPermission("insights.scanworld.tile")
     private void handleTileScan(
             Player player,
@@ -37,7 +38,7 @@ public class CommandScanWorld extends InsightsCommand {
         handleScan(player, RTileEntityTypes.getTileEntities(), ScanOptions.materialsOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("scanworld entity")
+    @CommandMethod("entity")
     @CommandPermission("insights.scanworld.entity")
     private void handleEntityScan(
             Player player,
@@ -46,7 +47,7 @@ public class CommandScanWorld extends InsightsCommand {
         handleScan(player, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("scanworld all")
+    @CommandMethod("all")
     @CommandPermission("insights.scanworld.all")
     private void handleAllScan(
             Player player,
@@ -55,7 +56,7 @@ public class CommandScanWorld extends InsightsCommand {
         handleScan(player, null, ScanOptions.scanOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("scanworld custom <items>")
+    @CommandMethod("custom <items>")
     @CommandPermission("insights.scanworld.custom")
     private void handleCustomScan(
             Player player,
