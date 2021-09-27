@@ -78,11 +78,11 @@ subprojects {
     }
 
     tasks.withType<ShadowJar> {
-        relocate("dev.frankheijden.minecraftreflection", dependencyDir + ".minecraftreflection")
-        relocate("io.papermc.lib", dependencyDir + ".paperlib")
-        relocate("org.bstats", dependencyDir + ".bstats")
-        relocate("net.kyori.adventure", dependencyDir + ".adventure")
-        relocate("net.kyori.examination", dependencyDir + ".examination")
+        relocate("dev.frankheijden.minecraftreflection", "$dependencyDir.minecraftreflection")
+        relocate("io.papermc.lib", "$dependencyDir.paperlib")
+        relocate("org.bstats", "$dependencyDir.bstats")
+        relocate("net.kyori.adventure", "$dependencyDir.adventure")
+        relocate("net.kyori.examination", "$dependencyDir.examination")
     }
 }
 

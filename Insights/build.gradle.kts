@@ -1,4 +1,3 @@
-import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
@@ -20,7 +19,6 @@ dependencies {
     implementation("me.lucko:commodore:1.10")
     implementation("cloud.commandframework:cloud-paper:1.6.0-SNAPSHOT")
     implementation("cloud.commandframework:cloud-annotations:1.6.0-SNAPSHOT")
-    implementation("org.bstats:bstats-bukkit:2.2.1")
     implementation(project(":Insights-API"))
 }
 
@@ -30,10 +28,9 @@ base {
 
 tasks.withType<ShadowJar> {
     exclude("com/mojang/**")
-    relocate("org.bstats.bukkit", "${dependencyDir}.bstats")
-    relocate("cloud.commandframework", "${dependencyDir}.cloud")
-    relocate("io.leangen.geantyref", "${dependencyDir}.typetoken")
-    relocate("me.lucko.commodore", "${dependencyDir}.commodore")
+    relocate("cloud.commandframework", "$dependencyDir.cloud")
+    relocate("io.leangen.geantyref", "$dependencyDir.typetoken")
+    relocate("me.lucko.commodore", "$dependencyDir.commodore")
 }
 
 bukkit {
