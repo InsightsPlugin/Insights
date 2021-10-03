@@ -4,7 +4,7 @@ plugins {
     `java-library`
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "7.0.0"
-    id("io.papermc.paperweight.userdev") version "1.1.11"
+    id("io.papermc.paperweight.userdev") version "1.1.12"
 }
 
 val name = "Insights"
@@ -20,6 +20,7 @@ subprojects {
     apply(plugin = "java")
     apply(plugin = "checkstyle")
     apply(plugin = "com.github.johnrengelman.shadow")
+    apply(plugin = "io.papermc.paperweight.userdev")
 
     repositories {
         mavenCentral()
@@ -28,18 +29,10 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://papermc.io/repo/repository/maven-public/")
         maven("https://libraries.minecraft.net")
-        ivy {
-            url = uri("$projectDir/../.gradle/caches/paperweight/ivyRepository")
-            patternLayout {
-                artifact("[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
-                setM2compatible(true)
-            }
-        }
     }
 
     dependencies {
-        compileOnly("io.papermc.paper:paper-server:${VersionConstants.minecraftVersion}")
-        compileOnly("io.papermc.paper:paper-api:${VersionConstants.minecraftVersion}")
+        paperDevBundle(VersionConstants.minecraftVersion)
         implementation("com.github.FrankHeijden:MinecraftReflection:123e2f546c")
         implementation("io.papermc:paperlib:1.0.6")
         implementation("org.bstats:bstats-bukkit:1.8")
