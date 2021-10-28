@@ -83,8 +83,8 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
             if (options.materials()) {
                 LevelChunkSection[] chunkSections = getChunkSections();
 
-                int minSectionY = blockMinY >> 4;
-                int maxSectionY = blockMaxY >> 4;
+                int minSectionY = Math.max(0, blockMinY >> 4);
+                int maxSectionY = Math.min(chunkSections.length - 1, blockMaxY >> 4);
 
                 for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
                     int minY = sectionY == minSectionY ? blockMinY & 15 : 0;
