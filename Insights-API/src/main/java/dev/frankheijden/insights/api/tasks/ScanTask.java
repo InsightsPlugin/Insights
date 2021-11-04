@@ -419,8 +419,9 @@ public class ScanTask<R> implements Runnable {
                         chunks.incrementAndGet();
                     })
                     .exceptionally(th -> {
-                        plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
-                        completedExceptionally.set(true);
+                        if (!completedExceptionally.getAndSet(true)) {
+                            plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
+                        }
                         return null;
                     });
         }
