@@ -9,6 +9,7 @@ import dev.frankheijden.insights.api.concurrent.containers.UnloadedChunkContaine
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
+import dev.frankheijden.insights.api.exceptions.ChunkCuboidOutOfBoundsException;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -66,7 +67,16 @@ public class ChunkContainerExecutor implements ContainerExecutor {
      * DistributionStorage is essentially merged from the scan result and given entities Distribution.
      */
     public CompletableFuture<Storage> submit(ChunkContainer container, ScanOptions options) {
-        UUID worldUid = container.getWorld().getUID();
+        var world = container.getWorld();
+        var maxCuboid = ChunkCuboid.maxCuboid(world);
+        if (!maxCuboid.contains(container.getChunkCuboid())) {
+            return CompletableFuture.failedFuture(new ChunkCuboidOutOfBoundsException(
+                    maxCuboid,
+                    container.getChunkCuboid()
+            ));
+        }
+
+        UUID worldUid = world.getUID();
         long chunkKey = container.getChunkKey();
         if (options.track()) {
             scanTracker.set(worldUid, chunkKey, true);
