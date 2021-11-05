@@ -27,9 +27,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 public class ScanTask<R> implements Runnable {
 
@@ -47,6 +49,7 @@ public class ScanTask<R> implements Runnable {
     private final Consumer<R> resultConsumer;
     private final AtomicInteger iterationChunks;
     private final AtomicInteger chunks = new AtomicInteger(0);
+    private final AtomicBoolean completedExceptionally = new AtomicBoolean();
     private final int chunkCount;
     private long lastInfo = 0;
     private BukkitTask task;
@@ -353,8 +356,12 @@ public class ScanTask<R> implements Runnable {
     private void cancel() {
         if (task != null) {
             task.cancel();
-            sendInfo();
-            resultConsumer.accept(result);
+            if (completedExceptionally.get()) {
+                resultConsumer.accept(null);
+            } else {
+                sendInfo();
+                resultConsumer.accept(result);
+            }
         }
     }
 
@@ -364,7 +371,8 @@ public class ScanTask<R> implements Runnable {
         checkNotify();
 
         // If the amount of chunks done equals the chunk count, we're done
-        if (chunks.get() == chunkCount) {
+        // Or if the task has an exception
+        if (chunks.get() == chunkCount || completedExceptionally.get()) {
             cancel();
             return;
         }
@@ -409,6 +417,12 @@ public class ScanTask<R> implements Runnable {
                     .thenRun(() -> {
                         iterationChunks.incrementAndGet();
                         chunks.incrementAndGet();
+                    })
+                    .exceptionally(th -> {
+                        if (!completedExceptionally.getAndSet(true)) {
+                            plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
+                        }
+                        return null;
                     });
         }
     }

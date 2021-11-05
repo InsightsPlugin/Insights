@@ -30,6 +30,18 @@ public class ChunkCuboid {
     }
 
     /**
+     * Determines whether the specified cuboid "fits" in this cuboid instance.
+     */
+    public boolean contains(ChunkCuboid other) {
+        return this.min.getX() <= other.min.getX()
+                && this.min.getY() <= other.min.getY()
+                && this.min.getZ() <= other.min.getZ()
+                && this.max.getX() >= other.max.getX()
+                && this.max.getY() >= other.max.getY()
+                && this.max.getZ() >= other.max.getZ();
+    }
+
+    /**
      * Determines the maximum ChunkCuboid of a given world, and caches the result.
      */
     public static ChunkCuboid maxCuboid(World world) {
@@ -37,5 +49,10 @@ public class ChunkCuboid {
                 ChunkVector.minVector(world),
                 ChunkVector.maxVector(world)
         ));
+    }
+
+    @Override
+    public String toString() {
+        return min + " -> " + max;
     }
 }

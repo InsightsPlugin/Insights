@@ -2,6 +2,7 @@ package dev.frankheijden.insights.api.concurrent.containers;
 
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
+import java.io.IOException;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.ChunkPos;
@@ -19,7 +20,7 @@ public class UnloadedChunkContainer extends ChunkContainer {
     }
 
     @Override
-    public LevelChunkSection[] getChunkSections() throws Throwable {
+    public LevelChunkSection[] getChunkSections() throws IOException {
         var serverLevel = ((CraftWorld) world).getHandle();
 
         int sectionsCount = serverLevel.getSectionsCount();
