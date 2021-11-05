@@ -34,7 +34,7 @@ public class ChunkCuboid {
      */
     public static ChunkCuboid maxCuboid(World world) {
         return maxCuboidCache.computeIfAbsent(world.getUID(), k -> new ChunkCuboid(
-                ChunkVector.minVector(),
+                ChunkVector.minVector(world),
                 ChunkVector.maxVector(world)
         ));
     }

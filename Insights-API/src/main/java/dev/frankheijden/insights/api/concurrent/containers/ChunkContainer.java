@@ -74,8 +74,8 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         int maxX = max.getX();
         int minZ = min.getZ();
         int maxZ = max.getZ();
-        int blockMinY = min.getY();
-        int blockMaxY = max.getY();
+        int blockMinY = Math.max(min.getY(), 0);
+        int blockMaxY = Math.abs(Math.min(min.getY(), 0)) + max.getY();
 
         try {
             ServerLevel serverLevel = ((CraftWorld) world).getHandle();

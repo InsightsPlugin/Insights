@@ -19,12 +19,12 @@ public class ChunkVector extends Vector3 {
         return new ChunkVector(vector.getX() & 15, vector.getY(), vector.getZ() & 15);
     }
 
-    public static ChunkVector minVector() {
-        return new ChunkVector(0, 0, 0); // May change with 1.18
+    public static ChunkVector minVector(World world) {
+        return new ChunkVector(0, world.getMinHeight(), 0);
     }
 
     public static ChunkVector maxVector(World world) {
-        return new ChunkVector(15, Math.abs(world.getMinHeight()) + world.getMaxHeight() - 1, 15);
+        return new ChunkVector(15, world.getMaxHeight() - 1, 15);
     }
 
     /**
