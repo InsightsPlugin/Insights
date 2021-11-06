@@ -47,7 +47,8 @@ subprojects {
 
         compileJava {
             options.encoding = Charsets.UTF_8.name()
-            options.release.set(16)
+            sourceCompatibility = JavaVersion.VERSION_16.majorVersion
+            targetCompatibility = JavaVersion.VERSION_16.majorVersion
         }
 
         javadoc {
