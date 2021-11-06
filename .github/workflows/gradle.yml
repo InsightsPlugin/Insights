@@ -30,10 +30,11 @@ jobs:
       - name: Build
         run: ./gradlew clean build --stacktrace
       - name: Upload artififacts
-        uses: actions/upload-artifact@v2.2.1
+        uses: actions/upload-artifact@v2
         with:
           name: Insights
           path: jars/*.jar
+          retention-days: 90
       - name: Publish
         if: ${{ github.event_name == 'push' }}
         env:
