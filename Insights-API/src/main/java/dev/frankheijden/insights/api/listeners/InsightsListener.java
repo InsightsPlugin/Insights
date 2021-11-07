@@ -29,6 +29,7 @@ import org.bukkit.event.Listener;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public abstract class InsightsListener extends InsightsBase implements Listener {
 
@@ -241,7 +242,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             }
 
             // Submit the chunk for scanning
-            plugin.getChunkContainerExecutor().submit(chunk).thenAccept(storageConsumer);
+            plugin.getChunkContainerExecutor().submit(chunk)
+                    .thenAccept(storageConsumer)
+                    .exceptionally(th -> {
+                        plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
+                        return null;
+                    });
         }
         return storageOptional;
     }
@@ -346,7 +352,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             if (regionOptional.isPresent()) {
                 scanRegion(player, regionOptional.get(), storageConsumer);
             } else {
-                plugin.getChunkContainerExecutor().submit(chunk).thenAccept(storageConsumer);
+                plugin.getChunkContainerExecutor().submit(chunk)
+                        .thenAccept(storageConsumer)
+                        .exceptionally(th -> {
+                            plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
+                            return null;
+                        });
             }
         }
     }
