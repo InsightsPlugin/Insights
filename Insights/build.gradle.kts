@@ -1,11 +1,11 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("net.minecrell.plugin-yml.bukkit") version "0.4.0"
+    id("net.minecrell.plugin-yml.bukkit") version "0.5.0"
 }
 
 group = rootProject.group
-val dependencyDir = "${group}.dependencies"
+val dependencyDir = "$group.dependencies"
 version = rootProject.version
 
 repositories {
@@ -14,11 +14,11 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.mojang:brigadier:1.0.17")
-    compileOnly("me.clip:placeholderapi:2.10.9")
-    implementation("me.lucko:commodore:1.10")
-    implementation("cloud.commandframework:cloud-paper:1.6.0-SNAPSHOT")
-    implementation("cloud.commandframework:cloud-annotations:1.6.0-SNAPSHOT")
+    compileOnly("com.mojang:brigadier:${VersionConstants.brigadierVersion}")
+    compileOnly("me.clip:placeholderapi:${VersionConstants.placeholderapiVersion}")
+    implementation("me.lucko:commodore:${VersionConstants.commodoreVersion}")
+    implementation("cloud.commandframework:cloud-paper:${VersionConstants.cloudVersion}")
+    implementation("cloud.commandframework:cloud-annotations:${VersionConstants.cloudVersion}")
     implementation(project(":Insights-API"))
 }
 
