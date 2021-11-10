@@ -14,8 +14,15 @@ public class BrigadierHandler {
         this.brigadierManager = brigadierManager;
     }
 
+    /**
+     * Registers brigadier types.
+     */
     public void registerTypes() {
         brigadierManager.registerMapping(new TypeToken<ScanObjectArrayArgument.ScanObjectArrayParser>() {
-        }, false, argument -> StringArgumentType.greedyString());
+            //
+        }, builder -> {
+            builder.to(argument -> StringArgumentType.greedyString());
+            builder.cloudSuggestions();
+        });
     }
 }

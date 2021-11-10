@@ -21,13 +21,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@CommandMethod("scanregion")
 public class CommandScanRegion extends InsightsCommand {
 
     public CommandScanRegion(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("scanregion tile")
+    @CommandMethod("tile")
     @CommandPermission("insights.scanregion.tile")
     private void handleTileScan(
             Player player,
@@ -36,7 +37,7 @@ public class CommandScanRegion extends InsightsCommand {
         handleScan(player, RTileEntityTypes.getTileEntities(), ScanOptions.materialsOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("scanregion entity")
+    @CommandMethod("entity")
     @CommandPermission("insights.scanregion.entity")
     private void handleEntityScan(
             Player player,
@@ -45,7 +46,7 @@ public class CommandScanRegion extends InsightsCommand {
         handleScan(player, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("scanregion all")
+    @CommandMethod("all")
     @CommandPermission("insights.scanregion.all")
     private void handleAllScan(
             Player player,
@@ -54,7 +55,7 @@ public class CommandScanRegion extends InsightsCommand {
         handleScan(player, null, ScanOptions.scanOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("scanregion custom <items>")
+    @CommandMethod("custom <items>")
     @CommandPermission("insights.scanregion.custom")
     private void handleCustomScan(
             Player player,

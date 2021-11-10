@@ -21,37 +21,38 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+@CommandMethod("scancache")
 public class CommandScanCache extends InsightsCommand {
 
     public CommandScanCache(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("scancache tile")
+    @CommandMethod("tile")
     @CommandPermission("insights.scancache.tile")
     private void handleTileScan(Player player) {
         handleScan(player, RTileEntityTypes.getTileEntities(), false);
     }
 
-    @CommandMethod("scancache entity")
+    @CommandMethod("entity")
     @CommandPermission("insights.scancache.entity")
     private void handleEntityScan(Player player) {
         handleScan(player, Constants.SCAN_ENTITIES, false);
     }
 
-    @CommandMethod("scancache all")
+    @CommandMethod("all")
     @CommandPermission("insights.scancache.all")
     private void handleAllScan(Player player) {
         handleScan(player, null, false);
     }
 
-    @CommandMethod("scancache custom <items>")
+    @CommandMethod("custom <items>")
     @CommandPermission("insights.scancache.custom")
     private void handleCustomScan(Player player, @Argument("items") ScanObject<?>[] items) {
         handleScan(player, new HashSet<>(Arrays.asList(items)), true);
     }
 
-    @CommandMethod("scancache clear")
+    @CommandMethod("clear")
     @CommandPermission("insights.scancache.clear")
     private void handleCacheClear(Player player) {
         Location loc = player.getLocation();

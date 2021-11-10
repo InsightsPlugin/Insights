@@ -23,13 +23,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@CommandMethod("scan <radius>")
 public class CommandScan extends InsightsCommand {
 
     public CommandScan(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("scan <radius> tile")
+    @CommandMethod("tile")
     @CommandPermission("insights.scan.tile")
     private void handleTileScan(
             Player player,
@@ -46,7 +47,7 @@ public class CommandScan extends InsightsCommand {
         );
     }
 
-    @CommandMethod("scan <radius> entity")
+    @CommandMethod("entity")
     @CommandPermission("insights.scan.entity")
     private void handleEntityScan(
             Player player,
@@ -56,7 +57,7 @@ public class CommandScan extends InsightsCommand {
         handleScan(player, radius, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("scan <radius> all")
+    @CommandMethod("all")
     @CommandPermission("insights.scan.all")
     private void handleAllScan(
             Player player,
@@ -66,7 +67,7 @@ public class CommandScan extends InsightsCommand {
         handleScan(player, radius, null, ScanOptions.scanOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("scan <radius> custom <items>")
+    @CommandMethod("custom <items>")
     @CommandPermission("insights.scan.custom")
     private void handleCustomScan(
             Player player,
