@@ -7,18 +7,18 @@ import java.util.function.Predicate;
 
 public class Distribution<E> {
 
-    protected final Map<E, Integer> distributionMap;
+    protected final Map<E, Long> distributionMap;
 
-    public Distribution(Map<E, Integer> distributionMap) {
+    public Distribution(Map<E, Long> distributionMap) {
         this.distributionMap = distributionMap;
     }
 
     /**
      * Retrieves the distribution of all items.
      */
-    public int count() {
-        int count = 0;
-        for (int distribution : distributionMap.values()) {
+    public long count() {
+        long count = 0;
+        for (long distribution : distributionMap.values()) {
             count += distribution;
         }
         return count;
@@ -27,16 +27,16 @@ public class Distribution<E> {
     /**
      * Retrieves the distribution of a single item.
      */
-    public int count(E item) {
-        return item == null ? 0 : distributionMap.getOrDefault(item, 0);
+    public long count(E item) {
+        return item == null ? 0 : distributionMap.getOrDefault(item, 0L);
     }
 
     /**
      * Retrieves the distribution of items which match the predicate.
      */
-    public int count(Predicate<E> predicate) {
-        int count = 0;
-        for (Map.Entry<E, Integer> entry : distributionMap.entrySet()) {
+    public long count(Predicate<E> predicate) {
+        long count = 0;
+        for (Map.Entry<E, Long> entry : distributionMap.entrySet()) {
             if (predicate.test(entry.getKey())) {
                 count += entry.getValue();
             }
@@ -45,12 +45,12 @@ public class Distribution<E> {
     }
 
     /**
-     * Modifies the distribution of given item by an integer amount.
+     * Modifies the distribution of given item by an amount.
      */
-    public void modify(E item, int amount) {
+    public void modify(E item, long amount) {
         if (item == null) return;
         distributionMap.compute(item, (e, count) -> {
-            if (count == null) count = 0;
+            if (count == null) count = 0L;
             return Math.max(0, count + amount);
         });
     }
@@ -66,13 +66,13 @@ public class Distribution<E> {
      * Merges the current instance into another distribution, summing their values.
      */
     public void mergeRight(Distribution<E> target) {
-        MapUtils.mergeRight(this.distributionMap, target.distributionMap, Integer::sum);
+        MapUtils.mergeRight(this.distributionMap, target.distributionMap, Long::sum);
     }
 
     /**
      * Copies this instance over to a new Distribution using given map.
      */
-    public Distribution<E> copy(Map<E, Integer> map) {
+    public Distribution<E> copy(Map<E, Long> map) {
         map.putAll(distributionMap);
         return new Distribution<>(map);
     }
