@@ -17,12 +17,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -39,7 +37,7 @@ public class ScanTask<R> implements Runnable {
 
     private final InsightsPlugin plugin;
     private final ChunkContainerExecutor executor;
-    private final Queue<ChunkPart> scanQueue;
+    private final Iterator<? extends ChunkPart> scanQueue;
     private final ScanOptions options;
     private final int chunksPerIteration;
     private final Consumer<Info> infoConsumer;
@@ -60,7 +58,8 @@ public class ScanTask<R> implements Runnable {
      */
     private ScanTask(
             InsightsPlugin plugin,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             int chunksPerIteration,
             Consumer<Info> infoConsumer,
@@ -71,7 +70,7 @@ public class ScanTask<R> implements Runnable {
     ) {
         this.plugin = plugin;
         this.executor = plugin.getChunkContainerExecutor();
-        this.scanQueue = new LinkedList<>(chunkParts);
+        this.scanQueue = chunkParts.iterator();
         this.options = options;
         this.chunksPerIteration = chunksPerIteration;
         this.infoConsumer = infoConsumer;
@@ -80,7 +79,7 @@ public class ScanTask<R> implements Runnable {
         this.resultMerger = resultMerger;
         this.resultConsumer = resultConsumer;
         this.iterationChunks = new AtomicInteger(chunksPerIteration);
-        this.chunkCount = chunkParts.size();
+        this.chunkCount = chunkCount;
     }
 
     /**
@@ -89,7 +88,8 @@ public class ScanTask<R> implements Runnable {
      */
     public static void scan(
             InsightsPlugin plugin,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             Consumer<Info> infoConsumer,
             Consumer<DistributionStorage> distributionConsumer
@@ -97,6 +97,7 @@ public class ScanTask<R> implements Runnable {
         new ScanTask<>(
                 plugin,
                 chunkParts,
+                chunkCount,
                 options,
                 plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
                 infoConsumer,
@@ -115,7 +116,8 @@ public class ScanTask<R> implements Runnable {
     public static <R> void scan(
             InsightsPlugin plugin,
             Player player,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             boolean notify,
             Supplier<R> resultSupplier,
@@ -134,6 +136,7 @@ public class ScanTask<R> implements Runnable {
         new ScanTask<>(
                 plugin,
                 chunkParts,
+                chunkCount,
                 options,
                 plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
                 info -> {
@@ -165,18 +168,19 @@ public class ScanTask<R> implements Runnable {
     public static void scanAndDisplay(
             InsightsPlugin plugin,
             Player player,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             Set<? extends ScanObject<?>> items,
             boolean displayZeros
     ) {
         long start = System.nanoTime();
-        int chunkCount = chunkParts.size();
 
         scanAndDisplay(
                 plugin,
                 player,
                 chunkParts,
+                chunkCount,
                 options,
                 DistributionStorage::new,
                 (storage, loc, acc) -> storage.mergeRight(acc),
@@ -222,7 +226,8 @@ public class ScanTask<R> implements Runnable {
     public static <R> void scanAndDisplay(
             InsightsPlugin plugin,
             Player player,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             Supplier<R> resultSupplier,
             TriConsumer<Storage, ChunkLocation, R> resultMerger,
@@ -239,8 +244,6 @@ public class ScanTask<R> implements Runnable {
         // Add the player to the scanners
         scanners.add(uuid);
 
-        int chunkCount = chunkParts.size();
-
         // Notify about scan start
         plugin.getMessages().getMessage(Messages.Key.SCAN_START)
                 .replace(
@@ -254,6 +257,7 @@ public class ScanTask<R> implements Runnable {
                 plugin,
                 player,
                 chunkParts,
+                chunkCount,
                 options,
                 true,
                 resultSupplier,
@@ -269,18 +273,19 @@ public class ScanTask<R> implements Runnable {
     public static void scanAndDisplayGroupedByChunk(
             InsightsPlugin plugin,
             Player player,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             Set<? extends ScanObject<?>> items,
             boolean displayZeros
     ) {
         long start = System.nanoTime();
-        int chunkCount = chunkParts.size();
 
         scanAndDisplay(
                 plugin,
                 player,
                 chunkParts,
+                chunkCount,
                 options,
                 (Supplier<ConcurrentHashMap<ChunkLocation, Storage>>) ConcurrentHashMap::new,
                 (storage, loc, map) -> map.put(loc, storage),
@@ -388,10 +393,10 @@ public class ScanTask<R> implements Runnable {
         for (var i = 0; i < chunkIterations; i++) {
             // Note: we can't cancel the task here just yet,
             // because some chunks might still need scanning (after loading).
-            if (scanQueue.isEmpty()) break;
+            if (!scanQueue.hasNext()) break;
 
             // Load the chunk
-            var chunkPart = scanQueue.poll();
+            var chunkPart = scanQueue.next();
             var loc = chunkPart.getChunkLocation();
             var world = loc.getWorld();
 

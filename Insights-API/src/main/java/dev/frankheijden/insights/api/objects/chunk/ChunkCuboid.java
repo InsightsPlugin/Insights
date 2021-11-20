@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.objects.chunk;
 import org.bukkit.World;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class ChunkCuboid {
@@ -49,6 +50,19 @@ public class ChunkCuboid {
                 ChunkVector.minVector(world),
                 ChunkVector.maxVector(world)
         ));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChunkCuboid that = (ChunkCuboid) o;
+        return min.equals(that.min) && max.equals(that.max);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(min, max);
     }
 
     @Override

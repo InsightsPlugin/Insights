@@ -13,6 +13,7 @@ import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.limits.LimitInfo;
 import dev.frankheijden.insights.api.objects.InsightsBase;
+import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
@@ -26,6 +27,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -365,10 +367,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     private void scanRegion(Player player, Region region, Consumer<Storage> storageConsumer) {
         // Submit the cuboid for scanning
         plugin.getAddonScanTracker().add(region.getAddon());
+        List<ChunkPart> chunkParts = region.toChunkParts();
         ScanTask.scan(
                 plugin,
                 player,
-                region.toChunkParts(),
+                chunkParts,
+                chunkParts.size(),
                 ScanOptions.scanOnly(),
                 player.hasPermission("insights.notifications"),
                 DistributionStorage::new,
