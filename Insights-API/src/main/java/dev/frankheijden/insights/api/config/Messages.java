@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 public class Messages {
 
@@ -58,7 +58,7 @@ public class Messages {
             Key formatKey,
             Message footer,
             T[] keys,
-            ToIntFunction<T> countFunction,
+            ToLongFunction<T> countFunction,
             Function<T, String> displayNameFunction
     ) {
         var serializer = LegacyComponentSerializer.legacyAmpersand();
@@ -70,7 +70,7 @@ public class Messages {
                     String displayName = displayNameFunction.apply(element);
                     var component = serializer.deserialize(getMessage(formatKey).replace(
                             "entry", displayName,
-                            "count", StringUtils.pretty(countFunction.applyAsInt(element))
+                            "count", StringUtils.pretty(countFunction.applyAsLong(element))
                     ).content);
 
                     return addHover(component, element, displayName);

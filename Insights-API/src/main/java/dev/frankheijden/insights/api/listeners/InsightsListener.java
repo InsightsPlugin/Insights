@@ -157,7 +157,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         if (storageOptional.isEmpty()) return true;
 
         var storage = storageOptional.get();
-        int count = storage.count(limit, item);
+        long count = storage.count(limit, item);
 
         // If count is beyond limit, act
         if (count + delta > limitInfo.getLimit()) {
@@ -200,7 +200,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         Limit limit = limitOptional.get();
         LimitInfo limitInfo = limit.getLimit(item);
-        int count = storage.count(limit, item);
+        long count = storage.count(limit, item);
 
         // Notify the user (if they have permission)
         if (player.hasPermission("insights.notifications")) {
@@ -318,7 +318,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
             // Create a runnable for the notification.
             Consumer<Storage> notification = storage -> {
-                int count = storage.count(limit, item);
+                long count = storage.count(limit, item);
                 double progress = (double) count / limitInfo.getLimit();
                 plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                         .progress(progress)

@@ -297,20 +297,20 @@ public class ScanTask<R> implements Runnable {
                                 var storage = entry.getValue();
                                 return displayZeros || storage.count(items == null ? storage.keys() : items) != 0;
                             })
-                            .sorted(Comparator.<Map.Entry<ChunkLocation, Storage>>comparingInt(entry -> {
+                            .sorted(Comparator.<Map.Entry<ChunkLocation, Storage>>comparingLong(entry -> {
                                 var storage = entry.getValue();
                                 return storage.count(items == null ? storage.keys() : items);
                             }).reversed())
                             .map(Map.Entry::getKey)
                             .toArray(ChunkLocation[]::new);
 
-                    int blockCount = map.values()
+                    long blockCount = map.values()
                             .stream()
-                            .mapToInt(storage -> storage.count(i -> i.getType() == ScanObject.Type.MATERIAL))
+                            .mapToLong(storage -> storage.count(i -> i.getType() == ScanObject.Type.MATERIAL))
                             .sum();
-                    int entityCount = map.values()
+                    long entityCount = map.values()
                             .stream()
-                            .mapToInt(storage -> storage.count(i -> i.getType() == ScanObject.Type.ENTITY))
+                            .mapToLong(storage -> storage.count(i -> i.getType() == ScanObject.Type.ENTITY))
                             .sum();
 
                     var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).replace(

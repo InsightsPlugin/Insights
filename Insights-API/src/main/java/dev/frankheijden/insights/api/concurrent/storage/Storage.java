@@ -11,17 +11,17 @@ public interface Storage {
 
     Set<ScanObject<?>> keys();
 
-    default int count() {
+    default long count() {
         return count(keys());
     }
 
-    int count(ScanObject<?> item);
+    long count(ScanObject<?> item);
 
     /**
      * Counts the summed distribution for given ScanObjects.
      */
-    default int count(Collection<? extends ScanObject<?>> items) {
-        int count = 0;
+    default long count(Collection<? extends ScanObject<?>> items) {
+        long count = 0;
         for (ScanObject<?> item : items) {
             count += count(item);
         }
@@ -31,7 +31,7 @@ public interface Storage {
     /**
      * Counts the distribution for all ScanObjects of a limit.
      */
-    default int count(Limit limit) {
+    default long count(Limit limit) {
         return count(limit.getScanObjects());
     }
 
@@ -39,15 +39,15 @@ public interface Storage {
      * Counts the distribution for given limit and item.
      * Item must be of type Material or EntityType.
      */
-    default int count(Limit limit, ScanObject<?> item) {
+    default long count(Limit limit, ScanObject<?> item) {
         return limit.getType() == LimitType.PERMISSION ? count(item) : count(limit);
     }
 
     /**
      * Counts the distribution of items which match the predicate.
      */
-    default int count(Predicate<ScanObject<?>> predicate) {
-        int count = 0;
+    default long count(Predicate<ScanObject<?>> predicate) {
+        long count = 0;
         for (ScanObject<?> key : keys()) {
             if (predicate.test(key)) {
                 count += count(key);
@@ -56,7 +56,7 @@ public interface Storage {
         return count;
     }
 
-    void modify(ScanObject<?> item, int amount);
+    void modify(ScanObject<?> item, long amount);
 
     void mergeRight(Distribution<ScanObject<?>> target);
 

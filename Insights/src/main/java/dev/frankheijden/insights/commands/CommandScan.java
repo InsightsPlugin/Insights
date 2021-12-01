@@ -34,7 +34,7 @@ public class CommandScan extends InsightsCommand {
     @CommandPermission("insights.scan.tile")
     private void handleTileScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "50") int radius,
+            @Argument("radius") @Range(min = "0", max = "256") int radius,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
     ) {
         handleScan(
@@ -51,7 +51,7 @@ public class CommandScan extends InsightsCommand {
     @CommandPermission("insights.scan.entity")
     private void handleEntityScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "50") int radius,
+            @Argument("radius") @Range(min = "0", max = "256") int radius,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
     ) {
         handleScan(player, radius, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false, groupByChunk);
@@ -61,7 +61,7 @@ public class CommandScan extends InsightsCommand {
     @CommandPermission("insights.scan.all")
     private void handleAllScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "50") int radius,
+            @Argument("radius") @Range(min = "0", max = "256") int radius,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
     ) {
         handleScan(player, radius, null, ScanOptions.scanOnly(), false, groupByChunk);
@@ -71,7 +71,7 @@ public class CommandScan extends InsightsCommand {
     @CommandPermission("insights.scan.custom")
     private void handleCustomScan(
             Player player,
-            @Argument("radius") @Range(min = "0", max = "50") int radius,
+            @Argument("radius") @Range(min = "0", max = "256") int radius,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk,
             @Argument("items") ScanObject<?>[] items
     ) {
