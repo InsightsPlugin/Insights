@@ -1,23 +1,18 @@
 package dev.frankheijden.insights.api.config.notifications;
 
-import dev.frankheijden.insights.api.utils.StringUtils;
-import org.bukkit.ChatColor;
+import dev.frankheijden.insights.api.config.Messages;
+import net.kyori.adventure.text.minimessage.Template;
 
 public abstract class SendableNotification {
 
-    protected String content;
+    protected Messages.Message content;
 
-    protected SendableNotification(String content) {
+    protected SendableNotification(Messages.Message content) {
         this.content = content;
     }
 
-    public SendableNotification replace(String... replacements) {
-        if (content != null) content = StringUtils.replace(content, replacements);
-        return this;
-    }
-
-    public SendableNotification color() {
-        if (content != null) content = ChatColor.translateAlternateColorCodes('&', content);
+    public SendableNotification addTemplates(Template... templates) {
+        this.content.addTemplates(templates);
         return this;
     }
 

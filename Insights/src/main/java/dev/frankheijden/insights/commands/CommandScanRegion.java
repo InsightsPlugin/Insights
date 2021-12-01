@@ -77,9 +77,7 @@ public class CommandScanRegion extends InsightsCommand {
     ) {
         Optional<Region> optionalRegion = plugin.getAddonManager().getRegion(player.getLocation());
         if (optionalRegion.isEmpty()) {
-            plugin.getMessages().getMessage(Messages.Key.SCANREGION_NO_REGION)
-                    .color()
-                    .sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.SCANREGION_NO_REGION).sendTo(player);
             return;
         }
 

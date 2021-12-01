@@ -1,53 +1,53 @@
 messages:
-  prefix: "&b&lInsights &8&l» "
-  update-available: "<prefix>&3Version &a%version% &3of &bInsights &3is now available! Info: &b%body%"
-  configs-reloaded: "<prefix>&3All configurations have been reloaded!"
-  area-scan-started: "<prefix>&3Please wait while we scan this %area%..."
-  area-scan-queued: "<prefix>&cThis %area% is currently queued for scanning..."
-  area-scan-completed: "<actionbar>&bScan completed!"
-  limit-reached: "<prefix>&cYou have reached the limit of %limit%x %name% in this %area%. Please remove some."
-  limit-disallowed-placement: "<prefix>&cYou can't place %name% in this %area%!"
-  limit-notification: "&3%name%: &b%count%&3/&b%limit%"
+  prefix: "<aqua><bold>Insights <dark_gray>» "
+  update-available: "<prefix><dark_aqua>Version <green><version> <dark_aqua>of <aqua>Insights <dark_aqua>is now available! Info: <aqua><body>"
+  configs-reloaded: "<prefix><dark_aqua>All configurations have been reloaded!"
+  area-scan-started: "<prefix><dark_aqua>Please wait while we scan this <area>..."
+  area-scan-queued: "<prefix><red>This <area> is currently queued for scanning..."
+  area-scan-completed: "<actionbar><aqua>Scan completed!"
+  limit-reached: "<prefix><red>You have reached the limit of <limit>x <name> in this <area>. Please remove some."
+  limit-disallowed-placement: "<prefix><red>You can't place <name> in this <area>!"
+  limit-notification: "<dark_aqua><name>: <aqua><count><dark_aqua>/<aqua><limit>"
   scan:
-    start: "<prefix>&3Scanning &b&l%count%&3 chunks..."
-    already-scanning: "<prefix>&cPlease wait for your other scan to finish before requesting another one."
+    start: "<prefix><dark_aqua>Scanning <aqua><bold><count></bold><dark_aqua> chunks..."
+    already-scanning: "<prefix><red>Please wait for your other scan to finish before requesting another one."
     finish:
-      header: "&8&m----------------=&r&8[&b&l Insights Scan&r &8]&m=---------------"
-      chunk-format: "&3Chunk &b%world%&3 @ &b%chunk-x%&3, &b%chunk-z%"
-      chunk-hover: "&3Click to teleport!"
-      format: "&b %entry%&8: &7&l%count%"
+      header: "<dark_gray><strikethrough>----------------=<reset><dark_gray>[<aqua><bold> Insights Scan<reset> <dark_gray>]<strikethrough>=---------------"
+      chunk-format: "<dark_aqua>Chunk <aqua><world><dark_aqua> @ <aqua><chunk-x><dark_aqua>, <aqua><chunk-z>"
+      chunk-hover: "<dark_aqua>Click to teleport!"
+      format: "<aqua> <entry><dark_gray>: <gray><bold><count>"
       footer: |-
-        &3 Scanned through a total of &b&l%chunks% &3chunks with a total of &b&l%blocks% &3blocks and &b&l%entities% &3entities. Took &b%time%&3!
-    progress: "&3Progress: &b&l%count%&3/&b&l%total% &3Chunks (&b&l%percentage%%&3)"
+        <dark_aqua> Scanned through a total of <aqua><bold><chunks></bold> <dark_aqua>chunks with a total of <aqua><bold><blocks></bold> <dark_aqua>blocks and <aqua><bold><entities></bold> <dark_aqua>entities. Took <aqua><time><dark_aqua>!
+    progress: "<dark_aqua>Progress: <aqua><bold><count></bold><dark_aqua>/<aqua><bold><total></bold> <dark_aqua>Chunks (<aqua><bold><percentage></bold>%<dark_aqua>)"
   scanregion:
-    no-region: "<prefix>&cThere does not seem to be any region here!"
+    no-region: "<prefix><red>There does not seem to be any region here!"
   scancache:
-    no-cache: "<prefix>&cThere does not seem to be any cache present here!"
-    cleared: "<prefix>&3Cache from this &b%area%&3 has been deleted!"
+    no-cache: "<prefix><red>There does not seem to be any cache present here!"
+    cleared: "<prefix><dark_aqua>Cache from this <aqua><area><dark_aqua> has been deleted!"
     result:
-      header: "&8&m---------------=&r&8[&b&l Insights Cache&r &8]&m=---------------"
-      format: "&b %entry%&8: &7&l%count%"
+      header: "<dark_gray><strikethrough>---------------=<reset><dark_gray>[<aqua><bold> Insights Cache<reset> <dark_gray>]<strikethrough>=---------------"
+      format: "<aqua> <entry><dark_gray>: <gray><bold><count>"
       footer: |-
-        &3 Cached result from this &b%area%&3.
+        <dark_aqua> Cached result from this <aqua><area><dark_aqua>.
   stats: |-
-    &8&m---------------=&r&8[&b&l Insights Stats&r &8]&m=---------------
-    &3 Chunks Scanned&8: &b&l%chunks_scanned%
-    &3 Blocks Scanned&8: &b&l%blocks_scanned%
-    &3 Current Queue Size&8: &b&l%queue_size%
-    &8&m-------------------------------------------------
+    <dark_gray><strikethrough>---------------=<reset><dark_gray>[<aqua><bold> Insights Stats<reset> <dark_gray>]<strikethrough>=---------------
+    <dark_aqua> Chunks Scanned<dark_gray>: <aqua><bold><chunks_scanned></bold>
+    <dark_aqua> Blocks Scanned<dark_gray>: <aqua><bold><blocks_scanned></bold>
+    <dark_aqua> Current Queue Size<dark_gray>: <aqua><bold><queue_size></bold>
+    <dark_gray><strikethrough>-------------------------------------------------
   teleportchunk:
-    error: "<prefix>&cAn error occurred, please check the console."
-    not-generated: "<prefix>&cCan't teleport you to that chunk, it has not yet been generated. Use the &4--generate &cflag to override."
-    failed: "<prefix>&cTeleportation failed for unknown reasons, maybe the console contains a stacktrace?"
-    success: "<prefix>&3Teleported you to chunk &b%world% &3@ &b%chunk-x%&3, &b%chunk-z%&3!"
+    error: "<prefix><red>An error occurred, please check the console."
+    not-generated: "<prefix><red>Can't teleport you to that chunk, it has not yet been generated. Use the <dark_red>--generate <red>flag to override."
+    failed: "<prefix><red>Teleportation failed for unknown reasons, maybe the console contains a stacktrace?"
+    success: "<prefix><dark_aqua>Teleported you to chunk <aqua><world> <dark_aqua>@ <aqua><chunk-x><dark_aqua>, <aqua><chunk-z><dark_aqua>!"
   scanhistory:
-    no-history: "<prefix>&cYou don't seem to have any scan history!"
+    no-history: "<prefix><red>You don't seem to have any scan history!"
   pagination:
     button-left: "<<<"
     button-right: ">>>"
-    button-color-active: "&b"
-    button-color-inactive: "&7"
-    button-hover: "&7Click to go to page &b%page%&7!"
-    footer-format: "&8&m-------------=&r&8[%button-left%&r&8] &3Page &b%current-page% &3of &b%page-amount% &8[%button-right%&r&8]&m=-------------"
-    no-page: "<prefix>&cThat page does not exist!"
-    no-results: "<prefix>&cNo results were present to display."
+    button-color-active: "<aqua>"
+    button-color-inactive: "<gray>"
+    button-hover: "<gray>Click to go to page <aqua><page><gray>!"
+    footer-format: "<dark_gray><strikethrough>-------------=<reset><dark_gray>[<button-left><reset><dark_gray>] <dark_aqua>Page <aqua><current-page> <dark_aqua>of <aqua><page-amount> <dark_gray>[<button-right><reset><dark_gray>]<strikethrough>=-------------"
+    no-page: "<prefix><red>That page does not exist!"
+    no-results: "<prefix><red>No results were present to display."

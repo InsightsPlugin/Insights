@@ -3,6 +3,7 @@ object VersionConstants {
     const val cloudVersion = "1.6.0-SNAPSHOT"
     const val adventureVersion = "4.9.3"
     const val adventurePlatformVersion = "4.0.0"
+    const val minimessageVersion = "4.2.0-SNAPSHOT"
     const val paperLibVersion = "1.0.6"
     const val bStatsVersion = "2.2.1"
     const val minecraftReflectionVersion = "123e2f546c"

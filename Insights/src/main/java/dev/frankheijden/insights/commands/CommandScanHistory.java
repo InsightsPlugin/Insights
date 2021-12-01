@@ -7,6 +7,7 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.config.Messages;
 import java.util.Optional;
+import java.util.UUID;
 import org.bukkit.entity.Player;
 
 public class CommandScanHistory extends InsightsCommand {
@@ -21,12 +22,12 @@ public class CommandScanHistory extends InsightsCommand {
             Player player,
             @Argument("page") Page page
     ) {
-        Optional<Messages.PaginatedMessage> historyOptional = plugin.getScanHistory().getHistory(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+        Optional<Messages.PaginatedMessage<?>> historyOptional = plugin.getScanHistory().getHistory(uuid);
         if (historyOptional.isPresent()) {
-            Messages.PaginatedMessage history = historyOptional.get();
-            history.sendTo(player, page.page);
+            historyOptional.get().sendTo(player, page.page);
         } else {
-            plugin.getMessages().getMessage(Messages.Key.SCANHISTORY_NO_HISTORY).color().sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.SCANHISTORY_NO_HISTORY).sendTo(player);
         }
     }
 

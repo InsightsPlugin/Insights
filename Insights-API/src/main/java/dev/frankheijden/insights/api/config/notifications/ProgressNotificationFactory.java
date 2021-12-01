@@ -1,6 +1,7 @@
 package dev.frankheijden.insights.api.config.notifications;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.config.Messages;
 
 public class ProgressNotificationFactory extends AbstractNotificationFactory<ProgressNotification> {
 
@@ -9,7 +10,7 @@ public class ProgressNotificationFactory extends AbstractNotificationFactory<Pro
     }
 
     @Override
-    public ProgressNotification bossBar(String title) {
+    public ProgressNotification bossBar(Messages.Message title) {
         return new BossBarProgressNotification(
                 plugin,
                 createBossBar(title),
@@ -19,8 +20,9 @@ public class ProgressNotificationFactory extends AbstractNotificationFactory<Pro
     }
 
     @Override
-    public ProgressNotification actionBar(String content) {
+    public ProgressNotification actionBar(Messages.Message content) {
         return new ActionBarProgressNotification(
+                plugin,
                 content,
                 settings.NOTIFICATION_ACTIONBAR_SEGMENTS,
                 settings.NOTIFICATION_ACTIONBAR_DONE_COLOR,

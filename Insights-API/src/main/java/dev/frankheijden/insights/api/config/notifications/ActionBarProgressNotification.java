@@ -1,5 +1,8 @@
 package dev.frankheijden.insights.api.config.notifications;
 
+import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.config.Messages;
+
 public class ActionBarProgressNotification extends ActionBarNotification implements ProgressNotification {
 
     protected final String rawContent;
@@ -9,14 +12,17 @@ public class ActionBarProgressNotification extends ActionBarNotification impleme
     protected final String progressSequence;
     protected final String separator;
 
-    protected ActionBarProgressNotification(String content,
-                                            int segments,
-                                            String doneColor,
-                                            String totalColor,
-                                            String progressSequence,
-                                            String separator) {
-        super(content);
-        this.rawContent = content;
+    protected ActionBarProgressNotification(
+            InsightsPlugin plugin,
+            Messages.Message content,
+            int segments,
+            String doneColor,
+            String totalColor,
+            String progressSequence,
+            String separator
+    ) {
+        super(plugin, content);
+        this.rawContent = content.getRawContent();
         this.segments = segments;
         this.doneColor = doneColor;
         this.totalColor = totalColor;
@@ -25,7 +31,7 @@ public class ActionBarProgressNotification extends ActionBarNotification impleme
     }
 
     @Override
-    public ActionBarProgressNotification progress(double progress) {
+    public ActionBarProgressNotification progress(float progress) {
         progress = Math.max(0, Math.min(1, progress));
         int cut = (int) (progress * segments);
         StringBuilder sb = new StringBuilder(segments * progressSequence.length()
@@ -43,7 +49,7 @@ public class ActionBarProgressNotification extends ActionBarNotification impleme
         for (int i = cut; i < segments; i++) {
             sb.append(progressSequence);
         }
-        this.content = sb.append(separator).append(rawContent).toString();
+        this.content.setRawContent(sb.append(separator).append(rawContent).toString());
         return this;
     }
 }

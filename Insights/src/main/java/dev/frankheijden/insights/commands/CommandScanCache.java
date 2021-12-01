@@ -13,6 +13,8 @@ import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import dev.frankheijden.insights.api.utils.Constants;
 import dev.frankheijden.insights.api.utils.EnumUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import java.util.Arrays;
@@ -68,10 +70,9 @@ public class CommandScanCache extends InsightsCommand {
         String areaName = optionalRegion
                 .map(r -> plugin.getAddonManager().getAddon(r.getAddon()).getAreaName())
                 .orElse("chunk");
-        plugin.getMessages().getMessage(Messages.Key.SCANCACHE_CLEARED)
-                .replace("area", areaName)
-                .color()
-                .sendTo(player);
+        plugin.getMessages().getMessage(Messages.Key.SCANCACHE_CLEARED).addTemplates(
+                Template.template("area", areaName)
+        ).sendTo(player);
     }
 
     /**
@@ -101,9 +102,13 @@ public class CommandScanCache extends InsightsCommand {
                     .sorted(Comparator.comparing(ScanObject::name))
                     .toArray(ScanObject[]::new);
 
-            var footer = messages.getMessage(Messages.Key.SCANCACHE_RESULT_FOOTER).replace(
-                    "area", optionalRegion.map(r -> plugin.getAddonManager().getAddon(r.getAddon()).getAreaName())
-                            .orElse("chunk")
+            var footer = messages.getMessage(Messages.Key.SCANCACHE_RESULT_FOOTER).addTemplates(
+                    Template.template(
+                            "area",
+                            optionalRegion
+                                    .map(r -> plugin.getAddonManager().getAddon(r.getAddon()).getAreaName())
+                                    .orElse("chunk")
+                    )
             );
 
             var message = messages.createPaginatedMessage(
@@ -112,15 +117,13 @@ public class CommandScanCache extends InsightsCommand {
                     footer,
                     displayItems,
                     storage::count,
-                    item -> EnumUtils.pretty(item.getObject())
+                    item -> Component.text(EnumUtils.pretty(item.getObject()))
             );
 
             plugin.getScanHistory().setHistory(player.getUniqueId(), message);
             message.sendTo(player, 0);
         } else {
-            plugin.getMessages().getMessage(Messages.Key.SCANCACHE_NO_CACHE)
-                    .color()
-                    .sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.SCANCACHE_NO_CACHE).sendTo(player);
         }
     }
 }

@@ -17,7 +17,7 @@ public class EmptyProgressNotification extends EmptyNotification implements Prog
     protected EmptyProgressNotification() {}
 
     @Override
-    public EmptyProgressNotification progress(double progress) {
+    public EmptyProgressNotification progress(float progress) {
         return this;
     }
 }
