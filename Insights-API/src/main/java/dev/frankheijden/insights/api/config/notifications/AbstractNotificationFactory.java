@@ -1,9 +1,10 @@
 package dev.frankheijden.insights.api.config.notifications;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Settings;
-import org.bukkit.Bukkit;
-import org.bukkit.boss.BossBar;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
 
 public abstract class AbstractNotificationFactory<T extends Notification> {
 
@@ -15,18 +16,19 @@ public abstract class AbstractNotificationFactory<T extends Notification> {
         this.settings = plugin.getSettings();
     }
 
-    protected BossBar createBossBar(String title) {
-        return Bukkit.createBossBar(
-                title,
+    protected BossBar createBossBar(Messages.Message title) {
+        return BossBar.bossBar(
+                title.toComponent().orElse(Component.empty()),
+                0,
                 settings.NOTIFICATION_BOSSBAR_COLOR,
-                settings.NOTIFICATION_BOSSBAR_STYLE,
+                settings.NOTIFICATION_BOSSBAR_OVERLAY,
                 settings.NOTIFICATION_BOSSBAR_FLAGS
         );
     }
 
-    public abstract T bossBar(String title);
+    public abstract T bossBar(Messages.Message title);
 
-    public abstract T actionBar(String content);
+    public abstract T actionBar(Messages.Message content);
 
     public abstract T empty();
 }

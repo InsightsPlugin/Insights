@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.utils.VersionUtils;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.command.CommandSender;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -58,11 +59,11 @@ public class UpdateCheckerTask extends InsightsAsyncTask {
      * Checks the cached version and displays the result, if an update is available to the CommandSender.
      */
     public static void check(CommandSender sender) {
-        InsightsPlugin plugin = InsightsPlugin.getInstance();
-        getCachedUpdate().ifPresent(update -> plugin.getMessages().getMessage(Messages.Key.UPDATE_AVAILABLE).replace(
-                "version", update.version,
-                "body", update.body
-        ).color().sendTo(sender));
+        var messages = InsightsPlugin.getInstance().getMessages();
+        getCachedUpdate().ifPresent(update -> messages.getMessage(Messages.Key.UPDATE_AVAILABLE).addTemplates(
+                Template.template("version", update.version),
+                Template.template("body", update.body)
+        ).sendTo(sender));
     }
 
     public static Optional<Update> getCachedUpdate() {

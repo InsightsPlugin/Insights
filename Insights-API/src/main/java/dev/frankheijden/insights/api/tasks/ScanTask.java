@@ -13,6 +13,8 @@ import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.TriConsumer;
 import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -25,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -143,15 +146,14 @@ public class ScanTask<R> implements Runnable {
                     if (!notify) return;
 
                     // Update the notification with progress
-                    double progress = (double) info.getChunksDone() / (double) info.getChunks();
+                    float progress = (float) info.getChunksDone() / (float) info.getChunks();
                     notification.progress(progress)
                             .create()
-                            .replace(
-                                    "percentage", StringUtils.prettyOneDecimal(progress * 100.),
-                                    "count", StringUtils.pretty(info.getChunksDone()),
-                                    "total", StringUtils.pretty(info.getChunks())
+                            .addTemplates(
+                                    Template.template("percentage", StringUtils.prettyOneDecimal(progress * 100)),
+                                    Template.template("count", StringUtils.pretty(info.getChunksDone())),
+                                    Template.template("total", StringUtils.pretty(info.getChunks()))
                             )
-                            .color()
                             .send();
                 },
                 plugin.getSettings().SCANS_INFO_INTERVAL_MILLIS,
@@ -197,11 +199,17 @@ public class ScanTask<R> implements Runnable {
                             .sorted(Comparator.comparing(ScanObject::name))
                             .toArray(ScanObject[]::new);
 
-                    var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).replace(
-                            "chunks", StringUtils.pretty(chunkCount),
-                            "blocks", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL)),
-                            "entities", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY)),
-                            "time", StringUtils.pretty(Duration.ofMillis(millis))
+                    var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).addTemplates(
+                            Template.template("chunks", StringUtils.pretty(chunkCount)),
+                            Template.template(
+                                    "blocks",
+                                    StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL))
+                            ),
+                            Template.template(
+                                    "entities",
+                                    StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY))
+                            ),
+                            Template.template("time", StringUtils.pretty(Duration.ofMillis(millis)))
                     );
 
                     var message = messages.createPaginatedMessage(
@@ -210,7 +218,7 @@ public class ScanTask<R> implements Runnable {
                             footer,
                             displayItems,
                             storage::count,
-                            item -> EnumUtils.pretty(item.getObject())
+                            item -> Component.text(EnumUtils.pretty(item.getObject()))
                     );
 
                     plugin.getScanHistory().setHistory(player.getUniqueId(), message);
@@ -237,7 +245,7 @@ public class ScanTask<R> implements Runnable {
 
         // If the player is already scanning, tell them they can't run two scans.
         if (scanners.contains(uuid)) {
-            plugin.getMessages().getMessage(Messages.Key.SCAN_ALREADY_SCANNING).color().sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.SCAN_ALREADY_SCANNING).sendTo(player);
             return;
         }
 
@@ -245,12 +253,9 @@ public class ScanTask<R> implements Runnable {
         scanners.add(uuid);
 
         // Notify about scan start
-        plugin.getMessages().getMessage(Messages.Key.SCAN_START)
-                .replace(
-                        "count", StringUtils.pretty(chunkCount)
-                )
-                .color()
-                .sendTo(player);
+        plugin.getMessages().getMessage(Messages.Key.SCAN_START).addTemplates(
+                Template.template("count", StringUtils.pretty(chunkCount))
+        ).sendTo(player);
 
         // Start the scan
         ScanTask.scan(
@@ -318,11 +323,11 @@ public class ScanTask<R> implements Runnable {
                             .mapToLong(storage -> storage.count(i -> i.getType() == ScanObject.Type.ENTITY))
                             .sum();
 
-                    var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).replace(
-                            "chunks", StringUtils.pretty(chunkCount),
-                            "blocks", StringUtils.pretty(blockCount),
-                            "entities", StringUtils.pretty(entityCount),
-                            "time", StringUtils.pretty(Duration.ofMillis(millis))
+                    var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).addTemplates(
+                            Template.template("chunks", StringUtils.pretty(chunkCount)),
+                            Template.template("blocks", StringUtils.pretty(blockCount)),
+                            Template.template("entities", StringUtils.pretty(entityCount)),
+                            Template.template("time", StringUtils.pretty(Duration.ofMillis(millis)))
                     );
 
                     var message = messages.<ChunkLocation>createPaginatedMessage(
@@ -339,11 +344,11 @@ public class ScanTask<R> implements Runnable {
                                 var x = Integer.toString(key.getX());
                                 var z = Integer.toString(key.getZ());
 
-                                return messages.getMessage(Messages.Key.SCAN_FINISH_CHUNK_FORMAT).replace(
-                                        "world", worldName,
-                                        "chunk-x", x,
-                                        "chunk-z", z
-                                ).getMessage().orElse(worldName + " @ " + x + ", " + z);
+                                return messages.getMessage(Messages.Key.SCAN_FINISH_CHUNK_FORMAT).addTemplates(
+                                        Template.template("world", worldName),
+                                        Template.template("chunk-x", x),
+                                        Template.template("chunk-z", z)
+                                ).toComponent().orElse(Component.text(worldName + " @ " + x + ", " + z));
                             }
                     );
 
@@ -436,7 +441,7 @@ public class ScanTask<R> implements Runnable {
         long now = System.nanoTime();
         if (lastInfo + infoTimeout < now) {
             lastInfo = now;
-            sendInfo();
+            ForkJoinPool.commonPool().execute(this::sendInfo);
         }
     }
 

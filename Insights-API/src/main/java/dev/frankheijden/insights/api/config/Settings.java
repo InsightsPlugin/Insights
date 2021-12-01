@@ -3,9 +3,7 @@ package dev.frankheijden.insights.api.config;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.config.parser.PassiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarFlag;
-import org.bukkit.boss.BarStyle;
+import net.kyori.adventure.bossbar.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -14,10 +12,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class Settings {
 
@@ -30,9 +31,9 @@ public class Settings {
     public final ChunkScanMode CHUNK_SCANS_MODE;
     public final int CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS;
     public final NotificationType NOTIFICATION_TYPE;
-    public final BarColor NOTIFICATION_BOSSBAR_COLOR;
-    public final BarStyle NOTIFICATION_BOSSBAR_STYLE;
-    public final BarFlag[] NOTIFICATION_BOSSBAR_FLAGS;
+    public final BossBar.Color NOTIFICATION_BOSSBAR_COLOR;
+    public final BossBar.Overlay NOTIFICATION_BOSSBAR_OVERLAY;
+    public final Set<BossBar.Flag> NOTIFICATION_BOSSBAR_FLAGS;
     public final int NOTIFICATION_BOSSBAR_DURATION_TICKS;
     public final int NOTIFICATION_ACTIONBAR_SEGMENTS;
     public final String NOTIFICATION_ACTIONBAR_SEQUENCE;
@@ -73,9 +74,10 @@ public class Settings {
 
         NOTIFICATION_TYPE = parser.getEnum("settings.notification.type", NotificationType.BOSSBAR);
 
-        NOTIFICATION_BOSSBAR_COLOR = parser.getEnum("settings.notification.bossbar.color", BarColor.BLUE);
-        NOTIFICATION_BOSSBAR_STYLE = parser.getEnum("settings.notification.bossbar.style", BarStyle.SEGMENTED_10);
-        NOTIFICATION_BOSSBAR_FLAGS = parser.getEnums("settings.notification.bossbar.flags", BarFlag.class).toArray(new BarFlag[0]);
+        NOTIFICATION_BOSSBAR_COLOR = parser.getEnum("settings.notification.bossbar.color", BossBar.Color.BLUE);
+        NOTIFICATION_BOSSBAR_OVERLAY = parser.getEnum("settings.notification.bossbar.overlay", BossBar.Overlay.NOTCHED_10);
+        var flags = parser.getEnums("settings.notification.bossbar.flags", BossBar.Flag.class);
+        NOTIFICATION_BOSSBAR_FLAGS = flags.isEmpty() ? Collections.emptySet() : EnumSet.copyOf(flags);
         NOTIFICATION_BOSSBAR_DURATION_TICKS = parser.getInt("settings.notification.bossbar.duration-ticks", 60, 0, Integer.MAX_VALUE);
 
         NOTIFICATION_ACTIONBAR_SEGMENTS = parser.getInt("settings.notification.actionbar.segments", 50, 0, 100);

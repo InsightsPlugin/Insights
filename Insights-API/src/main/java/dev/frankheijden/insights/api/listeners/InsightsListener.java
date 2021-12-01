@@ -18,6 +18,7 @@ import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -108,10 +109,9 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         if (queued) {
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
-                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_QUEUED)
-                        .replace("area", area)
-                        .color()
-                        .sendTo(player);
+                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_QUEUED).addTemplates(
+                        Template.template("area", area)
+                ).sendTo(player);
             }
             return true;
         }
@@ -123,13 +123,10 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         var limitInfo = limit.getLimit(item);
 
         if (regionOptional.isEmpty() && limit.getSettings().isDisallowedPlacementOutsideRegion()) {
-            plugin.getMessages().getMessage(Messages.Key.LIMIT_DISALLOWED_PLACEMENT)
-                    .replace(
-                            "name", limitInfo.getName(),
-                            "area", area
-                    )
-                    .color()
-                    .sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.LIMIT_DISALLOWED_PLACEMENT).addTemplates(
+                    Template.template("name", limitInfo.getName()),
+                    Template.template("area", area)
+            ).sendTo(player);
             return true;
         }
 
@@ -142,9 +139,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
             // Notify the user scan completed
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
-                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_COMPLETED)
-                        .color()
-                        .sendTo(player);
+                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_COMPLETED).sendTo(player);
             }
         };
 
@@ -163,14 +158,11 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         // If count is beyond limit, act
         if (count + delta > limitInfo.getLimit()) {
-            plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED)
-                    .replace(
-                            "limit", StringUtils.pretty(limitInfo.getLimit()),
-                            "name", limitInfo.getName(),
-                            "area", area
-                    )
-                    .color()
-                    .sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED).addTemplates(
+                    Template.template("limit", StringUtils.pretty(limitInfo.getLimit())),
+                    Template.template("name", limitInfo.getName()),
+                    Template.template("area", area)
+            ).sendTo(player);
             return true;
         }
         return false;
@@ -193,12 +185,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             storageOptional = plugin.getWorldStorage().getWorld(world.getUID()).get(chunkKey);
         }
 
-        if (!storageOptional.isPresent()) return;
+        if (storageOptional.isEmpty()) return;
         Storage storage = storageOptional.get();
 
         // If limit is not present, stop here
         Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
-        if (!limitOptional.isPresent()) return;
+        if (limitOptional.isEmpty()) return;
 
         Limit limit = limitOptional.get();
         LimitInfo limitInfo = limit.getLimit(item);
@@ -206,17 +198,16 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         // Notify the user (if they have permission)
         if (player.hasPermission("insights.notifications")) {
-            double progress = (double) (count + delta) / limitInfo.getLimit();
+            float progress = (float) (count + delta) / limitInfo.getLimit();
             plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                     .progress(progress)
                     .add(player)
                     .create()
-                    .replace(
-                            "name", limitInfo.getName(),
-                            "count", StringUtils.pretty(count + delta),
-                            "limit", StringUtils.pretty(limitInfo.getLimit())
+                    .addTemplates(
+                            Template.template("name", limitInfo.getName()),
+                            Template.template("count", StringUtils.pretty(count + delta)),
+                            Template.template("limit", StringUtils.pretty(limitInfo.getLimit()))
                     )
-                    .color()
                     .send();
         }
     }
@@ -234,13 +225,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         Optional<Storage> storageOptional = chunkStorage.get(chunkKey);
 
         // If the chunk is not known
-        if (!storageOptional.isPresent()) {
+        if (storageOptional.isEmpty()) {
             // Notify the user scan started
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
-                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED)
-                        .replace("area", "chunk")
-                        .color()
-                        .sendTo(player);
+                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED).addTemplates(
+                        Template.template("area", "chunk")
+                ).sendTo(player);
             }
 
             // Submit the chunk for scanning
@@ -263,13 +253,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
         AddonStorage addonStorage = plugin.getAddonStorage();
         Optional<Storage> storageOptional = addonStorage.get(key);
-        if (!storageOptional.isPresent()) {
+        if (storageOptional.isEmpty()) {
             // Notify the user scan started
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
-                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED)
-                        .replace("area", plugin.getAddonManager().getAddon(region.getAddon()).getAreaName())
-                        .color()
-                        .sendTo(player);
+                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED).addTemplates(
+                        Template.template("area", plugin.getAddonManager().getAddon(region.getAddon()).getAreaName())
+                ).sendTo(player);
             }
 
             scanRegion(player, region, storageConsumer);
@@ -314,24 +303,23 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
 
             // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
             Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
-            if (!limitOptional.isPresent()) return;
+            if (limitOptional.isEmpty()) return;
             Limit limit = limitOptional.get();
             LimitInfo limitInfo = limit.getLimit(item);
 
             // Create a runnable for the notification.
             Consumer<Storage> notification = storage -> {
                 long count = storage.count(limit, item);
-                double progress = (double) count / limitInfo.getLimit();
+                float progress = (float) count / limitInfo.getLimit();
                 plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
                         .progress(progress)
                         .add(player)
                         .create()
-                        .replace(
-                                "name", limitInfo.getName(),
-                                "count", StringUtils.pretty(count),
-                                "limit", StringUtils.pretty(limitInfo.getLimit())
+                        .addTemplates(
+                                Template.template("name", limitInfo.getName()),
+                                Template.template("count", StringUtils.pretty(count)),
+                                Template.template("limit", StringUtils.pretty(limitInfo.getLimit()))
                         )
-                        .color()
                         .send();
             };
 
@@ -345,7 +333,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             Consumer<Storage> storageConsumer = storage -> {
                 // Subtract the broken block, as the first modification failed (we had to scan the chunk)
                 // Only if we're not scanning a cuboid (iff cuboid, the block is already removed from the chunk)
-                if (included && !regionOptional.isPresent()) storage.modify(item, -delta);
+                if (included && regionOptional.isEmpty()) storage.modify(item, -delta);
 
                 // Notify the user
                 notification.accept(storage);

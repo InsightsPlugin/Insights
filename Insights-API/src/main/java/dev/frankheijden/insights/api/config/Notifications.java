@@ -29,21 +29,23 @@ public class Notifications {
         this.type = plugin.getSettings().NOTIFICATION_TYPE;
     }
 
-    private <T extends Notification> T createNotification(AbstractNotificationFactory<T> factory, String content) {
-        switch (type) {
-            case ACTIONBAR: return factory.actionBar(content);
-            case BOSSBAR: return factory.bossBar(content);
-            default: throw new IllegalArgumentException("Notification Type '" + type + "' is not implemented!");
-        }
+    private <T extends Notification> T createNotification(
+            AbstractNotificationFactory<T> factory,
+            Messages.Message content
+    ) {
+        return switch (type) {
+            case ACTIONBAR -> factory.actionBar(content);
+            case BOSSBAR -> factory.bossBar(content);
+            default -> throw new IllegalArgumentException("Notification Type '" + type + "' is not implemented!");
+        };
     }
 
     /**
      * Creates a new notification from given factory and message locale at given path.
      */
     private <T extends Notification> T get(AbstractNotificationFactory<T> factory, Messages.Key key) {
-        return messages.getMessage(key).getMessage()
-                .map(content -> createNotification(factory, content))
-                .orElse(factory.empty());
+        Messages.Message message = messages.getMessage(key);
+        return message == null ? factory.empty() : createNotification(factory, message);
     }
 
     public Notification get(Messages.Key messageKey) {

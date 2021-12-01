@@ -1,6 +1,7 @@
 package dev.frankheijden.insights.api.config.notifications;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.config.Messages;
 
 public class NotificationFactory extends AbstractNotificationFactory<Notification> {
 
@@ -9,7 +10,7 @@ public class NotificationFactory extends AbstractNotificationFactory<Notificatio
     }
 
     @Override
-    public Notification bossBar(String title) {
+    public Notification bossBar(Messages.Message title) {
         return new BossBarNotification(
                 plugin,
                 createBossBar(title),
@@ -19,8 +20,8 @@ public class NotificationFactory extends AbstractNotificationFactory<Notificatio
     }
 
     @Override
-    public Notification actionBar(String content) {
-        return new ActionBarNotification(content);
+    public Notification actionBar(Messages.Message content) {
+        return new ActionBarNotification(plugin, content);
     }
 
     @Override

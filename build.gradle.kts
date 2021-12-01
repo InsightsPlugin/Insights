@@ -34,6 +34,7 @@ subprojects {
         implementation("org.bstats:bstats-bukkit:${VersionConstants.bStatsVersion}")
         implementation("net.kyori:adventure-api:${VersionConstants.adventureVersion}")
         implementation("net.kyori:adventure-platform-bukkit:${VersionConstants.adventurePlatformVersion}")
+        implementation("net.kyori:adventure-text-minimessage:${VersionConstants.minimessageVersion}")
 
         testImplementation("org.assertj:assertj-core:3.21.0")
         testImplementation("org.mockito:mockito-core:4.0.0")

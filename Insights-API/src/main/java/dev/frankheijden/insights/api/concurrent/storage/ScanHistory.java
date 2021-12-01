@@ -8,17 +8,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ScanHistory {
 
-    private final Map<UUID, Messages.PaginatedMessage> historyMap;
+    private final Map<UUID, Messages.PaginatedMessage<?>> historyMap;
 
     public ScanHistory() {
         this.historyMap = new ConcurrentHashMap<>();
     }
 
-    public void setHistory(UUID player, Messages.PaginatedMessage message) {
+    public void setHistory(UUID player, Messages.PaginatedMessage<?> message) {
         historyMap.put(player, message);
     }
 
-    public Optional<Messages.PaginatedMessage> getHistory(UUID player) {
+    public Optional<Messages.PaginatedMessage<?>> getHistory(UUID player) {
         return Optional.ofNullable(historyMap.get(player));
     }
 }

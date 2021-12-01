@@ -14,7 +14,7 @@ settings:
     type: "BOSSBAR"
     bossbar:
       color: "BLUE"
-      style: "SEGMENTED_10"
+      overlay: "NOTCHED_10"
       flags: []
       duration-ticks: 60
     actionbar:
