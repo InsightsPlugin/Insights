@@ -8,16 +8,14 @@ import cloud.commandframework.annotations.specifier.Range;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
-import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
-import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
+import dev.frankheijden.insights.api.util.LazyChunkPartRadiusIterator;
 import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -109,20 +107,12 @@ public class CommandScan extends InsightsCommand {
         int chunkX = chunk.getX();
         int chunkZ = chunk.getZ();
 
-        // Generate chunk parts
-        int edge = (2 * radius) + 1;
-        int chunkCount = edge * edge;
-        List<ChunkPart> chunkParts = new ArrayList<>(chunkCount);
-        for (int x = chunkX - radius; x <= chunkX + radius; x++) {
-            for (int z = chunkZ - radius; z <= chunkZ + radius; z++) {
-                chunkParts.add(new ChunkLocation(world, x, z).toPart());
-            }
-        }
+        LazyChunkPartRadiusIterator it = new LazyChunkPartRadiusIterator(world, chunkX, chunkZ, radius);
 
         if (groupByChunk) {
-            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, chunkParts, options, items, false);
+            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, it, it.getChunkCount(), options, items, false);
         } else {
-            ScanTask.scanAndDisplay(plugin, player, chunkParts, options, items, displayZeros);
+            ScanTask.scanAndDisplay(plugin, player, it, it.getChunkCount(), options, items, displayZeros);
         }
     }
 }

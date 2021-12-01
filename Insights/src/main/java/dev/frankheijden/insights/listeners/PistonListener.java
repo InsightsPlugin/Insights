@@ -8,6 +8,7 @@ import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.limits.LimitInfo;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
+import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.BlockUtils;
@@ -66,13 +67,13 @@ public class PistonListener extends InsightsListener {
         Optional<Region> regionOptional = plugin.getAddonManager().getRegion(to.getLocation());
 
         // Always allow piston pushes within the same chunk
-        if (!regionOptional.isPresent() && BlockUtils.isSameChunk(from, to)) return false;
+        if (regionOptional.isEmpty() && BlockUtils.isSameChunk(from, to)) return false;
 
         Material material = from.getType();
         Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(material, limit -> true);
 
         // If no limit is present, allow the block to be moved.
-        if (!limitOptional.isPresent()) return false;
+        if (limitOptional.isEmpty()) return false;
 
         Chunk chunk = to.getChunk();
         UUID worldUid = chunk.getWorld().getUID();
@@ -93,11 +94,12 @@ public class PistonListener extends InsightsListener {
         if (queued) return true;
 
         // If the storage is not present, scan it & cancel the event.
-        if (!storageOptional.isPresent()) {
+        if (storageOptional.isEmpty()) {
             if (regionOptional.isPresent()) {
                 Region region = regionOptional.get();
                 plugin.getAddonScanTracker().add(region.getAddon());
-                ScanTask.scan(plugin, region.toChunkParts(), ScanOptions.scanOnly(), info -> {}, storage -> {
+                List<ChunkPart> chunkParts = region.toChunkParts();
+                ScanTask.scan(plugin, chunkParts, chunkParts.size(), ScanOptions.scanOnly(), info -> {}, storage -> {
                     plugin.getAddonScanTracker().remove(region.getAddon());
                     plugin.getAddonStorage().put(region.getKey(), storage);
                 });
