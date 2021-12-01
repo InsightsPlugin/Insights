@@ -4,7 +4,7 @@ plugins {
     `java-library`
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "7.1.0"
-    id("io.papermc.paperweight.userdev") version "1.1.14"
+    id("io.papermc.paperweight.userdev") version "1.2.0"
 }
 
 val name = "Insights"
