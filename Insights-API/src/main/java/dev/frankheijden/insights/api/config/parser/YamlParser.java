@@ -58,6 +58,14 @@ public abstract class YamlParser {
         return yaml;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void addError(ConfigError error) {
+        errorConsumer.accept(error);
+    }
+
     /**
      * Joins the given strings into a YAML dot-delimited key.
      */

@@ -77,17 +77,15 @@ public class CommandScanRegion extends InsightsCommand {
     ) {
         Optional<Region> optionalRegion = plugin.getAddonManager().getRegion(player.getLocation());
         if (optionalRegion.isEmpty()) {
-            plugin.getMessages().getMessage(Messages.Key.SCANREGION_NO_REGION)
-                    .color()
-                    .sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.SCANREGION_NO_REGION).sendTo(player);
             return;
         }
 
         List<ChunkPart> parts = optionalRegion.get().toChunkParts();
         if (groupByChunk) {
-            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, parts, options, items, false);
+            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, parts, parts.size(), options, items, false);
         } else {
-            ScanTask.scanAndDisplay(plugin, player, parts, options, items, displayZeros);
+            ScanTask.scanAndDisplay(plugin, player, parts, parts.size(), options, items, displayZeros);
         }
     }
 }

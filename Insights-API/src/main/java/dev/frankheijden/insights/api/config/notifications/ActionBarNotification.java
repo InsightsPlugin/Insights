@@ -1,6 +1,7 @@
 package dev.frankheijden.insights.api.config.notifications;
 
-import dev.frankheijden.insights.api.utils.PlayerUtils;
+import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.config.Messages;
 import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,10 +9,12 @@ import java.util.UUID;
 
 public class ActionBarNotification implements Notification {
 
-    protected String content;
+    protected InsightsPlugin plugin;
+    protected Messages.Message content;
     protected final Map<UUID, Player> receivers;
 
-    protected ActionBarNotification(String content) {
+    protected ActionBarNotification(InsightsPlugin plugin, Messages.Message content) {
+        this.plugin = plugin;
         this.content = content;
         this.receivers = new HashMap<>();
     }
@@ -24,10 +27,12 @@ public class ActionBarNotification implements Notification {
 
     @Override
     public SendableNotification create() {
-        return new SendableNotification(content) {
+        return new SendableNotification(content.resetTemplates()) {
             @Override
             public void send() {
-                PlayerUtils.sendActionBar(receivers.values(), content);
+                var audiences = plugin.getMessages().getAudiences();
+                content.toComponent().ifPresent(component -> receivers.values()
+                        .forEach(player -> audiences.player(player).sendMessage(component)));
             }
         };
     }

@@ -33,8 +33,8 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
     protected final int chunkZ;
     protected final ChunkCuboid cuboid;
     protected final ScanOptions options;
-    protected final Map<Material, Integer> materialMap;
-    protected final Map<EntityType, Integer> entityMap;
+    protected final Map<Material, Long> materialMap;
+    protected final Map<EntityType, Long> entityMap;
 
     /**
      * Constructs a new ChunkSnapshotContainer, with the area to be scanned as a cuboid.
@@ -102,16 +102,16 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                 LevelChunkSection section = chunkSections[sectionY];
                 if (section == null) {
                     // Section is empty, count everything as air
-                    int count = (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
-                    materialMap.merge(Material.AIR, count, Integer::sum);
+                    long count = (maxX - minX + 1L) * (maxY - minY + 1L) * (maxZ - minZ + 1L);
+                    materialMap.merge(Material.AIR, count, Long::sum);
                 } else if (minX == 0 && maxX == 15 && minY == 0 && maxY == 15 && minZ == 0 && maxZ == 15) {
                     // Section can be counted as a whole
                     section.getStates().count((state, count) -> {
                         try {
                             materialMap.merge(
                                     CraftMagicNumbers.getMaterial(state.getBlock()),
-                                    count,
-                                    Integer::sum
+                                    (long) count,
+                                    Long::sum
                             );
                         } catch (Throwable th) {
                             th.printStackTrace();
@@ -124,8 +124,8 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                             for (int z = minZ; z <= maxZ; z++) {
                                 materialMap.merge(
                                         CraftMagicNumbers.getMaterial(section.getBlockState(x, y, z).getBlock()),
-                                        1,
-                                        Integer::sum
+                                        1L,
+                                        Long::sum
                                 );
                             }
                         }
@@ -169,7 +169,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                 int y = entity.getBlockY();
                 int z = entity.getBlockZ() & 15;
                 return minX <= x && x <= maxX && blockMinY <= y && y <= blockMaxY && minZ <= z && z <= maxZ;
-            }).forEach(entity -> entityMap.merge(entity.getBukkitEntity().getType(), 1, Integer::sum));
+            }).forEach(entity -> entityMap.merge(entity.getBukkitEntity().getType(), 1L, Long::sum));
         }
 
         return DistributionStorage.of(materialMap, entityMap);

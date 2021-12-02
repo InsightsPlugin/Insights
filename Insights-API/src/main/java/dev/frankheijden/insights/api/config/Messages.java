@@ -5,49 +5,61 @@ import dev.frankheijden.insights.api.config.parser.PassiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
-import dev.frankheijden.insights.api.utils.PlayerUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.Template;
+import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 public class Messages {
 
     private final InsightsPlugin plugin;
     private final BukkitAudiences audiences;
     private final YamlParser parser;
+    private final MiniMessage miniMessage;
+    private final Map<Key, String> messageCache;
+    private final TemplateResolver prefixResolver;
 
     protected Messages(InsightsPlugin plugin, BukkitAudiences audiences, YamlParser parser) {
         this.plugin = plugin;
         this.audiences = audiences;
         this.parser = parser;
+        this.miniMessage = MiniMessage.miniMessage();
+        this.messageCache = new EnumMap<>(Key.class);
+        this.prefixResolver = TemplateResolver.templates(Template.template(
+                "prefix", miniMessage.parse(getRawMessage(Key.PREFIX))
+        ));
+    }
+
+    public BukkitAudiences getAudiences() {
+        return audiences;
     }
 
     public Message getMessage(Key messageKey) {
-        return getMessage(messageKey.getPath());
+        return createMessage(getRawMessage(messageKey));
     }
 
-    public Message getMessage(String path) {
-        return createMessage(parser.getRawString(path));
+    public String getRawMessage(Key messageKey) {
+        return messageCache.computeIfAbsent(messageKey, k -> parser.getRawString(k.getPath()));
     }
 
     /**
@@ -58,29 +70,26 @@ public class Messages {
             Key formatKey,
             Message footer,
             T[] keys,
-            ToIntFunction<T> countFunction,
-            Function<T, String> displayNameFunction
+            ToLongFunction<T> countFunction,
+            Function<T, Component> displayNameFunction
     ) {
-        var serializer = LegacyComponentSerializer.legacyAmpersand();
         return new PaginatedMessage<>(
                 header,
                 footer,
                 keys,
                 element -> {
-                    String displayName = displayNameFunction.apply(element);
-                    var component = serializer.deserialize(getMessage(formatKey).replace(
-                            "entry", displayName,
-                            "count", StringUtils.pretty(countFunction.applyAsInt(element))
-                    ).content);
-
+                    Component displayName = displayNameFunction.apply(element);
+                    var component = miniMessage.deserialize(getRawMessage(formatKey), TemplateResolver.templates(
+                            Template.template("entry", displayName),
+                            Template.template("count", StringUtils.pretty(countFunction.applyAsLong(element)))
+                    ));
                     return addHover(component, element, displayName);
                 },
                 plugin.getSettings().PAGINATION_RESULTS_PER_PAGE
         );
     }
 
-    private <T> TextComponent addHover(TextComponent component, T element, String displayName) {
-        var serializer = LegacyComponentSerializer.legacyAmpersand();
+    private <T> Component addHover(Component component, T element, Component displayName) {
         if (element instanceof ScanObject<?> scanObject) {
             Object obj = scanObject.getObject();
 
@@ -92,18 +101,19 @@ public class Messages {
                             1
                     ));
                 } else {
-                    return component.hoverEvent(HoverEvent.showText(Component.text(displayName)
+                    return component.hoverEvent(HoverEvent.showText(displayName
                             .append(Component.newline())
                             .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
                 }
             } else if (obj instanceof EntityType type) {
                 var key = type.getKey();
-                return component.hoverEvent(HoverEvent.showText(Component.text("Type: " + displayName)
+                return component.hoverEvent(HoverEvent.showText(Component.text("Type: ")
+                        .append(displayName)
                         .append(Component.newline())
                         .append(Component.text(key.toString(), NamedTextColor.DARK_GRAY))));
             }
         } else if (element instanceof ChunkLocation chunkLoc) {
-            var hoverComponent = serializer.deserialize(getMessage(Key.SCAN_FINISH_CHUNK_HOVER).content);
+            var hoverComponent = miniMessage.deserialize(getRawMessage(Key.SCAN_FINISH_CHUNK_HOVER));
             var tpCommand = "/tpchunk " + chunkLoc.getWorld().getName() + ' ' + chunkLoc.getX() + ' ' + chunkLoc.getZ();
             return component
                     .hoverEvent(HoverEvent.showText(hoverComponent))
@@ -193,14 +203,10 @@ public class Messages {
             }
         }
 
-        if (upper.startsWith("<PREFIX>")) {
-            str = getMessage(Key.PREFIX).getMessage().orElse("") + str.substring(8);
-        }
-
-        return new Message(str, messageType);
+        return new Message(str, messageType, prefixResolver);
     }
 
-    public static final class Message {
+    public class Message {
 
         private enum Type {
             ACTIONBAR,
@@ -208,49 +214,61 @@ public class Messages {
         }
 
         private String content;
-        private Type type;
+        private final Type type;
+        private final TemplateResolver originalResolver;
+        private TemplateResolver resolver;
 
         private Message() {
-            this(null);
+            this(null, Type.CHAT, TemplateResolver.empty());
         }
 
-        private Message(String content) {
-            this(content, Type.CHAT);
-        }
-
-        private Message(String content, Type type) {
+        private Message(String content, Type type, TemplateResolver resolver) {
             this.content = content;
             this.type = type;
+            this.originalResolver = resolver;
+            this.resolver = resolver;
         }
 
-        public Message type(Type type) {
-            this.type = type;
+        public Message resetTemplates() {
+            this.resolver = originalResolver;
             return this;
         }
 
-        public Message replace(String... replacements) {
-            if (content != null) content = StringUtils.replace(content, replacements);
+        public Message addTemplates(Template... templates) {
+            this.resolver = TemplateResolver.combining(resolver, TemplateResolver.templates(templates));
             return this;
         }
 
-        public Message color() {
-            if (content != null) content = ChatColor.translateAlternateColorCodes('&', content);
-            return this;
+        public void setRawContent(String content) {
+            this.content = content;
         }
 
-        public Optional<String> getMessage() {
-            return Optional.ofNullable(content);
+        public String getRawContent() {
+            return content;
+        }
+
+        public Optional<Component> toComponent() {
+            if (content == null || content.isEmpty()) return Optional.empty();
+            return Optional.of(miniMessage.deserialize(content, resolver));
         }
 
         /**
          * Sends the message to given receiver, using the message type defined.
          */
         public void sendTo(CommandSender sender) {
+            sendTo(audiences.sender(sender));
+        }
+
+        /**
+         * Sends the message to given audience, using the message type defined.
+         */
+        public void sendTo(Audience audience) {
             if (content != null && !content.isEmpty()) {
-                if (type == Type.ACTIONBAR && sender instanceof Player) {
-                    PlayerUtils.sendActionBar(((Player) sender), content);
+                var component = miniMessage.deserialize(content, resolver);
+                if (type == Type.ACTIONBAR) {
+                    audience.sendActionBar(component);
                 } else {
-                    sender.sendMessage(content);
+                    audience.sendMessage(component);
                 }
             }
         }
@@ -295,19 +313,12 @@ public class Messages {
         }
 
         private Component createFooter(int page) {
-            return LegacyComponentSerializer.legacyAmpersand()
-                    .deserialize(getMessage(Key.PAGINATION_FOOTER_FORMAT).replace(
-                                "current-page", String.valueOf(page + 1),
-                                "page-amount", String.valueOf(getPageAmount())
-                    ).content)
-                    .replaceText(TextReplacementConfig.builder()
-                            .matchLiteral("%button-left%")
-                            .replacement(createButton(page, ButtonType.LEFT))
-                            .build())
-                    .replaceText(TextReplacementConfig.builder()
-                            .matchLiteral("%button-right%")
-                            .replacement(createButton(page, ButtonType.RIGHT))
-                            .build());
+            return miniMessage.deserialize(getRawMessage(Key.PAGINATION_FOOTER_FORMAT), TemplateResolver.templates(
+                    Template.template("current-page", String.valueOf(page + 1)),
+                    Template.template("page-amount", String.valueOf(getPageAmount())),
+                    Template.template("button-left", createButton(page, ButtonType.LEFT)),
+                    Template.template("button-right", createButton(page, ButtonType.RIGHT))
+            ));
         }
 
         private Component createButton(int page, ButtonType type) {
@@ -320,17 +331,16 @@ public class Messages {
                 buttonColor = Key.PAGINATION_BUTTON_COLOR_ACTIVE;
 
                 int clickPage = type == ButtonType.LEFT ? page : page + 2;
-                button.hoverEvent(HoverEvent.showText(LegacyComponentSerializer.legacyAmpersand().deserialize(
-                        getMessage(Key.PAGINATION_BUTTON_HOVER).replace(
-                                "page", String.valueOf(clickPage)
-                        ).content)
-                ));
+                button.hoverEvent(HoverEvent.showText(miniMessage.deserialize(
+                        getRawMessage(Key.PAGINATION_BUTTON_HOVER),
+                        TemplateResolver.templates(
+                                Template.template("page", String.valueOf(clickPage))
+                        )
+                )));
                 button.clickEvent(ClickEvent.runCommand("/scanhistory " + clickPage));
             }
 
-            button.append(LegacyComponentSerializer.legacyAmpersand().deserialize(
-                    getMessage(buttonColor).content + getMessage(type.key).content
-            ));
+            button.append(miniMessage.deserialize(getRawMessage(buttonColor) + getRawMessage(type.key)));
 
             return button.build();
         }
@@ -340,14 +350,14 @@ public class Messages {
          */
         public void sendTo(CommandSender sender, int page) {
             if (elements.length == 0) {
-                getMessage(Key.PAGINATION_NO_RESULTS).color().sendTo(sender);
+                getMessage(Key.PAGINATION_NO_RESULTS).sendTo(sender);
                 return;
             }
 
             int offsetStart = amountPerPage * page;
             int offsetEnd = Math.min(offsetStart + amountPerPage, elements.length);
             if (offsetStart >= elements.length) {
-                getMessage(Key.PAGINATION_NO_PAGE).color().sendTo(sender);
+                getMessage(Key.PAGINATION_NO_PAGE).sendTo(sender);
                 return;
             }
 
@@ -358,9 +368,9 @@ public class Messages {
 
             var audience = audiences.sender(sender);
 
-            header.color().sendTo(sender);
+            header.sendTo(sender);
             components.forEach(audience::sendMessage);
-            footer.color().sendTo(sender);
+            footer.sendTo(sender);
             audience.sendMessage(createFooter(page));
         }
     }

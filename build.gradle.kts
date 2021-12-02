@@ -10,7 +10,7 @@ plugins {
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.8.0-SNAPSHOT"
+version = "6.9.0-SNAPSHOT"
 
 subprojects {
     apply(plugin = "java")
@@ -34,6 +34,13 @@ subprojects {
         implementation("org.bstats:bstats-bukkit:${VersionConstants.bStatsVersion}")
         implementation("net.kyori:adventure-api:${VersionConstants.adventureVersion}")
         implementation("net.kyori:adventure-platform-bukkit:${VersionConstants.adventurePlatformVersion}")
+        implementation("net.kyori:adventure-text-minimessage:${VersionConstants.minimessageVersion}")
+
+        testImplementation("org.assertj:assertj-core:3.21.0")
+        testImplementation("org.mockito:mockito-core:4.0.0")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+        testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     }
 
     tasks {

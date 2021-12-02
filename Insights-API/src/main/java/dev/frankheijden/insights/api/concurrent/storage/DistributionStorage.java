@@ -12,7 +12,7 @@ public class DistributionStorage extends Distribution<ScanObject<?>> implements 
         this(new ConcurrentHashMap<>());
     }
 
-    public DistributionStorage(Map<ScanObject<?>, Integer> map) {
+    public DistributionStorage(Map<ScanObject<?>, Long> map) {
         super(map);
     }
 
@@ -26,19 +26,19 @@ public class DistributionStorage extends Distribution<ScanObject<?>> implements 
     /**
      * Constructs a new DistributionStorage from given material and entity distribution maps.
      */
-    public static DistributionStorage of(Map<Material, Integer> materials, Map<EntityType, Integer> entities) {
-        Map<ScanObject<?>, Integer> map = new ConcurrentHashMap<>();
-        for (Map.Entry<Material, Integer> entry : materials.entrySet()) {
+    public static DistributionStorage of(Map<Material, Long> materials, Map<EntityType, Long> entities) {
+        Map<ScanObject<?>, Long> map = new ConcurrentHashMap<>();
+        for (Map.Entry<Material, Long> entry : materials.entrySet()) {
             map.put(ScanObject.of(entry.getKey()), entry.getValue());
         }
-        for (Map.Entry<EntityType, Integer> entry : entities.entrySet()) {
+        for (Map.Entry<EntityType, Long> entry : entities.entrySet()) {
             map.put(ScanObject.of(entry.getKey()), entry.getValue());
         }
         return new DistributionStorage(map);
     }
 
     @Override
-    public DistributionStorage copy(Map<ScanObject<?>, Integer> map) {
+    public DistributionStorage copy(Map<ScanObject<?>, Long> map) {
         map.putAll(distributionMap);
         return new DistributionStorage(map);
     }

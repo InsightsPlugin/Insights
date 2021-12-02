@@ -13,20 +13,21 @@ import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.TriConsumer;
 import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -39,7 +40,7 @@ public class ScanTask<R> implements Runnable {
 
     private final InsightsPlugin plugin;
     private final ChunkContainerExecutor executor;
-    private final Queue<ChunkPart> scanQueue;
+    private final Iterator<? extends ChunkPart> scanQueue;
     private final ScanOptions options;
     private final int chunksPerIteration;
     private final Consumer<Info> infoConsumer;
@@ -60,7 +61,8 @@ public class ScanTask<R> implements Runnable {
      */
     private ScanTask(
             InsightsPlugin plugin,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             int chunksPerIteration,
             Consumer<Info> infoConsumer,
@@ -71,7 +73,7 @@ public class ScanTask<R> implements Runnable {
     ) {
         this.plugin = plugin;
         this.executor = plugin.getChunkContainerExecutor();
-        this.scanQueue = new LinkedList<>(chunkParts);
+        this.scanQueue = chunkParts.iterator();
         this.options = options;
         this.chunksPerIteration = chunksPerIteration;
         this.infoConsumer = infoConsumer;
@@ -80,7 +82,7 @@ public class ScanTask<R> implements Runnable {
         this.resultMerger = resultMerger;
         this.resultConsumer = resultConsumer;
         this.iterationChunks = new AtomicInteger(chunksPerIteration);
-        this.chunkCount = chunkParts.size();
+        this.chunkCount = chunkCount;
     }
 
     /**
@@ -89,7 +91,8 @@ public class ScanTask<R> implements Runnable {
      */
     public static void scan(
             InsightsPlugin plugin,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             Consumer<Info> infoConsumer,
             Consumer<DistributionStorage> distributionConsumer
@@ -97,6 +100,7 @@ public class ScanTask<R> implements Runnable {
         new ScanTask<>(
                 plugin,
                 chunkParts,
+                chunkCount,
                 options,
                 plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
                 infoConsumer,
@@ -115,7 +119,8 @@ public class ScanTask<R> implements Runnable {
     public static <R> void scan(
             InsightsPlugin plugin,
             Player player,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             boolean notify,
             Supplier<R> resultSupplier,
@@ -134,21 +139,21 @@ public class ScanTask<R> implements Runnable {
         new ScanTask<>(
                 plugin,
                 chunkParts,
+                chunkCount,
                 options,
                 plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
                 info -> {
                     if (!notify) return;
 
                     // Update the notification with progress
-                    double progress = (double) info.getChunksDone() / (double) info.getChunks();
+                    float progress = (float) info.getChunksDone() / (float) info.getChunks();
                     notification.progress(progress)
                             .create()
-                            .replace(
-                                    "percentage", StringUtils.prettyOneDecimal(progress * 100.),
-                                    "count", StringUtils.pretty(info.getChunksDone()),
-                                    "total", StringUtils.pretty(info.getChunks())
+                            .addTemplates(
+                                    Template.template("percentage", StringUtils.prettyOneDecimal(progress * 100)),
+                                    Template.template("count", StringUtils.pretty(info.getChunksDone())),
+                                    Template.template("total", StringUtils.pretty(info.getChunks()))
                             )
-                            .color()
                             .send();
                 },
                 plugin.getSettings().SCANS_INFO_INTERVAL_MILLIS,
@@ -165,18 +170,19 @@ public class ScanTask<R> implements Runnable {
     public static void scanAndDisplay(
             InsightsPlugin plugin,
             Player player,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             Set<? extends ScanObject<?>> items,
             boolean displayZeros
     ) {
         long start = System.nanoTime();
-        int chunkCount = chunkParts.size();
 
         scanAndDisplay(
                 plugin,
                 player,
                 chunkParts,
+                chunkCount,
                 options,
                 DistributionStorage::new,
                 (storage, loc, acc) -> storage.mergeRight(acc),
@@ -193,11 +199,17 @@ public class ScanTask<R> implements Runnable {
                             .sorted(Comparator.comparing(ScanObject::name))
                             .toArray(ScanObject[]::new);
 
-                    var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).replace(
-                            "chunks", StringUtils.pretty(chunkCount),
-                            "blocks", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL)),
-                            "entities", StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY)),
-                            "time", StringUtils.pretty(Duration.ofMillis(millis))
+                    var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).addTemplates(
+                            Template.template("chunks", StringUtils.pretty(chunkCount)),
+                            Template.template(
+                                    "blocks",
+                                    StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL))
+                            ),
+                            Template.template(
+                                    "entities",
+                                    StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY))
+                            ),
+                            Template.template("time", StringUtils.pretty(Duration.ofMillis(millis)))
                     );
 
                     var message = messages.createPaginatedMessage(
@@ -206,7 +218,7 @@ public class ScanTask<R> implements Runnable {
                             footer,
                             displayItems,
                             storage::count,
-                            item -> EnumUtils.pretty(item.getObject())
+                            item -> Component.text(EnumUtils.pretty(item.getObject()))
                     );
 
                     plugin.getScanHistory().setHistory(player.getUniqueId(), message);
@@ -222,7 +234,8 @@ public class ScanTask<R> implements Runnable {
     public static <R> void scanAndDisplay(
             InsightsPlugin plugin,
             Player player,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             Supplier<R> resultSupplier,
             TriConsumer<Storage, ChunkLocation, R> resultMerger,
@@ -232,28 +245,24 @@ public class ScanTask<R> implements Runnable {
 
         // If the player is already scanning, tell them they can't run two scans.
         if (scanners.contains(uuid)) {
-            plugin.getMessages().getMessage(Messages.Key.SCAN_ALREADY_SCANNING).color().sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.SCAN_ALREADY_SCANNING).sendTo(player);
             return;
         }
 
         // Add the player to the scanners
         scanners.add(uuid);
 
-        int chunkCount = chunkParts.size();
-
         // Notify about scan start
-        plugin.getMessages().getMessage(Messages.Key.SCAN_START)
-                .replace(
-                        "count", StringUtils.pretty(chunkCount)
-                )
-                .color()
-                .sendTo(player);
+        plugin.getMessages().getMessage(Messages.Key.SCAN_START).addTemplates(
+                Template.template("count", StringUtils.pretty(chunkCount))
+        ).sendTo(player);
 
         // Start the scan
         ScanTask.scan(
                 plugin,
                 player,
                 chunkParts,
+                chunkCount,
                 options,
                 true,
                 resultSupplier,
@@ -269,18 +278,19 @@ public class ScanTask<R> implements Runnable {
     public static void scanAndDisplayGroupedByChunk(
             InsightsPlugin plugin,
             Player player,
-            Collection<? extends ChunkPart> chunkParts,
+            Iterable<? extends ChunkPart> chunkParts,
+            int chunkCount,
             ScanOptions options,
             Set<? extends ScanObject<?>> items,
             boolean displayZeros
     ) {
         long start = System.nanoTime();
-        int chunkCount = chunkParts.size();
 
         scanAndDisplay(
                 plugin,
                 player,
                 chunkParts,
+                chunkCount,
                 options,
                 (Supplier<ConcurrentHashMap<ChunkLocation, Storage>>) ConcurrentHashMap::new,
                 (storage, loc, map) -> map.put(loc, storage),
@@ -297,27 +307,27 @@ public class ScanTask<R> implements Runnable {
                                 var storage = entry.getValue();
                                 return displayZeros || storage.count(items == null ? storage.keys() : items) != 0;
                             })
-                            .sorted(Comparator.<Map.Entry<ChunkLocation, Storage>>comparingInt(entry -> {
+                            .sorted(Comparator.<Map.Entry<ChunkLocation, Storage>>comparingLong(entry -> {
                                 var storage = entry.getValue();
                                 return storage.count(items == null ? storage.keys() : items);
                             }).reversed())
                             .map(Map.Entry::getKey)
                             .toArray(ChunkLocation[]::new);
 
-                    int blockCount = map.values()
+                    long blockCount = map.values()
                             .stream()
-                            .mapToInt(storage -> storage.count(i -> i.getType() == ScanObject.Type.MATERIAL))
+                            .mapToLong(storage -> storage.count(i -> i.getType() == ScanObject.Type.MATERIAL))
                             .sum();
-                    int entityCount = map.values()
+                    long entityCount = map.values()
                             .stream()
-                            .mapToInt(storage -> storage.count(i -> i.getType() == ScanObject.Type.ENTITY))
+                            .mapToLong(storage -> storage.count(i -> i.getType() == ScanObject.Type.ENTITY))
                             .sum();
 
-                    var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).replace(
-                            "chunks", StringUtils.pretty(chunkCount),
-                            "blocks", StringUtils.pretty(blockCount),
-                            "entities", StringUtils.pretty(entityCount),
-                            "time", StringUtils.pretty(Duration.ofMillis(millis))
+                    var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).addTemplates(
+                            Template.template("chunks", StringUtils.pretty(chunkCount)),
+                            Template.template("blocks", StringUtils.pretty(blockCount)),
+                            Template.template("entities", StringUtils.pretty(entityCount)),
+                            Template.template("time", StringUtils.pretty(Duration.ofMillis(millis)))
                     );
 
                     var message = messages.<ChunkLocation>createPaginatedMessage(
@@ -334,11 +344,11 @@ public class ScanTask<R> implements Runnable {
                                 var x = Integer.toString(key.getX());
                                 var z = Integer.toString(key.getZ());
 
-                                return messages.getMessage(Messages.Key.SCAN_FINISH_CHUNK_FORMAT).replace(
-                                        "world", worldName,
-                                        "chunk-x", x,
-                                        "chunk-z", z
-                                ).getMessage().orElse(worldName + " @ " + x + ", " + z);
+                                return messages.getMessage(Messages.Key.SCAN_FINISH_CHUNK_FORMAT).addTemplates(
+                                        Template.template("world", worldName),
+                                        Template.template("chunk-x", x),
+                                        Template.template("chunk-z", z)
+                                ).toComponent().orElse(Component.text(worldName + " @ " + x + ", " + z));
                             }
                     );
 
@@ -388,10 +398,10 @@ public class ScanTask<R> implements Runnable {
         for (var i = 0; i < chunkIterations; i++) {
             // Note: we can't cancel the task here just yet,
             // because some chunks might still need scanning (after loading).
-            if (scanQueue.isEmpty()) break;
+            if (!scanQueue.hasNext()) break;
 
             // Load the chunk
-            var chunkPart = scanQueue.poll();
+            var chunkPart = scanQueue.next();
             var loc = chunkPart.getChunkLocation();
             var world = loc.getWorld();
 
@@ -431,7 +441,7 @@ public class ScanTask<R> implements Runnable {
         long now = System.nanoTime();
         if (lastInfo + infoTimeout < now) {
             lastInfo = now;
-            sendInfo();
+            ForkJoinPool.commonPool().execute(this::sendInfo);
         }
     }
 

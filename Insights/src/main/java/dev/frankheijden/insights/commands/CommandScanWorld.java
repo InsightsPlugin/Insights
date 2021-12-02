@@ -86,9 +86,9 @@ public class CommandScanWorld extends InsightsCommand {
         }
 
         if (groupByChunk) {
-            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, chunkParts, options, items, false);
+            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, chunkParts, chunkParts.size(), options, items, false);
         } else {
-            ScanTask.scanAndDisplay(plugin, player, chunkParts, options, items, displayZeros);
+            ScanTask.scanAndDisplay(plugin, player, chunkParts, chunkParts.size(), options, items, displayZeros);
         }
     }
 }

@@ -87,7 +87,7 @@ public class Insights extends InsightsPlugin {
     private BukkitTask playerTracker = null;
     private BukkitTask updateChecker = null;
     private BukkitAudiences audiences = null;
-    private RedstoneUpdateCount redstoneUpdateCount;
+    private RedstoneUpdateCount redstoneUpdateCount = null;
     private ChunkTeleport chunkTeleport;
 
     @Override
