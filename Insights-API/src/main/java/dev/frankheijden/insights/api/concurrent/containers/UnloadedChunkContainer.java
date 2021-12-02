@@ -38,9 +38,19 @@ public class UnloadedChunkContainer extends ChunkContainer {
 
         int sectionsCount = serverLevel.getSectionsCount();
         var chunkSections = new LevelChunkSection[sectionsCount];
+        var chunkMap = serverLevel.getChunkSource().chunkMap;
+        var chunkPos = new ChunkPos(chunkX, chunkZ);
 
-        CompoundTag tag = serverLevel.getChunkSource().chunkMap.read(new ChunkPos(chunkX, chunkZ));
+        CompoundTag tag = chunkMap.read(chunkPos);
         if (tag == null) return chunkSections;
+        tag = chunkMap.upgradeChunkTag(
+                serverLevel.getTypeKey(),
+                () -> serverLevel.getServer().overworld().getDataStorage(),
+                tag,
+                chunkMap.generator.getTypeNameForDataFixer(),
+                chunkPos,
+                serverLevel
+        );
 
         ListTag sectionsTagList = tag.getList("sections", 10);
 
@@ -48,6 +58,8 @@ public class UnloadedChunkContainer extends ChunkContainer {
         for (var i = 0; i < sectionsTagList.size(); i++) {
             CompoundTag sectionTag = sectionsTagList.getCompound(i);
             var chunkSectionPart = sectionTag.getByte("Y");
+            var sectionIndex = serverLevel.getSectionIndexFromSectionY(chunkSectionPart);
+            if (sectionIndex < 0 || sectionIndex >= chunkSections.length) continue;
 
             PalettedContainer<BlockState> blockStateContainer;
             if (sectionTag.contains("block_states", 10)) {
@@ -72,7 +84,7 @@ public class UnloadedChunkContainer extends ChunkContainer {
             }
 
             LevelChunkSection chunkSection = new LevelChunkSection(chunkSectionPart, blockStateContainer, null);
-            chunkSections[serverLevel.getSectionIndexFromSectionY(chunkSectionPart)] = chunkSection;
+            chunkSections[sectionIndex] = chunkSection;
         }
 
         return chunkSections;
