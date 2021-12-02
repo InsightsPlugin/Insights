@@ -8,6 +8,6 @@ object VersionConstants {
     const val bStatsVersion = "2.2.1"
     const val minecraftReflectionVersion = "123e2f546c"
     const val placeholderapiVersion = "2.10.9"
-    const val commodoreVersion = "1.10"
+    const val commodoreVersion = "1.11"
     const val brigadierVersion = "1.0.17"
 }
