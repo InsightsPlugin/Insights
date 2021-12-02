@@ -4,7 +4,7 @@ plugins {
     `java-library`
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "7.1.0"
-    id("io.papermc.paperweight.userdev") version "1.2.0"
+    id("io.papermc.paperweight.userdev") version "1.3.1"
 }
 
 val name = "Insights"
@@ -50,8 +50,8 @@ subprojects {
 
         compileJava {
             options.encoding = Charsets.UTF_8.name()
-            sourceCompatibility = JavaVersion.VERSION_16.majorVersion
-            targetCompatibility = JavaVersion.VERSION_16.majorVersion
+            sourceCompatibility = JavaVersion.VERSION_17.majorVersion
+            targetCompatibility = JavaVersion.VERSION_17.majorVersion
         }
 
         javadoc {
