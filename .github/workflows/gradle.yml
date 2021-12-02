@@ -24,9 +24,7 @@ jobs:
         with:
           path: |
             ~/**/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          key: ${{ runner.os }}-gradle-${{ secrets.CACHE_VERSION }}-${{ hashFiles('**/VersionConstants.kt', '**/build.gradle.kts', '**/gradle-wrapper.properties') }}
       - name: Build
         run: ./gradlew clean build --stacktrace
       - name: Upload artififacts
