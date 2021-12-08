@@ -1,9 +1,9 @@
 name: Java CI with Gradle
 on:
   push:
-    branches: [ master ]
+    branches: [ "ver/1.17" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "ver/1.17" ]
 jobs:
   build:
     runs-on: ubuntu-latest
