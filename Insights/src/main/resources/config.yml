@@ -20,8 +20,8 @@ settings:
     actionbar:
       segments: 50
       progress-sequence: "|"
-      done-color: "&a"
-      total-color: "&8"
+      done-color: "<green>"
+      total-color: "<dark_gray>"
       separator: " "
   area-scan-notifications:
     enabled: true
