@@ -32,7 +32,7 @@ public class ActionBarNotification implements Notification {
             public void send() {
                 var audiences = plugin.getMessages().getAudiences();
                 content.toComponent().ifPresent(component -> receivers.values()
-                        .forEach(player -> audiences.player(player).sendMessage(component)));
+                        .forEach(player -> audiences.player(player).sendActionBar(component)));
             }
         };
     }
