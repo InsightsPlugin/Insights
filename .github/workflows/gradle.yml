@@ -20,13 +20,6 @@ jobs:
           java-version: ${{ matrix.java-version }}
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/**/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
       - name: Build
         run: ./gradlew clean build --stacktrace
       - name: Upload artififacts
