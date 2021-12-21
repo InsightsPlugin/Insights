@@ -36,6 +36,7 @@ import dev.frankheijden.insights.commands.CommandScanRegion;
 import dev.frankheijden.insights.commands.CommandScanWorld;
 import dev.frankheijden.insights.commands.CommandTeleportChunk;
 import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
+import dev.frankheijden.insights.commands.parser.LimitArgument;
 import dev.frankheijden.insights.commands.parser.ScanHistoryPageArgument;
 import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
 import dev.frankheijden.insights.commands.parser.WorldArgument;
@@ -254,6 +255,10 @@ public class Insights extends InsightsPlugin {
 
         // Register parsers
         ParserRegistry<CommandSender> parserRegistry = commandManager.getParserRegistry();
+        parserRegistry.registerParserSupplier(
+                TypeToken.get(new TypeToken<Limit>() {}.getType()),
+                options -> new LimitArgument.LimitParser()
+        );
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<ScanObject<?>[]>() {}.getType()),
                 options -> new ScanObjectArrayArgument.ScanObjectArrayParser()

@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.config.limits;
 
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
@@ -17,6 +18,7 @@ public class GroupLimit extends Limit {
     private final Set<Material> materials;
     private final Set<EntityType> entities;
     private final Set<ScanObject<?>> scanObjects;
+    private final ScanOptions scanOptions;
 
     protected GroupLimit(Info info, String name, int limit, Set<Material> materials, Set<EntityType> entities) {
         super(LimitType.GROUP, info);
@@ -25,6 +27,7 @@ public class GroupLimit extends Limit {
         this.materials = Collections.unmodifiableSet(materials);
         this.entities = Collections.unmodifiableSet(entities);
         this.scanObjects = Collections.unmodifiableSet(ScanObject.of(materials, entities));
+        this.scanOptions = determineScanOptions();
     }
 
     /**
@@ -80,5 +83,10 @@ public class GroupLimit extends Limit {
     @Override
     public Set<? extends ScanObject<?>> getScanObjects() {
         return scanObjects;
+    }
+
+    @Override
+    public ScanOptions getScanOptions() {
+        return scanOptions;
     }
 }

@@ -8,6 +8,7 @@ import cloud.commandframework.annotations.specifier.Range;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
+import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
@@ -89,6 +90,17 @@ public class CommandScan extends InsightsCommand {
         }
 
         handleScan(player, radius, new HashSet<>(scanObjects), options, true, groupByChunk);
+    }
+
+    @CommandMethod("limit <limit>")
+    @CommandPermission("insights.scan.limit")
+    private void handleLimitScan(
+            Player player,
+            @Argument("radius") @Range(min = "0", max = "256") int radius,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk,
+            @Argument("limit") Limit limit
+    ) {
+        handleScan(player, radius, limit.getScanObjects(), limit.getScanOptions(), false, groupByChunk);
     }
 
     /**

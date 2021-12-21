@@ -10,16 +10,19 @@ import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 public class Limits {
 
     private final List<Limit> limits;
+    private final Map<String, Limit> limitsByFileName;
     private final Map<Material, TreeSet<Limit>> materialLimits;
     private final Map<EntityType, TreeSet<Limit>> entityLimits;
 
@@ -28,6 +31,7 @@ public class Limits {
      */
     public Limits() {
         limits = new ArrayList<>();
+        limitsByFileName = new ConcurrentHashMap<>();
         materialLimits = new EnumMap<>(Material.class);
         entityLimits = new EnumMap<>(EntityType.class);
     }
@@ -37,6 +41,7 @@ public class Limits {
      */
     public void addLimit(Limit limit) {
         this.limits.add(limit);
+        this.limitsByFileName.put(limit.getFile().getName(), limit);
         for (Material m : limit.getMaterials()) {
             materialLimits.computeIfAbsent(m, k -> new TreeSet<>(
                     comparingInt(l -> l.getLimit(k).getLimit())
@@ -81,5 +86,19 @@ public class Limits {
         InsightsPlugin.getInstance().getMetricsManager().getLimitMetric().increment();
         Set<Limit> set = entityLimits.get(entity);
         return set == null ? Optional.empty() : Optional.ofNullable(SetUtils.findFirst(set, limitPredicate));
+    }
+
+    /**
+     * Retrieves the limit by their filename.
+     */
+    public Optional<Limit> getLimitByFileName(String fileName) {
+        return Optional.ofNullable(limitsByFileName.get(fileName));
+    }
+
+    /**
+     * Lists the filenames of all limits.
+     */
+    public Set<String> getLimitFileNames() {
+        return new HashSet<>(limitsByFileName.keySet());
     }
 }
