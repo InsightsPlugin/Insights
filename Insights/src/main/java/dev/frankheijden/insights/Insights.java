@@ -28,6 +28,7 @@ import dev.frankheijden.insights.api.metrics.MetricsManager;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
 import dev.frankheijden.insights.api.utils.IOUtils;
+import dev.frankheijden.insights.commands.CommandCancelScan;
 import dev.frankheijden.insights.commands.CommandInsights;
 import dev.frankheijden.insights.commands.CommandScan;
 import dev.frankheijden.insights.commands.CommandScanCache;
@@ -298,6 +299,7 @@ public class Insights extends InsightsPlugin {
         annotationParser.parse(new CommandScanRegion(this));
         annotationParser.parse(new CommandScanHistory(this));
         annotationParser.parse(new CommandTeleportChunk(this));
+        annotationParser.parse(new CommandCancelScan(this));
     }
 
     @Override

@@ -20,7 +20,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import java.time.Duration;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +35,7 @@ import java.util.logging.Level;
 
 public class ScanTask<R> implements Runnable {
 
-    private static final Set<UUID> scanners = new HashSet<>();
+    private static final Map<UUID, ScanTask<?>> scanners = new ConcurrentHashMap<>();
 
     private final InsightsPlugin plugin;
     private final ChunkContainerExecutor executor;
@@ -116,7 +115,7 @@ public class ScanTask<R> implements Runnable {
      * Notifies the user with a ProgressNotification for the task.
      * When this task completes, the consumer is called on the main thread.
      */
-    public static <R> void scan(
+    public static <R> ScanTask<R> scan(
             InsightsPlugin plugin,
             Player player,
             Iterable<? extends ChunkPart> chunkParts,
@@ -136,7 +135,7 @@ public class ScanTask<R> implements Runnable {
             notification.add(player);
         }
 
-        new ScanTask<>(
+        var task = new ScanTask<>(
                 plugin,
                 chunkParts,
                 chunkCount,
@@ -160,7 +159,10 @@ public class ScanTask<R> implements Runnable {
                 resultSupplier,
                 resultMerger,
                 resultConsumer
-        ).start();
+        );
+        task.start();
+
+        return task;
     }
 
     /**
@@ -244,13 +246,10 @@ public class ScanTask<R> implements Runnable {
         var uuid = player.getUniqueId();
 
         // If the player is already scanning, tell them they can't run two scans.
-        if (scanners.contains(uuid)) {
+        if (scanners.containsKey(uuid)) {
             plugin.getMessages().getMessage(Messages.Key.SCAN_ALREADY_SCANNING).sendTo(player);
             return;
         }
-
-        // Add the player to the scanners
-        scanners.add(uuid);
 
         // Notify about scan start
         plugin.getMessages().getMessage(Messages.Key.SCAN_START).addTemplates(
@@ -258,7 +257,7 @@ public class ScanTask<R> implements Runnable {
         ).sendTo(player);
 
         // Start the scan
-        ScanTask.scan(
+        var task = ScanTask.scan(
                 plugin,
                 player,
                 chunkParts,
@@ -269,6 +268,19 @@ public class ScanTask<R> implements Runnable {
                 resultMerger,
                 resultConsumer.andThen(r -> scanners.remove(uuid))
         );
+
+        // Add the player to the scanners
+        scanners.put(uuid, task);
+    }
+
+    /**
+     * Cancels a current scan for a player, if scanning.
+     */
+    public static boolean cancelScan(UUID uuid) {
+        ScanTask<?> scanTask = scanners.remove(uuid);
+        if (scanTask == null) return false;
+        scanTask.cancel();
+        return true;
     }
 
     /**
