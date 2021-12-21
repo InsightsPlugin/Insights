@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.config.limits;
 
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
@@ -16,12 +17,14 @@ public class PermissionLimit extends Limit {
     private final Map<Material, Integer> materials;
     private final Map<EntityType, Integer> entities;
     private final Set<ScanObject<?>> scanObjects;
+    private final ScanOptions scanOptions;
 
     protected PermissionLimit(Info info, Map<Material, Integer> materials, Map<EntityType, Integer> entities) {
         super(LimitType.PERMISSION, info);
         this.materials = Collections.unmodifiableMap(materials);
         this.entities = Collections.unmodifiableMap(entities);
         this.scanObjects = Collections.unmodifiableSet(ScanObject.of(materials.keySet(), entities.keySet()));
+        this.scanOptions = determineScanOptions();
     }
 
     /**
@@ -69,5 +72,10 @@ public class PermissionLimit extends Limit {
     @Override
     public Set<? extends ScanObject<?>> getScanObjects() {
         return scanObjects;
+    }
+
+    @Override
+    public ScanOptions getScanOptions() {
+        return scanOptions;
     }
 }

@@ -8,6 +8,7 @@ import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
 import dev.frankheijden.insights.api.config.Messages;
+import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
@@ -52,6 +53,12 @@ public class CommandScanCache extends InsightsCommand {
     @CommandPermission("insights.scancache.custom")
     private void handleCustomScan(Player player, @Argument("items") ScanObject<?>[] items) {
         handleScan(player, new HashSet<>(Arrays.asList(items)), true);
+    }
+
+    @CommandMethod("limit <limit>")
+    @CommandPermission("insights.scancache.limit")
+    private void handleLimitScan(Player player, @Argument("limit") Limit limit) {
+        handleScan(player, limit.getScanObjects(), false);
     }
 
     @CommandMethod("clear")

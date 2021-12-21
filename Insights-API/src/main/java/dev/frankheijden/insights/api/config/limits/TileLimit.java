@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.config.limits;
 
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
@@ -17,6 +18,7 @@ public class TileLimit extends Limit {
     private final int limit;
     private final Set<Material> effectiveMaterials;
     private final Set<? extends ScanObject<?>> effectiveScanObjects;
+    private final ScanOptions scanOptions;
 
     protected TileLimit(Info info, String name, int limit, Set<Material> excludedMaterials) {
         super(LimitType.TILE, info);
@@ -27,6 +29,7 @@ public class TileLimit extends Limit {
         Set<ScanObject<?>> tileEntityScanObjects = new HashSet<>(RTileEntityTypes.getTileEntities());
         tileEntityScanObjects.removeAll(ScanObject.of(excludedMaterials));
         this.effectiveScanObjects = Collections.unmodifiableSet(tileEntityScanObjects);
+        this.scanOptions = determineScanOptions();
     }
 
     /**
@@ -70,5 +73,10 @@ public class TileLimit extends Limit {
     @Override
     public Set<? extends ScanObject<?>> getScanObjects() {
         return effectiveScanObjects;
+    }
+
+    @Override
+    public ScanOptions getScanOptions() {
+        return scanOptions;
     }
 }

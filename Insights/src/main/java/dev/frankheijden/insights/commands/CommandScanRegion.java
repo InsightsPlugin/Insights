@@ -9,6 +9,7 @@ import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.config.Messages;
+import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
@@ -63,6 +64,16 @@ public class CommandScanRegion extends InsightsCommand {
             @Argument("items") ScanObject<?>[] items
     ) {
         handleScan(player, new HashSet<>(Arrays.asList(items)), ScanOptions.scanOnly(), true, groupByChunk);
+    }
+
+    @CommandMethod("limit <limit>")
+    @CommandPermission("insights.scanregion.limit")
+    private void handleLimitScan(
+            Player player,
+            @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk,
+            @Argument("limit") Limit limit
+    ) {
+        handleScan(player, limit.getScanObjects(), limit.getScanOptions(), false, groupByChunk);
     }
 
     /**

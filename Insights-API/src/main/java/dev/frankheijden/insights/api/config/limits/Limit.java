@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.config.limits;
 
+import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.config.parser.SensitiveYamlParser;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.config.parser.YamlParser;
@@ -15,17 +16,11 @@ public abstract class Limit {
     private static final String LIMIT_SECTION = "limit";
 
     private final LimitType type;
-    private final String bypassPermission;
-    private final LimitSettings settings;
+    private final Info info;
 
     protected Limit(LimitType type, Info info) {
-        this(type, info.getBypassPermission(), info.getSettings());
-    }
-
-    protected Limit(LimitType type, String bypassPermission, LimitSettings settings) {
         this.type = type;
-        this.bypassPermission = bypassPermission;
-        this.settings = settings;
+        this.info = info;
     }
 
     /**
@@ -50,7 +45,7 @@ public abstract class Limit {
         var disallowPlacement = parser.getBoolean("limit.settings.disallow-placement-outside-region", false, false);
 
         var settings = new LimitSettings(worlds, worldWhitelist, addons, addonWhitelist, disallowPlacement);
-        var info = new Info(bypassPermission, settings);
+        var info = new Info(file, bypassPermission, settings);
 
         return switch (type) {
             case TILE -> TileLimit.parse(parser, info);
@@ -80,12 +75,20 @@ public abstract class Limit {
 
     public abstract LimitInfo getLimit(EntityType e);
 
+    public File getFile() {
+        return info.file;
+    }
+
     public String getBypassPermission() {
-        return bypassPermission;
+        return info.bypassPermission;
     }
 
     public LimitSettings getSettings() {
-        return settings;
+        return info.settings;
+    }
+
+    public Info getInfo() {
+        return info;
     }
 
     /**
@@ -103,15 +106,35 @@ public abstract class Limit {
      */
     public abstract Set<? extends ScanObject<?>> getScanObjects();
 
+    /**
+     * Determines the ScanOptions that are required for this limit.
+     */
+    protected ScanOptions determineScanOptions() {
+        if (getMaterials().isEmpty()) {
+            return ScanOptions.entitiesOnly();
+        } else if (getEntities().isEmpty()) {
+            return ScanOptions.materialsOnly();
+        } else {
+            return ScanOptions.scanOnly();
+        }
+    }
+
+    /**
+     * Returns the ScanOptions that are required for this limit.
+     */
+    public abstract ScanOptions getScanOptions();
+
     public static class Info {
 
+        private final File file;
         private final String bypassPermission;
         private final LimitSettings settings;
 
         /**
          * Constructs an Info object holding basic information of a limit.
          */
-        public Info(String bypassPermission, LimitSettings settings) {
+        public Info(File file, String bypassPermission, LimitSettings settings) {
+            this.file = file;
             this.bypassPermission = bypassPermission;
             this.settings = settings;
         }
