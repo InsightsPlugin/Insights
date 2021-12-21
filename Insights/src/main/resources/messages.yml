@@ -40,6 +40,8 @@ messages:
     not-generated: "<prefix><red>Can't teleport you to that chunk, it has not yet been generated. Use the <dark_red>--generate <red>flag to override."
     failed: "<prefix><red>Teleportation failed for unknown reasons, maybe the console contains a stacktrace?"
     success: "<prefix><dark_aqua>Teleported you to chunk <aqua><world> <dark_aqua>@ <aqua><chunk-x><dark_aqua>, <aqua><chunk-z><dark_aqua>!"
+  cancelscan:
+    no-scan: "<prefix><red>You don't have an active scan to cancel!"
   scanhistory:
     no-history: "<prefix><red>You don't seem to have any scan history!"
   pagination:

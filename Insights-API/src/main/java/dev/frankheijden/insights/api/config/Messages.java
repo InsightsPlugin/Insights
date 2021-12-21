@@ -170,6 +170,7 @@ public class Messages {
         TELEPORTCHUNK_NOT_GENERATED("teleportchunk.not-generated"),
         TELEPORTCHUNK_FAILED("teleportchunk.failed"),
         TELEPORTCHUNK_SUCCESS("teleportchunk.success"),
+        CANCELSCAN_NO_SCAN("cancelscan.no-scan"),
         ;
 
         private final String path;
