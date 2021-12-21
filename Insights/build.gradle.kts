@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
 
 plugins {
     id("net.minecrell.plugin-yml.bukkit") version VersionConstants.pluginYmlVersion
@@ -40,4 +41,10 @@ bukkit {
     website = "https://github.com/InsightsPlugin/Insights"
     softDepend = listOf("PlaceholderAPI")
     authors = listOf("FrankHeijden")
+    permissions {
+        register("insights.info") {
+            description = "Allows you to see information about insights"
+            default = BukkitPluginDescription.Permission.Default.TRUE
+        }
+    }
 }

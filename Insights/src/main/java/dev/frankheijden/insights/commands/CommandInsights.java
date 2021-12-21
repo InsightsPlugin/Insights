@@ -20,6 +20,7 @@ public class CommandInsights extends InsightsCommand {
     }
 
     @CommandMethod("")
+    @CommandPermission("insights.info")
     private void showBase(CommandSender sender) {
         sender.sendMessage(ColorUtils.colorize(
                 "&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------",
