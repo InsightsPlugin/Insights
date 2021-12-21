@@ -52,7 +52,7 @@ class LazyChunkPartRadiusIteratorTest {
                 Stream.of(
                         Arguments.of(0, 0, 10)
                 ),
-                IntStream.rangeClosed(0, 25)
+                IntStream.rangeClosed(0, 20)
                         .mapToObj(r -> Arguments.of(random.nextInt(10000), random.nextInt(10000), r))
         );
     }

@@ -3,14 +3,14 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     `java-library`
     `maven-publish`
-    id("com.github.johnrengelman.shadow") version "7.1.0"
-    id("io.papermc.paperweight.userdev") version "1.3.1"
+    id("com.github.johnrengelman.shadow") version VersionConstants.shadowVersion
+    id("io.papermc.paperweight.userdev") version VersionConstants.userdevVersion
 }
 
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.9.2-SNAPSHOT"
+version = "6.10.0-SNAPSHOT"
 
 subprojects {
     apply(plugin = "java")
@@ -36,11 +36,11 @@ subprojects {
         implementation("net.kyori:adventure-platform-bukkit:${VersionConstants.adventurePlatformVersion}")
         implementation("net.kyori:adventure-text-minimessage:${VersionConstants.minimessageVersion}")
 
-        testImplementation("org.assertj:assertj-core:3.21.0")
-        testImplementation("org.mockito:mockito-core:4.0.0")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+        testImplementation("org.assertj:assertj-core:${VersionConstants.assertjVersion}")
+        testImplementation("org.mockito:mockito-core:${VersionConstants.mockitoVersion}")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:${VersionConstants.jupiterVersion}")
+        testImplementation("org.junit.jupiter:junit-jupiter-params:${VersionConstants.jupiterVersion}")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:${VersionConstants.jupiterVersion}")
     }
 
     tasks {

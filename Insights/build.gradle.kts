@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.0"
+    id("net.minecrell.plugin-yml.bukkit") version VersionConstants.pluginYmlVersion
 }
 
 group = rootProject.group
