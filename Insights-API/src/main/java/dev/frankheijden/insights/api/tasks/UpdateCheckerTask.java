@@ -103,7 +103,7 @@ public class UpdateCheckerTask extends InsightsAsyncTask {
             }
 
             // Get the inputstream
-            boolean error = code < 200 && code >= 300;
+            boolean error = code < 200 || code >= 300;
             InputStream in = error ? conn.getErrorStream() : conn.getInputStream();
             if (in == null) {
                 plugin.getLogger().warning(TRY_LATER);
@@ -113,7 +113,7 @@ public class UpdateCheckerTask extends InsightsAsyncTask {
             // Parse as JsonObject
             JsonObject json;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
-                json = new JsonParser().parse(reader).getAsJsonObject();
+                json = JsonParser.parseReader(reader).getAsJsonObject();
             }
 
             // Stop here if the response is an error

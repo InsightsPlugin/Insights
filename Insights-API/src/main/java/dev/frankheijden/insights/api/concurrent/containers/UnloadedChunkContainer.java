@@ -33,6 +33,7 @@ public class UnloadedChunkContainer extends ChunkContainer {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public LevelChunkSection[] getChunkSections() throws IOException {
         var serverLevel = ((CraftWorld) world).getHandle();
 

@@ -50,6 +50,7 @@ subprojects {
 
         compileJava {
             options.encoding = Charsets.UTF_8.name()
+            options.isDeprecation = true
             sourceCompatibility = JavaVersion.VERSION_17.majorVersion
             targetCompatibility = JavaVersion.VERSION_17.majorVersion
         }
