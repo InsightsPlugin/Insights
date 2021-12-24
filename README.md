@@ -1,26 +1,25 @@
-<!-- Variables (this block will not be visible in the readme -->
-[spigot]: https://www.spigotmc.org/resources/56489/
-[spigotRatingImg]: https://img.shields.io/badge/dynamic/json.svg?color=brightgreen&label=rating&query=%24.rating.average&suffix=%20%2F%205&url=https%3A%2F%2Fapi.spiget.org%2Fv2%2Fresources%2F56489
-[spigotDownloadsImg]: https://img.shields.io/badge/dynamic/json.svg?color=brightgreen&label=downloads%20%28spigotmc.org%29&query=%24.downloads&url=https%3A%2F%2Fapi.spiget.org%2Fv2%2Fresources%2F56489
-[issues]: https://github.com/FrankHeijden/Insights/issues
-[wiki]: https://github.com/FrankHeijden/Insights/wiki
-[release]: https://github.com/FrankHeijden/Insights/releases/latest
-[releaseImg]: https://img.shields.io/github/release/FrankHeijden/Insights.svg?label=github%20release
-[license]: https://github.com/FrankHeijden/Insights/blob/master/LICENSE
-[licenseImg]: https://img.shields.io/github/license/FrankHeijden/Insights.svg
-[bugReports]: https://github.com/FrankHeijden/Insights/issues?q=is%3Aissue+is%3Aopen+label%3Abug
-[bugReportsImg]: https://img.shields.io/github/issues/FrankHeijden/Insights/bug.svg?label=bug%20reports
-[reportBug]: https://github.com/FrankHeijden/Insights/issues/new?labels=bug&template=bug.md
-[featureRequests]: https://github.com/FrankHeijden/Insights/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement
-[featureRequestsImg]: https://img.shields.io/github/issues/FrankHeijden/Insights/enhancement.svg?label=feature%20requests&color=informational
-[requestFeature]: https://github.com/FrankHeijden/Insights/issues/new?labels=enhancement&template=feature.md
-[config]: https://github.com/FrankHeijden/Insights/blob/master/resources/config.yml
-[gradleInstall]: https://gradle.org/install/
-[bStatsImg]: https://bstats.org/signatures/bukkit/Insights.svg
-[bStats]: https://bstats.org/plugin/bukkit/Insights/7272
-<!-- End of variables block -->
-
 # Insights
+<div align="center">
+  <a href="https://github.com/FrankHeijden/Insights/actions">
+    <img alt="GitHub Actions" src="https://github.com/FrankHeijden/Insights/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=master"/>
+  </a>
+  <a href="https://repo.fvdh.dev/#/releases/dev/frankheijden/insights/Insights">
+    <img alt="FvdH Repository" src="https://repo.fvdh.dev/api/badge/latest/releases/dev/frankheijden/insights/Insights?color=40c14a&amp;name=fvdh-repository"/>
+  </a>
+  <a href="https://github.com/FrankHeijden/Insights/releases/latest">
+    <img alt="GitHub Releases" src="https://img.shields.io/github/release/FrankHeijden/Insights.svg?label=GitHub%20Releases&color=40c14a"/>
+  </a>
+  <a href="https://www.spigotmc.org/resources/56489/">
+    <img alt="Spigot Downloads" src="https://img.shields.io/badge/dynamic/json.svg?color=40c14a&label=Downloads%20%28SpigotMC%29&query=%24.downloads&url=https%3A%2F%2Fapi.spiget.org%2Fv2%2Fresources%2F56489"/>
+  </a>
+  <a href="https://www.spigotmc.org/resources/56489/">
+    <img alt="Spigot Ratings" src="https://img.shields.io/badge/dynamic/json.svg?color=40c14a&label=Ratings%20%28SpigotMC%29&query=%24.rating.average&suffix=%20%2F%205&url=https%3A%2F%2Fapi.spiget.org%2Fv2%2Fresources%2F56489"/>
+  </a>
+  <a href="https://discord.gg/WJGvzue">
+    <img alt="Discord" src="https://img.shields.io/discord/580773821745725452.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2"/>
+  </a>
+</div>
+
 Insights is a plugin which scans arbitrary regions and applies block limitations on them. 
 Insights' limits are super configurable, allowing for group limits, individual (permission-based) limits, and tile limits.
 Each limit is able to be bypassed through permissions, which you can customize in the limits configuration.
@@ -39,18 +38,11 @@ or to perform arbitrary scans and process those.
 
 For a full description of this plugin, please refer to SpigotMC: https://www.spigotmc.org/resources/56489/
 
-[![Java CI with Gradle](https://github.com/FrankHeijden/Insights/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=master)](https://github.com/FrankHeijden/Insights/actions)
-[![](https://jitpack.io/v/FrankHeijden/Insights.svg)](https://jitpack.io/#FrankHeijden/Insights)
-[![releaseImg]][release]
-[![licenseImg]][license]
-[![featureRequestsImg]][featureRequests]
-[![bugReportsImg]][bugReports]
-[![spigotRatingImg]][spigot]
-[![spigotDownloadsImg]][spigot]
-
-[![Discord](https://img.shields.io/discord/580773821745725452.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/WJGvzue)
-
-[![bStatsImg]][bStats]
+<div align="center" style="margin-top: 16px;">
+  <a href="https://bstats.org/plugin/bukkit/Insights/7272">
+    <img alt="bStats" src="https://bstats.org/signatures/bukkit/Insights.svg">
+  </a>
+</div>
 
 ## Extensions
 These plugins are extensions on Insights, they must be placed in your `plugins/` folder.
@@ -73,7 +65,7 @@ Regions are cached to not bother with scans each time a block has been placed.
 ## Compiling Insights
 There are two ways to compile Insights:
 ### 1. Installing gradle (recommended)
-1. Make sure you have [gradle][gradleInstall] installed.
+1. Make sure you have [gradle](https://gradle.org/install/) installed.
 2. Run the project with `gradle build` to compile it with dependencies.
 ### 2. Using the wrapper
 **Windows**: `gradlew.bat build`
