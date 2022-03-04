@@ -9,7 +9,6 @@ import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.utils.ColorUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.command.CommandSender;
 
 @CommandMethod("insights|in")
@@ -45,12 +44,12 @@ public class CommandInsights extends InsightsCommand {
     private void displayStatistics(CommandSender sender) {
         ContainerExecutorService executor = ((Insights) plugin).getExecutor();
         plugin.getMessages().getMessage(Messages.Key.STATS).addTemplates(
-                Template.template("chunks_scanned", StringUtils.pretty(executor.getCompletedTaskCount())),
-                Template.template(
+                Messages.tagOf("chunks_scanned", StringUtils.pretty(executor.getCompletedTaskCount())),
+                Messages.tagOf(
                         "blocks_scanned",
                         StringUtils.pretty(plugin.getMetricsManager().getTotalBlocksScanned().sum())
                 ),
-                Template.template("queue_size", StringUtils.pretty(executor.getQueueSize()))
+                Messages.tagOf("queue_size", StringUtils.pretty(executor.getQueueSize()))
         ).sendTo(sender);
     }
 }

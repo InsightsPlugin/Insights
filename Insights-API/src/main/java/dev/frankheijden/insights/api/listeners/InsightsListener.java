@@ -18,7 +18,7 @@ import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
-import net.kyori.adventure.text.minimessage.Template;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -110,7 +110,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         if (queued) {
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
                 plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_QUEUED).addTemplates(
-                        Template.template("area", area)
+                        Messages.tagOf("area", area)
                 ).sendTo(player);
             }
             return true;
@@ -123,10 +123,10 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         var limitInfo = limit.getLimit(item);
 
         if (regionOptional.isEmpty() && limit.getSettings().isDisallowedPlacementOutsideRegion()) {
-            plugin.getMessages().getMessage(Messages.Key.LIMIT_DISALLOWED_PLACEMENT).addTemplates(
-                    Template.template("name", limitInfo.getName()),
-                    Template.template("area", area)
-            ).sendTo(player);
+            plugin.getMessages().getMessage(Messages.Key.LIMIT_DISALLOWED_PLACEMENT).addTemplates(TagResolver.resolver(
+                    Messages.tagOf("name", limitInfo.getName()),
+                    Messages.tagOf("area", area)
+            )).sendTo(player);
             return true;
         }
 
@@ -159,9 +159,9 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         // If count is beyond limit, act
         if (count + delta > limitInfo.getLimit()) {
             plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED).addTemplates(
-                    Template.template("limit", StringUtils.pretty(limitInfo.getLimit())),
-                    Template.template("name", limitInfo.getName()),
-                    Template.template("area", area)
+                    Messages.tagOf("limit", StringUtils.pretty(limitInfo.getLimit())),
+                    Messages.tagOf("name", limitInfo.getName()),
+                    Messages.tagOf("area", area)
             ).sendTo(player);
             return true;
         }
@@ -204,9 +204,9 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
                     .add(player)
                     .create()
                     .addTemplates(
-                            Template.template("name", limitInfo.getName()),
-                            Template.template("count", StringUtils.pretty(count + delta)),
-                            Template.template("limit", StringUtils.pretty(limitInfo.getLimit()))
+                            Messages.tagOf("name", limitInfo.getName()),
+                            Messages.tagOf("count", StringUtils.pretty(count + delta)),
+                            Messages.tagOf("limit", StringUtils.pretty(limitInfo.getLimit()))
                     )
                     .send();
         }
@@ -229,7 +229,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             // Notify the user scan started
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
                 plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED).addTemplates(
-                        Template.template("area", "chunk")
+                        Messages.tagOf("area", "chunk")
                 ).sendTo(player);
             }
 
@@ -257,7 +257,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
             // Notify the user scan started
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
                 plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED).addTemplates(
-                        Template.template("area", plugin.getAddonManager().getAddon(region.getAddon()).getAreaName())
+                        Messages.tagOf("area", plugin.getAddonManager().getAddon(region.getAddon()).getAreaName())
                 ).sendTo(player);
             }
 
@@ -316,9 +316,9 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
                         .add(player)
                         .create()
                         .addTemplates(
-                                Template.template("name", limitInfo.getName()),
-                                Template.template("count", StringUtils.pretty(count)),
-                                Template.template("limit", StringUtils.pretty(limitInfo.getLimit()))
+                                Messages.tagOf("name", limitInfo.getName()),
+                                Messages.tagOf("count", StringUtils.pretty(count)),
+                                Messages.tagOf("limit", StringUtils.pretty(limitInfo.getLimit()))
                         )
                         .send();
             };

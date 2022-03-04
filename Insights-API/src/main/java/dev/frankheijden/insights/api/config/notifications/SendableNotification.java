@@ -1,7 +1,7 @@
 package dev.frankheijden.insights.api.config.notifications;
 
 import dev.frankheijden.insights.api.config.Messages;
-import net.kyori.adventure.text.minimessage.Template;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 public abstract class SendableNotification {
 
@@ -11,8 +11,13 @@ public abstract class SendableNotification {
         this.content = content;
     }
 
-    public SendableNotification addTemplates(Template... templates) {
-        this.content.addTemplates(templates);
+    public SendableNotification addTemplates(TagResolver resolver) {
+        this.content.addTemplates(resolver);
+        return this;
+    }
+
+    public SendableNotification addTemplates(TagResolver... resolvers) {
+        this.content.addTemplates(resolvers);
         return this;
     }
 
