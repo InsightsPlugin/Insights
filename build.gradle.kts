@@ -116,7 +116,7 @@ tasks.register<Copy>("copyJars") {
     rename("(.+)Parent(.+)", "$1$2")
 }
 
-val artifactFile = tasks.findByPath("reobfJar")!!.outputs.files.singleFile
+val artifactFile = tasks.jar.get().archiveFile.get().asFile
 val artifact = artifacts.add("archives", artifactFile) {
     type = "jar"
     name = name.replace("Parent", "")
