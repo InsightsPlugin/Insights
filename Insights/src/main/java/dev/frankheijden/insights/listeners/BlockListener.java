@@ -58,8 +58,10 @@ public class BlockListener extends InsightsListener {
         var player = event.getPlayer();
 
         // In case of BlockMultiPlaceEvent, we may need to take a different delta.
+        // A closing tripwire hook triggers a BlockMultiPlaceEvent for all attached strings,
+        // but since they already exist in the world we do not need to count them.
         var delta = 0;
-        if (event instanceof BlockMultiPlaceEvent) {
+        if (event instanceof BlockMultiPlaceEvent && material != Material.TRIPWIRE_HOOK) {
             List<BlockState> replacedBlockStates = ((BlockMultiPlaceEvent) event).getReplacedBlockStates();
             for (BlockState state : replacedBlockStates) {
                 if (BlockUtils.isSameChunk(location.getBlockX(), location.getBlockZ(), state.getX(), state.getZ())) {
@@ -87,7 +89,9 @@ public class BlockListener extends InsightsListener {
         var player = event.getPlayer();
 
         // In case of BlockMultiPlaceEvent, we need to update the cache differently.
-        if (event instanceof BlockMultiPlaceEvent) {
+        // A closing tripwire hook triggers a BlockMultiPlaceEvent for all attached strings,
+        // but since they already exist in the world we do not need to count them.
+        if (event instanceof BlockMultiPlaceEvent && material != Material.TRIPWIRE_HOOK) {
             List<BlockState> replacedBlockStates = ((BlockMultiPlaceEvent) event).getReplacedBlockStates();
             for (BlockState state : replacedBlockStates) {
                 var loc = state.getLocation();
