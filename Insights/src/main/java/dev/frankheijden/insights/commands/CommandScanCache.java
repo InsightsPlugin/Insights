@@ -15,7 +15,6 @@ import dev.frankheijden.insights.api.utils.ChunkUtils;
 import dev.frankheijden.insights.api.utils.Constants;
 import dev.frankheijden.insights.api.utils.EnumUtils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import java.util.Arrays;
@@ -78,7 +77,7 @@ public class CommandScanCache extends InsightsCommand {
                 .map(r -> plugin.getAddonManager().getAddon(r.getAddon()).getAreaName())
                 .orElse("chunk");
         plugin.getMessages().getMessage(Messages.Key.SCANCACHE_CLEARED).addTemplates(
-                Template.template("area", areaName)
+                Messages.tagOf("area", areaName)
         ).sendTo(player);
     }
 
@@ -110,7 +109,7 @@ public class CommandScanCache extends InsightsCommand {
                     .toArray(ScanObject[]::new);
 
             var footer = messages.getMessage(Messages.Key.SCANCACHE_RESULT_FOOTER).addTemplates(
-                    Template.template(
+                    Messages.tagOf(
                             "area",
                             optionalRegion
                                     .map(r -> plugin.getAddonManager().getAddon(r.getAddon()).getAreaName())

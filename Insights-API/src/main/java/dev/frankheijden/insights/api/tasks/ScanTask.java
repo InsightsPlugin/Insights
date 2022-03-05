@@ -14,7 +14,6 @@ import dev.frankheijden.insights.api.util.TriConsumer;
 import dev.frankheijden.insights.api.utils.EnumUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -149,9 +148,9 @@ public class ScanTask<R> implements Runnable {
                     notification.progress(progress)
                             .create()
                             .addTemplates(
-                                    Template.template("percentage", StringUtils.prettyOneDecimal(progress * 100)),
-                                    Template.template("count", StringUtils.pretty(info.getChunksDone())),
-                                    Template.template("total", StringUtils.pretty(info.getChunks()))
+                                    Messages.tagOf("percentage", StringUtils.prettyOneDecimal(progress * 100)),
+                                    Messages.tagOf("count", StringUtils.pretty(info.getChunksDone())),
+                                    Messages.tagOf("total", StringUtils.pretty(info.getChunks()))
                             )
                             .send();
                 },
@@ -202,16 +201,16 @@ public class ScanTask<R> implements Runnable {
                             .toArray(ScanObject[]::new);
 
                     var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).addTemplates(
-                            Template.template("chunks", StringUtils.pretty(chunkCount)),
-                            Template.template(
+                            Messages.tagOf("chunks", StringUtils.pretty(chunkCount)),
+                            Messages.tagOf(
                                     "blocks",
                                     StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.MATERIAL))
                             ),
-                            Template.template(
+                            Messages.tagOf(
                                     "entities",
                                     StringUtils.pretty(storage.count(s -> s.getType() == ScanObject.Type.ENTITY))
                             ),
-                            Template.template("time", StringUtils.pretty(Duration.ofMillis(millis)))
+                            Messages.tagOf("time", StringUtils.pretty(Duration.ofMillis(millis)))
                     );
 
                     var message = messages.createPaginatedMessage(
@@ -253,7 +252,7 @@ public class ScanTask<R> implements Runnable {
 
         // Notify about scan start
         plugin.getMessages().getMessage(Messages.Key.SCAN_START).addTemplates(
-                Template.template("count", StringUtils.pretty(chunkCount))
+                Messages.tagOf("count", StringUtils.pretty(chunkCount))
         ).sendTo(player);
 
         // Start the scan
@@ -336,10 +335,10 @@ public class ScanTask<R> implements Runnable {
                             .sum();
 
                     var footer = messages.getMessage(Messages.Key.SCAN_FINISH_FOOTER).addTemplates(
-                            Template.template("chunks", StringUtils.pretty(chunkCount)),
-                            Template.template("blocks", StringUtils.pretty(blockCount)),
-                            Template.template("entities", StringUtils.pretty(entityCount)),
-                            Template.template("time", StringUtils.pretty(Duration.ofMillis(millis)))
+                            Messages.tagOf("chunks", StringUtils.pretty(chunkCount)),
+                            Messages.tagOf("blocks", StringUtils.pretty(blockCount)),
+                            Messages.tagOf("entities", StringUtils.pretty(entityCount)),
+                            Messages.tagOf("time", StringUtils.pretty(Duration.ofMillis(millis)))
                     );
 
                     var message = messages.<ChunkLocation>createPaginatedMessage(
@@ -357,9 +356,9 @@ public class ScanTask<R> implements Runnable {
                                 var z = Integer.toString(key.getZ());
 
                                 return messages.getMessage(Messages.Key.SCAN_FINISH_CHUNK_FORMAT).addTemplates(
-                                        Template.template("world", worldName),
-                                        Template.template("chunk-x", x),
-                                        Template.template("chunk-z", z)
+                                        Messages.tagOf("world", worldName),
+                                        Messages.tagOf("chunk-x", x),
+                                        Messages.tagOf("chunk-z", z)
                                 ).toComponent().orElse(Component.text(worldName + " @ " + x + ", " + z));
                             }
                     );

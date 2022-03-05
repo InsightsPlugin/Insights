@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.utils.VersionUtils;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.command.CommandSender;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -61,8 +60,8 @@ public class UpdateCheckerTask extends InsightsAsyncTask {
     public static void check(CommandSender sender) {
         var messages = InsightsPlugin.getInstance().getMessages();
         getCachedUpdate().ifPresent(update -> messages.getMessage(Messages.Key.UPDATE_AVAILABLE).addTemplates(
-                Template.template("version", update.version),
-                Template.template("body", update.body)
+                Messages.tagOf("version", update.version),
+                Messages.tagOf("body", update.body)
         ).sendTo(sender));
     }
 

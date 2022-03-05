@@ -7,7 +7,6 @@ import cloud.commandframework.annotations.Flag;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.config.Messages;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -37,9 +36,9 @@ public class CommandTeleportChunk extends InsightsCommand {
                     case NOT_GENERATED -> messages.getMessage(Messages.Key.TELEPORTCHUNK_NOT_GENERATED);
                     case FAILED -> messages.getMessage(Messages.Key.TELEPORTCHUNK_FAILED);
                     case SUCCESS -> messages.getMessage(Messages.Key.TELEPORTCHUNK_SUCCESS).addTemplates(
-                            Template.template("world", world.getName()),
-                            Template.template("chunk-x", Integer.toString(chunkX)),
-                            Template.template("chunk-z", Integer.toString(chunkZ))
+                            Messages.tagOf("world", world.getName()),
+                            Messages.tagOf("chunk-x", chunkX),
+                            Messages.tagOf("chunk-z", chunkZ)
                     );
                     default -> throw new IllegalArgumentException("Unhandled result case: " + res);
                 };

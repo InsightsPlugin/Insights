@@ -4,7 +4,7 @@ import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.bukkit.Chunk;
-import org.bukkit.craftbukkit.v1_18_R1.CraftChunk;
+import org.bukkit.craftbukkit.v1_18_R2.CraftChunk;
 
 public class LoadedChunkContainer extends ChunkContainer {
 

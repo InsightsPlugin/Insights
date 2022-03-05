@@ -13,8 +13,8 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.Template;
-import net.kyori.adventure.text.minimessage.template.TemplateResolver;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
@@ -37,7 +37,7 @@ public class Messages {
     private final YamlParser parser;
     private final MiniMessage miniMessage;
     private final Map<Key, String> messageCache;
-    private final TemplateResolver prefixResolver;
+    private final TagResolver prefixResolver;
 
     protected Messages(InsightsPlugin plugin, BukkitAudiences audiences, YamlParser parser) {
         this.plugin = plugin;
@@ -45,9 +45,7 @@ public class Messages {
         this.parser = parser;
         this.miniMessage = MiniMessage.miniMessage();
         this.messageCache = new EnumMap<>(Key.class);
-        this.prefixResolver = TemplateResolver.templates(Template.template(
-                "prefix", miniMessage.parse(getRawMessage(Key.PREFIX))
-        ));
+        this.prefixResolver = tagOf("prefix", miniMessage.deserialize(getRawMessage(Key.PREFIX)));
     }
 
     public BukkitAudiences getAudiences() {
@@ -79,9 +77,9 @@ public class Messages {
                 keys,
                 element -> {
                     Component displayName = displayNameFunction.apply(element);
-                    var component = miniMessage.deserialize(getRawMessage(formatKey), TemplateResolver.templates(
-                            Template.template("entry", displayName),
-                            Template.template("count", StringUtils.pretty(countFunction.applyAsLong(element)))
+                    var component = miniMessage.deserialize(getRawMessage(formatKey), TagResolver.resolver(
+                            tagOf("entry", displayName),
+                            tagOf("count", StringUtils.pretty(countFunction.applyAsLong(element)))
                     ));
                     return addHover(component, element, displayName);
                 },
@@ -129,6 +127,18 @@ public class Messages {
             InputStream defaultSettings
     ) throws IOException {
         return new Messages(plugin, audiences, PassiveYamlParser.load(file, defaultSettings));
+    }
+
+    public static TagResolver tagOf(String name, String content) {
+        return tagOf(name, Component.text(content));
+    }
+
+    public static TagResolver tagOf(String name, int value) {
+        return tagOf(name, Component.text(value));
+    }
+
+    public static TagResolver tagOf(String name, Component content) {
+        return TagResolver.resolver(name, Tag.inserting(content));
     }
 
     public enum Key {
@@ -216,14 +226,14 @@ public class Messages {
 
         private String content;
         private final Type type;
-        private final TemplateResolver originalResolver;
-        private TemplateResolver resolver;
+        private final TagResolver originalResolver;
+        private TagResolver resolver;
 
         private Message() {
-            this(null, Type.CHAT, TemplateResolver.empty());
+            this(null, Type.CHAT, TagResolver.empty());
         }
 
-        private Message(String content, Type type, TemplateResolver resolver) {
+        private Message(String content, Type type, TagResolver resolver) {
             this.content = content;
             this.type = type;
             this.originalResolver = resolver;
@@ -235,8 +245,13 @@ public class Messages {
             return this;
         }
 
-        public Message addTemplates(Template... templates) {
-            this.resolver = TemplateResolver.combining(resolver, TemplateResolver.templates(templates));
+        public Message addTemplates(TagResolver resolver) {
+            this.resolver = TagResolver.resolver(this.resolver, resolver);
+            return this;
+        }
+
+        public Message addTemplates(TagResolver... resolvers) {
+            this.resolver = TagResolver.resolver(this.resolver, TagResolver.resolver(resolvers));
             return this;
         }
 
@@ -314,11 +329,11 @@ public class Messages {
         }
 
         private Component createFooter(int page) {
-            return miniMessage.deserialize(getRawMessage(Key.PAGINATION_FOOTER_FORMAT), TemplateResolver.templates(
-                    Template.template("current-page", String.valueOf(page + 1)),
-                    Template.template("page-amount", String.valueOf(getPageAmount())),
-                    Template.template("button-left", createButton(page, ButtonType.LEFT)),
-                    Template.template("button-right", createButton(page, ButtonType.RIGHT))
+            return miniMessage.deserialize(getRawMessage(Key.PAGINATION_FOOTER_FORMAT), TagResolver.resolver(
+                    tagOf("current-page", page + 1),
+                    tagOf("page-amount", getPageAmount()),
+                    tagOf("button-left", createButton(page, ButtonType.LEFT)),
+                    tagOf("button-right", createButton(page, ButtonType.RIGHT))
             ));
         }
 
@@ -334,9 +349,7 @@ public class Messages {
                 int clickPage = type == ButtonType.LEFT ? page : page + 2;
                 button.hoverEvent(HoverEvent.showText(miniMessage.deserialize(
                         getRawMessage(Key.PAGINATION_BUTTON_HOVER),
-                        TemplateResolver.templates(
-                                Template.template("page", String.valueOf(clickPage))
-                        )
+                        tagOf("page", clickPage)
                 )));
                 button.clickEvent(ClickEvent.runCommand("/scanhistory " + clickPage));
             }
