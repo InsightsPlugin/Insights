@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_19_R1.block.data.CraftBlockData;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;

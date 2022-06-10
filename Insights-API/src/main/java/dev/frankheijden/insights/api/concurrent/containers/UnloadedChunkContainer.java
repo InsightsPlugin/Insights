@@ -18,7 +18,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 
 public class UnloadedChunkContainer extends ChunkContainer {
 
@@ -42,11 +42,11 @@ public class UnloadedChunkContainer extends ChunkContainer {
         var chunkMap = serverLevel.getChunkSource().chunkMap;
         var chunkPos = new ChunkPos(chunkX, chunkZ);
 
-        CompoundTag tag = chunkMap.read(chunkPos);
+        CompoundTag tag = chunkMap.readSync(chunkPos);
         if (tag == null) return chunkSections;
         tag = chunkMap.upgradeChunkTag(
                 serverLevel.getTypeKey(),
-                () -> serverLevel.getServer().overworld().getDataStorage(),
+                chunkMap.overworldDataStorage,
                 tag,
                 chunkMap.generator.getTypeNameForDataFixer(),
                 chunkPos,

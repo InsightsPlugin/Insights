@@ -10,7 +10,6 @@ val dependencyDir = "$group.dependencies"
 version = rootProject.version
 
 repositories {
-    maven("https://repo.incendo.org/content/repositories/snapshots/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 }
 
