@@ -255,7 +255,7 @@ public class Insights extends InsightsPlugin {
         }
 
         // Register parsers
-        ParserRegistry<CommandSender> parserRegistry = commandManager.getParserRegistry();
+        ParserRegistry<CommandSender> parserRegistry = commandManager.parserRegistry();
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<Limit>() {}.getType()),
                 options -> new LimitArgument.LimitParser()
@@ -274,13 +274,13 @@ public class Insights extends InsightsPlugin {
         );
 
         // Register capabilities if allowed
-        if (commandManager.queryCapability(CloudBukkitCapabilities.BRIGADIER)) {
+        if (commandManager.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
             commandManager.registerBrigadier();
             CloudBrigadierManager<CommandSender, ?> brigadierManager = commandManager.brigadierManager();
             var handler = new BrigadierHandler(brigadierManager);
             handler.registerTypes();
         }
-        if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+        if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             commandManager.registerAsynchronousCompletions();
         }
 
