@@ -5,7 +5,7 @@ import com.mojang.serialization.DataResult;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
-import java.io.IOException;
+import java.util.Optional;
 import java.util.logging.Logger;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -34,7 +34,7 @@ public class UnloadedChunkContainer extends ChunkContainer {
 
     @Override
     @SuppressWarnings("deprecation")
-    public LevelChunkSection[] getChunkSections() throws IOException {
+    public LevelChunkSection[] getChunkSections() {
         var serverLevel = ((CraftWorld) world).getHandle();
 
         int sectionsCount = serverLevel.getSectionsCount();
@@ -42,16 +42,9 @@ public class UnloadedChunkContainer extends ChunkContainer {
         var chunkMap = serverLevel.getChunkSource().chunkMap;
         var chunkPos = new ChunkPos(chunkX, chunkZ);
 
-        CompoundTag tag = chunkMap.readSync(chunkPos);
-        if (tag == null) return chunkSections;
-        tag = chunkMap.upgradeChunkTag(
-                serverLevel.getTypeKey(),
-                chunkMap.overworldDataStorage,
-                tag,
-                chunkMap.generator.getTypeNameForDataFixer(),
-                chunkPos,
-                serverLevel
-        );
+        Optional<CompoundTag> tagOptional = chunkMap.read(chunkPos).join();
+        if (tagOptional.isEmpty()) return chunkSections;
+        CompoundTag tag = tagOptional.get();
 
         ListTag sectionsTagList = tag.getList("sections", 10);
 
