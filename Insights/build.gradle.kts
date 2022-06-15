@@ -10,7 +10,6 @@ val dependencyDir = "$group.dependencies"
 version = rootProject.version
 
 repositories {
-    maven("https://repo.incendo.org/content/repositories/snapshots/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 }
 
@@ -37,7 +36,7 @@ tasks.withType<ShadowJar> {
 bukkit {
     main = "dev.frankheijden.insights.Insights"
     description = "Insights about your server and regional block limits"
-    apiVersion = "1.17"
+    apiVersion = "1.19"
     website = "https://github.com/InsightsPlugin/Insights"
     softDepend = listOf("PlaceholderAPI")
     authors = listOf("FrankHeijden")
