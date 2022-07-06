@@ -113,17 +113,17 @@ public class EntityListener extends InsightsListener {
 
         Location location = entity.getLocation();
 
-        int delta = 1;
+        int delta = -1;
         if (event instanceof HangingBreakByEntityEvent) {
             Entity remover = ((HangingBreakByEntityEvent) event).getRemover();
             if (remover instanceof Player) {
-                handleRemoval((Player) remover, location, ScanObject.of(entityType), delta);
+                handleModification((Player) remover, location, ScanObject.of(entityType), delta, true);
                 return;
             }
         }
 
         // Update the cache if it was not broken by a player (but instead by e.g. physics)
-        handleModification(location, entityType, -delta);
+        handleModification(location, entityType, delta);
     }
 
     /**
@@ -161,7 +161,7 @@ public class EntityListener extends InsightsListener {
     protected boolean handleEntityPlace(Player player, Entity entity) {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return false;
-        return handleAddition(player, entity.getLocation(), ScanObject.of(entityType), 1, false);
+        return handleModification(player, entity.getLocation(), ScanObject.of(entityType), 1, false);
     }
 
     protected void evaluateEntityPlace(Player player, Entity entity) {
@@ -171,7 +171,7 @@ public class EntityListener extends InsightsListener {
         Location location = entity.getLocation();
         int delta = 1;
 
-        evaluateAddition(player, location, ScanObject.of(entityType), delta);
+        evaluateModification(player, location, ScanObject.of(entityType), delta);
         handleModification(location, entityType, delta);
     }
 
@@ -180,19 +180,19 @@ public class EntityListener extends InsightsListener {
         if (!LIMITED_ENTITIES.contains(entityType)) return;
 
         Location location = entity.getLocation();
-        int delta = 1;
+        int delta = -1;
 
         if (isPlayer) {
             removedEntities.add(entity.getUniqueId());
             Optional<Player> player = getPlayerKiller(entity);
             if (player.isPresent()) {
-                handleRemoval(player.get(), location, ScanObject.of(entityType), delta);
+                handleModification(player.get(), location, ScanObject.of(entityType), delta, true);
                 return;
             }
         }
 
         // Update the cache if it was not removed by a player
-        handleModification(location, entityType, -delta);
+        handleModification(location, entityType, delta);
     }
 
     /**

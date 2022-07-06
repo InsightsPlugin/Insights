@@ -13,11 +13,7 @@ import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ChunkTeleport;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.count.RedstoneUpdateCount;
-import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.ScanHistory;
-import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
-import dev.frankheijden.insights.api.concurrent.tracker.AddonScanTracker;
-import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Notifications;
@@ -26,6 +22,7 @@ import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
+import dev.frankheijden.insights.api.region.RegionManager;
 import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.commands.CommandCancelScan;
@@ -37,10 +34,10 @@ import dev.frankheijden.insights.commands.CommandScanRegion;
 import dev.frankheijden.insights.commands.CommandScanWorld;
 import dev.frankheijden.insights.commands.CommandTeleportChunk;
 import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
-import dev.frankheijden.insights.commands.parser.LimitArgument;
-import dev.frankheijden.insights.commands.parser.ScanHistoryPageArgument;
-import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
-import dev.frankheijden.insights.commands.parser.WorldArgument;
+import dev.frankheijden.insights.commands.parser.LimitParser;
+import dev.frankheijden.insights.commands.parser.ScanHistoryPageParser;
+import dev.frankheijden.insights.commands.parser.ScanObjectArrayParser;
+import dev.frankheijden.insights.commands.parser.WorldParser;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
@@ -53,6 +50,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitTask;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -60,7 +59,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.function.Function;
 
 public class Insights extends InsightsPlugin {
@@ -77,10 +75,7 @@ public class Insights extends InsightsPlugin {
     private ContainerExecutorService executor;
     private ChunkContainerExecutor chunkContainerExecutor;
     private PlayerList playerList;
-    private WorldStorage worldStorage;
-    private AddonStorage addonStorage;
-    private WorldChunkScanTracker worldChunkScanTracker;
-    private AddonScanTracker addonScanTracker;
+    private RegionManager regionManager;
     private EntityTrackerTask entityTrackerTask;
     private MetricsManager metricsManager;
     private ScanHistory scanHistory;
@@ -121,12 +116,9 @@ public class Insights extends InsightsPlugin {
         }, 1);
 
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
-        worldStorage = new WorldStorage();
-        addonStorage = new AddonStorage();
-        worldChunkScanTracker = new WorldChunkScanTracker();
-        addonScanTracker = new AddonScanTracker();
+        regionManager = new RegionManager(this);
         executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
-        chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
+        chunkContainerExecutor = new ChunkContainerExecutor(this);
         metricsManager = new MetricsManager(this);
         scanHistory = new ScanHistory();
         redstoneUpdateCount = new RedstoneUpdateCount(this);
@@ -158,22 +150,22 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
-    public ListenerManager getListenerManager() {
+    public @NonNull ListenerManager listenerManager() {
         return listenerManager;
     }
 
     @Override
-    public RedstoneUpdateCount getRedstoneUpdateCount() {
+    public @NonNull RedstoneUpdateCount redstoneUpdateCount() {
         return redstoneUpdateCount;
     }
 
     @Override
-    public ChunkTeleport getChunkTeleport() {
+    public @NonNull ChunkTeleport chunkTeleport() {
         return chunkTeleport;
     }
 
-    public Optional<EntityTrackerTask> getEntityTracker() {
-        return Optional.ofNullable(entityTrackerTask);
+    public @Nullable EntityTrackerTask entityTracker() {
+        return entityTrackerTask;
     }
 
     @Override
@@ -206,7 +198,7 @@ public class Insights extends InsightsPlugin {
 
     @Override
     public void reloadLimits() {
-        limits = new Limits();
+        limits = new Limits(this);
 
         Path limitsPath = getDataFolder().toPath().resolve(LIMITS_FOLDER_NAME);
         if (!Files.exists(limitsPath)) {
@@ -258,19 +250,19 @@ public class Insights extends InsightsPlugin {
         ParserRegistry<CommandSender> parserRegistry = commandManager.parserRegistry();
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<Limit>() {}.getType()),
-                options -> new LimitArgument.LimitParser()
+                options -> new LimitParser()
         );
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<ScanObject<?>[]>() {}.getType()),
-                options -> new ScanObjectArrayArgument.ScanObjectArrayParser()
+                options -> new ScanObjectArrayParser()
         );
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<CommandScanHistory.Page>() {}.getType()),
-                options -> new ScanHistoryPageArgument.ScanHistoryPageParser()
+                options -> new ScanHistoryPageParser()
         );
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<World>() {}.getType()),
-                options -> new WorldArgument.WorldParser()
+                options -> new WorldParser()
         );
 
         // Register capabilities if allowed
@@ -303,72 +295,56 @@ public class Insights extends InsightsPlugin {
     }
 
     @Override
-    public Settings getSettings() {
+    public @NonNull Settings settings() {
         return settings;
     }
 
     @Override
-    public Messages getMessages() {
+    public @NonNull Messages messages() {
         return messages;
     }
 
     @Override
-    public Limits getLimits() {
+    public @NonNull Limits limits() {
         return limits;
     }
 
     @Override
-    public AddonManager getAddonManager() {
+    public @NonNull AddonManager addonManager() {
         return addonManager;
     }
 
     @Override
-    public Notifications getNotifications() {
+    public @NonNull Notifications notifications() {
         return notifications;
     }
 
     @Override
-    public ContainerExecutorService getExecutor() {
+    public @NonNull ContainerExecutorService executor() {
         return executor;
     }
 
     @Override
-    public ChunkContainerExecutor getChunkContainerExecutor() {
+    public @NonNull ChunkContainerExecutor chunkContainerExecutor() {
         return chunkContainerExecutor;
     }
 
     @Override
-    public PlayerList getPlayerList() {
+    public @NonNull PlayerList playerList() {
         return playerList;
     }
 
     @Override
-    public WorldStorage getWorldStorage() {
-        return worldStorage;
+    public @NonNull RegionManager regionManager() {
+        return regionManager;
     }
 
     @Override
-    public AddonStorage getAddonStorage() {
-        return addonStorage;
-    }
-
-    @Override
-    public WorldChunkScanTracker getWorldChunkScanTracker() {
-        return worldChunkScanTracker;
-    }
-
-    @Override
-    public AddonScanTracker getAddonScanTracker() {
-        return addonScanTracker;
-    }
-
-    @Override
-    public MetricsManager getMetricsManager() {
+    public @NonNull MetricsManager metricsManager() {
         return metricsManager;
     }
 
-    @Override
-    public ScanHistory getScanHistory() {
+    public @NonNull ScanHistory scanHistory() {
         return scanHistory;
     }
 

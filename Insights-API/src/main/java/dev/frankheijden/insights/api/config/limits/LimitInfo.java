@@ -13,11 +13,11 @@ public class LimitInfo {
         this.limit = limit;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
-    public int getLimit() {
+    public int limit() {
         return limit;
     }
 }

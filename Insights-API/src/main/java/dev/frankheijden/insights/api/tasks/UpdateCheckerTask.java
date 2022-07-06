@@ -58,7 +58,7 @@ public class UpdateCheckerTask extends InsightsAsyncTask {
      * Checks the cached version and displays the result, if an update is available to the CommandSender.
      */
     public static void check(CommandSender sender) {
-        var messages = InsightsPlugin.getInstance().getMessages();
+        var messages = InsightsPlugin.getInstance().messages();
         getCachedUpdate().ifPresent(update -> messages.getMessage(Messages.Key.UPDATE_AVAILABLE).addTemplates(
                 Messages.tagOf("version", update.version),
                 Messages.tagOf("body", update.body)

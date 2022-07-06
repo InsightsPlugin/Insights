@@ -74,7 +74,7 @@ public class CommandScanWorld extends InsightsCommand {
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk,
             @Argument("limit") Limit limit
     ) {
-        handleScan(player, limit.getScanObjects(), limit.getScanOptions(), false, groupByChunk);
+        handleScan(player, limit.scanObjects(), limit.getScanOptions(), false, groupByChunk);
     }
 
     /**

@@ -2,7 +2,7 @@ package dev.frankheijden.insights.commands.brigadier;
 
 import cloud.commandframework.brigadier.CloudBrigadierManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
+import dev.frankheijden.insights.commands.parser.ScanObjectArrayParser;
 import io.leangen.geantyref.TypeToken;
 import org.bukkit.command.CommandSender;
 
@@ -18,7 +18,7 @@ public class BrigadierHandler {
      * Registers brigadier types.
      */
     public void registerTypes() {
-        brigadierManager.registerMapping(new TypeToken<ScanObjectArrayArgument.ScanObjectArrayParser>() {
+        brigadierManager.registerMapping(new TypeToken<ScanObjectArrayParser>() {
             //
         }, builder -> {
             builder.to(argument -> StringArgumentType.greedyString());

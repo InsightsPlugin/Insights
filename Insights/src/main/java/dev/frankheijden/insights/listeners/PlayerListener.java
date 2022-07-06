@@ -42,7 +42,7 @@ public class PlayerListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        plugin.getPlayerList().addPlayer(player);
+        plugin.playerList().addPlayer(player);
 
         if (player.hasPermission("insights.update")) {
             UpdateCheckerTask.check(player);
@@ -51,7 +51,7 @@ public class PlayerListener extends InsightsListener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        plugin.getPlayerList().removePlayer(event.getPlayer());
+        plugin.playerList().removePlayer(event.getPlayer());
     }
 
     /**

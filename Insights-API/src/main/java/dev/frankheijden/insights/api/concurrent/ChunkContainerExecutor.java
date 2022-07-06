@@ -7,13 +7,13 @@ import dev.frankheijden.insights.api.concurrent.containers.RunnableContainer;
 import dev.frankheijden.insights.api.concurrent.containers.SupplierContainer;
 import dev.frankheijden.insights.api.concurrent.containers.UnloadedChunkContainer;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
-import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
-import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.exceptions.ChunkCuboidOutOfBoundsException;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
+import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
+import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
+import dev.frankheijden.insights.api.region.ChunkRegion;
+import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Chunk;
-import org.bukkit.World;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -21,45 +21,37 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ChunkContainerExecutor implements ContainerExecutor {
 
-    private final ContainerExecutor containerExecutor;
-    private final WorldStorage worldStorage;
-    private final WorldChunkScanTracker scanTracker;
+    private final InsightsPlugin plugin;
 
     /**
      * Constructs a new ChunkContainerExecutor.
      */
-    public ChunkContainerExecutor(
-            ContainerExecutor containerExecutor,
-            WorldStorage worldStorage,
-            WorldChunkScanTracker scanTracker
-    ) {
-        this.containerExecutor = containerExecutor;
-        this.worldStorage = worldStorage;
-        this.scanTracker = scanTracker;
+    public ChunkContainerExecutor(InsightsPlugin plugin) {
+        this.plugin = plugin;
     }
 
     public CompletableFuture<Storage> submit(Chunk chunk) {
         return submit(chunk, ScanOptions.all());
     }
 
-    public CompletableFuture<Storage> submit(World world, int x, int z) {
-        return submit(world, x, z, ScanOptions.all());
+    public CompletableFuture<Storage> submit(ChunkLocation chunkLocation) {
+        return submit(chunkLocation, ScanOptions.all());
     }
 
     public CompletableFuture<Storage> submit(Chunk chunk, ScanOptions options) {
         return submit(chunk, ChunkCuboid.maxCuboid(chunk.getWorld()), options);
     }
 
-    public CompletableFuture<Storage> submit(World world, int x, int z, ScanOptions options) {
-        return submit(world, x, z, ChunkCuboid.maxCuboid(world), options);
+    public CompletableFuture<Storage> submit(ChunkLocation chunkLocation, ScanOptions options) {
+        return submit(chunkLocation, ChunkCuboid.maxCuboid(chunkLocation.world()), options);
     }
 
     public CompletableFuture<Storage> submit(Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
         return submit(new LoadedChunkContainer(chunk, cuboid, options), options);
     }
 
-    public CompletableFuture<Storage> submit(World world, int x, int z, ChunkCuboid cuboid, ScanOptions options) {
-        return submit(new UnloadedChunkContainer(world, x, z, cuboid, options), options);
+    public CompletableFuture<Storage> submit(ChunkLocation chunkLocation, ChunkCuboid cuboid, ScanOptions options) {
+        return submit(new UnloadedChunkContainer(chunkLocation, cuboid, options), options);
     }
 
     /**
@@ -67,28 +59,31 @@ public class ChunkContainerExecutor implements ContainerExecutor {
      * DistributionStorage is essentially merged from the scan result and given entities Distribution.
      */
     public CompletableFuture<Storage> submit(ChunkContainer container, ScanOptions options) {
-        var world = container.getWorld();
+        var world = container.chunkLocation().world();
         var maxCuboid = ChunkCuboid.maxCuboid(world);
-        if (!maxCuboid.contains(container.getChunkCuboid())) {
+        if (!maxCuboid.contains(container.chunkCuboid())) {
             return CompletableFuture.failedFuture(new ChunkCuboidOutOfBoundsException(
-                    maxCuboid,
-                    container.getChunkCuboid()
+                    container.chunkCuboid(),
+                    maxCuboid
             ));
         }
 
-        UUID worldUid = world.getUID();
-        long chunkKey = container.getChunkKey();
+        ChunkRegion chunkRegion = new ChunkRegion(
+                container.chunkLocation().world().getUID(),
+                ChunkUtils.uuidFromChunkKey(container.chunkLocation().key()),
+                new ChunkPart(container.chunkLocation(), container.chunkCuboid())
+        );
         if (options.track()) {
-            scanTracker.set(worldUid, chunkKey, true);
+            plugin.regionManager().regionScanTracker().setQueued(chunkRegion, true);
         }
 
         return submit(container).thenApply(storage -> {
-            if (options.save()) worldStorage.getWorld(worldUid).put(chunkKey, storage);
-            if (options.track()) scanTracker.set(worldUid, chunkKey, false);
+            if (options.save()) plugin.regionManager().regionStorage().put(chunkRegion, storage);
+            if (options.track()) plugin.regionManager().regionScanTracker().setQueued(chunkRegion, false);
 
-            var metricsManager = InsightsPlugin.getInstance().getMetricsManager();
+            var metricsManager = InsightsPlugin.getInstance().metricsManager();
             metricsManager.getChunkScanMetric().increment();
-            metricsManager.getTotalBlocksScanned().add(container.getChunkCuboid().getVolume());
+            metricsManager.getTotalBlocksScanned().add(container.chunkCuboid().getVolume());
 
             return storage;
         });
@@ -96,16 +91,16 @@ public class ChunkContainerExecutor implements ContainerExecutor {
 
     @Override
     public <T> CompletableFuture<T> submit(SupplierContainer<T> container) {
-        return containerExecutor.submit(container);
+        return plugin.chunkContainerExecutor().submit(container);
     }
 
     @Override
     public CompletableFuture<Void> submit(RunnableContainer container) {
-        return containerExecutor.submit(container);
+        return plugin.chunkContainerExecutor().submit(container);
     }
 
     @Override
     public void shutdown() {
-        containerExecutor.shutdown();
+        plugin.chunkContainerExecutor().shutdown();
     }
 }

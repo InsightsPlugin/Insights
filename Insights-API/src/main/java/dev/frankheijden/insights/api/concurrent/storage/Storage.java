@@ -32,7 +32,7 @@ public interface Storage {
      * Counts the distribution for all ScanObjects of a limit.
      */
     default long count(Limit limit) {
-        return count(limit.getScanObjects());
+        return count(limit.scanObjects());
     }
 
     /**
@@ -40,7 +40,7 @@ public interface Storage {
      * Item must be of type Material or EntityType.
      */
     default long count(Limit limit, ScanObject<?> item) {
-        return limit.getType() == LimitType.PERMISSION ? count(item) : count(limit);
+        return limit.type() == LimitType.PERMISSION ? count(item) : count(limit);
     }
 
     /**

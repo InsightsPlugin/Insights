@@ -5,9 +5,9 @@ import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.exceptions.ChunkIOException;
 import dev.frankheijden.insights.api.exceptions.ChunkReflectionException;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
+import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
 import dev.frankheijden.insights.api.reflection.RPersistentEntitySectionManager;
-import dev.frankheijden.insights.api.utils.ChunkUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -17,7 +17,6 @@ import net.minecraft.world.level.entity.EntitySection;
 import net.minecraft.world.level.entity.EntitySectionStorage;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.EntityType;
@@ -28,9 +27,7 @@ import java.util.stream.Stream;
 
 public abstract class ChunkContainer implements SupplierContainer<DistributionStorage> {
 
-    protected final World world;
-    protected final int chunkX;
-    protected final int chunkZ;
+    protected final ChunkLocation chunkLocation;
     protected final ChunkCuboid cuboid;
     protected final ScanOptions options;
     protected final Map<Material, Long> materialMap;
@@ -39,55 +36,41 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
     /**
      * Constructs a new ChunkSnapshotContainer, with the area to be scanned as a cuboid.
      */
-    protected ChunkContainer(World world, int chunkX, int chunkZ, ChunkCuboid cuboid, ScanOptions options) {
-        this.world = world;
-        this.chunkX = chunkX;
-        this.chunkZ = chunkZ;
+    protected ChunkContainer(ChunkLocation chunkLocation, ChunkCuboid cuboid, ScanOptions options) {
+        this.chunkLocation = chunkLocation;
         this.cuboid = cuboid;
         this.options = options;
         this.materialMap = new EnumMap<>(Material.class);
         this.entityMap = new EnumMap<>(EntityType.class);
     }
 
-    public World getWorld() {
-        return world;
+    public ChunkLocation chunkLocation() {
+        return chunkLocation;
     }
 
-    public long getChunkKey() {
-        return ChunkUtils.getKey(chunkX, chunkZ);
-    }
-
-    public int getX() {
-        return chunkX;
-    }
-
-    public int getZ() {
-        return chunkZ;
-    }
-
-    public ChunkCuboid getChunkCuboid() {
+    public ChunkCuboid chunkCuboid() {
         return cuboid;
     }
 
-    public abstract LevelChunkSection[] getChunkSections() throws IOException;
+    public abstract LevelChunkSection[] chunkSections() throws IOException;
 
     @Override
     public DistributionStorage get() {
-        ChunkVector min = cuboid.getMin();
-        ChunkVector max = cuboid.getMax();
-        int minX = min.getX();
-        int maxX = max.getX();
-        int minZ = min.getZ();
-        int maxZ = max.getZ();
-        int blockMinY = Math.max(min.getY(), 0);
-        int blockMaxY = Math.abs(Math.min(min.getY(), 0)) + max.getY();
+        ChunkVector min = cuboid.min();
+        ChunkVector max = cuboid.max();
+        int minX = min.x();
+        int maxX = max.x();
+        int minZ = min.z();
+        int maxZ = max.z();
+        int blockMinY = Math.max(min.y(), 0);
+        int blockMaxY = Math.abs(Math.min(min.y(), 0)) + max.y();
 
-        ServerLevel serverLevel = ((CraftWorld) world).getHandle();
+        ServerLevel serverLevel = ((CraftWorld) chunkLocation.world()).getHandle();
 
         if (options.materials()) {
             LevelChunkSection[] chunkSections;
             try {
-                chunkSections = getChunkSections();
+                chunkSections = chunkSections();
             } catch (IOException ex) {
                 throw new ChunkIOException(ex);
             }
@@ -137,7 +120,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         if (options.entities()) {
             PersistentEntitySectionManager<Entity> entityManager = serverLevel.entityManager;
 
-            long chunkKey = getChunkKey();
+            long chunkKey = chunkLocation.key();
             final Stream<Entity> entityStream;
             if (entityManager.areEntitiesLoaded(chunkKey)) {
                 EntitySectionStorage<Entity> sectionStorage;
@@ -159,7 +142,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                 }
 
                 entityStream = permanentStorage
-                        .loadEntities(new ChunkPos(chunkX, chunkZ))
+                        .loadEntities(new ChunkPos(chunkLocation.x(), chunkLocation.z()))
                         .join()
                         .getEntities();
             }

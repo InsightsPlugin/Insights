@@ -1,16 +1,15 @@
 package dev.frankheijden.insights.api.addons;
 
 import org.bukkit.Location;
-import java.util.Optional;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import java.util.List;
 
 public interface InsightsAddon {
 
-    String getPluginName();
+    void enable();
 
-    String getAreaName();
+    void disable();
 
-    String getVersion();
-
-    Optional<Region> getRegion(Location location);
+    @NonNull List<AddonRegion> regionsAt(Location location);
 
 }

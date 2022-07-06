@@ -1,38 +1,33 @@
 package dev.frankheijden.insights.api.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.addons.Region;
+import dev.frankheijden.insights.api.addons.AddonRegion;
+import dev.frankheijden.insights.api.region.Region;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
-import dev.frankheijden.insights.api.concurrent.storage.ChunkStorage;
-import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
-import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
-import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.config.LimitEnvironment;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.limits.LimitInfo;
 import dev.frankheijden.insights.api.objects.InsightsBase;
-import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
-import dev.frankheijden.insights.api.tasks.ScanTask;
-import dev.frankheijden.insights.api.utils.ChunkUtils;
+import dev.frankheijden.insights.api.region.RegionManager;
+import dev.frankheijden.insights.api.util.Triplet;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 
 public abstract class InsightsListener extends InsightsBase implements Listener {
 
@@ -57,12 +52,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     }
 
     protected void handleModification(Location location, Consumer<Storage> storageConsumer) {
-        UUID worldUid = location.getWorld().getUID();
-        long chunkKey = ChunkUtils.getKey(location);
-        plugin.getWorldStorage().getWorld(worldUid).get(chunkKey).ifPresent(storageConsumer);
-        plugin.getAddonManager().getRegion(location)
-                .flatMap(region -> plugin.getAddonStorage().get(region.getKey()))
-                .ifPresent(storageConsumer);
+        var regionManager = plugin.regionManager();
+        for (Region region : regionManager.regionsAt(location)) {
+            Storage storage = regionManager.regionStorage().get(region);
+            if (storage == null) continue;
+            storageConsumer.accept(storage);
+        }
     }
 
     protected void handleModification(Location location, Material from, Material to, int amount) {
@@ -76,304 +71,164 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         handleModification(location, storage -> storage.modify(ScanObject.of(entity), amount));
     }
 
-    protected boolean handleAddition(Player player, Location location, ScanObject<?> item, int delta) {
-        return handleAddition(player, location, item, delta, true);
-    }
-
-    protected boolean handleAddition(
+    protected boolean handleModification(
             Player player,
             Location location,
             ScanObject<?> item,
             int delta,
             boolean included
     ) {
-        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
-        var chunk = location.getChunk();
-        var world = location.getWorld();
-        UUID worldUid = world.getUID();
-        long chunkKey = ChunkUtils.getKey(chunk);
+        return handleModification(player, plugin.regionManager().regionsAt(location), item, delta, included);
+    }
 
-        boolean queued;
-        String area;
-        LimitEnvironment env;
-        if (regionOptional.isPresent()) {
-            var region = regionOptional.get();
-            queued = plugin.getAddonScanTracker().isQueued(region.getKey());
-            area = plugin.getAddonManager().getAddon(region.getAddon()).getAreaName();
-            env = new LimitEnvironment(player, world.getName(), region.getAddon());
-        } else {
-            queued = plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey);
-            area = "chunk";
-            env = new LimitEnvironment(player, world.getName());
-        }
+    protected boolean handleModification(
+            Player player,
+            Collection<? extends Region> regions,
+            ScanObject<?> item,
+            int delta,
+            boolean included
+    ) {
+        if (delta < 0 && !player.hasPermission("insights.notifications")) return false;
 
-        if (queued) {
-            if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
-                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_QUEUED).addTemplates(
-                        Messages.tagOf("area", area)
+        RegionManager regionManager = plugin.regionManager();
+        List<Region> queued = new ArrayList<>(regions.size());
+        List<Region> scanning = new ArrayList<>(regions.size());
+        for (Region region : regions) {
+            LimitEnvironment env = new LimitEnvironment(player, Collections.singletonList(region));
+            Limit limit = plugin.limits().firstLimit(item, env);
+            if (limit == null) continue;
+
+            LimitInfo limitInfo = limit.limitInfo(item);
+
+            // Check if the limit allows placement outside addon regions
+            if (delta > 0 && !(region instanceof AddonRegion) && limit.settings().disallowedPlacementOutsideRegion()) {
+                plugin.messages()
+                        .getMessage(Messages.Key.LIMIT_DISALLOWED_PLACEMENT)
+                        .addTemplates(TagResolver.resolver(
+                                Messages.tagOf("name", limitInfo.name()),
+                                Messages.tagOf("area", regionManager.areaName(region))
+                        ))
+                        .sendTo(player);
+                return true;
+            }
+
+            // Check if it is queued
+            if (regionManager.regionScanTracker().isQueued(region)) {
+                queued.add(region);
+            }
+
+            // Check if it needs scanning
+            Storage storage = regionManager.regionStorage().get(region);
+            if (storage == null) {
+                scanning.add(region);
+                continue;
+            }
+
+            if (delta < 0) {
+                storage.modify(item, delta);
+            }
+
+            long count = storage.count(limit, item);
+
+            // If count is beyond limit, act
+            if (delta > 0 && count + delta > limitInfo.limit()) {
+                plugin.messages().getMessage(Messages.Key.LIMIT_REACHED).addTemplates(
+                        Messages.tagOf("limit", StringUtils.pretty(limitInfo.limit())),
+                        Messages.tagOf("name", limitInfo.name()),
+                        Messages.tagOf("area", regionManager.areaName(region))
                 ).sendTo(player);
+                return true;
+            }
+        }
+
+        // Return if scan(s) are in progress
+        if (scanning.size() > 0) {
+            // Submit futures
+            CompletableFuture<?>[] scanFutures = new CompletableFuture[scanning.size()];
+            for (int i = 0; i < scanFutures.length; i++) {
+                Region region = scanning.get(i);
+                scanFutures[i] = regionManager
+                        .scan(region, ScanOptions.all())
+                        .thenAccept(storage -> {
+                            // Subtract item if it was included in the scan, because the event was cancelled.
+                            if (included) {
+                                boolean addonRegion = region instanceof AddonRegion;
+
+                                // Only iff the block was included in the chunk AND its not a cuboid/area scan.
+                                if ((delta > 0 && addonRegion) || (delta < 0 && !addonRegion)) {
+                                    storage.modify(item, -delta);
+                                }
+                            }
+                        });
+            }
+
+            CompletableFuture<Void> allFuture = CompletableFuture.allOf(scanFutures);
+            if (delta > 0 && plugin.settings().canReceiveAreaScanNotifications(player)) {
+                // Broadcast start
+                plugin.messages()
+                        .getMessage(Messages.Key.AREA_SCAN_STARTED)
+                        .addTemplates(
+                                Messages.tagOf(
+                                        "area",
+                                        String.join(", ", scanning.stream().map(regionManager::areaName).toList())
+                                )
+                        )
+                        .sendTo(player);
+
+                // Broadcast end
+                allFuture.thenRun(() -> plugin.messages()
+                        .getMessage(Messages.Key.AREA_SCAN_COMPLETED)
+                        .sendTo(player));
+            } else if (delta < 0) {
+                allFuture.thenRun(() -> evaluateModification(player, regions, item, delta));
             }
             return true;
-        }
-
-        // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
-        Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
-        if (limitOptional.isEmpty()) return false;
-        var limit = limitOptional.get();
-        var limitInfo = limit.getLimit(item);
-
-        if (regionOptional.isEmpty() && limit.getSettings().isDisallowedPlacementOutsideRegion()) {
-            plugin.getMessages().getMessage(Messages.Key.LIMIT_DISALLOWED_PLACEMENT).addTemplates(TagResolver.resolver(
-                    Messages.tagOf("name", limitInfo.getName()),
-                    Messages.tagOf("area", area)
-            )).sendTo(player);
-            return true;
-        }
-
-        Consumer<Storage> storageConsumer = storage -> {
-            // Subtract item if it was included in the scan, because the event was cancelled.
-            // Only iff the block was included in the chunk AND its not a cuboid/area scan.
-            if (included && regionOptional.isEmpty()) {
-                storage.modify(item, -delta);
+        } else if (queued.size() > 0) {
+            if (plugin.settings().canReceiveAreaScanNotifications(player)) {
+                plugin.messages()
+                        .getMessage(Messages.Key.AREA_SCAN_QUEUED)
+                        .addTemplates(
+                                Messages.tagOf(
+                                        "area",
+                                        String.join(", ", queued.stream().map(regionManager::areaName).toList())
+                                )
+                        )
+                        .sendTo(player);
             }
-
-            // Notify the user scan completed
-            if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
-                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_COMPLETED).sendTo(player);
-            }
-        };
-
-        Optional<Storage> storageOptional;
-        if (regionOptional.isPresent()) {
-            storageOptional = handleAddonAddition(player, regionOptional.get(), storageConsumer);
-        } else {
-            storageOptional = handleChunkAddition(player, chunk, storageConsumer);
-        }
-
-        // If the storage is not present, cancel.
-        if (storageOptional.isEmpty()) return true;
-
-        var storage = storageOptional.get();
-        long count = storage.count(limit, item);
-
-        // If count is beyond limit, act
-        if (count + delta > limitInfo.getLimit()) {
-            plugin.getMessages().getMessage(Messages.Key.LIMIT_REACHED).addTemplates(
-                    Messages.tagOf("limit", StringUtils.pretty(limitInfo.getLimit())),
-                    Messages.tagOf("name", limitInfo.getName()),
-                    Messages.tagOf("area", area)
-            ).sendTo(player);
             return true;
         }
         return false;
     }
 
-    protected void evaluateAddition(Player player, Location location, ScanObject<?> item, int delta) {
-        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
-        World world = location.getWorld();
-        long chunkKey = ChunkUtils.getKey(location);
-        UUID uuid = player.getUniqueId();
+    protected void evaluateModification(Player player, Location location, ScanObject<?> item, int delta) {
+        evaluateModification(player, plugin.regionManager().regionsAt(location), item, delta);
+    }
 
-        LimitEnvironment env;
-        Optional<Storage> storageOptional;
-        if (regionOptional.isPresent()) {
-            Region region = regionOptional.get();
-            env = new LimitEnvironment(player, world.getName(), region.getAddon());
-            storageOptional = plugin.getAddonStorage().get(region.getKey());
-        } else {
-            env = new LimitEnvironment(player, world.getName());
-            storageOptional = plugin.getWorldStorage().getWorld(world.getUID()).get(chunkKey);
-        }
-
-        if (storageOptional.isEmpty()) return;
-        Storage storage = storageOptional.get();
-
-        // If limit is not present, stop here
-        Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
-        if (limitOptional.isEmpty()) return;
-
-        Limit limit = limitOptional.get();
-        LimitInfo limitInfo = limit.getLimit(item);
-        long count = storage.count(limit, item);
-
+    protected void evaluateModification(
+            Player player,
+            Collection<? extends Region> regions,
+            ScanObject<?> item,
+            int delta
+    ) {
         // Notify the user (if they have permission)
-        if (player.hasPermission("insights.notifications")) {
-            float progress = (float) (count + delta) / limitInfo.getLimit();
-            plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
+        if (!player.hasPermission("insights.notifications")) return;
+
+        Triplet<Region, Limit, Storage> smallestLimit = plugin.limits().smallestLimit(player, regions, item, delta);
+        if (smallestLimit != null) {
+            Limit limit = smallestLimit.b();
+            LimitInfo limitInfo = limit.limitInfo(item);
+            long count = smallestLimit.c().count(limit, item) + delta;
+            float progress = (float) count / limitInfo.limit();
+            plugin.notifications().getCachedProgress(player.getUniqueId(), Messages.Key.LIMIT_NOTIFICATION)
                     .progress(progress)
                     .add(player)
                     .create()
                     .addTemplates(
-                            Messages.tagOf("name", limitInfo.getName()),
-                            Messages.tagOf("count", StringUtils.pretty(count + delta)),
-                            Messages.tagOf("limit", StringUtils.pretty(limitInfo.getLimit()))
+                            Messages.tagOf("name", limitInfo.name()),
+                            Messages.tagOf("count", StringUtils.pretty(count)),
+                            Messages.tagOf("limit", StringUtils.pretty(limitInfo.limit()))
                     )
                     .send();
         }
-    }
-
-    private Optional<Storage> handleChunkAddition(
-            Player player,
-            Chunk chunk,
-            Consumer<Storage> storageConsumer
-    ) {
-        UUID worldUid = chunk.getWorld().getUID();
-        long chunkKey = ChunkUtils.getKey(chunk);
-
-        WorldStorage worldStorage = plugin.getWorldStorage();
-        ChunkStorage chunkStorage = worldStorage.getWorld(worldUid);
-        Optional<Storage> storageOptional = chunkStorage.get(chunkKey);
-
-        // If the chunk is not known
-        if (storageOptional.isEmpty()) {
-            // Notify the user scan started
-            if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
-                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED).addTemplates(
-                        Messages.tagOf("area", "chunk")
-                ).sendTo(player);
-            }
-
-            // Submit the chunk for scanning
-            plugin.getChunkContainerExecutor().submit(chunk)
-                    .thenAccept(storageConsumer)
-                    .exceptionally(th -> {
-                        plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
-                        return null;
-                    });
-        }
-        return storageOptional;
-    }
-
-    private Optional<Storage> handleAddonAddition(
-            Player player,
-            Region region,
-            Consumer<Storage> storageConsumer
-    ) {
-        String key = region.getKey();
-
-        AddonStorage addonStorage = plugin.getAddonStorage();
-        Optional<Storage> storageOptional = addonStorage.get(key);
-        if (storageOptional.isEmpty()) {
-            // Notify the user scan started
-            if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
-                plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED).addTemplates(
-                        Messages.tagOf("area", plugin.getAddonManager().getAddon(region.getAddon()).getAreaName())
-                ).sendTo(player);
-            }
-
-            scanRegion(player, region, storageConsumer);
-            return Optional.empty();
-        }
-        return storageOptional;
-    }
-
-    protected void handleRemoval(Player player, Location location, ScanObject<?> item, int delta) {
-        handleRemoval(player, location, item, delta, true);
-    }
-
-    protected void handleRemoval(Player player, Location location, ScanObject<?> item, int delta, boolean included) {
-        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
-        Chunk chunk = location.getChunk();
-        World world = location.getWorld();
-        UUID worldUid = world.getUID();
-        long chunkKey = ChunkUtils.getKey(chunk);
-        UUID uuid = player.getUniqueId();
-
-        boolean queued;
-        LimitEnvironment env;
-        Optional<Storage> storageOptional;
-        if (regionOptional.isPresent()) {
-            Region region = regionOptional.get();
-            queued = plugin.getAddonScanTracker().isQueued(region.getKey());
-            env = new LimitEnvironment(player, world.getName(), region.getAddon());
-            storageOptional = plugin.getAddonStorage().get(region.getKey());
-        } else {
-            queued = plugin.getWorldChunkScanTracker().isQueued(worldUid, chunkKey);
-            env = new LimitEnvironment(player, world.getName());
-            storageOptional = plugin.getWorldStorage().getWorld(worldUid).get(chunkKey);
-        }
-
-        // Modify the area to account for the broken block.
-        storageOptional.ifPresent(storage -> storage.modify(item, -delta));
-
-        // Notify the user (if they have permission)
-        if (player.hasPermission("insights.notifications")) {
-            // If the area is queued, stop check here (notification will be displayed when it completes).
-            if (queued) return;
-
-            // Get the first (smallest) limit for the specific user (bypass permissions taken into account)
-            Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
-            if (limitOptional.isEmpty()) return;
-            Limit limit = limitOptional.get();
-            LimitInfo limitInfo = limit.getLimit(item);
-
-            // Create a runnable for the notification.
-            Consumer<Storage> notification = storage -> {
-                long count = storage.count(limit, item);
-                float progress = (float) count / limitInfo.getLimit();
-                plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
-                        .progress(progress)
-                        .add(player)
-                        .create()
-                        .addTemplates(
-                                Messages.tagOf("name", limitInfo.getName()),
-                                Messages.tagOf("count", StringUtils.pretty(count)),
-                                Messages.tagOf("limit", StringUtils.pretty(limitInfo.getLimit()))
-                        )
-                        .send();
-            };
-
-            // If the data is already stored, send the notification immediately.
-            if (storageOptional.isPresent()) {
-                notification.accept(storageOptional.get());
-                return;
-            }
-
-            // Else, we need to scan the area first.
-            Consumer<Storage> storageConsumer = storage -> {
-                // Subtract the broken block, as the first modification failed (we had to scan the chunk)
-                // Only if we're not scanning a cuboid (iff cuboid, the block is already removed from the chunk)
-                if (included && regionOptional.isEmpty()) storage.modify(item, -delta);
-
-                // Notify the user
-                notification.accept(storage);
-            };
-
-            if (regionOptional.isPresent()) {
-                scanRegion(player, regionOptional.get(), storageConsumer);
-            } else {
-                plugin.getChunkContainerExecutor().submit(chunk)
-                        .thenAccept(storageConsumer)
-                        .exceptionally(th -> {
-                            plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
-                            return null;
-                        });
-            }
-        }
-    }
-
-    private void scanRegion(Player player, Region region, Consumer<Storage> storageConsumer) {
-        // Submit the cuboid for scanning
-        plugin.getAddonScanTracker().add(region.getAddon());
-        List<ChunkPart> chunkParts = region.toChunkParts();
-        ScanTask.scan(
-                plugin,
-                player,
-                chunkParts,
-                chunkParts.size(),
-                ScanOptions.scanOnly(),
-                player.hasPermission("insights.notifications"),
-                DistributionStorage::new,
-                (storage, loc, acc) -> storage.mergeRight(acc),
-                storage -> {
-                    plugin.getAddonScanTracker().remove(region.getAddon());
-
-                    // Store the cuboid
-                    plugin.getAddonStorage().put(region.getKey(), storage);
-
-                    // Give the result back to the consumer
-                    storageConsumer.accept(storage);
-                }
-        );
     }
 }

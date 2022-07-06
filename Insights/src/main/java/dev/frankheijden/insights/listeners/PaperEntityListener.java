@@ -29,10 +29,8 @@ public class PaperEntityListener extends EntityListener {
         var primerEntity = event.getPrimerEntity();
         var block = event.getBlock();
 
-        if (primerEntity instanceof Player) {
-            var player = (Player) primerEntity;
-
-            handleRemoval(player, block.getLocation(), ScanObject.of(block.getType()), 1, false);
+        if (primerEntity instanceof Player player) {
+            handleModification(player, block.getLocation(), ScanObject.of(block.getType()), -1, false);
         } else {
             handleModification(block, -1);
         }

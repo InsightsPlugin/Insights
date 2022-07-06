@@ -70,7 +70,7 @@ public class ScanTask<R> implements Runnable {
             Consumer<R> resultConsumer
     ) {
         this.plugin = plugin;
-        this.executor = plugin.getChunkContainerExecutor();
+        this.executor = plugin.chunkContainerExecutor();
         this.scanQueue = chunkParts.iterator();
         this.options = options;
         this.chunksPerIteration = chunksPerIteration;
@@ -100,9 +100,9 @@ public class ScanTask<R> implements Runnable {
                 chunkParts,
                 chunkCount,
                 options,
-                plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
+                plugin.settings().SCANS_CHUNKS_PER_ITERATION,
                 infoConsumer,
-                plugin.getSettings().SCANS_INFO_INTERVAL_MILLIS,
+                plugin.settings().SCANS_INFO_INTERVAL_MILLIS,
                 DistributionStorage::new,
                 (storage, loc, acc) -> storage.mergeRight(acc),
                 distributionConsumer
@@ -126,7 +126,7 @@ public class ScanTask<R> implements Runnable {
             Consumer<R> resultConsumer
     ) {
         // Create a notification for the task
-        ProgressNotification notification = plugin.getNotifications().getCachedProgress(
+        ProgressNotification notification = plugin.notifications().getCachedProgress(
                 player.getUniqueId(),
                 Messages.Key.SCAN_PROGRESS
         );
@@ -139,7 +139,7 @@ public class ScanTask<R> implements Runnable {
                 chunkParts,
                 chunkCount,
                 options,
-                plugin.getSettings().SCANS_CHUNKS_PER_ITERATION,
+                plugin.settings().SCANS_CHUNKS_PER_ITERATION,
                 info -> {
                     if (!notify) return;
 
@@ -154,7 +154,7 @@ public class ScanTask<R> implements Runnable {
                             )
                             .send();
                 },
-                plugin.getSettings().SCANS_INFO_INTERVAL_MILLIS,
+                plugin.settings().SCANS_INFO_INTERVAL_MILLIS,
                 resultSupplier,
                 resultMerger,
                 resultConsumer
@@ -192,7 +192,7 @@ public class ScanTask<R> implements Runnable {
                     @SuppressWarnings("VariableDeclarationUsageDistance")
                     long millis = (System.nanoTime() - start) / 1000000L;
 
-                    var messages = plugin.getMessages();
+                    var messages = plugin.messages();
 
                     // Check which items we need to display & sort them based on their name.
                     ScanObject<?>[] displayItems = (items == null ? storage.keys() : items).stream()
@@ -222,7 +222,7 @@ public class ScanTask<R> implements Runnable {
                             item -> Component.text(EnumUtils.pretty(item.getObject()))
                     );
 
-                    plugin.getScanHistory().setHistory(player.getUniqueId(), message);
+                    plugin.scanHistory().setHistory(player.getUniqueId(), message);
                     message.sendTo(player, 0);
                 }
         );
@@ -246,12 +246,12 @@ public class ScanTask<R> implements Runnable {
 
         // If the player is already scanning, tell them they can't run two scans.
         if (scanners.containsKey(uuid)) {
-            plugin.getMessages().getMessage(Messages.Key.SCAN_ALREADY_SCANNING).sendTo(player);
+            plugin.messages().getMessage(Messages.Key.SCAN_ALREADY_SCANNING).sendTo(player);
             return;
         }
 
         // Notify about scan start
-        plugin.getMessages().getMessage(Messages.Key.SCAN_START).addTemplates(
+        plugin.messages().getMessage(Messages.Key.SCAN_START).addTemplates(
                 Messages.tagOf("count", StringUtils.pretty(chunkCount))
         ).sendTo(player);
 
@@ -310,7 +310,7 @@ public class ScanTask<R> implements Runnable {
                     @SuppressWarnings("VariableDeclarationUsageDistance")
                     long millis = (System.nanoTime() - start) / 1000000L;
 
-                    var messages = plugin.getMessages();
+                    var messages = plugin.messages();
 
                     // Check which items we need to display & sort them based on their name.
                     ChunkLocation[] keys = map.entrySet().stream()
@@ -351,9 +351,9 @@ public class ScanTask<R> implements Runnable {
                                 return storage.count(items == null ? storage.keys() : items);
                             },
                             key -> {
-                                var worldName = key.getWorld().getName();
-                                var x = Integer.toString(key.getX());
-                                var z = Integer.toString(key.getZ());
+                                var worldName = key.world().getName();
+                                var x = Integer.toString(key.x());
+                                var z = Integer.toString(key.z());
 
                                 return messages.getMessage(Messages.Key.SCAN_FINISH_CHUNK_FORMAT).addTemplates(
                                         Messages.tagOf("world", worldName),
@@ -363,7 +363,7 @@ public class ScanTask<R> implements Runnable {
                             }
                     );
 
-                    plugin.getScanHistory().setHistory(player.getUniqueId(), message);
+                    plugin.scanHistory().setHistory(player.getUniqueId(), message);
                     message.sendTo(player, 0);
                 }
         );
@@ -371,7 +371,7 @@ public class ScanTask<R> implements Runnable {
 
     private void start() {
         BukkitScheduler scheduler = plugin.getServer().getScheduler();
-        task = scheduler.runTaskTimer(plugin, this, 0, plugin.getSettings().SCANS_ITERATION_INTERVAL_TICKS);
+        task = scheduler.runTaskTimer(plugin, this, 0, plugin.settings().SCANS_ITERATION_INTERVAL_TICKS);
     }
 
     private void cancel() {
@@ -413,22 +413,20 @@ public class ScanTask<R> implements Runnable {
 
             // Load the chunk
             var chunkPart = scanQueue.next();
-            var loc = chunkPart.getChunkLocation();
-            var world = loc.getWorld();
+            var loc = chunkPart.chunkLocation();
+            var world = loc.world();
 
             CompletableFuture<Storage> storageFuture;
-            if (world.isChunkLoaded(loc.getX(), loc.getZ())) {
+            if (world.isChunkLoaded(loc.x(), loc.z())) {
                 storageFuture = executor.submit(
-                        world.getChunkAt(loc.getX(), loc.getZ()),
-                        chunkPart.getChunkCuboid(),
+                        world.getChunkAt(loc.x(), loc.z()),
+                        chunkPart.chunkCuboid(),
                         options
                 );
             } else {
                 storageFuture = executor.submit(
-                        loc.getWorld(),
-                        loc.getX(),
-                        loc.getZ(),
-                        chunkPart.getChunkCuboid(),
+                        loc,
+                        chunkPart.chunkCuboid(),
                         options
                 );
             }

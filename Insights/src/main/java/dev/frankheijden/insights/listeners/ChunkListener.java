@@ -2,7 +2,8 @@ package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.Insights;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
-import dev.frankheijden.insights.api.utils.ChunkUtils;
+import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
+import dev.frankheijden.insights.api.region.ChunkRegion;
 import org.bukkit.Chunk;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -22,8 +23,8 @@ public class ChunkListener extends InsightsListener {
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         Chunk chunk = event.getChunk();
-        long chunkKey = ChunkUtils.getKey(chunk);
-        plugin.getWorldStorage().getWorld(chunk.getWorld().getUID()).remove(chunkKey);
-        insights.getRedstoneUpdateCount().remove(chunkKey);
+        ChunkRegion region = new ChunkRegion(ChunkLocation.of(chunk));
+        plugin.regionManager().regionStorage().remove(region);
+        insights.redstoneUpdateCount().remove(region);
     }
 }

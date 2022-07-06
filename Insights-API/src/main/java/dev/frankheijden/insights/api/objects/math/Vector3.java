@@ -17,15 +17,15 @@ public class Vector3 {
         this.z = z;
     }
 
-    public int getX() {
+    public int x() {
         return x;
     }
 
-    public int getY() {
+    public int y() {
         return y;
     }
 
-    public int getZ() {
+    public int z() {
         return z;
     }
 

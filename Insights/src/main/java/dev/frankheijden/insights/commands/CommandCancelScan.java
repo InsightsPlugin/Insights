@@ -20,7 +20,7 @@ public class CommandCancelScan extends InsightsCommand {
         if (ScanTask.cancelScan(player.getUniqueId())) {
             // Player will be notified of the results, no need to send verification.
         } else {
-            plugin.getMessages().getMessage(Messages.Key.CANCELSCAN_NO_SCAN).sendTo(player);
+            plugin.messages().getMessage(Messages.Key.CANCELSCAN_NO_SCAN).sendTo(player);
         }
     }
 }

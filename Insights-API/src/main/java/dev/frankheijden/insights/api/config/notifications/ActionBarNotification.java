@@ -30,7 +30,7 @@ public class ActionBarNotification implements Notification {
         return new SendableNotification(content.resetTemplates()) {
             @Override
             public void send() {
-                var audiences = plugin.getMessages().getAudiences();
+                var audiences = plugin.messages().getAudiences();
                 content.toComponent().ifPresent(component -> receivers.values()
                         .forEach(player -> audiences.player(player).sendActionBar(component)));
             }

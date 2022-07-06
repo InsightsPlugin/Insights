@@ -16,7 +16,7 @@ public class ChunkVector extends Vector3 {
      * Constructs a new ChunkVector from the given vector.
      */
     public static ChunkVector from(Vector3 vector) {
-        return new ChunkVector(vector.getX() & 15, vector.getY(), vector.getZ() & 15);
+        return new ChunkVector(vector.x() & 15, vector.y(), vector.z() & 15);
     }
 
     public static ChunkVector minVector(World world) {

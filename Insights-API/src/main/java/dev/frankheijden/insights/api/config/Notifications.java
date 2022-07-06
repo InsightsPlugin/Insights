@@ -25,8 +25,8 @@ public class Notifications {
     public Notifications(InsightsPlugin plugin) {
         this.notificationFactory = new NotificationFactory(plugin);
         this.progressNotificationFactory = new ProgressNotificationFactory(plugin);
-        this.messages = plugin.getMessages();
-        this.type = plugin.getSettings().NOTIFICATION_TYPE;
+        this.messages = plugin.messages();
+        this.type = plugin.settings().NOTIFICATION_TYPE;
     }
 
     private <T extends Notification> T createNotification(

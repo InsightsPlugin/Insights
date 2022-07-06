@@ -51,26 +51,26 @@ public class PermissionLimit extends Limit {
     }
 
     @Override
-    public LimitInfo getLimit(Material m) {
+    public LimitInfo limitInfo(Material m) {
         return new LimitInfo(EnumUtils.pretty(m), materials.getOrDefault(m, -1));
     }
 
     @Override
-    public LimitInfo getLimit(EntityType e) {
+    public LimitInfo limitInfo(EntityType e) {
         return new LimitInfo(EnumUtils.pretty(e), entities.getOrDefault(e, -1));
     }
 
     @Override
-    public Set<Material> getMaterials() {
+    public Set<Material> materials() {
         return materials.keySet();
     }
 
-    public Set<EntityType> getEntities() {
+    public Set<EntityType> entities() {
         return entities.keySet();
     }
 
     @Override
-    public Set<? extends ScanObject<?>> getScanObjects() {
+    public Set<? extends ScanObject<?>> scanObjects() {
         return scanObjects;
     }
 

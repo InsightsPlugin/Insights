@@ -36,18 +36,18 @@ public class CommandInsights extends InsightsCommand {
     private void reloadConfigurations(CommandSender sender) {
         plugin.reloadConfigs();
         plugin.reload();
-        plugin.getMessages().getMessage(Messages.Key.CONFIGS_RELOADED).sendTo(sender);
+        plugin.messages().getMessage(Messages.Key.CONFIGS_RELOADED).sendTo(sender);
     }
 
     @CommandMethod("stats")
     @CommandPermission("insights.stats")
     private void displayStatistics(CommandSender sender) {
-        ContainerExecutorService executor = ((Insights) plugin).getExecutor();
-        plugin.getMessages().getMessage(Messages.Key.STATS).addTemplates(
+        ContainerExecutorService executor = ((Insights) plugin).executor();
+        plugin.messages().getMessage(Messages.Key.STATS).addTemplates(
                 Messages.tagOf("chunks_scanned", StringUtils.pretty(executor.getCompletedTaskCount())),
                 Messages.tagOf(
                         "blocks_scanned",
-                        StringUtils.pretty(plugin.getMetricsManager().getTotalBlocksScanned().sum())
+                        StringUtils.pretty(plugin.metricsManager().getTotalBlocksScanned().sum())
                 ),
                 Messages.tagOf("queue_size", StringUtils.pretty(executor.getQueueSize()))
         ).sendTo(sender);

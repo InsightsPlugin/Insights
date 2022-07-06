@@ -83,7 +83,7 @@ public class Messages {
                     ));
                     return addHover(component, element, displayName);
                 },
-                plugin.getSettings().PAGINATION_RESULTS_PER_PAGE
+                plugin.settings().PAGINATION_RESULTS_PER_PAGE
         );
     }
 
@@ -112,7 +112,7 @@ public class Messages {
             }
         } else if (element instanceof ChunkLocation chunkLoc) {
             var hoverComponent = miniMessage.deserialize(getRawMessage(Key.SCAN_FINISH_CHUNK_HOVER));
-            var tpCommand = "/tpchunk " + chunkLoc.getWorld().getName() + ' ' + chunkLoc.getX() + ' ' + chunkLoc.getZ();
+            var tpCommand = "/tpchunk " + chunkLoc.world().getName() + ' ' + chunkLoc.x() + ' ' + chunkLoc.z();
             return component
                     .hoverEvent(HoverEvent.showText(hoverComponent))
                     .clickEvent(ClickEvent.runCommand(tpCommand));
@@ -159,7 +159,6 @@ public class Messages {
         SCAN_FINISH_FORMAT("scan.finish.format"),
         SCAN_FINISH_FOOTER("scan.finish.footer"),
         SCAN_PROGRESS("scan.progress"),
-        SCANREGION_NO_REGION("scanregion.no-region"),
         SCANCACHE_NO_CACHE("scancache.no-cache"),
         SCANCACHE_CLEARED("scancache.cleared"),
         SCANCACHE_RESULT_HEADER("scancache.result.header"),

@@ -23,11 +23,11 @@ public class CommandScanHistory extends InsightsCommand {
             @Argument("page") Page page
     ) {
         UUID uuid = player.getUniqueId();
-        Optional<Messages.PaginatedMessage<?>> historyOptional = plugin.getScanHistory().getHistory(uuid);
+        Optional<Messages.PaginatedMessage<?>> historyOptional = plugin.scanHistory().getHistory(uuid);
         if (historyOptional.isPresent()) {
             historyOptional.get().sendTo(player, page.page);
         } else {
-            plugin.getMessages().getMessage(Messages.Key.SCANHISTORY_NO_HISTORY).sendTo(player);
+            plugin.messages().getMessage(Messages.Key.SCANHISTORY_NO_HISTORY).sendTo(player);
         }
     }
 

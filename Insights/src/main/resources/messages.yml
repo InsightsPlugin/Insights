@@ -19,11 +19,9 @@ messages:
       footer: |-
         <dark_aqua> Scanned through a total of <aqua><bold><chunks></bold> <dark_aqua>chunks with a total of <aqua><bold><blocks></bold> <dark_aqua>blocks and <aqua><bold><entities></bold> <dark_aqua>entities. Took <aqua><time><dark_aqua>!
     progress: "<dark_aqua>Progress: <aqua><bold><count></bold><dark_aqua>/<aqua><bold><total></bold> <dark_aqua>Chunks (<aqua><bold><percentage></bold>%<dark_aqua>)"
-  scanregion:
-    no-region: "<prefix><red>There does not seem to be any region here!"
   scancache:
     no-cache: "<prefix><red>There does not seem to be any cache present here!"
-    cleared: "<prefix><dark_aqua>Cache from this <aqua><area><dark_aqua> has been deleted!"
+    success: "<prefix><dark_aqua>All cache has been cleared at this location."
     result:
       header: "<dark_gray><strikethrough>---------------=<reset><dark_gray>[<aqua><bold> Insights Cache<reset> <dark_gray>]<strikethrough>=---------------"
       format: "<aqua> <entry><dark_gray>: <gray><bold><count>"

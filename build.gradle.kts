@@ -1,22 +1,25 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.checkerframework.gradle.plugin.CheckerFrameworkExtension
 
 plugins {
     `java-library`
     `maven-publish`
     id("com.github.johnrengelman.shadow") version VersionConstants.shadowVersion
     id("io.papermc.paperweight.userdev") version VersionConstants.userdevVersion
+    id("org.checkerframework") version VersionConstants.checkerVersion apply false
 }
 
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.12.1-SNAPSHOT"
+version = "7.0.0-SNAPSHOT"
 
 subprojects {
     apply(plugin = "java")
     apply(plugin = "checkstyle")
     apply(plugin = "com.github.johnrengelman.shadow")
     apply(plugin = "io.papermc.paperweight.userdev")
+    apply(plugin = "org.checkerframework")
 
     repositories {
         mavenCentral()

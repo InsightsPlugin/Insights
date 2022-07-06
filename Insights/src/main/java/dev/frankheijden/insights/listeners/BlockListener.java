@@ -1,14 +1,14 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.Insights;
-import dev.frankheijden.insights.api.addons.Region;
+import dev.frankheijden.insights.api.addons.AddonRegion;
+import dev.frankheijden.insights.api.region.Region;
 import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.annotations.AllowPriorityOverride;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.MaterialTags;
 import dev.frankheijden.insights.api.utils.BlockUtils;
-import dev.frankheijden.insights.api.utils.ChunkUtils;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -57,23 +57,21 @@ public class BlockListener extends InsightsListener {
         var material = block.getType();
         var player = event.getPlayer();
 
-        // In case of BlockMultiPlaceEvent, we may need to take a different delta.
+        // In case of BlockMultiPlaceEvent, we need to do multiple samples.
         // A closing tripwire hook triggers a BlockMultiPlaceEvent for all attached strings,
         // but since they already exist in the world we do not need to count them.
-        var delta = 0;
-        if (event instanceof BlockMultiPlaceEvent && material != Material.TRIPWIRE_HOOK) {
-            List<BlockState> replacedBlockStates = ((BlockMultiPlaceEvent) event).getReplacedBlockStates();
+        if (event instanceof BlockMultiPlaceEvent multiPlaceEvent && material != Material.TRIPWIRE_HOOK) {
+            List<BlockState> replacedBlockStates = multiPlaceEvent.getReplacedBlockStates();
             for (BlockState state : replacedBlockStates) {
-                if (BlockUtils.isSameChunk(location.getBlockX(), location.getBlockZ(), state.getX(), state.getZ())) {
-                    delta++;
+                if (handleModification(player, state.getLocation(), ScanObject.of(material), 1, false)) {
+                    event.setCancelled(true);
+                    break;
                 }
             }
         } else {
-            delta = 1;
-        }
-
-        if (handleAddition(player, location, ScanObject.of(material), delta, false)) {
-            event.setCancelled(true);
+            if (handleModification(player, location, ScanObject.of(material), 1, false)) {
+                event.setCancelled(true);
+            }
         }
     }
 
@@ -102,7 +100,7 @@ public class BlockListener extends InsightsListener {
         }
 
         // No need to add any delta, cache is already updated
-        evaluateAddition(player, location, ScanObject.of(material), 0);
+        evaluateModification(player, location, ScanObject.of(material), 0);
     }
 
     /**
@@ -115,25 +113,26 @@ public class BlockListener extends InsightsListener {
         var material = block.getType();
         var player = event.getPlayer();
 
+        int delta = -1;
         if (Tag.BEDS.isTagged(material)) {
             Optional<Block> blockOptional = BlockUtils.getOtherHalf(block);
             if (blockOptional.isPresent()) {
                 var otherHalf = blockOptional.get();
 
                 // Update the other half's location
-                handleModification(otherHalf.getLocation(), material, -1);
+                handleModification(otherHalf.getLocation(), material, delta);
             }
         }
 
         // Handle the removal
-        handleRemoval(player, location, ScanObject.of(material), 1, false);
+        handleModification(player, location, ScanObject.of(material), delta, false);
 
         // Need to check if block above broken block was a block which needs support (solid block below it),
         // and subtract that from the cache as well (only if it does not make a sound when broken, i.e. REDSTONE_WIRE)
         var aboveBlock = getTopNonGravityBlock(block);
         var aboveMaterial = aboveBlock.getType();
         if (MaterialTags.NEEDS_GROUND.isTagged(aboveMaterial)) {
-            handleRemoval(player, aboveBlock.getLocation(), ScanObject.of(aboveMaterial), 1, false);
+            handleModification(player, aboveBlock.getLocation(), ScanObject.of(aboveMaterial), delta, false);
         }
     }
 
@@ -193,7 +192,7 @@ public class BlockListener extends InsightsListener {
         var block = event.getBlock();
         var location = block.getLocation();
 
-        var playerListener = ((Insights) plugin).getListenerManager().getPlayerListener();
+        var playerListener = ((Insights) plugin).listenerManager().getPlayerListener();
         Optional<PlayerListener.ExplodedBed> bedOptional = playerListener.getIntentionalDesignBugAt(location);
         if (bedOptional.isPresent()) {
             var explodedBed = bedOptional.get();
@@ -342,19 +341,15 @@ public class BlockListener extends InsightsListener {
     public void onBlockRedstone(BlockRedstoneEvent event) {
         var block = event.getBlock();
         var loc = block.getLocation();
-        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(loc);
+        List<Region> regions = plugin.regionManager().regionsAt(loc);
 
-        int count;
-        if (regionOptional.isPresent()) {
-            count = plugin.getRedstoneUpdateCount().increment(regionOptional.get().getKey());
-        } else if (plugin.getSettings().REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION) {
-            event.setNewCurrent(0);
-            return;
-        } else {
-            count = plugin.getRedstoneUpdateCount().increment(ChunkUtils.getKey(loc));
+        boolean cancel = false;
+        for (Region region : regions) {
+            cancel |= plugin.redstoneUpdateCount().increment(region) > plugin.settings().REDSTONE_UPDATE_LIMITER_LIMIT
+                || (plugin.settings().REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION && !(region instanceof AddonRegion));
         }
 
-        if (count > plugin.getSettings().REDSTONE_UPDATE_LIMITER_LIMIT) {
+        if (cancel) {
             event.setNewCurrent(0);
         }
     }

@@ -4,6 +4,7 @@ import net.minecraft.world.level.ChunkPos;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
+import java.util.UUID;
 
 public class ChunkUtils {
 
@@ -31,5 +32,9 @@ public class ChunkUtils {
 
     public static long getKey(int x, int z) {
         return ChunkPos.asLong(x, z);
+    }
+
+    public static UUID uuidFromChunkKey(long chunkKey) {
+        return new UUID(0, chunkKey);
     }
 }

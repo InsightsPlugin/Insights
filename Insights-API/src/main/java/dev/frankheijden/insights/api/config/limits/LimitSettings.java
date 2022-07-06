@@ -4,9 +4,9 @@ import java.util.Set;
 
 public class LimitSettings {
 
-    private final Set<String> worlds;
+    private final Set<String> worldNames;
     private final boolean worldWhitelist;
-    private final Set<String> addons;
+    private final Set<String> addonIds;
     private final boolean addonWhitelist;
     private final boolean disallowPlacementOutsideRegion;
 
@@ -14,24 +14,24 @@ public class LimitSettings {
      * Constructs a new LimitSettings object.
      */
     public LimitSettings(
-            Set<String> worlds,
+            Set<String> worldNames,
             boolean worldWhitelist,
-            Set<String> addons,
+            Set<String> addonIds,
             boolean addonWhitelist,
             boolean disallowPlacementOutsideRegion
     ) {
-        this.worlds = worlds;
+        this.worldNames = worldNames;
         this.worldWhitelist = worldWhitelist;
-        this.addons = addons;
+        this.addonIds = addonIds;
         this.addonWhitelist = addonWhitelist;
         this.disallowPlacementOutsideRegion = disallowPlacementOutsideRegion;
     }
 
-    public Set<String> getWorlds() {
-        return worlds;
+    public Set<String> worldNames() {
+        return worldNames;
     }
 
-    public boolean isWorldWhitelist() {
+    public boolean worldWhitelist() {
         return worldWhitelist;
     }
 
@@ -40,32 +40,32 @@ public class LimitSettings {
      */
     public boolean appliesToWorld(String worldName) {
         if (worldWhitelist) {
-            return worlds.contains(worldName);
+            return worldNames.contains(worldName);
         } else {
-            return !worlds.contains(worldName);
+            return !worldNames.contains(worldName);
         }
     }
 
-    public Set<String> getAddons() {
-        return addons;
+    public Set<String> addonIds() {
+        return addonIds;
     }
 
-    public boolean isAddonWhitelist() {
+    public boolean addonWhitelist() {
         return addonWhitelist;
     }
 
-    public boolean isDisallowedPlacementOutsideRegion() {
+    public boolean disallowedPlacementOutsideRegion() {
         return disallowPlacementOutsideRegion;
     }
 
     /**
      * Checks whether this limit can be applied on given addon.
      */
-    public boolean appliesToAddon(String addonName) {
+    public boolean appliesToAddon(String addonId) {
         if (addonWhitelist) {
-            return addons.contains(addonName);
+            return addonIds.contains(addonId);
         } else {
-            return !addons.contains(addonName);
+            return !addonIds.contains(addonId);
         }
     }
 }

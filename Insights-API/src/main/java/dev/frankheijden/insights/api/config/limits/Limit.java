@@ -55,7 +55,7 @@ public abstract class Limit {
         };
     }
 
-    public LimitType getType() {
+    public LimitType type() {
         return type;
     }
 
@@ -63,56 +63,56 @@ public abstract class Limit {
      * Retrieves the limit of a limited object.
      * Note: item must be of type Material or EntityType!
      */
-    public LimitInfo getLimit(ScanObject<?> item) {
+    public LimitInfo limitInfo(ScanObject<?> item) {
         return switch (item.getType()) {
-            case MATERIAL -> getLimit((Material) item.getObject());
-            case ENTITY -> getLimit((EntityType) item.getObject());
+            case MATERIAL -> limitInfo((Material) item.getObject());
+            case ENTITY -> limitInfo((EntityType) item.getObject());
             default -> throw new IllegalArgumentException("Unknown limited item: " + item);
         };
     }
 
-    public abstract LimitInfo getLimit(Material m);
+    public abstract LimitInfo limitInfo(Material m);
 
-    public abstract LimitInfo getLimit(EntityType e);
+    public abstract LimitInfo limitInfo(EntityType e);
 
-    public File getFile() {
+    public File file() {
         return info.file;
     }
 
-    public String getBypassPermission() {
+    public String bypassPermission() {
         return info.bypassPermission;
     }
 
-    public LimitSettings getSettings() {
+    public LimitSettings settings() {
         return info.settings;
     }
 
-    public Info getInfo() {
+    public Info info() {
         return info;
     }
 
     /**
      * Returns the set of materials that this limit consists of.
      */
-    public abstract Set<Material> getMaterials();
+    public abstract Set<Material> materials();
 
     /**
      * Returns the set of entities that this limit consists of.
      */
-    public abstract Set<EntityType> getEntities();
+    public abstract Set<EntityType> entities();
 
     /**
      * Returns the set of ScanObjects that this limit consists of.
      */
-    public abstract Set<? extends ScanObject<?>> getScanObjects();
+    public abstract Set<? extends ScanObject<?>> scanObjects();
 
     /**
      * Determines the ScanOptions that are required for this limit.
      */
     protected ScanOptions determineScanOptions() {
-        if (getMaterials().isEmpty()) {
+        if (materials().isEmpty()) {
             return ScanOptions.entitiesOnly();
-        } else if (getEntities().isEmpty()) {
+        } else if (entities().isEmpty()) {
             return ScanOptions.materialsOnly();
         } else {
             return ScanOptions.scanOnly();
@@ -139,11 +139,11 @@ public abstract class Limit {
             this.settings = settings;
         }
 
-        public String getBypassPermission() {
+        public String bypassPermission() {
             return bypassPermission;
         }
 
-        public LimitSettings getSettings() {
+        public LimitSettings settings() {
             return settings;
         }
     }

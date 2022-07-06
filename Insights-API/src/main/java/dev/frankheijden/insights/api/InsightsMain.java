@@ -6,17 +6,15 @@ import dev.frankheijden.insights.api.concurrent.ChunkTeleport;
 import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.PlayerList;
 import dev.frankheijden.insights.api.concurrent.count.RedstoneUpdateCount;
-import dev.frankheijden.insights.api.concurrent.storage.AddonStorage;
 import dev.frankheijden.insights.api.concurrent.storage.ScanHistory;
-import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
-import dev.frankheijden.insights.api.concurrent.tracker.AddonScanTracker;
-import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.config.Limits;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.config.Notifications;
 import dev.frankheijden.insights.api.config.Settings;
 import dev.frankheijden.insights.api.listeners.manager.InsightsListenerManager;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
+import dev.frankheijden.insights.api.region.RegionManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public interface InsightsMain {
 
@@ -28,38 +26,32 @@ public interface InsightsMain {
 
     void reloadLimits();
 
-    Settings getSettings();
+    @NonNull Settings settings();
 
-    Messages getMessages();
+    @NonNull Messages messages();
 
-    Notifications getNotifications();
+    @NonNull Notifications notifications();
 
-    Limits getLimits();
+    @NonNull Limits limits();
 
-    AddonManager getAddonManager();
+    @NonNull AddonManager addonManager();
 
-    ContainerExecutor getExecutor();
+    @NonNull ContainerExecutor executor();
 
-    ChunkContainerExecutor getChunkContainerExecutor();
+    @NonNull ChunkContainerExecutor chunkContainerExecutor();
 
-    PlayerList getPlayerList();
+    @NonNull PlayerList playerList();
 
-    WorldStorage getWorldStorage();
+    @NonNull RegionManager regionManager();
 
-    AddonStorage getAddonStorage();
+    @NonNull MetricsManager metricsManager();
 
-    WorldChunkScanTracker getWorldChunkScanTracker();
+    @NonNull ScanHistory scanHistory();
 
-    AddonScanTracker getAddonScanTracker();
+    @NonNull InsightsListenerManager listenerManager();
 
-    MetricsManager getMetricsManager();
+    @NonNull RedstoneUpdateCount redstoneUpdateCount();
 
-    ScanHistory getScanHistory();
-
-    InsightsListenerManager getListenerManager();
-
-    RedstoneUpdateCount getRedstoneUpdateCount();
-
-    ChunkTeleport getChunkTeleport();
+    @NonNull ChunkTeleport chunkTeleport();
 
 }

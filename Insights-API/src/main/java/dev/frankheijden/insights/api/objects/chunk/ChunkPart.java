@@ -8,7 +8,7 @@ public class ChunkPart {
     private final ChunkCuboid chunkCuboid;
 
     public ChunkPart(ChunkLocation chunkLocation) {
-        this(chunkLocation, ChunkCuboid.maxCuboid(chunkLocation.getWorld()));
+        this(chunkLocation, ChunkCuboid.maxCuboid(chunkLocation.world()));
     }
 
     public ChunkPart(ChunkLocation chunkLocation, ChunkCuboid chunkCuboid) {
@@ -16,11 +16,11 @@ public class ChunkPart {
         this.chunkCuboid = chunkCuboid;
     }
 
-    public ChunkLocation getChunkLocation() {
+    public ChunkLocation chunkLocation() {
         return chunkLocation;
     }
 
-    public ChunkCuboid getChunkCuboid() {
+    public ChunkCuboid chunkCuboid() {
         return chunkCuboid;
     }
 

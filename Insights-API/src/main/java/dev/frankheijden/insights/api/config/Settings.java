@@ -94,7 +94,7 @@ public class Settings {
         PAGINATION_RESULTS_PER_PAGE = parser.getInt("settings.pagination-results-per-page", 6, 1, Integer.MAX_VALUE);
 
         DISABLED_EVENTS = new ArrayList<>();
-        Map<String, Method> disableEvents = plugin.getListenerManager().getAllowedDisableMethods();
+        Map<String, Method> disableEvents = plugin.listenerManager().getAllowedDisableMethods();
         for (String str : parser.getSet("settings.disabled-listeners", disableEvents.keySet(), "event")) {
             @SuppressWarnings("unchecked")
             var eventClass = (Class<? extends Event>) disableEvents.get(str).getParameterTypes()[0];
@@ -102,7 +102,7 @@ public class Settings {
         }
 
         LISTENER_PRIORITIES = new HashMap<>();
-        Map<String, Method> overrideEvents = plugin.getListenerManager().getAllowedPriorityOverrideMethods();
+        Map<String, Method> overrideEvents = plugin.listenerManager().getAllowedPriorityOverrideMethods();
         for (String event : parser.getKeys("settings.listener-priorities")) {
             String eventUppercase = event.toUpperCase(Locale.ENGLISH);
 

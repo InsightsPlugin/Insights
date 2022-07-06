@@ -25,8 +25,8 @@ public class CommandTeleportChunk extends InsightsCommand {
             @Argument("z") int chunkZ,
             @Flag(value = "generate", aliases = { "g" }) boolean generate
     ) {
-        var chunkTp = plugin.getChunkTeleport();
-        var messages = plugin.getMessages();
+        var chunkTp = plugin.chunkTeleport();
+        var messages = plugin.messages();
         chunkTp.teleportPlayerToChunk(player, world, chunkX, chunkZ, generate).whenComplete((res, err) -> {
             Messages.Message message;
             if (err != null) {

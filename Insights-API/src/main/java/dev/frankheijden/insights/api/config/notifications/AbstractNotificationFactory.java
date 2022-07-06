@@ -13,7 +13,7 @@ public abstract class AbstractNotificationFactory<T extends Notification> {
 
     protected AbstractNotificationFactory(InsightsPlugin plugin) {
         this.plugin = plugin;
-        this.settings = plugin.getSettings();
+        this.settings = plugin.settings();
     }
 
     protected BossBar createBossBar(Messages.Message title) {

@@ -7,6 +7,7 @@ import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import java.util.Optional;
 import java.util.logging.Logger;
+import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
@@ -17,7 +18,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
-import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 
 public class UnloadedChunkContainer extends ChunkContainer {
@@ -28,19 +28,19 @@ public class UnloadedChunkContainer extends ChunkContainer {
     /**
      * Constructs a new UnloadedChunkContainer, for scanning of an unloaded chunk.
      */
-    public UnloadedChunkContainer(World world, int chunkX, int chunkZ, ChunkCuboid cuboid, ScanOptions options) {
-        super(world, chunkX, chunkZ, cuboid, options);
+    public UnloadedChunkContainer(ChunkLocation chunkLocation, ChunkCuboid cuboid, ScanOptions options) {
+        super(chunkLocation, cuboid, options);
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public LevelChunkSection[] getChunkSections() {
-        var serverLevel = ((CraftWorld) world).getHandle();
+    public LevelChunkSection[] chunkSections() {
+        var serverLevel = ((CraftWorld) chunkLocation.world()).getHandle();
 
         int sectionsCount = serverLevel.getSectionsCount();
         var chunkSections = new LevelChunkSection[sectionsCount];
         var chunkMap = serverLevel.getChunkSource().chunkMap;
-        var chunkPos = new ChunkPos(chunkX, chunkZ);
+        var chunkPos = new ChunkPos(chunkLocation.x(), chunkLocation.z());
 
         Optional<CompoundTag> tagOptional = chunkMap.read(chunkPos).join();
         if (tagOptional.isEmpty()) return chunkSections;
@@ -63,9 +63,9 @@ public class UnloadedChunkContainer extends ChunkContainer {
                         sectionTag.getCompound("block_states")
                 ).promotePartial(message -> logger.severe(String.format(
                         CHUNK_ERROR,
-                        chunkX,
+                        chunkLocation.x(),
                         chunkSectionPart,
-                        chunkZ,
+                        chunkLocation.z(),
                         message
                 )));
                 blockStateContainer = dataResult.getOrThrow(false, logger::severe);

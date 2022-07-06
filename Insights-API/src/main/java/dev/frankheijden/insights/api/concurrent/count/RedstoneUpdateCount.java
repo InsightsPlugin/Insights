@@ -1,51 +1,43 @@
 package dev.frankheijden.insights.api.concurrent.count;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.region.Region;
+import dev.frankheijden.insights.api.util.Pair;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import java.util.UUID;
 
 public class RedstoneUpdateCount {
 
-    private final TickResetCount<Long> chunkCounts;
-    private final TickResetCount<String> addonCounts;
+    private final TickResetCount<Pair<UUID, UUID>> counts;
 
     /**
      * Constructs a new RedstoneUpdateCount.
      */
     public RedstoneUpdateCount(InsightsPlugin plugin) {
-        this.chunkCounts = new TickResetCount<>(
+        this.counts = new TickResetCount<>(
                 plugin,
-                plugin.getSettings().REDSTONE_UPDATE_AGGREGATE_TICKS,
-                plugin.getSettings().REDSTONE_UPDATE_AGGREGATE_SIZE
-        );
-        this.addonCounts = new TickResetCount<>(
-                plugin,
-                plugin.getSettings().REDSTONE_UPDATE_AGGREGATE_TICKS,
-                plugin.getSettings().REDSTONE_UPDATE_AGGREGATE_SIZE
+                plugin.settings().REDSTONE_UPDATE_AGGREGATE_TICKS,
+                plugin.settings().REDSTONE_UPDATE_AGGREGATE_SIZE
         );
     }
 
     public void start() {
-        this.chunkCounts.start();
-        this.addonCounts.start();
+        this.counts.start();
     }
 
     public void stop() {
-        this.chunkCounts.stop();
-        this.addonCounts.stop();
+        this.counts.stop();
     }
 
-    public int increment(long chunkKey) {
-        return chunkCounts.increment(chunkKey);
+    private Pair<UUID, UUID> key(Region region) {
+        return new Pair<>(region.worldUuid(), region.regionUuid());
     }
 
-    public int increment(String regionKey) {
-        return addonCounts.increment(regionKey);
+    public int increment(@NonNull Region region) {
+        return counts.increment(key(region));
     }
 
-    public void remove(long chunkKey) {
-        chunkCounts.remove(chunkKey);
-    }
-
-    public void remove(String regionKey) {
-        addonCounts.remove(regionKey);
+    public void remove(@NonNull Region region) {
+        counts.remove(key(region));
     }
 }

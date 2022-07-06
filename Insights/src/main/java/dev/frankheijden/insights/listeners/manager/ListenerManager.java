@@ -99,7 +99,7 @@ public class ListenerManager implements InsightsListenerManager {
         disableListeners.add(blockListener);
         disableListeners.add(worldListener);
 
-        if (!plugin.getSettings().REDSTONE_UPDATE_LIMITER_ENABLED) {
+        if (!plugin.settings().REDSTONE_UPDATE_LIMITER_ENABLED) {
             BlockRedstoneEvent.getHandlerList().unregister(blockListener);
         }
 
@@ -110,14 +110,14 @@ public class ListenerManager implements InsightsListenerManager {
             listeners.add(entityListener);
         }
 
-        if (plugin.getSettings().APPLY_PISTON_LIMITS) {
+        if (plugin.settings().APPLY_PISTON_LIMITS) {
             listeners.add(pistonListener);
         }
 
         listeners.addAll(disableListeners);
         listeners.forEach(listener -> plugin.getServer().getPluginManager().registerEvents(listener, plugin));
 
-        for (Class<?> clazz : plugin.getSettings().DISABLED_EVENTS) {
+        for (Class<?> clazz : plugin.settings().DISABLED_EVENTS) {
             HandlerList list = MinecraftReflection.of(clazz).invoke(null, "getHandlerList");
             for (InsightsListener listener : disableListeners) {
                 list.unregister(listener);
@@ -125,7 +125,7 @@ public class ListenerManager implements InsightsListenerManager {
             plugin.getLogger().info("Unregistered listener of '" + clazz.getSimpleName() + "'");
         }
 
-        for (Map.Entry<Class<? extends Event>, EventPriority> e : plugin.getSettings().LISTENER_PRIORITIES.entrySet()) {
+        for (Map.Entry<Class<? extends Event>, EventPriority> e : plugin.settings().LISTENER_PRIORITIES.entrySet()) {
             if (e.getValue() == EventPriority.LOWEST) continue;
 
             HandlerList list = MinecraftReflection.of(e.getKey()).invoke(null, "getHandlerList");
@@ -153,7 +153,7 @@ public class ListenerManager implements InsightsListenerManager {
             listenersToRegister.forEach(list::register);
         }
 
-        if (!plugin.getSettings().REDSTONE_UPDATE_LIMITER_ENABLED) {
+        if (!plugin.settings().REDSTONE_UPDATE_LIMITER_ENABLED) {
             BlockRedstoneEvent.getHandlerList().unregister(blockListener);
         }
     }

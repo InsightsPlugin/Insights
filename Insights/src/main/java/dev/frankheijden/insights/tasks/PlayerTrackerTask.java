@@ -21,19 +21,19 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
 
     @Override
     public void run() {
-        var worldStorage = plugin.getWorldStorage();
+        var regionStorage = plugin.regionManager().regionStorage();
         Set<ChunkLocation> locations = new HashSet<>();
-        for (Map.Entry<UUID, Player> entry : plugin.getPlayerList()) {
+        for (Map.Entry<UUID, Player> entry : plugin.playerList()) {
             var location = entry.getValue().getLocation();
             var world = location.getWorld();
-            Set<Long> loadedChunks = worldStorage.getWorld(world.getUID()).getChunks();
+            Set<Long> loadedChunks = regionStorage.worldChunkSet(world.getUID());
 
             int chunkX = location.getBlockX() >> 4;
             int chunkZ = location.getBlockZ() >> 4;
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
                     var loc = new ChunkLocation(world, chunkX + x, chunkZ + z);
-                    if (!loadedChunks.contains(loc.getKey()) && !this.scanLocations.containsKey(loc)) {
+                    if (!loadedChunks.contains(loc.key()) && !this.scanLocations.containsKey(loc)) {
                         locations.add(loc);
                     }
                 }
@@ -47,12 +47,12 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             long now = System.nanoTime();
             for (ChunkLocation loc : locations) {
-                var world = loc.getWorld();
-                if (world.isChunkLoaded(loc.getX(), loc.getZ())) {
+                var world = loc.world();
+                if (world.isChunkLoaded(loc.x(), loc.z())) {
                     this.scanLocations.put(loc, now);
 
-                    var chunk = world.getChunkAt(loc.getX(), loc.getZ());
-                    plugin.getChunkContainerExecutor().submit(chunk, ScanOptions.all()).whenComplete((s, e) -> {
+                    var chunk = world.getChunkAt(loc.x(), loc.z());
+                    plugin.chunkContainerExecutor().submit(chunk, ScanOptions.all()).whenComplete((s, e) -> {
                         if (s == null) {
                             plugin.getLogger().warning("Error occurred while scanning " + loc);
                         }

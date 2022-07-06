@@ -1,20 +1,16 @@
 package dev.frankheijden.insights.placeholders;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import dev.frankheijden.insights.api.addons.Region;
+import dev.frankheijden.insights.api.region.Region;
 import dev.frankheijden.insights.api.concurrent.storage.Storage;
-import dev.frankheijden.insights.api.config.LimitEnvironment;
 import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
-import dev.frankheijden.insights.api.utils.ChunkUtils;
+import dev.frankheijden.insights.api.util.Triplet;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
 
 public class InsightsPlaceholderExpansion extends PlaceholderExpansion {
 
@@ -25,28 +21,27 @@ public class InsightsPlaceholderExpansion extends PlaceholderExpansion {
     }
 
     @Override
-    public String getIdentifier() {
+    public @NonNull String getIdentifier() {
         return "insights";
     }
 
     @Override
-    public String getAuthor() {
+    public @NonNull String getAuthor() {
         return String.join(", ", plugin.getDescription().getAuthors());
     }
 
     @Override
-    public String getVersion() {
+    public @NonNull String getVersion() {
         return plugin.getDescription().getVersion();
     }
 
     @Override
-    public String onPlaceholderRequest(Player player, String identifier) {
-        if (identifier == null) return "";
+    public String onPlaceholderRequest(Player player, @NonNull String identifier) {
+        if (identifier == null) return ""; // Legacy check
         String[] args = identifier.split("_");
         switch (args[0].toLowerCase(Locale.ENGLISH)) {
-            case "limits":
+            case "limits" -> {
                 if (args.length < 3) break;
-
                 String itemString = StringUtils.join(args, "_", 2).toUpperCase(Locale.ENGLISH);
                 final ScanObject<?> item;
                 try {
@@ -55,33 +50,31 @@ public class InsightsPlaceholderExpansion extends PlaceholderExpansion {
                     return "";
                 }
 
-                Location location = player.getLocation();
-                World world = location.getWorld();
-                UUID worldUid = world.getUID();
-                LimitEnvironment env = new LimitEnvironment(player, world.getName());
-                Optional<Limit> limitOptional = plugin.getLimits().getFirstLimit(item, env);
-                if (!limitOptional.isPresent()) break;
-
-                Limit limit = limitOptional.get();
+                Triplet<Region, Limit, Storage> smallestLimit = plugin.limits().smallestLimit(
+                        player,
+                        plugin.regionManager().regionsAt(player.getLocation()),
+                        item,
+                        0
+                );
+                if (smallestLimit == null) break;
                 switch (args[1].toLowerCase(Locale.ENGLISH)) {
-                    case "name": return limit.getLimit(item).getName();
-                    case "max": return String.valueOf(limit.getLimit(item).getLimit());
-                    case "count":
-                        Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
-                        Optional<Storage> storageOptional;
-                        if (regionOptional.isPresent()) {
-                            Region region = regionOptional.get();
-                            storageOptional = plugin.getAddonStorage().get(region.getKey());
-                        } else {
-                            long chunkKey = ChunkUtils.getKey(location);
-                            storageOptional = plugin.getWorldStorage().getWorld(worldUid).get(chunkKey);
-                        }
-                        return storageOptional.map(storage -> String.valueOf(storage.count(limit, item)))
-                                .orElse("");
-                    default: break;
+                    case "name" -> {
+                        return smallestLimit.b().limitInfo(item).name();
+                    }
+                    case "max" -> {
+                        return String.valueOf(smallestLimit.b().limitInfo(item).limit());
+                    }
+                    case "count" -> {
+                        return String.valueOf(smallestLimit.c().count(smallestLimit.b(), item));
+                    }
+                    default -> {
+                        // Nothing
+                    }
                 }
-                break;
-            default: break;
+            }
+            default -> {
+                // Nothing
+            }
         }
         return "";
     }

@@ -36,7 +36,7 @@ public class BossBarNotification implements Notification {
 
     @Override
     public BossBarNotification add(Player player) {
-        receivers.add(plugin.getMessages().getAudiences().player(player));
+        receivers.add(plugin.messages().getAudiences().player(player));
         return this;
     }
 

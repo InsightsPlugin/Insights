@@ -56,32 +56,32 @@ public class GroupLimit extends Limit {
         return name;
     }
 
-    public int getLimit() {
+    public int limit() {
         return limit;
     }
 
     @Override
-    public LimitInfo getLimit(Material m) {
+    public LimitInfo limitInfo(Material m) {
         return new LimitInfo(name, limit);
     }
 
     @Override
-    public LimitInfo getLimit(EntityType e) {
+    public LimitInfo limitInfo(EntityType e) {
         return new LimitInfo(name, limit);
     }
 
     @Override
-    public Set<Material> getMaterials() {
+    public Set<Material> materials() {
         return materials;
     }
 
     @Override
-    public Set<EntityType> getEntities() {
+    public Set<EntityType> entities() {
         return entities;
     }
 
     @Override
-    public Set<? extends ScanObject<?>> getScanObjects() {
+    public Set<? extends ScanObject<?>> scanObjects() {
         return scanObjects;
     }
 
