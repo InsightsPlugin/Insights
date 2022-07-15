@@ -61,6 +61,7 @@ Regions are cached to not bother with scans each time a block has been placed.
 * [SuperiorSkyblock2Addon](https://github.com/InsightsPlugin/SuperiorSkyblock2Addon/releases) - Limit blocks in your SS islands!
 * [LandsAddon](https://github.com/InsightsPlugin/LandsAddon/releases) - Limit blocks in your lands!
 * [TownyAddon](https://github.com/InsightsPlugin/TownyAddon/releases) - Limit blocks in your towns!
+* [GriefDefenderAddon](https://github.com/galexrt/InsightsGriefDefenderAddon/releases) by [galexrt](https://github.com/galexrt) - Limit your GriefDefender claims! 
 
 ## Compiling Insights
 There are two ways to compile Insights:
