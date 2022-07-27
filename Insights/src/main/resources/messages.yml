@@ -28,7 +28,7 @@ messages:
       footer: |-
         <dark_aqua> Cached result from this <aqua><area><dark_aqua>.
   stats: |-
-    <dark_gray><strikethrough>---------------=<reset><dark_gray>[<aqua><bold> Insights Stats<reset> <dark_gray>]<strikethrough>=---------------
+    <dark_gray><strikethrough>---------------=<reset><dark_gray>[<aqua><bold> Insights Stats<reset> <dark_gray>]<strikethrough>=---------------<reset>
     <dark_aqua> Chunks Scanned<dark_gray>: <aqua><bold><chunks_scanned></bold>
     <dark_aqua> Blocks Scanned<dark_gray>: <aqua><bold><blocks_scanned></bold>
     <dark_aqua> Current Queue Size<dark_gray>: <aqua><bold><queue_size></bold>

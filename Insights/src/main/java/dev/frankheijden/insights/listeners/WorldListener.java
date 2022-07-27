@@ -22,10 +22,10 @@ public class WorldListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onStructureGrow(StructureGrowEvent event) {
         Block block = event.getLocation().getBlock();
-        handleModification(block, -1);
+        handleModificationUsingCache(block, -1);
 
         for (BlockState state : event.getBlocks()) {
-            handleModification(state, 1);
+            handleModificationUsingCache(state, 1);
         }
     }
 }

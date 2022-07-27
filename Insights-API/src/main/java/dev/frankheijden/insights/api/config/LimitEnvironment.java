@@ -42,7 +42,7 @@ public class LimitEnvironment implements Predicate<Limit> {
             }
 
             if (region instanceof AddonRegion addonRegion) {
-                if (!limit.settings().appliesToAddon(addonRegion.addonId())) {
+                if (!limit.settings().appliesToAddon(addonRegion.addon().addonContainer().addonInfo().addonId())) {
                     return false;
                 }
             }

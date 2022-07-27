@@ -1,4 +1,4 @@
-package dev.frankheijden.insights.commands.parser;
+package dev.frankheijden.insights.commands.parsers;
 
 import cloud.commandframework.arguments.parser.ArgumentParseResult;
 import cloud.commandframework.arguments.parser.ArgumentParser;

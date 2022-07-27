@@ -32,7 +32,7 @@ public class PaperEntityListener extends EntityListener {
         if (primerEntity instanceof Player player) {
             handleModification(player, block.getLocation(), ScanObject.of(block.getType()), -1, false);
         } else {
-            handleModification(block, -1);
+            handleModificationUsingCache(block, -1);
         }
     }
 }

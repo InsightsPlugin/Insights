@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ChunkRegion extends Region {
+public class ChunkRegion implements Region {
 
     private final UUID worldUuid;
     private final UUID regionUuid;

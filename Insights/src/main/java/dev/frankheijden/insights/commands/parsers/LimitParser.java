@@ -1,40 +1,41 @@
-package dev.frankheijden.insights.commands.parser;
+package dev.frankheijden.insights.commands.parsers;
 
 import cloud.commandframework.arguments.parser.ArgumentParseResult;
 import cloud.commandframework.arguments.parser.ArgumentParser;
 import cloud.commandframework.context.CommandContext;
 import cloud.commandframework.exceptions.parsing.NoInputProvidedException;
+import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.config.limits.Limit;
+import org.bukkit.command.CommandSender;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.World;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
-public class WorldParser implements ArgumentParser<CommandSender, World> {
+public class LimitParser implements ArgumentParser<CommandSender, Limit> {
 
     @Override
-    public @NonNull ArgumentParseResult<World> parse(
+    public @NonNull ArgumentParseResult<Limit> parse(
             @NonNull CommandContext<CommandSender> cxt,
-            @NonNull Queue<String> inputQueue
+            Queue<String> inputQueue
     ) {
         if (inputQueue.isEmpty()) {
             return ArgumentParseResult.failure(new NoInputProvidedException(
-                    WorldParser.class,
+                    LimitParser.class,
                     cxt
             ));
         }
 
-        var world = Bukkit.getWorld(inputQueue.peek());
-        if (world == null) {
+        var fileName = inputQueue.peek();
+        var limit = InsightsPlugin.getInstance().limits().getLimitByFileName(fileName);
+        if (limit.isEmpty()) {
             return ArgumentParseResult.failure(new IllegalArgumentException(
-                    "Invalid World '" + inputQueue.peek() + "'"
+                    "Invalid limit file name '" + fileName + "'"
             ));
         }
 
         inputQueue.poll();
-        return ArgumentParseResult.success(world);
+        return ArgumentParseResult.success(limit.get());
     }
 
     @Override
@@ -44,11 +45,6 @@ public class WorldParser implements ArgumentParser<CommandSender, World> {
 
     @Override
     public @NonNull List<String> suggestions(@NonNull CommandContext<CommandSender> context, @NonNull String input) {
-        List<World> worlds = Bukkit.getWorlds();
-        List<String> worldNames = new ArrayList<>(worlds.size());
-        for (World world : worlds) {
-            worldNames.add(world.getName());
-        }
-        return worldNames;
+        return new ArrayList<>(InsightsPlugin.getInstance().limits().getLimitFileNames());
     }
 }

@@ -93,10 +93,10 @@ public class BlockListener extends InsightsListener {
             List<BlockState> replacedBlockStates = ((BlockMultiPlaceEvent) event).getReplacedBlockStates();
             for (BlockState state : replacedBlockStates) {
                 var loc = state.getLocation();
-                handleModification(loc, state.getType(), material, 1);
+                handleModificationUsingCache(loc, state.getType(), material, 1);
             }
         } else {
-            handleModification(location, event.getBlockReplacedState().getType(), material, 1);
+            handleModificationUsingCache(location, event.getBlockReplacedState().getType(), material, 1);
         }
 
         // No need to add any delta, cache is already updated
@@ -120,19 +120,23 @@ public class BlockListener extends InsightsListener {
                 var otherHalf = blockOptional.get();
 
                 // Update the other half's location
-                handleModification(otherHalf.getLocation(), material, delta);
+                handleModificationUsingCache(otherHalf.getLocation(), material, delta);
             }
         }
 
         // Handle the removal
-        handleModification(player, location, ScanObject.of(material), delta, false);
+        boolean handled = handleModification(player, location, ScanObject.of(material), delta, false);
 
         // Need to check if block above broken block was a block which needs support (solid block below it),
         // and subtract that from the cache as well (only if it does not make a sound when broken, i.e. REDSTONE_WIRE)
         var aboveBlock = getTopNonGravityBlock(block);
         var aboveMaterial = aboveBlock.getType();
         if (MaterialTags.NEEDS_GROUND.isTagged(aboveMaterial)) {
-            handleModification(player, aboveBlock.getLocation(), ScanObject.of(aboveMaterial), delta, false);
+            handled |= handleModification(player, aboveBlock.getLocation(), ScanObject.of(aboveMaterial), delta, false);
+        }
+
+        if (!handled) {
+            evaluateModification(player, location, ScanObject.of(material), 0);
         }
     }
 
@@ -146,7 +150,7 @@ public class BlockListener extends InsightsListener {
     @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBurn(BlockBurnEvent event) {
-        handleModification(event.getBlock(), -1);
+        handleModificationUsingCache(event.getBlock(), -1);
     }
 
     /**
@@ -166,7 +170,7 @@ public class BlockListener extends InsightsListener {
 
         // If the item is an empty bucket, the dispenser scoops up water.
         if (item == Material.BUCKET) {
-            handleModification(relative, -1);
+            handleModificationUsingCache(relative, -1);
             return;
         }
 
@@ -179,7 +183,7 @@ public class BlockListener extends InsightsListener {
         }
 
         if (material != null) {
-            handleModification(relative.getLocation(), relative.getType(), material, 1);
+            handleModificationUsingCache(relative.getLocation(), relative.getType(), material, 1);
         }
     }
 
@@ -197,14 +201,14 @@ public class BlockListener extends InsightsListener {
         if (bedOptional.isPresent()) {
             var explodedBed = bedOptional.get();
             var material = explodedBed.getMaterial();
-            handleModification(explodedBed.getHead(), material, -1);
-            handleModification(explodedBed.getFoot(), material, -1);
+            handleModificationUsingCache(explodedBed.getHead(), material, -1);
+            handleModificationUsingCache(explodedBed.getFoot(), material, -1);
         } else {
-            handleModification(location, block.getType(), -1);
+            handleModificationUsingCache(location, block.getType(), -1);
         }
 
         for (Block explodedBlock : event.blockList()) {
-            handleModification(explodedBlock, -1);
+            handleModificationUsingCache(explodedBlock, -1);
         }
     }
 
@@ -215,7 +219,7 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockFade(BlockFadeEvent event) {
         var block = event.getBlock();
-        handleModification(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
+        handleModificationUsingCache(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
     }
 
     /**
@@ -227,7 +231,7 @@ public class BlockListener extends InsightsListener {
         var block = event.getToBlock();
 
         // For some weird reason the "ToBlock" contains the from data...
-        handleModification(block.getLocation(), block.getType(), event.getBlock().getType(), 1);
+        handleModificationUsingCache(block.getLocation(), block.getType(), event.getBlock().getType(), 1);
     }
 
     /**
@@ -237,7 +241,7 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFluidLevelChange(FluidLevelChangeEvent event) {
         if (event.getNewData().getMaterial() == Material.AIR) {
-            handleModification(event.getBlock(), -1);
+            handleModificationUsingCache(event.getBlock(), -1);
         }
     }
 
@@ -245,14 +249,14 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockGrow(BlockGrowEvent event) {
         var block = event.getBlock();
-        handleModification(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
+        handleModificationUsingCache(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
     }
 
     @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockIgnite(BlockIgniteEvent event) {
         // Block transformed from block -> entity
-        handleModification(event.getBlock(), -1);
+        handleModificationUsingCache(event.getBlock(), -1);
     }
 
     @AllowDisabling
@@ -277,7 +281,7 @@ public class BlockListener extends InsightsListener {
         for (var i = 0; i < blocks.size(); i++) {
             var block = blocks.get(i);
             var material = block.getType();
-            handleModification(block.getLocation(), material, -1);
+            handleModificationUsingCache(block.getLocation(), material, -1);
             materials[i] = material;
         }
 
@@ -286,7 +290,7 @@ public class BlockListener extends InsightsListener {
                 var relative = blocks.get(i).getRelative(event.getDirection());
                 var material = relative.getType();
                 if (materials[i] == material) {
-                    handleModification(relative.getLocation(), material, 1);
+                    handleModificationUsingCache(relative.getLocation(), material, 1);
                 }
             }
         }, 3L); // Ensures blocks have been updated after piston move
@@ -299,7 +303,7 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockSpread(BlockSpreadEvent event) {
         var block = event.getBlock();
-        handleModification(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
+        handleModificationUsingCache(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
     }
 
     /**
@@ -309,7 +313,7 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityBlockForm(EntityBlockFormEvent event) {
         var block = event.getBlock();
-        handleModification(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
+        handleModificationUsingCache(block.getLocation(), block.getType(), event.getNewState().getType(), 1);
     }
 
     /**
@@ -318,7 +322,7 @@ public class BlockListener extends InsightsListener {
     @AllowDisabling
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLeavesDecay(LeavesDecayEvent event) {
-        handleModification(event.getBlock(), -1);
+        handleModificationUsingCache(event.getBlock(), -1);
     }
 
     /**
@@ -328,9 +332,9 @@ public class BlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSpongeAbsorb(SpongeAbsorbEvent event) {
         var block = event.getBlock();
-        handleModification(block.getLocation(), Material.SPONGE, Material.WET_SPONGE, 1);
+        handleModificationUsingCache(block.getLocation(), Material.SPONGE, Material.WET_SPONGE, 1);
         for (BlockState state : event.getBlocks()) {
-            handleModification(state.getLocation(), Material.WATER, state.getType(), 1);
+            handleModificationUsingCache(state.getLocation(), Material.WATER, state.getType(), 1);
         }
     }
 

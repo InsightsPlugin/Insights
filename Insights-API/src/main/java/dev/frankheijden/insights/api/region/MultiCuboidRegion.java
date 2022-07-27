@@ -5,7 +5,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class MultiCuboidRegion extends Region {
+public abstract class MultiCuboidRegion implements Region {
 
     protected final List<CuboidRegion> cuboids;
 

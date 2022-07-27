@@ -52,13 +52,13 @@ public class EntityListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityBreakDoor(EntityBreakDoorEvent event) {
         // A door accounts for 2 blocks
-        handleModification(event.getBlock(), -2);
+        handleModificationUsingCache(event.getBlock(), -2);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
         Block block = event.getBlock();
-        handleModification(block.getLocation(), block.getType(), event.getTo(), 1);
+        handleModificationUsingCache(block.getLocation(), block.getType(), event.getTo(), 1);
     }
 
     /**
@@ -123,7 +123,7 @@ public class EntityListener extends InsightsListener {
         }
 
         // Update the cache if it was not broken by a player (but instead by e.g. physics)
-        handleModification(location, entityType, delta);
+        handleModificationUsingCache(location, entityType, delta);
     }
 
     /**
@@ -141,7 +141,7 @@ public class EntityListener extends InsightsListener {
     public void onEntityExplosion(EntityExplodeEvent event) {
         handleEntityRemoval(event.getEntity(), true);
         for (Block block : event.blockList()) {
-            handleModification(block, -1);
+            handleModificationUsingCache(block, -1);
         }
     }
 
@@ -172,7 +172,7 @@ public class EntityListener extends InsightsListener {
         int delta = 1;
 
         evaluateModification(player, location, ScanObject.of(entityType), delta);
-        handleModification(location, entityType, delta);
+        handleModificationUsingCache(location, entityType, delta);
     }
 
     protected void handleEntityRemoval(Entity entity, boolean isPlayer) {
@@ -192,7 +192,7 @@ public class EntityListener extends InsightsListener {
         }
 
         // Update the cache if it was not removed by a player
-        handleModification(location, entityType, delta);
+        handleModificationUsingCache(location, entityType, delta);
     }
 
     /**

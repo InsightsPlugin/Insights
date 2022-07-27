@@ -4,6 +4,7 @@ import dev.frankheijden.insights.api.InsightsPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.Listener;
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
@@ -26,15 +27,15 @@ public class AddonManager {
             && path.getFileName().toString().endsWith(".jar");
 
     private final InsightsPlugin plugin;
-    private final Path addonsFolder;
+    private final Path addonsPath;
     private final Map<String, InsightsAddonContainer> addons;
 
     /**
      * Constructs a new AddonManager.
      */
-    public AddonManager(InsightsPlugin plugin, Path addonsFolder) {
+    public AddonManager(InsightsPlugin plugin, Path addonsPath) {
         this.plugin = plugin;
-        this.addonsFolder = addonsFolder;
+        this.addonsPath = addonsPath;
         this.addons = new HashMap<>();
     }
 
@@ -42,62 +43,97 @@ public class AddonManager {
      * Attempts to create the addons folder if it doesn't exist.
      */
     public void createAddonsFolder() throws IOException {
-        if (!Files.isDirectory(addonsFolder)) {
-            Files.createDirectory(addonsFolder);
+        if (!Files.isDirectory(addonsPath)) {
+            Files.createDirectory(addonsPath);
         }
     }
 
     /**
-     * Loads all addons from the addons directory.
+     * Registers all addons from the addons directory.
      */
-    public void loadAddons() throws IOException {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(addonsFolder, addonsFilter)) {
+    public void registerAddons() throws IOException {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(addonsPath, addonsFilter)) {
             addonLoop:
             for (Path path : stream) {
-                InsightsAddonContainer container;
                 try {
-                    container = loadAddon(path);
-                } catch (IOException ex) {
+                    InsightsAddonContainer container = loadAddon(path);
+
+                    String addonId = container.addonInfo().addonId();
+                    for (String pluginName : container.addonInfo().depends()) {
+                        if (!InsightsPlugin.getInstance().isAvailable(pluginName)) {
+                            plugin.getLogger().severe(
+                                    "Error registering addon '" + addonId + "': " + pluginName + " is not enabled!"
+                            );
+                            continue addonLoop;
+                        }
+                    }
+
+                    container.addon().init(plugin, container, addonsPath);
+                    container.addon().enable();
+                    this.addons.put(addonId, container);
+
+                    if (container instanceof Listener) {
+                        Bukkit.getPluginManager().registerEvents((Listener) container, plugin);
+                        plugin.getLogger().info("Registered listener of addon '" + addonId + "'");
+                    }
+
+                    String version = container.addonInfo().version();
+                    if (version.isBlank()) {
+                        version = "<unknown>";
+                    }
+
+                    String authors = String.join(", ", container.addonInfo().authors());
+                    if (authors.isBlank()) {
+                        authors = "<unknown>";
+                    }
+                    plugin.getLogger().info(
+                            "Registered addon '" + addonId + "' v" + version + " by " + authors
+                    );
+                } catch (Throwable th) {
                     plugin.getLogger().log(
                             Level.SEVERE,
-                            ex,
-                            () -> "Error loading addon '" + path.getFileName().toString() + "'"
+                            "Unable to register addon '" + path.getFileName().toString() + "'",
+                            th
                     );
-                    continue;
                 }
+            }
+        }
+    }
 
-                String addonId = container.addonInfo().addonId();
-                for (String pluginName : container.addonInfo().depends()) {
-                    if (!InsightsPlugin.getInstance().isAvailable(pluginName)) {
-                        plugin.getLogger().severe(
-                                "Error loading addon '" + addonId + "': " + pluginName + " is not enabled!"
-                        );
-                        continue addonLoop;
-                    }
-                }
+    public void unregisterAddons() {
+        new ArrayList<>(this.addons.keySet()).forEach(this::unregisterAddon);
+    }
 
-                if (container instanceof Listener) {
-                    Bukkit.getPluginManager().registerEvents((Listener) container, plugin);
-                    plugin.getLogger().info("Registered listener of addon '" + addonId + "'");
-                }
+    /**
+     * Unregisters an addon.
+     */
+    public void unregisterAddon(String addonId) {
+        InsightsAddonContainer container = this.addons.remove(addonId);
+        String version = container.addonInfo().version();
+        try {
+            container.addon().disable();
+        } catch (Throwable th) {
+            plugin.getLogger().log(
+                    Level.SEVERE,
+                    "Error occurred while disabling addon '" + addonId + "'",
+                    th
+            );
+        }
 
-                container.addon().enable();
-                this.addons.put(addonId, container);
-
-                String version = container.addonInfo().version();
-                if (version.isBlank()) {
-                    version = "<unknown>";
-                }
-
-                String authors = String.join(", ", container.addonInfo().authors());
-                if (authors.isBlank()) {
-                    authors = "<unknown>";
-                }
-                plugin.getLogger().info(
-                        "Loaded addon '" + addonId + "' v" + version + " by " + authors
+        ClassLoader loader = container.addon().getClass().getClassLoader();
+        if (loader instanceof Closeable closeable) {
+            try {
+                closeable.close();
+            } catch (IOException ex) {
+                plugin.getLogger().log(
+                        Level.SEVERE,
+                        "Error while unregistering addon '" + addonId + "'",
+                        ex
                 );
             }
         }
+
+        plugin.getLogger().info("Unregistered addon '" + addonId + "' v" + version);
     }
 
     public InsightsAddonContainer loadAddon(Path path) throws AddonException, MalformedURLException {

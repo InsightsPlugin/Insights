@@ -18,6 +18,6 @@ public class PaperBlockListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockDestroy(BlockDestroyEvent event) {
         Block block = event.getBlock();
-        handleModification(block.getLocation(), block.getType(), event.getNewState().getMaterial(), 1);
+        handleModificationUsingCache(block.getLocation(), block.getType(), event.getNewState().getMaterial(), 1);
     }
 }

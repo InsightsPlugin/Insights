@@ -81,7 +81,7 @@ public class ChunkContainerExecutor implements ContainerExecutor {
             if (options.save()) plugin.regionManager().regionStorage().put(chunkRegion, storage);
             if (options.track()) plugin.regionManager().regionScanTracker().setQueued(chunkRegion, false);
 
-            var metricsManager = InsightsPlugin.getInstance().metricsManager();
+            var metricsManager = plugin.metricsManager();
             metricsManager.getChunkScanMetric().increment();
             metricsManager.getTotalBlocksScanned().add(container.chunkCuboid().getVolume());
 
@@ -91,16 +91,16 @@ public class ChunkContainerExecutor implements ContainerExecutor {
 
     @Override
     public <T> CompletableFuture<T> submit(SupplierContainer<T> container) {
-        return plugin.chunkContainerExecutor().submit(container);
+        return plugin.executor().submit(container);
     }
 
     @Override
     public CompletableFuture<Void> submit(RunnableContainer container) {
-        return plugin.chunkContainerExecutor().submit(container);
+        return plugin.executor().submit(container);
     }
 
     @Override
     public void shutdown() {
-        plugin.chunkContainerExecutor().shutdown();
+        plugin.executor().shutdown();
     }
 }

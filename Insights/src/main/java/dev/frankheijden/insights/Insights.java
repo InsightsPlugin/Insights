@@ -1,6 +1,7 @@
 package dev.frankheijden.insights;
 
 import cloud.commandframework.annotations.AnnotationParser;
+import cloud.commandframework.arguments.parser.ArgumentParser;
 import cloud.commandframework.arguments.parser.ParserRegistry;
 import cloud.commandframework.brigadier.CloudBrigadierManager;
 import cloud.commandframework.bukkit.CloudBukkitCapabilities;
@@ -22,8 +23,10 @@ import dev.frankheijden.insights.api.config.limits.Limit;
 import dev.frankheijden.insights.api.config.parser.YamlParseException;
 import dev.frankheijden.insights.api.metrics.MetricsManager;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
+import dev.frankheijden.insights.api.region.Region;
 import dev.frankheijden.insights.api.region.RegionManager;
 import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
+import dev.frankheijden.insights.api.util.Pair;
 import dev.frankheijden.insights.api.utils.IOUtils;
 import dev.frankheijden.insights.commands.CommandCancelScan;
 import dev.frankheijden.insights.commands.CommandInsights;
@@ -34,10 +37,11 @@ import dev.frankheijden.insights.commands.CommandScanRegion;
 import dev.frankheijden.insights.commands.CommandScanWorld;
 import dev.frankheijden.insights.commands.CommandTeleportChunk;
 import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
-import dev.frankheijden.insights.commands.parser.LimitParser;
-import dev.frankheijden.insights.commands.parser.ScanHistoryPageParser;
-import dev.frankheijden.insights.commands.parser.ScanObjectArrayParser;
-import dev.frankheijden.insights.commands.parser.WorldParser;
+import dev.frankheijden.insights.commands.parsers.LimitParser;
+import dev.frankheijden.insights.commands.parsers.RegionParser;
+import dev.frankheijden.insights.commands.parsers.ScanHistoryPageParser;
+import dev.frankheijden.insights.commands.parsers.ScanObjectArrayParser;
+import dev.frankheijden.insights.commands.parsers.WorldParser;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
@@ -58,6 +62,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 
@@ -109,7 +114,7 @@ public class Insights extends InsightsPlugin {
 
         getServer().getScheduler().runTaskLater(this, () -> {
             try {
-                addonManager.loadAddons();
+                addonManager.registerAddons();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -138,6 +143,7 @@ public class Insights extends InsightsPlugin {
 
     @Override
     public void onDisable() {
+        addonManager.unregisterAddons();
         listenerManager.unregister();
         redstoneUpdateCount.stop();
         notifications.clearNotifications();
@@ -248,22 +254,13 @@ public class Insights extends InsightsPlugin {
 
         // Register parsers
         ParserRegistry<CommandSender> parserRegistry = commandManager.parserRegistry();
-        parserRegistry.registerParserSupplier(
-                TypeToken.get(new TypeToken<Limit>() {}.getType()),
-                options -> new LimitParser()
-        );
-        parserRegistry.registerParserSupplier(
-                TypeToken.get(new TypeToken<ScanObject<?>[]>() {}.getType()),
-                options -> new ScanObjectArrayParser()
-        );
-        parserRegistry.registerParserSupplier(
-                TypeToken.get(new TypeToken<CommandScanHistory.Page>() {}.getType()),
-                options -> new ScanHistoryPageParser()
-        );
-        parserRegistry.registerParserSupplier(
-                TypeToken.get(new TypeToken<World>() {}.getType()),
-                options -> new WorldParser()
-        );
+        List.<Pair<TypeToken<?>, ArgumentParser<CommandSender, ?>>>of(
+                new Pair<>(new TypeToken<Limit>() {}, new LimitParser()),
+                new Pair<>(new TypeToken<Region>() {}, new RegionParser()),
+                new Pair<>(new TypeToken<CommandScanHistory.Page>() {}, new ScanHistoryPageParser()),
+                new Pair<>(new TypeToken<ScanObject<?>[]>() {}, new ScanObjectArrayParser()),
+                new Pair<>(new TypeToken<World>() {}, new WorldParser())
+        ).forEach(p -> parserRegistry.registerParserSupplier(TypeToken.get(p.a().getType()), options -> p.b()));
 
         // Register capabilities if allowed
         if (commandManager.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
@@ -284,14 +281,16 @@ public class Insights extends InsightsPlugin {
         );
 
         // Parse commands
-        annotationParser.parse(new CommandInsights(this));
-        annotationParser.parse(new CommandScan(this));
-        annotationParser.parse(new CommandScanCache(this));
-        annotationParser.parse(new CommandScanWorld(this));
-        annotationParser.parse(new CommandScanRegion(this));
-        annotationParser.parse(new CommandScanHistory(this));
-        annotationParser.parse(new CommandTeleportChunk(this));
-        annotationParser.parse(new CommandCancelScan(this));
+        List.of(
+                new CommandInsights(this),
+                new CommandScan(this),
+                new CommandScanCache(this),
+                new CommandScanWorld(this),
+                new CommandScanRegion(this),
+                new CommandScanHistory(this),
+                new CommandTeleportChunk(this),
+                new CommandCancelScan(this)
+        ).forEach(annotationParser::parse);
     }
 
     @Override

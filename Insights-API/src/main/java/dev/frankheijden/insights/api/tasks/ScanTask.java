@@ -377,12 +377,14 @@ public class ScanTask<R> implements Runnable {
     private void cancel() {
         if (task != null) {
             task.cancel();
-            if (completedExceptionally.get()) {
-                resultConsumer.accept(null);
-            } else {
-                sendInfo();
-                resultConsumer.accept(result);
-            }
+            ForkJoinPool.commonPool().execute(() -> {
+                if (completedExceptionally.get()) {
+                    resultConsumer.accept(null);
+                } else {
+                    sendInfo();
+                    resultConsumer.accept(result);
+                }
+            });
         }
     }
 

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class CuboidRegion extends Region {
+public abstract class CuboidRegion implements Region {
 
     private final World world;
     private final Vector3 min;

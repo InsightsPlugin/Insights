@@ -35,23 +35,23 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         super(plugin);
     }
 
-    protected void handleModification(Block block, int amount) {
-        handleModification(block.getLocation(), block.getType(), amount);
+    protected void handleModificationUsingCache(Block block, int amount) {
+        handleModificationUsingCache(block.getLocation(), block.getType(), amount);
     }
 
-    protected void handleModification(BlockState state, int amount) {
-        handleModification(state.getLocation(), state.getType(), amount);
+    protected void handleModificationUsingCache(BlockState state, int amount) {
+        handleModificationUsingCache(state.getLocation(), state.getType(), amount);
     }
 
-    protected void handleModification(Location location, Material material, int amount) {
+    protected void handleModificationUsingCache(Location location, Material material, int amount) {
         if (amount < 0) {
-            handleModification(location, material, Material.AIR, -amount);
+            handleModificationUsingCache(location, material, Material.AIR, -amount);
         } else {
-            handleModification(location, Material.AIR, material, amount);
+            handleModificationUsingCache(location, Material.AIR, material, amount);
         }
     }
 
-    protected void handleModification(Location location, Consumer<Storage> storageConsumer) {
+    protected void handleModificationUsingCache(Location location, Consumer<Storage> storageConsumer) {
         var regionManager = plugin.regionManager();
         for (Region region : regionManager.regionsAt(location)) {
             Storage storage = regionManager.regionStorage().get(region);
@@ -60,15 +60,15 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         }
     }
 
-    protected void handleModification(Location location, Material from, Material to, int amount) {
-        handleModification(location, storage -> {
+    protected void handleModificationUsingCache(Location location, Material from, Material to, int amount) {
+        handleModificationUsingCache(location, storage -> {
             storage.modify(ScanObject.of(from), -amount);
             storage.modify(ScanObject.of(to), amount);
         });
     }
 
-    protected void handleModification(Location location, EntityType entity, int amount) {
-        handleModification(location, storage -> storage.modify(ScanObject.of(entity), amount));
+    protected void handleModificationUsingCache(Location location, EntityType entity, int amount) {
+        handleModificationUsingCache(location, storage -> storage.modify(ScanObject.of(entity), amount));
     }
 
     protected boolean handleModification(

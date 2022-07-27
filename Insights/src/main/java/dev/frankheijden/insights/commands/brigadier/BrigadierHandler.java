@@ -2,7 +2,7 @@ package dev.frankheijden.insights.commands.brigadier;
 
 import cloud.commandframework.brigadier.CloudBrigadierManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import dev.frankheijden.insights.commands.parser.ScanObjectArrayParser;
+import dev.frankheijden.insights.commands.parsers.ScanObjectArrayParser;
 import io.leangen.geantyref.TypeToken;
 import org.bukkit.command.CommandSender;
 

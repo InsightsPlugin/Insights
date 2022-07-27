@@ -10,14 +10,14 @@ import java.lang.annotation.Target;
 public @interface InsightsAddonInfo {
 
     /**
-     * Unique ID of the addon.
+     * Unique ID of the addon (must be lowercase).
      */
     String addonId();
 
     /**
-     * Common name of the addon's areas.
+     * Default name of the addon's areas.
      */
-    String areaName();
+    String defaultAreaName() default "";
 
     /**
      * Version of the addon.

@@ -77,7 +77,8 @@ public class RegionManager {
      */
     public @NonNull String areaName(Region region) {
         if (region instanceof AddonRegion addonRegion) {
-            return plugin.addonManager().addonContainer(addonRegion.addonId()).addonInfo().areaName();
+            String areaName = addonRegion.areaName();
+            return areaName == null ? addonRegion.addon().addonContainer().addonInfo().defaultAreaName() : areaName;
         } else if (region instanceof ChunkRegion) {
             return "chunk";
         } else {
