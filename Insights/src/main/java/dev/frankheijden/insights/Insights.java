@@ -274,7 +274,10 @@ public class Insights extends InsightsPlugin {
         );
 
         // Register capabilities if allowed
-        if (commandManager.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
+        boolean hasBrigadier = commandManager.hasCapability(CloudBukkitCapabilities.BRIGADIER);
+        boolean hasNativeBrigadier = commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER);
+        boolean hasCommodoreBrigadier = commandManager.hasCapability(CloudBukkitCapabilities.COMMODORE_BRIGADIER);
+        if (hasBrigadier && (hasNativeBrigadier || hasCommodoreBrigadier)) {
             commandManager.registerBrigadier();
             CloudBrigadierManager<CommandSender, ?> brigadierManager = commandManager.brigadierManager();
             var handler = new BrigadierHandler(brigadierManager);
