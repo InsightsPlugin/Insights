@@ -25,6 +25,7 @@ public class Settings {
     public final boolean UPDATE_CHECKER_ENABLED;
     public final int UPDATE_CHECKER_INTERVAL_SECONDS;
     public final int SCANS_CONCURRENT_THREADS;
+    public final int SCANS_TIMEOUT_MILLIS;
     public final int SCANS_ITERATION_INTERVAL_TICKS;
     public final int SCANS_CHUNKS_PER_ITERATION;
     public final int SCANS_INFO_INTERVAL_MILLIS;
@@ -65,6 +66,7 @@ public class Settings {
         int threads = parser.getInt("settings.scans.concurrent-threads", -1, -1, maxThreads);
         if (threads <= 0) threads = maxThreads;
         SCANS_CONCURRENT_THREADS = threads;
+        SCANS_TIMEOUT_MILLIS = parser.getInt("settings.scans.timeout-millis", 10000, 1, Integer.MAX_VALUE);
         SCANS_ITERATION_INTERVAL_TICKS = parser.getInt("settings.scans.iteration-interval-ticks", 1, 1, Integer.MAX_VALUE);
         SCANS_CHUNKS_PER_ITERATION = parser.getInt("settings.scans.chunks-per-iteration", 2, 1, Integer.MAX_VALUE);
         SCANS_INFO_INTERVAL_MILLIS = parser.getInt("settings.scans.info-interval-millis", 50, 1, Integer.MAX_VALUE);

@@ -14,36 +14,44 @@ import java.util.logging.Level;
 public class ContainerExecutorService implements ContainerExecutor {
 
     private final ThreadPoolExecutor executor;
+    private final int timeoutMs;
 
-    private ContainerExecutorService(ThreadPoolExecutor executor) {
+    private ContainerExecutorService(ThreadPoolExecutor executor, int timeoutMs) {
         this.executor = executor;
+        this.timeoutMs = timeoutMs;
     }
 
     /**
      * Constructs a new containerexecutor with given amount of worker threads.
      */
-    public static ContainerExecutorService newExecutor(int nThreads) {
-        return new ContainerExecutorService(new ThreadPoolExecutor(nThreads, nThreads,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(),
-                new ThreadFactoryBuilder()
-                        .setNameFormat("Insights-worker-%d")
-                        .setUncaughtExceptionHandler((t, e) -> InsightsPlugin.getInstance().getLogger().log(
-                                Level.SEVERE,
-                                String.format("[%s] Error occurred on worker thread:", t.getName()),
-                                e
-                        )).build()
-        ));
+    public static ContainerExecutorService newExecutor(int nThreads, int timeoutMs) {
+        return new ContainerExecutorService(
+                new ThreadPoolExecutor(
+                        nThreads,
+                        nThreads,
+                        0L, TimeUnit.MILLISECONDS,
+                        new LinkedBlockingQueue<>(),
+                        new ThreadFactoryBuilder()
+                                .setNameFormat("Insights-worker-%d")
+                                .setUncaughtExceptionHandler((t, e) -> InsightsPlugin.getInstance().getLogger().log(
+                                        Level.SEVERE,
+                                        String.format("[%s] Error occurred on worker thread:", t.getName()),
+                                        e
+                                ))
+                                .build()
+                ),
+                timeoutMs
+        );
     }
 
     @Override
     public <T> CompletableFuture<T> submit(SupplierContainer<T> container) {
-        return CompletableFuture.supplyAsync(container, executor);
+        return CompletableFuture.supplyAsync(container, executor).orTimeout(timeoutMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public CompletableFuture<Void> submit(RunnableContainer container) {
-        return CompletableFuture.runAsync(container, executor);
+        return CompletableFuture.runAsync(container, executor).orTimeout(timeoutMs, TimeUnit.MILLISECONDS);
     }
 
     public int getQueueSize() {

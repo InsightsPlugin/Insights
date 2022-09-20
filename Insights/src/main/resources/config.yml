@@ -4,6 +4,7 @@ settings:
     interval-seconds: 10800
   scans:
     concurrent-threads: -1
+    timeout-millis: 10000
     iteration-interval-ticks: 1
     chunks-per-iteration: 256
     info-interval-millis: 100

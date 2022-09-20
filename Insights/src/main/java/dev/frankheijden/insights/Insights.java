@@ -125,7 +125,10 @@ public class Insights extends InsightsPlugin {
         addonStorage = new AddonStorage();
         worldChunkScanTracker = new WorldChunkScanTracker();
         addonScanTracker = new AddonScanTracker();
-        executor = ContainerExecutorService.newExecutor(settings.SCANS_CONCURRENT_THREADS);
+        executor = ContainerExecutorService.newExecutor(
+                settings.SCANS_CONCURRENT_THREADS,
+                settings.SCANS_TIMEOUT_MILLIS
+        );
         chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
         metricsManager = new MetricsManager(this);
         scanHistory = new ScanHistory();
