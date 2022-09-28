@@ -3,28 +3,18 @@ package dev.frankheijden.insights.api.concurrent.containers;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.exceptions.ChunkIOException;
-import dev.frankheijden.insights.api.exceptions.ChunkReflectionException;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.api.objects.chunk.ChunkVector;
-import dev.frankheijden.insights.api.reflection.RPersistentEntitySectionManager;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.entity.EntityPersistentStorage;
-import net.minecraft.world.level.entity.EntitySection;
-import net.minecraft.world.level.entity.EntitySectionStorage;
-import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.EntityType;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
 
 public abstract class ChunkContainer implements SupplierContainer<DistributionStorage> {
 
@@ -71,6 +61,8 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
 
     public abstract LevelChunkSection[] getChunkSections() throws IOException;
 
+    public abstract void getChunkEntities(Consumer<ChunkEntity> entityConsumer) throws IOException;
+
     @Override
     public DistributionStorage get() {
         ChunkVector min = cuboid.getMin();
@@ -81,8 +73,6 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         int maxZ = max.getZ();
         int blockMinY = Math.max(min.getY(), 0);
         int blockMaxY = Math.abs(Math.min(min.getY(), 0)) + max.getY();
-
-        ServerLevel serverLevel = ((CraftWorld) world).getHandle();
 
         if (options.materials()) {
             LevelChunkSection[] chunkSections;
@@ -135,43 +125,24 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         }
 
         if (options.entities()) {
-            PersistentEntitySectionManager<Entity> entityManager = serverLevel.entityManager;
-
-            long chunkKey = getChunkKey();
-            final Stream<Entity> entityStream;
-            if (entityManager.areEntitiesLoaded(chunkKey)) {
-                EntitySectionStorage<Entity> sectionStorage;
-                try {
-                    sectionStorage = RPersistentEntitySectionManager.getSectionStorage(entityManager);
-                } catch (Throwable th) {
-                    throw new ChunkReflectionException(th);
-                }
-
-                entityStream = sectionStorage
-                        .getExistingSectionsInChunk(chunkKey)
-                        .flatMap(EntitySection::getEntities);
-            } else {
-                EntityPersistentStorage<Entity> permanentStorage;
-                try {
-                    permanentStorage = RPersistentEntitySectionManager.getPermanentStorage(entityManager);
-                } catch (Throwable th) {
-                    throw new ChunkReflectionException(th);
-                }
-
-                entityStream = permanentStorage
-                        .loadEntities(new ChunkPos(chunkX, chunkZ))
-                        .join()
-                        .getEntities();
+            try {
+                getChunkEntities(entity -> {
+                    int x = entity.x & 15;
+                    int y = entity.y;
+                    int z = entity.z & 15;
+                    if (minX <= x && x <= maxX && blockMinY <= y && y <= blockMaxY && minZ <= z && z <= maxZ) {
+                        entityMap.merge(entity.type, 1L, Long::sum);
+                    }
+                });
+            } catch (IOException ex) {
+                throw new ChunkIOException(ex);
             }
-
-            entityStream.filter(entity -> {
-                int x = entity.getBlockX() & 15;
-                int y = entity.getBlockY();
-                int z = entity.getBlockZ() & 15;
-                return minX <= x && x <= maxX && blockMinY <= y && y <= blockMaxY && minZ <= z && z <= maxZ;
-            }).forEach(entity -> entityMap.merge(entity.getBukkitEntity().getType(), 1L, Long::sum));
         }
 
         return DistributionStorage.of(materialMap, entityMap);
+    }
+
+    public record ChunkEntity(EntityType type, int x, int y, int z) {
+
     }
 }
