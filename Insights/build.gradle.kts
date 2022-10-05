@@ -20,10 +20,6 @@ dependencies {
     compileOnly(project(":Insights-API"))
 }
 
-base {
-    archivesName.set("Insights")
-}
-
 tasks.withType<ShadowJar> {
     exclude("com/mojang/**")
     relocate("cloud.commandframework", "$dependencyDir.cloud")

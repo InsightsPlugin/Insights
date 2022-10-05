@@ -5,6 +5,7 @@ plugins {
     `java-library`
     `maven-publish`
     id("com.github.johnrengelman.shadow") version VersionConstants.shadowVersion
+    id("io.papermc.paperweight.userdev") version VersionConstants.userdevVersion apply false
 }
 
 val name = "Insights"
@@ -22,6 +23,10 @@ subprojects {
     val groupParts = project.name.split('-').drop(1)
     val nms = groupParts.isNotEmpty() && groupParts.first() == "NMS"
     val nmsImpl = nms && groupParts.last().startsWith("v")
+    if (nmsImpl) {
+        apply(plugin = "io.papermc.paperweight.userdev")
+    }
+
     group = if (groupParts.isEmpty()) {
         rootProject.group
     } else {
@@ -97,9 +102,6 @@ subprojects {
     }
 
     tasks.withType<ShadowJar> {
-        if (nmsImpl) {
-            finalizedBy("reobfJar")
-        }
         relocate("dev.frankheijden.minecraftreflection", "$dependencyDir.minecraftreflection")
         relocate("io.papermc.lib", "$dependencyDir.paperlib")
         relocate("org.bstats", "$dependencyDir.bstats")
@@ -114,7 +116,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:${VersionConstants.minecraftVersion}")
     implementation(project(":Insights-API", "shadow"))
     implementation(project(":Insights", "shadow"))
     Files
@@ -123,7 +124,8 @@ dependencies {
             !it.fileName.toString().startsWith(".")
         }
         .forEach {
-            implementation(project(":Insights-NMS-${it.fileName}", "shadow"))
+            val configuration = if (it.fileName.toString() == "Core") "shadow" else "reobf"
+            implementation(project(":Insights-NMS-${it.fileName}", configuration))
         }
 }
 
