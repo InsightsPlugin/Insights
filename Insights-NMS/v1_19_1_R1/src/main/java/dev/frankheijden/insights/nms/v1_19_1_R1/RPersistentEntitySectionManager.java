@@ -1,12 +1,11 @@
-package dev.frankheijden.insights.api.reflection;
+package dev.frankheijden.insights.nms.v1_19_1_R1;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import dev.frankheijden.insights.api.utils.ReflectionUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityPersistentStorage;
 import net.minecraft.world.level.entity.EntitySectionStorage;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 
 public class RPersistentEntitySectionManager {
 

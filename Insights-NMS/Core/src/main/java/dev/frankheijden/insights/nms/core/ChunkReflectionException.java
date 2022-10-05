@@ -1,4 +1,4 @@
-package dev.frankheijden.insights.api.exceptions;
+package dev.frankheijden.insights.nms.core;
 
 public class ChunkReflectionException extends RuntimeException {
 

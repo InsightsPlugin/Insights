@@ -1,5 +1,7 @@
 package dev.frankheijden.insights;
 
+import static dev.frankheijden.minecraftreflection.MinecraftReflectionVersion.isMin;
+
 import cloud.commandframework.annotations.AnnotationParser;
 import cloud.commandframework.arguments.parser.ParserRegistry;
 import cloud.commandframework.brigadier.CloudBrigadierManager;
@@ -43,6 +45,8 @@ import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
 import dev.frankheijden.insights.commands.parser.WorldArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
+import dev.frankheijden.insights.nms.core.InsightsNMS;
+import dev.frankheijden.insights.nms.core.InsightsNMSVersion;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
@@ -91,6 +95,7 @@ public class Insights extends InsightsPlugin {
     private BukkitAudiences audiences = null;
     private RedstoneUpdateCount redstoneUpdateCount = null;
     private ChunkTeleport chunkTeleport;
+    private InsightsNMS nms;
 
     @Override
     public void onLoad() {
@@ -101,6 +106,17 @@ public class Insights extends InsightsPlugin {
     @Override
     public void onEnable() {
         super.onEnable();
+        if (isMin(19)) {
+            if (isMin(19, 2) && PaperLib.isPaper()) {
+                nms = InsightsNMS.get(InsightsNMSVersion.v1_19_2_R1);
+            } else {
+                nms = InsightsNMS.get(InsightsNMSVersion.v1_19_1_R1);
+            }
+        }
+        if (nms == null) {
+            throw new RuntimeException("Insights is incompatible with your server version");
+        }
+
         this.audiences = BukkitAudiences.create(this);
         this.listenerManager = new ListenerManager(this);
         reloadConfigs();
@@ -129,7 +145,7 @@ public class Insights extends InsightsPlugin {
                 settings.SCANS_CONCURRENT_THREADS,
                 settings.SCANS_TIMEOUT_MILLIS
         );
-        chunkContainerExecutor = new ChunkContainerExecutor(executor, worldStorage, worldChunkScanTracker);
+        chunkContainerExecutor = new ChunkContainerExecutor(nms, executor, worldStorage, worldChunkScanTracker);
         metricsManager = new MetricsManager(this);
         scanHistory = new ScanHistory();
         redstoneUpdateCount = new RedstoneUpdateCount(this);
@@ -173,6 +189,11 @@ public class Insights extends InsightsPlugin {
     @Override
     public ChunkTeleport getChunkTeleport() {
         return chunkTeleport;
+    }
+
+    @Override
+    public InsightsNMS getNMS() {
+        return nms;
     }
 
     public Optional<EntityTrackerTask> getEntityTracker() {

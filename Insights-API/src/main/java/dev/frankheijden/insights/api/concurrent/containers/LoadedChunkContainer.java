@@ -2,11 +2,12 @@ package dev.frankheijden.insights.api.concurrent.containers;
 
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
-import net.minecraft.world.level.chunk.LevelChunkSection;
+import dev.frankheijden.insights.nms.core.ChunkEntity;
+import dev.frankheijden.insights.nms.core.ChunkSection;
+import dev.frankheijden.insights.nms.core.InsightsNMS;
 import org.bukkit.Chunk;
-import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
-import org.bukkit.entity.Entity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 
 public class LoadedChunkContainer extends ChunkContainer {
@@ -16,22 +17,18 @@ public class LoadedChunkContainer extends ChunkContainer {
     /**
      * Constructs a new LoadedChunkContainer, for scanning of a loaded chunk.
      */
-    public LoadedChunkContainer(Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
-        super(chunk.getWorld(), chunk.getX(), chunk.getZ(), cuboid, options);
-
+    public LoadedChunkContainer(InsightsNMS nms, Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
+        super(nms, chunk.getWorld(), chunk.getX(), chunk.getZ(), cuboid, options);
         this.chunk = chunk;
     }
 
     @Override
-    public LevelChunkSection[] getChunkSections() {
-        return ((CraftChunk) chunk).getHandle().getSections();
+    public void getChunkSections(Consumer<@Nullable ChunkSection> sectionConsumer) {
+        nms.getLoadedChunkSections(chunk, sectionConsumer);
     }
 
     @Override
-    public void getChunkEntities(Consumer<ChunkEntity> entityConsumer) {
-        for (Entity entity : chunk.getEntities()) {
-            net.minecraft.world.entity.Entity e = ((CraftEntity) entity).getHandle();
-            entityConsumer.accept(new ChunkEntity(entity.getType(), e.getBlockX(), e.getBlockY(), e.getBlockZ()));
-        }
+    public void getChunkEntities(Consumer<@NotNull ChunkEntity> entityConsumer) {
+        nms.getLoadedChunkEntities(chunk, entityConsumer);
     }
 }
