@@ -131,9 +131,26 @@ dependencies {
 }
 
 tasks {
+    clean {
+        dependsOn("cleanJars")
+    }
+
     build {
         dependsOn("shadowJar")
+        finalizedBy("copyJars")
     }
+}
+
+tasks.register("cleanJars") {
+    delete(file("jars"))
+}
+
+tasks.register<Copy>("copyJars") {
+    from(tasks.findByPath("shadowJar"), {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    })
+    into(file("jars"))
+    rename("(.+)Parent(.+)-all(.+)", "$1$2$3")
 }
 
 val artifactFile = tasks.shadowJar.get().archiveFile.get().asFile
