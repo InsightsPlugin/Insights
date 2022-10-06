@@ -167,7 +167,7 @@ publishing {
     repositories {
         maven {
             name = "fvdh"
-            url = if (version.toString().toVersion().preRelease == "") {
+            url = if (version.toString().toVersion().preRelease == null) {
                 uri("https://repo.fvdh.dev/releases")
             } else {
                 uri("https://repo.fvdh.dev/snapshots")
