@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.nms.v1_19_1_R1;
 
+import dev.frankheijden.insights.nms.core.ReflectionUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityPersistentStorage;
 import net.minecraft.world.level.entity.EntitySectionStorage;

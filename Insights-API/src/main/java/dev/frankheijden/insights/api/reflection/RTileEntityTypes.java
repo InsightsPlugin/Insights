@@ -2,10 +2,12 @@ package dev.frankheijden.insights.api.reflection;
 
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.SetCollector;
-import dev.frankheijden.minecraftreflection.ClassObject;
+import dev.frankheijden.insights.nms.core.ReflectionUtils;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
@@ -21,14 +23,26 @@ public class RTileEntityTypes {
 
     static {
         var blockEntityTypeReflection = MinecraftReflection.of(
-                "net.minecraft.world.level.block.entity.BlockEntityType" // TODO: fix
+                "net.minecraft.world.level.block.entity.TileEntityTypes"
         );
         var craftBlockDataReflection = MinecraftReflection.of(
                 "org.bukkit.craftbukkit.%s.block.data.CraftBlockData"
         );
         var blockStateReflection = MinecraftReflection.of(
-                "net.minecraft.world.level.block.state.BlockState" // TODO: fix
+                "net.minecraft.world.level.block.state.IBlockData"
         );
+        MethodHandle isValidMethodHandle;
+        try {
+            isValidMethodHandle = MethodHandles.lookup().unreflect(ReflectionUtils.findDeclaredMethod(
+                    blockEntityTypeReflection.getClazz(),
+                    new Class[]{ blockStateReflection.getClazz() },
+                    boolean.class,
+                    "isValid"
+            ));
+        } catch (IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
+
         Map<Material, Object> blockStateMap = new EnumMap<>(Material.class);
         for (Material m : Material.values()) {
             if (m.isBlock()) {
@@ -44,8 +58,7 @@ public class RTileEntityTypes {
 
                 Object tileEntityTypes = blockEntityTypeReflection.get(null, field.getName());
                 for (Map.Entry<Material, Object> entry : blockStateMap.entrySet()) {
-                    var obj = ClassObject.of(blockStateReflection.getClazz(), entry.getValue());
-                    if (blockEntityTypeReflection.invoke(tileEntityTypes, "isValid", obj)) {
+                    if ((boolean) isValidMethodHandle.invoke(tileEntityTypes, entry.getValue())) {
                         materials.add(entry.getKey());
                     }
                 }
