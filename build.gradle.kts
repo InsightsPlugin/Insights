@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import io.github.z4kn4fein.semver.toVersion
 import java.nio.file.Files
 
 plugins {
@@ -132,5 +133,39 @@ dependencies {
 tasks {
     build {
         dependsOn("shadowJar")
+    }
+}
+
+val artifactFile = tasks.shadowJar.get().archiveFile.get().asFile
+val artifact = artifacts.add("archives", artifactFile) {
+    type = "jar"
+    name = "Insights"
+    group = rootProject.group
+    version = rootProject.version
+    builtBy("shadowJar")
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "fvdh"
+            url = if (version.toString().toVersion().preRelease == "") {
+                uri("https://repo.fvdh.dev/releases")
+            } else {
+                uri("https://repo.fvdh.dev/snapshots")
+            }
+
+            credentials {
+                username = System.getenv("FVDH_USERNAME")
+                password = System.getenv("FVDH_TOKEN")
+            }
+        }
+    }
+
+    publications {
+        create<MavenPublication>("Insights") {
+            artifact(artifact)
+            artifactId = "Insights"
+        }
     }
 }

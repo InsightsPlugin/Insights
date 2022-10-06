@@ -6,6 +6,10 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    implementation("io.github.z4kn4fein:semver:1.3.3")
+}
+
 tasks {
     compileJava {
         sourceCompatibility = JavaVersion.VERSION_17.majorVersion
