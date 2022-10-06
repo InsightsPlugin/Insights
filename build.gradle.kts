@@ -159,6 +159,7 @@ val artifact = artifacts.add("archives", artifactFile) {
     name = "Insights"
     group = rootProject.group
     version = rootProject.version
+    classifier = ""
     builtBy("shadowJar")
 }
 
