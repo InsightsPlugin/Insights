@@ -11,6 +11,7 @@ import dev.frankheijden.insights.api.concurrent.storage.WorldStorage;
 import dev.frankheijden.insights.api.concurrent.tracker.WorldChunkScanTracker;
 import dev.frankheijden.insights.api.exceptions.ChunkCuboidOutOfBoundsException;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
+import dev.frankheijden.insights.nms.core.InsightsNMS;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ChunkContainerExecutor implements ContainerExecutor {
 
+    private final InsightsNMS nms;
     private final ContainerExecutor containerExecutor;
     private final WorldStorage worldStorage;
     private final WorldChunkScanTracker scanTracker;
@@ -29,10 +31,12 @@ public class ChunkContainerExecutor implements ContainerExecutor {
      * Constructs a new ChunkContainerExecutor.
      */
     public ChunkContainerExecutor(
+            InsightsNMS nms,
             ContainerExecutor containerExecutor,
             WorldStorage worldStorage,
             WorldChunkScanTracker scanTracker
     ) {
+        this.nms = nms;
         this.containerExecutor = containerExecutor;
         this.worldStorage = worldStorage;
         this.scanTracker = scanTracker;
@@ -55,11 +59,11 @@ public class ChunkContainerExecutor implements ContainerExecutor {
     }
 
     public CompletableFuture<Storage> submit(Chunk chunk, ChunkCuboid cuboid, ScanOptions options) {
-        return submit(new LoadedChunkContainer(chunk, cuboid, options), options);
+        return submit(new LoadedChunkContainer(nms, chunk, cuboid, options), options);
     }
 
     public CompletableFuture<Storage> submit(World world, int x, int z, ChunkCuboid cuboid, ScanOptions options) {
-        return submit(new UnloadedChunkContainer(world, x, z, cuboid, options), options);
+        return submit(new UnloadedChunkContainer(nms, world, x, z, cuboid, options), options);
     }
 
     /**

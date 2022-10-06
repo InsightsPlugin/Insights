@@ -5,9 +5,7 @@ plugins {
     id("net.minecrell.plugin-yml.bukkit") version VersionConstants.pluginYmlVersion
 }
 
-group = rootProject.group
 val dependencyDir = "$group.dependencies"
-version = rootProject.version
 
 repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
@@ -19,11 +17,7 @@ dependencies {
     implementation("me.lucko:commodore:${VersionConstants.commodoreVersion}")
     implementation("cloud.commandframework:cloud-paper:${VersionConstants.cloudVersion}")
     implementation("cloud.commandframework:cloud-annotations:${VersionConstants.cloudVersion}")
-    implementation(project(":Insights-API"))
-}
-
-base {
-    archivesName.set("Insights")
+    compileOnly(project(":Insights-API"))
 }
 
 tasks.withType<ShadowJar> {

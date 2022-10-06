@@ -2,12 +2,12 @@ package dev.frankheijden.insights.api.reflection;
 
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.SetCollector;
+import dev.frankheijden.insights.nms.core.ReflectionUtils;
 import dev.frankheijden.minecraftreflection.MinecraftReflection;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_19_R1.block.data.CraftBlockData;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
@@ -18,28 +18,47 @@ import java.util.Map;
 import java.util.Set;
 
 public class RTileEntityTypes {
-
-    private static final MinecraftReflection reflection = MinecraftReflection.of(BlockEntityType.class);
     private static final Set<Material> TILE_ENTITY_MATERIALS;
     private static final Set<ScanObject.MaterialObject> TILE_ENTITIES;
 
     static {
-        Map<Material, BlockState> blockStateMap = new EnumMap<>(Material.class);
+        var blockEntityTypeReflection = MinecraftReflection.of(
+                "net.minecraft.world.level.block.entity.TileEntityTypes"
+        );
+        var craftBlockDataReflection = MinecraftReflection.of(
+                "org.bukkit.craftbukkit.%s.block.data.CraftBlockData"
+        );
+        var blockStateReflection = MinecraftReflection.of(
+                "net.minecraft.world.level.block.state.IBlockData"
+        );
+        MethodHandle isValidMethodHandle;
+        try {
+            isValidMethodHandle = MethodHandles.lookup().unreflect(ReflectionUtils.findDeclaredMethod(
+                    blockEntityTypeReflection.getClazz(),
+                    new Class[]{ blockStateReflection.getClazz() },
+                    boolean.class,
+                    "isValid"
+            ));
+        } catch (IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        Map<Material, Object> blockStateMap = new EnumMap<>(Material.class);
         for (Material m : Material.values()) {
             if (m.isBlock()) {
-                blockStateMap.put(m, ((CraftBlockData) Bukkit.createBlockData(m)).getState());
+                blockStateMap.put(m, craftBlockDataReflection.invoke(Bukkit.createBlockData(m), "getState"));
             }
         }
 
         Set<Material> materials = new HashSet<>();
         try {
-            for (Field field : reflection.getClazz().getFields()) {
-                if (!Modifier.isStatic(field.getModifiers()) || !field.getType().equals(BlockEntityType.class))
-                    continue;
+            for (Field field : blockEntityTypeReflection.getClazz().getFields()) {
+                if (!Modifier.isStatic(field.getModifiers())) continue;
+                if (!field.getType().equals(blockEntityTypeReflection.getClazz())) continue;
 
-                BlockEntityType<?> tileEntityTypes = reflection.get(null, field.getName());
-                for (Map.Entry<Material, BlockState> entry : blockStateMap.entrySet()) {
-                    if (tileEntityTypes.isValid(entry.getValue())) {
+                Object tileEntityTypes = blockEntityTypeReflection.get(null, field.getName());
+                for (Map.Entry<Material, Object> entry : blockStateMap.entrySet()) {
+                    if ((boolean) isValidMethodHandle.invoke(tileEntityTypes, entry.getValue())) {
                         materials.add(entry.getKey());
                     }
                 }

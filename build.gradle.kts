@@ -1,10 +1,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import io.github.z4kn4fein.semver.toVersion
+import java.nio.file.Files
 
 plugins {
     `java-library`
     `maven-publish`
     id("com.github.johnrengelman.shadow") version VersionConstants.shadowVersion
-    id("io.papermc.paperweight.userdev") version VersionConstants.userdevVersion
+    id("io.papermc.paperweight.userdev") version VersionConstants.userdevVersion apply false
 }
 
 val name = "Insights"
@@ -16,7 +18,27 @@ subprojects {
     apply(plugin = "java")
     apply(plugin = "checkstyle")
     apply(plugin = "com.github.johnrengelman.shadow")
-    apply(plugin = "io.papermc.paperweight.userdev")
+
+    version = rootProject.version
+
+    val groupParts = project.name.split('-').drop(1)
+    val nms = groupParts.isNotEmpty() && groupParts.first() == "NMS"
+    val nmsImpl = nms && groupParts.last().startsWith("v")
+    if (nmsImpl) {
+        apply(plugin = "io.papermc.paperweight.userdev")
+    }
+
+    group = if (groupParts.isEmpty()) {
+        rootProject.group
+    } else {
+        rootProject.group.toString() + groupParts.joinToString(".", ".") {
+            if (it.startsWith("v")) {
+                it
+            } else {
+                it.toLowerCase()
+            }
+        }
+    }
 
     repositories {
         mavenCentral()
@@ -29,14 +51,18 @@ subprojects {
     }
 
     dependencies {
-        paperDevBundle(VersionConstants.minecraftVersion)
+        compileOnly("io.papermc.paper:paper-api:${VersionConstants.minecraftVersion}")
         implementation("com.github.FrankHeijden:MinecraftReflection:${VersionConstants.minecraftReflectionVersion}")
         implementation("io.papermc:paperlib:${VersionConstants.paperLibVersion}")
         implementation("org.bstats:bstats-bukkit:${VersionConstants.bStatsVersion}")
         implementation("net.kyori:adventure-api:${VersionConstants.adventureVersion}")
         implementation("net.kyori:adventure-platform-bukkit:${VersionConstants.adventurePlatformVersion}")
         implementation("net.kyori:adventure-text-minimessage:${VersionConstants.adventureVersion}")
+        if (!nms || nmsImpl) {
+            compileOnly(project(":Insights-NMS-Core"))
+        }
 
+        testImplementation("io.papermc.paper:paper-api:${VersionConstants.minecraftVersion}")
         testImplementation("org.assertj:assertj-core:${VersionConstants.assertjVersion}")
         testImplementation("org.mockito:mockito-core:${VersionConstants.mockitoVersion}")
         testImplementation("org.junit.jupiter:junit-jupiter-api:${VersionConstants.jupiterVersion}")
@@ -46,7 +72,7 @@ subprojects {
 
     tasks {
         build {
-            dependsOn("checkstyleMain", "checkstyleTest", "test")
+            dependsOn("shadowJar", "checkstyleMain", "checkstyleTest", "test")
         }
 
         compileJava {
@@ -87,12 +113,21 @@ subprojects {
 
 repositories {
     mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    paperDevBundle(VersionConstants.minecraftVersion)
     implementation(project(":Insights-API", "shadow"))
     implementation(project(":Insights", "shadow"))
+    Files
+        .list(rootProject.projectDir.toPath().resolve("Insights-NMS"))
+        .filter {
+            !it.fileName.toString().startsWith(".")
+        }
+        .forEach {
+            val configuration = if (it.fileName.toString() == "Core") "shadow" else "reobf"
+            implementation(project(":Insights-NMS-${it.fileName}", configuration))
+        }
 }
 
 tasks {
@@ -101,7 +136,8 @@ tasks {
     }
 
     build {
-        dependsOn(reobfJar, "copyJars")
+        dependsOn("shadowJar")
+        finalizedBy("copyJars")
     }
 }
 
@@ -110,30 +146,30 @@ tasks.register("cleanJars") {
 }
 
 tasks.register<Copy>("copyJars") {
-    from(tasks.findByPath("reobfJar"), {
+    from(tasks.findByPath("shadowJar"), {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     })
     into(file("jars"))
-    rename("(.+)Parent(.+)", "$1$2")
+    rename("(.+)Parent(.+)-all(.+)", "$1$2$3")
 }
 
-val artifactFile = tasks.jar.get().archiveFile.get().asFile
+val artifactFile = tasks.shadowJar.get().archiveFile.get().asFile
 val artifact = artifacts.add("archives", artifactFile) {
     type = "jar"
-    name = name.replace("Parent", "")
+    name = "Insights"
     group = rootProject.group
     version = rootProject.version
-    builtBy("reobfJar")
+    builtBy("shadowJar")
 }
 
 publishing {
     repositories {
         maven {
             name = "fvdh"
-            url = if (version.toString().endsWith("-SNAPSHOT")) {
-                uri("https://repo.fvdh.dev/snapshots")
-            } else {
+            url = if (version.toString().toVersion().preRelease == "") {
                 uri("https://repo.fvdh.dev/releases")
+            } else {
+                uri("https://repo.fvdh.dev/snapshots")
             }
 
             credentials {

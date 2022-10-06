@@ -1,9 +1,10 @@
-package dev.frankheijden.insights.api.utils;
+package dev.frankheijden.insights.nms.core;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ReflectionUtils {
@@ -22,6 +23,26 @@ public class ReflectionUtils {
         }
 
         throw new IllegalStateException("Can't find field " + clazz.getName() + "#" + name);
+    }
+
+    /**
+     * Finds a declared method in given class.
+     */
+    public static Method findDeclaredMethod(
+            Class<?> clazz,
+            Class<?>[] paramTypes,
+            Class<?> returnType,
+            String name
+    ) {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (!method.getReturnType().equals(returnType)) continue;
+            if (!Arrays.equals(paramTypes, method.getParameterTypes())) continue;
+
+            method.setAccessible(true);
+            return method;
+        }
+
+        throw new IllegalStateException("Can't find method " + clazz.getName() + "." + name + "");
     }
 
     /**
