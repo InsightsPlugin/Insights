@@ -2,7 +2,6 @@ package dev.frankheijden.insights.commands;
 
 import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.config.Messages;
@@ -17,7 +16,6 @@ public class CommandScanHistory extends InsightsCommand {
     }
 
     @CommandMethod("scanhistory <page>")
-    @CommandPermission("insights.scanregion.tile")
     private void handleScanHistory(
             Player player,
             @Argument("page") Page page
