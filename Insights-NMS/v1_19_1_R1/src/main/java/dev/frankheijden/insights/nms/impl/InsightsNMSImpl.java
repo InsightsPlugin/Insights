@@ -1,12 +1,11 @@
-package dev.frankheijden.insights.nms.v1_19_2_R1;
+package dev.frankheijden.insights.nms.impl;
 
-import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
+import dev.frankheijden.insights.nms.core.ChunkReflectionException;
 import dev.frankheijden.insights.nms.core.ChunkSection;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
-import io.papermc.paper.chunk.system.io.RegionFileIOThread;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
@@ -20,6 +19,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+import net.minecraft.world.level.entity.EntityPersistentStorage;
+import net.minecraft.world.level.entity.EntitySection;
+import net.minecraft.world.level.entity.EntitySectionStorage;
+import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -32,6 +35,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class InsightsNMSImpl extends InsightsNMS {
 
@@ -118,16 +122,41 @@ public class InsightsNMSImpl extends InsightsNMS {
             Consumer<ChunkEntity> entityConsumer
     ) throws IOException {
         var serverLevel = ((CraftWorld) world).getHandle();
-        CompoundTag tag = RegionFileIOThread.loadData(
-                serverLevel,
-                chunkX,
-                chunkZ,
-                RegionFileIOThread.RegionFileType.ENTITY_DATA,
-                PrioritisedExecutor.Priority.BLOCKING
-        );
-        if (tag == null) return;
+        PersistentEntitySectionManager<Entity> entityManager = serverLevel.entityManager;
 
-        readChunkEntities(tag.getList("Entities", Tag.TAG_COMPOUND), entityConsumer);
+        long chunkKey = ChunkPos.asLong(chunkX, chunkZ);
+        final Stream<Entity> entityStream;
+        if (entityManager.areEntitiesLoaded(chunkKey)) {
+            EntitySectionStorage<Entity> sectionStorage;
+            try {
+                sectionStorage = RPersistentEntitySectionManager.getSectionStorage(entityManager);
+            } catch (Throwable th) {
+                throw new ChunkReflectionException(th);
+            }
+
+            entityStream = sectionStorage
+                    .getExistingSectionsInChunk(chunkKey)
+                    .flatMap(EntitySection::getEntities);
+        } else {
+            EntityPersistentStorage<Entity> permanentStorage;
+            try {
+                permanentStorage = RPersistentEntitySectionManager.getPermanentStorage(entityManager);
+            } catch (Throwable th) {
+                throw new ChunkReflectionException(th);
+            }
+
+            entityStream = permanentStorage
+                    .loadEntities(new ChunkPos(chunkX, chunkZ))
+                    .join()
+                    .getEntities();
+        }
+
+        entityStream.map(e -> new ChunkEntity(
+                e.getBukkitEntity().getType(),
+                e.getBlockX(),
+                e.getBlockY(),
+                e.getBlockZ()
+        )).forEach(entityConsumer);
     }
 
     private void readChunkEntities(ListTag listTag, Consumer<ChunkEntity> entityConsumer) {

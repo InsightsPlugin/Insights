@@ -1,4 +1,4 @@
-package dev.frankheijden.insights.nms.v1_19_1_R1;
+package dev.frankheijden.insights.nms.impl;
 
 import dev.frankheijden.insights.nms.core.ReflectionUtils;
 import net.minecraft.world.entity.Entity;
