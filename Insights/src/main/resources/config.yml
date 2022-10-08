@@ -42,6 +42,7 @@ settings:
     EntityPlaceEvent: LOWEST
     BlockPistonExtendEvent: LOWEST
     BlockPistonRetractEvent: LOWEST
+    PlayerBucketEmptyEvent: LOWEST
   redstone-update-limiter:
     enabled: false
     limit: 50000

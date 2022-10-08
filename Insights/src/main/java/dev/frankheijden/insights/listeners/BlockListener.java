@@ -36,6 +36,8 @@ import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.block.FluidLevelChangeEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.block.SpongeAbsorbEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,7 +49,7 @@ public class BlockListener extends InsightsListener {
 
     /**
      * Handles the BlockPlaceEvent for players.
-     * Chunk limitations are applied in here on the lowest (first) event priority.
+     * Chunk limitations are applied in here on the lowest (first) event priority, but this may be overridden.
      */
     @AllowPriorityOverride
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -78,7 +80,7 @@ public class BlockListener extends InsightsListener {
     }
 
     /**
-     * Handles the BlockPlaceEvent for players, monitoring changes
+     * Handles the BlockPlaceEvent for players, monitoring changes.
      * Chunk limitations are not applied here, they are only monitored and displayed to the player.
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -135,6 +137,60 @@ public class BlockListener extends InsightsListener {
         if (MaterialTags.NEEDS_GROUND.isTagged(aboveMaterial)) {
             handleRemoval(player, aboveBlock.getLocation(), ScanObject.of(aboveMaterial), 1, false);
         }
+    }
+
+    /**
+     * Handles the PlayerBucketEmptyEvent for players.
+     * Chunk limitations are applied in here on the lowest (first) event priority, but this may be overridden.
+     */
+    @AllowPriorityOverride
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+        var block = event.getBlock();
+        var location = block.getLocation();
+        var material = bucketToBlock(event.getBucket());
+
+        if (handleAddition(event.getPlayer(), location, ScanObject.of(material), 1, false)) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Handles the PlayerBucketEmptyEvent for players, monitoring changes.
+     * Chunk limitations are not applied here, they are only monitored and displayed to the player.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerBucketEmptyMonitor(PlayerBucketEmptyEvent event) {
+        var block = event.getBlock();
+        var location = block.getLocation();
+        var material = bucketToBlock(event.getBucket());
+
+        // Handle the addition
+        handleModification(location, block.getType(), material, 1);
+
+        // No need to add any delta, cache is already updated
+        evaluateAddition(event.getPlayer(), location, ScanObject.of(material), 0);
+    }
+
+    private Material bucketToBlock(Material bucket) {
+        return switch (bucket) {
+            case LAVA_BUCKET -> Material.LAVA;
+            case POWDER_SNOW_BUCKET -> Material.POWDER_SNOW;
+            default -> Material.WATER;
+        };
+    }
+
+    /**
+     * Handles the PlayerBucketFillEvent.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerBucketFill(PlayerBucketFillEvent event) {
+        var block = event.getBlock();
+        var itemStack = event.getItemStack();
+        if (itemStack != null && itemStack.getType() == Material.MILK_BUCKET) return;
+
+        // Handle the removal
+        handleRemoval(event.getPlayer(), block.getLocation(), ScanObject.of(block.getType()), 1, false);
     }
 
     private Block getTopNonGravityBlock(Block start) {
