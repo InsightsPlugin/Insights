@@ -107,7 +107,9 @@ public class Insights extends InsightsPlugin {
     public void onEnable() {
         super.onEnable();
         if (isMin(19)) {
-            if (isMin(19, 1) && PaperLib.isPaper()) {
+            if (isMin(19, 2) && PaperLib.isPaper()) {
+                nms = InsightsNMS.get(InsightsNMSVersion.v1_19_3_R2);
+            } else if (isMin(19, 1)) {
                 nms = InsightsNMS.get(InsightsNMSVersion.v1_19_2_R1);
             } else {
                 nms = InsightsNMS.get(InsightsNMSVersion.v1_19_1_R1);
@@ -281,19 +283,23 @@ public class Insights extends InsightsPlugin {
         // Register parsers
         ParserRegistry<CommandSender> parserRegistry = commandManager.parserRegistry();
         parserRegistry.registerParserSupplier(
-                TypeToken.get(new TypeToken<Limit>() {}.getType()),
+                TypeToken.get(new TypeToken<Limit>() {
+                }.getType()),
                 options -> new LimitArgument.LimitParser()
         );
         parserRegistry.registerParserSupplier(
-                TypeToken.get(new TypeToken<ScanObject<?>[]>() {}.getType()),
+                TypeToken.get(new TypeToken<ScanObject<?>[]>() {
+                }.getType()),
                 options -> new ScanObjectArrayArgument.ScanObjectArrayParser()
         );
         parserRegistry.registerParserSupplier(
-                TypeToken.get(new TypeToken<CommandScanHistory.Page>() {}.getType()),
+                TypeToken.get(new TypeToken<CommandScanHistory.Page>() {
+                }.getType()),
                 options -> new ScanHistoryPageArgument.ScanHistoryPageParser()
         );
         parserRegistry.registerParserSupplier(
-                TypeToken.get(new TypeToken<World>() {}.getType()),
+                TypeToken.get(new TypeToken<World>() {
+                }.getType()),
                 options -> new WorldArgument.WorldParser()
         );
 
