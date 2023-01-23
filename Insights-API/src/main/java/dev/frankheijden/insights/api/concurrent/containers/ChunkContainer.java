@@ -136,7 +136,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
             try {
                 getChunkEntities(entity -> {
                     int x = entity.x() & 15;
-                    int y = entity.y();
+                    int y = entity.y() + Math.abs(world.getMinHeight());
                     int z = entity.z() & 15;
                     if (minX <= x && x <= maxX && blockMinY <= y && y <= blockMaxY && minZ <= z && z <= maxZ) {
                         entityMap.merge(entity.type(), 1L, Long::sum);
