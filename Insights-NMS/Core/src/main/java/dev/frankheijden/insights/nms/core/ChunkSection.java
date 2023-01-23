@@ -7,6 +7,8 @@ public interface ChunkSection {
 
     int index();
 
+    boolean isNull();
+
     Material blockAt(int x, int y, int z);
 
     void countBlocks(BiConsumer<Material, Integer> consumer);

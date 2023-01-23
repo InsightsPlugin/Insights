@@ -13,7 +13,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
@@ -71,7 +70,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         return cuboid;
     }
 
-    public abstract void getChunkSections(Consumer<@Nullable ChunkSection> sectionConsumer) throws IOException;
+    public abstract void getChunkSections(Consumer<@NotNull ChunkSection> sectionConsumer) throws IOException;
 
     public abstract void getChunkEntities(Consumer<@NotNull ChunkEntity> entityConsumer) throws IOException;
 
@@ -96,9 +95,9 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
                     int minY = sectionY == minSectionY ? blockMinY & 15 : 0;
                     int maxY = sectionY == maxSectionY ? blockMaxY & 15 : 15;
 
-                    if (section == null) {
+                    if (section.isNull()) {
                         // Section is empty, count everything as air
-                        long count = (maxX - minX + 1L) * (maxY - minY + 1L) * (maxZ - minZ + 1L);
+                        long count = (maxX - minX + 1L) * 16L * (maxZ - minZ + 1L);
                         materialMap.merge(Material.AIR, count, Long::sum);
                     } else if (minX == 0 && maxX == 15 && minY == 0 && maxY == 15 && minZ == 0 && maxZ == 15) {
                         // Section can be counted as a whole

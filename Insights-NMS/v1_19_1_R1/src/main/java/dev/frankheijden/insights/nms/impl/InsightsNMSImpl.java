@@ -43,8 +43,7 @@ public class InsightsNMSImpl extends InsightsNMS {
     public void getLoadedChunkSections(Chunk chunk, Consumer<ChunkSection> sectionConsumer) {
         LevelChunkSection[] levelChunkSections = ((CraftChunk) chunk).getHandle().getSections();
         for (int i = 0; i < levelChunkSections.length; i++) {
-            LevelChunkSection section = levelChunkSections[i];
-            sectionConsumer.accept(section == null ? null : new ChunkSectionImpl(levelChunkSections[i], i));
+            sectionConsumer.accept(new ChunkSectionImpl(levelChunkSections[i], i));
         }
     }
 
@@ -196,6 +195,11 @@ public class InsightsNMSImpl extends InsightsNMS {
         @Override
         public int index() {
             return index;
+        }
+
+        @Override
+        public boolean isNull() {
+            return chunkSection == null;
         }
 
         @Override
