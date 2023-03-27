@@ -107,7 +107,11 @@ public class Insights extends InsightsPlugin {
     public void onEnable() {
         super.onEnable();
         if (isMin(19)) {
-            if (isMin(19, 2)) {
+            if (isMin(19, 3)) {
+                if (PaperLib.isPaper()) {
+                    nms = InsightsNMS.get(InsightsNMSVersion.v1_19_4_R3);
+                }
+            } else if (isMin(19, 2)) {
                 if (PaperLib.isPaper()) {
                     nms = InsightsNMS.get(InsightsNMSVersion.v1_19_3_R2);
                 }
