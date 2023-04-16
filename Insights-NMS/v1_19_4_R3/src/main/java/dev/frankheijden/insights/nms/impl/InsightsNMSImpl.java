@@ -17,6 +17,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
@@ -37,7 +38,7 @@ public class InsightsNMSImpl extends InsightsNMS {
 
     @Override
     public void getLoadedChunkSections(Chunk chunk, Consumer<ChunkSection> sectionConsumer) {
-        LevelChunkSection[] levelChunkSections = ((CraftChunk) chunk).getHandle().getSections();
+        LevelChunkSection[] levelChunkSections = ((CraftChunk) chunk).getHandle(ChunkStatus.FULL).getSections();
         for (int i = 0; i < levelChunkSections.length; i++) {
             sectionConsumer.accept(new ChunkSectionImpl(levelChunkSections[i], i));
         }
