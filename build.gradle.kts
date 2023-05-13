@@ -35,7 +35,7 @@ subprojects {
             if (it.startsWith("v")) {
                 it
             } else {
-                it.toLowerCase()
+                it.lowercase()
             }
         }
     }
@@ -149,15 +149,15 @@ tasks.register("cleanJars") {
 }
 
 tasks.register<Copy>("copyJars") {
-    from(tasks.findByPath("shadowJar"), {
+    from(tasks.findByPath("shadowJar")!!) {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    })
+    }
     into(file("jars"))
     rename("(.+)Parent(.+)-all(.+)", "$1$2$3")
 }
 
-val artifactFile = tasks.shadowJar.get().archiveFile.get().asFile
-val artifact = artifacts.add("archives", artifactFile) {
+val artifactFile: File = tasks.shadowJar.get().archiveFile.get().asFile
+val artifact: PublishArtifact = artifacts.add("archives", artifactFile) {
     type = "jar"
     name = "Insights"
     group = rootProject.group

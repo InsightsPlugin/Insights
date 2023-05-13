@@ -17,7 +17,8 @@ tasks {
     }
 
     compileKotlin {
-        sourceCompatibility = JavaVersion.VERSION_17.majorVersion
-        targetCompatibility = JavaVersion.VERSION_17.majorVersion
+        kotlinOptions {
+            jvmTarget = JavaVersion.VERSION_17.majorVersion
+        }
     }
 }

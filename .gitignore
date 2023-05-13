@@ -5,3 +5,4 @@ build/
 jars/
 *.class
 *.jar
+.java-version
