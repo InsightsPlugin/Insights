@@ -1,11 +1,11 @@
 package dev.frankheijden.insights.listeners;
 
-import com.destroystokyo.paper.event.block.TNTPrimeEvent;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.TNTPrimeEvent;
 
 public class PaperEntityListener extends EntityListener {
 
@@ -26,11 +26,11 @@ public class PaperEntityListener extends EntityListener {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTNTPrime(TNTPrimeEvent event) {
-        var primerEntity = event.getPrimerEntity();
+        var primingEntity = event.getPrimingEntity();
         var block = event.getBlock();
 
-        if (primerEntity instanceof Player) {
-            var player = (Player) primerEntity;
+        if (primingEntity instanceof Player) {
+            var player = (Player) primingEntity;
 
             handleRemoval(player, block.getLocation(), ScanObject.of(block.getType()), 1, false);
         } else {
