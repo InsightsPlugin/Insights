@@ -89,12 +89,10 @@ public class InsightsNMSImpl extends InsightsNMS {
 
             LevelChunkSection chunkSection = new LevelChunkSection(blockStateContainer, null);
             sectionConsumer.accept(new ChunkSectionImpl(chunkSection, sectionIndex));
-            logger.info("DEBUG1: " + chunkSection + " " + sectionIndex);
             nonNullSectionCount++;
         }
 
         for (int i = nonNullSectionCount; i < sectionsCount; i++) {
-            logger.info("DEBUG2");
             sectionConsumer.accept(null);
         }
     }
