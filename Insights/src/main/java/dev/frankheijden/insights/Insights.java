@@ -121,6 +121,11 @@ public class Insights extends InsightsPlugin {
                 nms = InsightsNMS.get(InsightsNMSVersion.v1_19_1_R1);
             }
         }
+        if (isMin(20)) {
+            if (PaperLib.isPaper()) {
+                nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R1);
+            }
+        }
         if (nms == null) {
             throw new RuntimeException("Insights is incompatible with your server version");
         }
