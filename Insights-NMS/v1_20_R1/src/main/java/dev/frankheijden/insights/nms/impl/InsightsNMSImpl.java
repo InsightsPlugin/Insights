@@ -142,7 +142,7 @@ public class InsightsNMSImpl extends InsightsNMS {
             String entityTypeName = net.minecraft.world.entity.EntityType.getKey(typeOptional.get()).getPath();
             ListTag posList = nbt.getList("Pos", Tag.TAG_DOUBLE);
             entityConsumer.accept(new ChunkEntity(
-                    EntityType.valueOf(entityTypeName),
+                    EntityType.fromName(entityTypeName),
                     Mth.floor(Mth.clamp(posList.getDouble(0), -3E7D, 3E7D)),
                     Mth.floor(Mth.clamp(posList.getDouble(1), -2E7D, 2E7D)),
                     Mth.floor(Mth.clamp(posList.getDouble(2), -3E7D, 3E7D))
