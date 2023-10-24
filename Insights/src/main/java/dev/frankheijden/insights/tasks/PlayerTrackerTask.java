@@ -10,10 +10,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class PlayerTrackerTask extends InsightsAsyncTask {
 
     private final Map<ChunkLocation, Long> scanLocations = new ConcurrentHashMap<>();
+    private static final Set<Integer> knownErrorStackTraceHashes = ConcurrentHashMap.newKeySet();
 
     public PlayerTrackerTask(InsightsPlugin plugin) {
         super(plugin);
@@ -54,7 +56,17 @@ public class PlayerTrackerTask extends InsightsAsyncTask {
                     var chunk = world.getChunkAt(loc.getX(), loc.getZ());
                     plugin.getChunkContainerExecutor().submit(chunk, ScanOptions.all()).whenComplete((s, e) -> {
                         if (s == null) {
-                            plugin.getLogger().warning("Error occurred while scanning " + loc);
+                            int hash = e.getStackTrace()[0].hashCode();
+                            if (!knownErrorStackTraceHashes.contains(hash)) {
+                                knownErrorStackTraceHashes.add(hash);
+                                plugin.getLogger().log(
+                                        Level.SEVERE,
+                                        "Error occurred while scanning "
+                                                + loc
+                                                + " (future errors with the same stacktrace are suppressed)",
+                                        e
+                                );
+                            }
                         }
                         this.scanLocations.remove(loc);
                     });
