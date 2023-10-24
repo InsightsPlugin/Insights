@@ -1,5 +1,6 @@
 package dev.frankheijden.insights;
 
+import static dev.frankheijden.minecraftreflection.MinecraftReflectionVersion.NMS;
 import static dev.frankheijden.minecraftreflection.MinecraftReflectionVersion.isMin;
 
 import cloud.commandframework.annotations.AnnotationParser;
@@ -122,7 +123,7 @@ public class Insights extends InsightsPlugin {
             }
         }
         if (isMin(20) && PaperLib.isPaper()) {
-            if (isMin(20, 1)) {
+            if (isMin(20, 2)) {
                 nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R2);
             } else {
                 nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R1);
