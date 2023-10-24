@@ -1,6 +1,5 @@
 package dev.frankheijden.insights;
 
-import static dev.frankheijden.minecraftreflection.MinecraftReflectionVersion.NMS;
 import static dev.frankheijden.minecraftreflection.MinecraftReflectionVersion.isMin;
 
 import cloud.commandframework.annotations.AnnotationParser;
