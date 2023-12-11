@@ -1,5 +1,5 @@
 object VersionConstants {
-    const val userdevVersion = "1.5.8"
+    const val userdevVersion = "1.5.11"
     const val pluginYmlVersion = "0.6.0"
     const val shadowVersion = "8.1.1"
     const val minecraftVersion = "1.19.4-R0.1-SNAPSHOT"

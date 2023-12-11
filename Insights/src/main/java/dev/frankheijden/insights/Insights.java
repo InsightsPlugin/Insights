@@ -122,7 +122,9 @@ public class Insights extends InsightsPlugin {
             }
         }
         if (isMin(20) && PaperLib.isPaper()) {
-            if (isMin(20, 2)) {
+            if (isMin(20, 3)) {
+                nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R3);
+            } else if (isMin(20, 2)) {
                 nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R2);
             } else {
                 nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R1);
