@@ -108,6 +108,7 @@ subprojects {
         relocate("org.bstats", "$dependencyDir.bstats")
         relocate("net.kyori.adventure", "$dependencyDir.adventure")
         relocate("net.kyori.examination", "$dependencyDir.examination")
+        relocate("net.kyori.option", "$dependencyDir.option")
         if (nmsImpl) {
             relocate(project.group.toString().replaceAfterLast('.', "impl"), project.group.toString())
         }
