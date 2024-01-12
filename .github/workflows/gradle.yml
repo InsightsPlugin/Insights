@@ -48,6 +48,7 @@ jobs:
           version: ${{ steps.build.outputs.version }}
           modrinth-id: V27CDDh1
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          changelog-file: CHANGELOG.md
           github-token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             jars/*.jar
@@ -55,6 +56,6 @@ jobs:
             paper
             purpur
           game-versions: |
-            >=1.19.4 <=1.20.4
+            >=1.19 <=1.20.4
           game-version-filter: releases
           java: 17
