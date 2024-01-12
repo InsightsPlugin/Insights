@@ -12,7 +12,7 @@ plugins {
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.17.1"
+version = "6.17.2"
 
 subprojects {
     apply(plugin = "java")
@@ -165,6 +165,22 @@ val artifact: PublishArtifact = artifacts.add("archives", artifactFile) {
     version = rootProject.version
     classifier = ""
     builtBy("shadowJar")
+}
+
+fun Project.isRelease(): Boolean {
+    return version.toString().toVersion().preRelease == null
+}
+
+task("printIsRelease") {
+    doLast {
+        println(isRelease())
+    }
+}
+
+task("printVersion") {
+    doLast {
+        println(version.toString())
+    }
 }
 
 publishing {

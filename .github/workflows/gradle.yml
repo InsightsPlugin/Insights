@@ -5,14 +5,14 @@ on:
   pull_request:
     branches: [ master ]
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         java-version: [ 17 ]
       fail-fast: true
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v3
         with:
@@ -23,18 +23,38 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: '**/.gradle'
-          key: ${{ runner.os }}-gradle-${{ secrets.CACHE_VERSION }}-${{ hashFiles('**/VersionConstants.kt', '**/build.gradle.kts', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ vars.CACHE_VERSION }}-${{ hashFiles('**/VersionConstants.kt', '**/build.gradle.kts', '**/gradle-wrapper.properties') }}
       - name: Build
-        run: ./gradlew clean build --stacktrace
-      - name: Upload artififacts
-        uses: actions/upload-artifact@v3
+        id: build
+        run: |
+          ./gradlew clean build --stacktrace
+          echo "is-release=$(./gradlew -q printIsRelease)" >> "$GITHUB_OUTPUT"
+          echo "version=$(./gradlew -q printVersion)" >> "$GITHUB_OUTPUT"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: Insights
           path: jars/*.jar
-          retention-days: 90
-      - name: Publish
+      - name: Publish to Maven Repository
         if: ${{ github.event_name == 'push' }}
         env:
           FVDH_USERNAME: ${{ secrets.FVDH_USERNAME }}
           FVDH_TOKEN: ${{ secrets.FVDH_TOKEN }}
         run: ./gradlew publish --stacktrace
+      - uses: Kir-Antipov/mc-publish@v3.3
+        if: ${{ github.event_name == 'push' && steps.build.outputs.is-release == 'true' }}
+        with:
+          name: ${{ format('Insights {0}', steps.build.outputs.version) }}
+          version: ${{ steps.build.outputs.version }}
+          modrinth-id: V27CDDh1
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            jars/*.jar
+          loaders: |
+            paper
+            purpur
+          game-versions: |
+            >=1.19.4 <=1.20.4
+          game-version-filter: releases
+          java: 17
