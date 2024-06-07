@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [ 17 ]
+        java-version: [ 21 ]
       fail-fast: true
     steps:
       - uses: actions/checkout@v4
@@ -56,6 +56,6 @@ jobs:
             paper
             purpur
           game-versions: |
-            >=1.19 <=1.20.4
+            >=1.20.6
           game-version-filter: releases
-          java: 17
+          java: 21

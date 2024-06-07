@@ -14,11 +14,12 @@ public abstract class InsightsNMS {
 
     /**
      * Gets an InsightsNMS instance for given version.
+     * TODO: can be yeeted later or reused if we decide to do backwards compatibility again
      */
     @SuppressWarnings("unchecked")
-    public static <T extends InsightsNMS> T get(InsightsNMSVersion version) {
+    public static <T extends InsightsNMS> T get() {
         try {
-            Class<?> clazz = Class.forName("dev.frankheijden.insights.nms." + version.name() + ".InsightsNMSImpl");
+            Class<?> clazz = Class.forName("dev.frankheijden.insights.nms.mojangmappings.InsightsNMSImpl");
             return (T) clazz.getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             logger.log(Level.SEVERE, "Unable to get InsightsNMSImpl", e);

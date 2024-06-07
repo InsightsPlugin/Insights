@@ -1,7 +1,5 @@
 package dev.frankheijden.insights;
 
-import static dev.frankheijden.minecraftreflection.MinecraftReflectionVersion.isMin;
-
 import cloud.commandframework.annotations.AnnotationParser;
 import cloud.commandframework.arguments.parser.ParserRegistry;
 import cloud.commandframework.brigadier.CloudBrigadierManager;
@@ -9,6 +7,7 @@ import cloud.commandframework.bukkit.CloudBukkitCapabilities;
 import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator;
 import cloud.commandframework.meta.SimpleCommandMeta;
 import cloud.commandframework.paper.PaperCommandManager;
+import com.github.zafarkhaja.semver.Version;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
@@ -46,7 +45,6 @@ import dev.frankheijden.insights.commands.parser.WorldArgument;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
-import dev.frankheijden.insights.nms.core.InsightsNMSVersion;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
@@ -68,6 +66,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class Insights extends InsightsPlugin {
+
+    private static final Version minimumCompatibleVersion = Version.of(1, 20, 6);
 
     private static final String SETTINGS_FILE_NAME = "config.yml";
     private static final String MESSAGES_FILE_NAME = "messages.yml";
@@ -106,33 +106,12 @@ public class Insights extends InsightsPlugin {
     @Override
     public void onEnable() {
         super.onEnable();
-        if (isMin(19)) {
-            if (isMin(19, 3)) {
-                if (PaperLib.isPaper()) {
-                    nms = InsightsNMS.get(InsightsNMSVersion.v1_19_4_R3);
-                }
-            } else if (isMin(19, 2)) {
-                if (PaperLib.isPaper()) {
-                    nms = InsightsNMS.get(InsightsNMSVersion.v1_19_3_R2);
-                }
-            } else if (isMin(19, 1) && PaperLib.isPaper()) {
-                nms = InsightsNMS.get(InsightsNMSVersion.v1_19_2_R1);
-            } else {
-                nms = InsightsNMS.get(InsightsNMSVersion.v1_19_1_R1);
-            }
+
+        if (isIncompatible()) {
+            throw new RuntimeException("Insights is incompatible with your server version, "
+                    + "we require a Paper backend and a Minecraft version of at least " + minimumCompatibleVersion);
         }
-        if (isMin(20) && PaperLib.isPaper()) {
-            if (isMin(20, 3)) {
-                nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R3);
-            } else if (isMin(20, 2)) {
-                nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R2);
-            } else {
-                nms = InsightsNMS.get(InsightsNMSVersion.v1_20_R1);
-            }
-        }
-        if (nms == null) {
-            throw new RuntimeException("Insights is incompatible with your server version");
-        }
+        nms = InsightsNMS.get();
 
         this.audiences = BukkitAudiences.create(this);
         this.listenerManager = new ListenerManager(this);
@@ -180,8 +159,15 @@ public class Insights extends InsightsPlugin {
         reload();
     }
 
+    private static boolean isIncompatible() {
+        var minecraftVersion = Version.parse(Bukkit.getServer().getMinecraftVersion(), true);
+        return !PaperLib.isPaper() || minecraftVersion.compareTo(minimumCompatibleVersion) < 0;
+    }
+
     @Override
     public void onDisable() {
+        if (isIncompatible()) return;
+
         listenerManager.unregister();
         redstoneUpdateCount.stop();
         notifications.clearNotifications();

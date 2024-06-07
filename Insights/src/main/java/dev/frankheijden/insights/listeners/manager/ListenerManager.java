@@ -14,8 +14,8 @@ import dev.frankheijden.insights.listeners.PistonListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
 import dev.frankheijden.insights.nms.core.ReflectionUtils;
-import dev.frankheijden.minecraftreflection.MinecraftReflection;
 import io.papermc.lib.PaperLib;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -117,8 +118,16 @@ public class ListenerManager implements InsightsListenerManager {
         listeners.addAll(disableListeners);
         listeners.forEach(listener -> plugin.getServer().getPluginManager().registerEvents(listener, plugin));
 
+        Function<Class<?>, HandlerList> getHandlerList = (Class<?> clazz) -> {
+            try {
+                return (HandlerList) clazz.getMethod("getHandlerList").invoke(null);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+                throw new RuntimeException(ex);
+            }
+        };
+
         for (Class<?> clazz : plugin.getSettings().DISABLED_EVENTS) {
-            HandlerList list = MinecraftReflection.of(clazz).invoke(null, "getHandlerList");
+            HandlerList list = getHandlerList.apply(clazz);
             for (InsightsListener listener : disableListeners) {
                 list.unregister(listener);
             }
@@ -128,8 +137,7 @@ public class ListenerManager implements InsightsListenerManager {
         for (Map.Entry<Class<? extends Event>, EventPriority> e : plugin.getSettings().LISTENER_PRIORITIES.entrySet()) {
             if (e.getValue() == EventPriority.LOWEST) continue;
 
-            HandlerList list = MinecraftReflection.of(e.getKey()).invoke(null, "getHandlerList");
-
+            HandlerList list = getHandlerList.apply(e.getKey());
             List<RegisteredListener> listenersToUnregister = new ArrayList<>();
             List<RegisteredListener> listenersToRegister = new ArrayList<>();
             for (RegisteredListener listener : list.getRegisteredListeners()) {
