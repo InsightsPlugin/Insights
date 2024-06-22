@@ -24,7 +24,7 @@ dependencies {
 tasks.withType<ShadowJar> {
     exclude("com/mojang/**")
     relocate("com.github.zafarkhaja.semver", "$dependencyDir.semver")
-    relocate("cloud.commandframework", "$dependencyDir.cloud")
+    relocate("org.incendo.cloud", "$dependencyDir.cloud")
     relocate("io.leangen.geantyref", "$dependencyDir.typetoken")
     relocate("me.lucko.commodore", "$dependencyDir.commodore")
 }

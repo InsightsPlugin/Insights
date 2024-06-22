@@ -1,14 +1,14 @@
 package dev.frankheijden.insights.commands;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
-import cloud.commandframework.annotations.Flag;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.config.Messages;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Flag;
+import org.incendo.cloud.annotations.Permission;
 
 public class CommandTeleportChunk extends InsightsCommand {
 
@@ -16,8 +16,8 @@ public class CommandTeleportChunk extends InsightsCommand {
         super(plugin);
     }
 
-    @CommandMethod("teleportchunk|tpchunk <world> <x> <z>")
-    @CommandPermission("insights.teleportchunk")
+    @Command("teleportchunk|tpchunk <world> <x> <z>")
+    @Permission("insights.teleportchunk")
     private void handleTeleportChunk(
             Player player,
             @Argument("world") World world,

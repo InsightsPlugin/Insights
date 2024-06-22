@@ -19,7 +19,7 @@ public abstract class InsightsNMS {
     @SuppressWarnings("unchecked")
     public static <T extends InsightsNMS> T get() {
         try {
-            Class<?> clazz = Class.forName("dev.frankheijden.insights.nms.mojangmappings.InsightsNMSImpl");
+            Class<?> clazz = Class.forName("dev.frankheijden.insights.nms.current.InsightsNMSImpl");
             return (T) clazz.getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             logger.log(Level.SEVERE, "Unable to get InsightsNMSImpl", e);

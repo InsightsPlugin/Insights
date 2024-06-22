@@ -1,9 +1,5 @@
 package dev.frankheijden.insights.commands;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
-import cloud.commandframework.annotations.Flag;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
@@ -16,21 +12,25 @@ import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Flag;
+import org.incendo.cloud.annotations.Permission;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@CommandMethod("scanregion")
+@Command("scanregion")
 public class CommandScanRegion extends InsightsCommand {
 
     public CommandScanRegion(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("tile")
-    @CommandPermission("insights.scanregion.tile")
+    @Command("tile")
+    @Permission("insights.scanregion.tile")
     private void handleTileScan(
             Player player,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
@@ -38,8 +38,8 @@ public class CommandScanRegion extends InsightsCommand {
         handleScan(player, RTileEntityTypes.getTileEntities(), ScanOptions.materialsOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("entity")
-    @CommandPermission("insights.scanregion.entity")
+    @Command("entity")
+    @Permission("insights.scanregion.entity")
     private void handleEntityScan(
             Player player,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
@@ -47,8 +47,8 @@ public class CommandScanRegion extends InsightsCommand {
         handleScan(player, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("all")
-    @CommandPermission("insights.scanregion.all")
+    @Command("all")
+    @Permission("insights.scanregion.all")
     private void handleAllScan(
             Player player,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk
@@ -56,8 +56,8 @@ public class CommandScanRegion extends InsightsCommand {
         handleScan(player, null, ScanOptions.scanOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("custom <items>")
-    @CommandPermission("insights.scanregion.custom")
+    @Command("custom <items>")
+    @Permission("insights.scanregion.custom")
     private void handleCustomScan(
             Player player,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk,
@@ -66,8 +66,8 @@ public class CommandScanRegion extends InsightsCommand {
         handleScan(player, new HashSet<>(Arrays.asList(items)), ScanOptions.scanOnly(), true, groupByChunk);
     }
 
-    @CommandMethod("limit <limit>")
-    @CommandPermission("insights.scanregion.limit")
+    @Command("limit <limit>")
+    @Permission("insights.scanregion.limit")
     private void handleLimitScan(
             Player player,
             @Flag(value = "group-by-chunk", aliases = { "c" }) boolean groupByChunk,

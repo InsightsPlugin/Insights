@@ -1,13 +1,7 @@
 package dev.frankheijden.insights;
 
-import cloud.commandframework.annotations.AnnotationParser;
-import cloud.commandframework.arguments.parser.ParserRegistry;
-import cloud.commandframework.brigadier.CloudBrigadierManager;
-import cloud.commandframework.bukkit.CloudBukkitCapabilities;
-import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator;
-import cloud.commandframework.meta.SimpleCommandMeta;
-import cloud.commandframework.paper.PaperCommandManager;
 import com.github.zafarkhaja.semver.Version;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.AddonManager;
 import dev.frankheijden.insights.api.concurrent.ChunkContainerExecutor;
@@ -37,11 +31,10 @@ import dev.frankheijden.insights.commands.CommandScanHistory;
 import dev.frankheijden.insights.commands.CommandScanRegion;
 import dev.frankheijden.insights.commands.CommandScanWorld;
 import dev.frankheijden.insights.commands.CommandTeleportChunk;
-import dev.frankheijden.insights.commands.brigadier.BrigadierHandler;
-import dev.frankheijden.insights.commands.parser.LimitArgument;
-import dev.frankheijden.insights.commands.parser.ScanHistoryPageArgument;
-import dev.frankheijden.insights.commands.parser.ScanObjectArrayArgument;
-import dev.frankheijden.insights.commands.parser.WorldArgument;
+import dev.frankheijden.insights.commands.parser.LimitParser;
+import dev.frankheijden.insights.commands.parser.ScanHistoryPageParser;
+import dev.frankheijden.insights.commands.parser.ScanObjectArrayParser;
+import dev.frankheijden.insights.commands.parser.WorldParser;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
@@ -50,11 +43,15 @@ import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitTask;
+import org.incendo.cloud.annotations.AnnotationParser;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.paper.PaperCommandManager;
+import org.incendo.cloud.parser.ParserRegistry;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -63,7 +60,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class Insights extends InsightsPlugin {
 
@@ -160,7 +156,7 @@ public class Insights extends InsightsPlugin {
     }
 
     private static boolean isIncompatible() {
-        var minecraftVersion = Version.parse(Bukkit.getServer().getMinecraftVersion(), true);
+        var minecraftVersion = Version.parse(Bukkit.getServer().getMinecraftVersion(), false);
         return !PaperLib.isPaper() || minecraftVersion.compareTo(minimumCompatibleVersion) < 0;
     }
 
@@ -268,62 +264,45 @@ public class Insights extends InsightsPlugin {
     }
 
     private void loadCommands() {
-        PaperCommandManager<CommandSender> commandManager;
-        try {
-            commandManager = new PaperCommandManager<>(
-                    this,
-                    AsynchronousCommandExecutionCoordinator.<CommandSender>newBuilder().build(),
-                    Function.identity(),
-                    Function.identity()
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return;
-        }
+        PaperCommandManager<CommandSourceStack> commandManager = PaperCommandManager.builder()
+                .executionCoordinator(ExecutionCoordinator.asyncCoordinator())
+                .buildOnEnable(this);
 
         // Register parsers
-        ParserRegistry<CommandSender> parserRegistry = commandManager.parserRegistry();
+        ParserRegistry<CommandSourceStack> parserRegistry = commandManager.parserRegistry();
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<Limit>() {
                 }.getType()),
-                options -> new LimitArgument.LimitParser()
+                LimitParser::new
         );
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<ScanObject<?>[]>() {
                 }.getType()),
-                options -> new ScanObjectArrayArgument.ScanObjectArrayParser()
+                ScanObjectArrayParser::new
         );
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<CommandScanHistory.Page>() {
                 }.getType()),
-                options -> new ScanHistoryPageArgument.ScanHistoryPageParser()
+                ScanHistoryPageParser::new
         );
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<World>() {
                 }.getType()),
-                options -> new WorldArgument.WorldParser()
+                WorldParser::new
         );
 
-        // Register capabilities if allowed
-        boolean hasBrigadier = commandManager.hasCapability(CloudBukkitCapabilities.BRIGADIER);
-        boolean hasNativeBrigadier = commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER);
-        boolean hasCommodoreBrigadier = commandManager.hasCapability(CloudBukkitCapabilities.COMMODORE_BRIGADIER);
-        if (hasBrigadier && (hasNativeBrigadier || hasCommodoreBrigadier)) {
-            commandManager.registerBrigadier();
-            CloudBrigadierManager<CommandSender, ?> brigadierManager = commandManager.brigadierManager();
-            var handler = new BrigadierHandler(brigadierManager);
-            handler.registerTypes();
-        }
-        if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
-            commandManager.registerAsynchronousCompletions();
+        if (commandManager.hasBrigadierManager()) {
+            commandManager.brigadierManager().registerMapping(
+                    new TypeToken<ScanObjectArrayParser<CommandSourceStack>>() {},
+                    builder -> {
+                        builder.to(argument -> StringArgumentType.greedyString());
+                        builder.cloudSuggestions();
+                    }
+            );
         }
 
         // Create Annotation Parser
-        AnnotationParser<CommandSender> annotationParser = new AnnotationParser<>(
-                commandManager,
-                CommandSender.class,
-                parameters -> SimpleCommandMeta.empty()
-        );
+        var annotationParser = new AnnotationParser(commandManager, CommandSourceStack.class);
 
         // Parse commands
         annotationParser.parse(new CommandInsights(this));

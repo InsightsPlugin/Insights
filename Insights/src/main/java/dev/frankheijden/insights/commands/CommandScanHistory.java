@@ -1,13 +1,13 @@
 package dev.frankheijden.insights.commands;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.config.Messages;
 import java.util.Optional;
 import java.util.UUID;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
 
 public class CommandScanHistory extends InsightsCommand {
 
@@ -15,7 +15,7 @@ public class CommandScanHistory extends InsightsCommand {
         super(plugin);
     }
 
-    @CommandMethod("scanhistory <page>")
+    @Command("scanhistory <page>")
     private void handleScanHistory(
             Player player,
             @Argument("page") Page page

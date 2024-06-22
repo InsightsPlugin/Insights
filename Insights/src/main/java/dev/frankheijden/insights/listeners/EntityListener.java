@@ -36,7 +36,7 @@ public class EntityListener extends InsightsListener {
 
     protected static final Set<EntityType> LIMITED_ENTITIES = EnumSet.of(
             EntityType.ARMOR_STAND,
-            EntityType.ENDER_CRYSTAL,
+            EntityType.END_CRYSTAL,
             EntityType.ITEM_FRAME,
             EntityType.GLOW_ITEM_FRAME,
             EntityType.PAINTING

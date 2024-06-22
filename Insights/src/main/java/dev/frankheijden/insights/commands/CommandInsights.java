@@ -1,7 +1,5 @@
 package dev.frankheijden.insights.commands;
 
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
 import dev.frankheijden.insights.Insights;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
@@ -10,16 +8,18 @@ import dev.frankheijden.insights.api.utils.ColorUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import org.bukkit.command.CommandSender;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Permission;
 
-@CommandMethod("insights|in")
+@Command("insights|in")
 public class CommandInsights extends InsightsCommand {
 
     public CommandInsights(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("")
-    @CommandPermission("insights.info")
+    @Command("")
+    @Permission("insights.info")
     private void showBase(CommandSender sender) {
         sender.sendMessage(ColorUtils.colorize(
                 "&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------",
@@ -31,16 +31,16 @@ public class CommandInsights extends InsightsCommand {
         ));
     }
 
-    @CommandMethod("reload")
-    @CommandPermission("insights.reload")
+    @Command("reload")
+    @Permission("insights.reload")
     private void reloadConfigurations(CommandSender sender) {
         plugin.reloadConfigs();
         plugin.reload();
         plugin.getMessages().getMessage(Messages.Key.CONFIGS_RELOADED).sendTo(sender);
     }
 
-    @CommandMethod("stats")
-    @CommandPermission("insights.stats")
+    @Command("stats")
+    @Permission("insights.stats")
     private void displayStatistics(CommandSender sender) {
         ContainerExecutorService executor = ((Insights) plugin).getExecutor();
         plugin.getMessages().getMessage(Messages.Key.STATS).addTemplates(

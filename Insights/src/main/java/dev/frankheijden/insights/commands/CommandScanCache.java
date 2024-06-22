@@ -1,8 +1,5 @@
 package dev.frankheijden.insights.commands;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
@@ -17,51 +14,54 @@ import dev.frankheijden.insights.api.utils.EnumUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Permission;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-@CommandMethod("scancache")
+@Command("scancache")
 public class CommandScanCache extends InsightsCommand {
 
     public CommandScanCache(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("tile")
-    @CommandPermission("insights.scancache.tile")
+    @Command("tile")
+    @Permission("insights.scancache.tile")
     private void handleTileScan(Player player) {
         handleScan(player, RTileEntityTypes.getTileEntities(), false);
     }
 
-    @CommandMethod("entity")
-    @CommandPermission("insights.scancache.entity")
+    @Command("entity")
+    @Permission("insights.scancache.entity")
     private void handleEntityScan(Player player) {
         handleScan(player, Constants.SCAN_ENTITIES, false);
     }
 
-    @CommandMethod("all")
-    @CommandPermission("insights.scancache.all")
+    @Command("all")
+    @Permission("insights.scancache.all")
     private void handleAllScan(Player player) {
         handleScan(player, null, false);
     }
 
-    @CommandMethod("custom <items>")
-    @CommandPermission("insights.scancache.custom")
+    @Command("custom <items>")
+    @Permission("insights.scancache.custom")
     private void handleCustomScan(Player player, @Argument("items") ScanObject<?>[] items) {
         handleScan(player, new HashSet<>(Arrays.asList(items)), true);
     }
 
-    @CommandMethod("limit <limit>")
-    @CommandPermission("insights.scancache.limit")
+    @Command("limit <limit>")
+    @Permission("insights.scancache.limit")
     private void handleLimitScan(Player player, @Argument("limit") Limit limit) {
         handleScan(player, limit.getScanObjects(), false);
     }
 
-    @CommandMethod("clear")
-    @CommandPermission("insights.scancache.clear")
+    @Command("clear")
+    @Permission("insights.scancache.clear")
     private void handleCacheClear(Player player) {
         Location loc = player.getLocation();
         Optional<Region> optionalRegion = plugin.getAddonManager().getRegion(loc);

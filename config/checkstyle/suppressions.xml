@@ -5,4 +5,5 @@
 <suppressions>
     <suppress files="." checks="RequireEmptyLineBeforeBlockTagGroup" />
     <suppress files="." checks="AbbreviationAsWordInName" />
+    <suppress files="." checks="Javadoc" />
 </suppressions>
