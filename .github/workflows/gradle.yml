@@ -1,7 +1,7 @@
 name: Java CI with Gradle
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -54,6 +54,6 @@ jobs:
             paper
             purpur
           game-versions: |
-            >=1.20.6
+            >=1.21
           game-version-filter: releases
           java: 21

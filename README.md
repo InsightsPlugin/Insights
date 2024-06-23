@@ -1,7 +1,7 @@
 # Insights
 <div align="center">
   <a href="https://github.com/FrankHeijden/Insights/actions">
-    <img alt="GitHub Actions" src="https://github.com/FrankHeijden/Insights/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=master"/>
+    <img alt="GitHub Actions" src="https://github.com/FrankHeijden/Insights/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=main"/>
   </a>
   <a href="https://repo.fvdh.dev/#/releases/dev/frankheijden/insights/Insights">
     <img alt="FvdH Repository" src="https://repo.fvdh.dev/api/badge/latest/releases/dev/frankheijden/insights/Insights?color=40c14a&amp;name=fvdh-repository"/>
