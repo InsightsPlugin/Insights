@@ -35,6 +35,7 @@ import dev.frankheijden.insights.commands.parser.LimitParser;
 import dev.frankheijden.insights.commands.parser.ScanHistoryPageParser;
 import dev.frankheijden.insights.commands.parser.ScanObjectArrayParser;
 import dev.frankheijden.insights.commands.parser.WorldParser;
+import dev.frankheijden.insights.commands.util.CommandSenderMapper;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
@@ -42,19 +43,14 @@ import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.incendo.cloud.annotations.AnnotationParser;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.PaperCommandManager;
-import org.incendo.cloud.parser.ParserRegistry;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -255,12 +251,12 @@ public class Insights extends InsightsPlugin {
     }
 
     private void loadCommands() {
-        PaperCommandManager<CommandSourceStack> commandManager = PaperCommandManager.builder()
+        var commandManager = PaperCommandManager.builder(new CommandSenderMapper())
                 .executionCoordinator(ExecutionCoordinator.asyncCoordinator())
                 .buildOnEnable(this);
 
         // Register parsers
-        ParserRegistry<CommandSourceStack> parserRegistry = commandManager.parserRegistry();
+        var parserRegistry = commandManager.parserRegistry();
         parserRegistry.registerParserSupplier(
                 TypeToken.get(new TypeToken<Limit>() {
                 }.getType()),
@@ -284,7 +280,7 @@ public class Insights extends InsightsPlugin {
 
         if (commandManager.hasBrigadierManager()) {
             commandManager.brigadierManager().registerMapping(
-                    new TypeToken<ScanObjectArrayParser<CommandSourceStack>>() {},
+                    new TypeToken<ScanObjectArrayParser<CommandSender>>() {},
                     builder -> {
                         builder.to(argument -> StringArgumentType.greedyString());
                         builder.cloudSuggestions();
@@ -292,27 +288,8 @@ public class Insights extends InsightsPlugin {
             );
         }
 
-        commandManager.parameterInjectorRegistry().registerInjector(
-                CommandSender.class,
-                (context, annotationAccessor) -> context.sender().getSender()
-        );
-        commandManager.parameterInjectorRegistry().registerInjector(
-                Player.class,
-                (context, annotationAccessor) -> {
-                    var sender = context.sender().getSender();
-                    if (sender instanceof Player player) {
-                        return player;
-                    }
-
-                    audiences.sender(sender).sendMessage(
-                            Component.text("This command can only be sent as a player", NamedTextColor.RED)
-                    );
-                    return null;
-                }
-        );
-
         // Create Annotation Parser
-        var annotationParser = new AnnotationParser(commandManager, CommandSourceStack.class);
+        var annotationParser = new AnnotationParser(commandManager, CommandSender.class);
 
         // Parse commands
         annotationParser.parse(new CommandInsights(this));
