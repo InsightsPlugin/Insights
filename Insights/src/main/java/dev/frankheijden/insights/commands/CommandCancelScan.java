@@ -1,12 +1,12 @@
 package dev.frankheijden.insights.commands;
 
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.config.Messages;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Permission;
 
 public class CommandCancelScan extends InsightsCommand {
 
@@ -14,8 +14,8 @@ public class CommandCancelScan extends InsightsCommand {
         super(plugin);
     }
 
-    @CommandMethod("cancelscan")
-    @CommandPermission("insights.cancelscan")
+    @Command("cancelscan")
+    @Permission("insights.cancelscan")
     private void handleCancelScan(Player player) {
         if (ScanTask.cancelScan(player.getUniqueId())) {
             // Player will be notified of the results, no need to send verification.

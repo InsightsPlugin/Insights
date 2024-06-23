@@ -1,10 +1,5 @@
 package dev.frankheijden.insights.commands;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
-import cloud.commandframework.annotations.Flag;
-import cloud.commandframework.annotations.specifier.Range;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.commands.InsightsCommand;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
@@ -17,20 +12,25 @@ import dev.frankheijden.insights.api.utils.Constants;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.annotation.specifier.Range;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Flag;
+import org.incendo.cloud.annotations.Permission;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@CommandMethod("scan <radius>")
+@Command("scan <radius>")
 public class CommandScan extends InsightsCommand {
 
     public CommandScan(InsightsPlugin plugin) {
         super(plugin);
     }
 
-    @CommandMethod("tile")
-    @CommandPermission("insights.scan.tile")
+    @Command("tile")
+    @Permission("insights.scan.tile")
     private void handleTileScan(
             Player player,
             @Argument("radius") @Range(min = "0", max = "256") int radius,
@@ -46,8 +46,8 @@ public class CommandScan extends InsightsCommand {
         );
     }
 
-    @CommandMethod("entity")
-    @CommandPermission("insights.scan.entity")
+    @Command("entity")
+    @Permission("insights.scan.entity")
     private void handleEntityScan(
             Player player,
             @Argument("radius") @Range(min = "0", max = "256") int radius,
@@ -56,8 +56,8 @@ public class CommandScan extends InsightsCommand {
         handleScan(player, radius, Constants.SCAN_ENTITIES, ScanOptions.entitiesOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("all")
-    @CommandPermission("insights.scan.all")
+    @Command("all")
+    @Permission("insights.scan.all")
     private void handleAllScan(
             Player player,
             @Argument("radius") @Range(min = "0", max = "256") int radius,
@@ -66,8 +66,8 @@ public class CommandScan extends InsightsCommand {
         handleScan(player, radius, null, ScanOptions.scanOnly(), false, groupByChunk);
     }
 
-    @CommandMethod("custom <items>")
-    @CommandPermission("insights.scan.custom")
+    @Command("custom <items>")
+    @Permission("insights.scan.custom")
     private void handleCustomScan(
             Player player,
             @Argument("radius") @Range(min = "0", max = "256") int radius,
@@ -92,8 +92,8 @@ public class CommandScan extends InsightsCommand {
         handleScan(player, radius, new HashSet<>(scanObjects), options, true, groupByChunk);
     }
 
-    @CommandMethod("limit <limit>")
-    @CommandPermission("insights.scan.limit")
+    @Command("limit <limit>")
+    @Permission("insights.scan.limit")
     private void handleLimitScan(
             Player player,
             @Argument("radius") @Range(min = "0", max = "256") int radius,

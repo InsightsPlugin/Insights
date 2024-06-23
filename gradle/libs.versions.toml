@@ -1,7 +1,7 @@
 [versions]
 # libraries
 semver = "0.10.2"
-minecraft = "1.20.2-R0.1-SNAPSHOT"
+minecraft = "1.21-R0.1-SNAPSHOT"
 paperLib = "1.0.8"
 bStats = "3.0.0"
 adventure = "4.17.0"
@@ -12,7 +12,8 @@ jupiter = "5.9.1"
 brigadier = "1.0.18"
 placeholderapi = "2.11.4"
 commodore = "2.2"
-cloud = "1.8.4"
+cloudPaper = "2.0.0-beta.9"
+cloud = "2.0.0-rc.2"
 
 # plugins
 shadow = "8.1.1"
@@ -35,8 +36,8 @@ jupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", ve
 brigadier = { group = "com.mojang", name = "brigadier", version.ref = "brigadier" }
 placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
-cloudPaper = { group = "cloud.commandframework", name = "cloud-paper", version.ref = "cloud" }
-cloudAnnotations = { group = "cloud.commandframework", name = "cloud-annotations", version.ref = "cloud" }
+cloudPaper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloudPaper" }
+cloudAnnotations = { group = "org.incendo", name = "cloud-annotations", version.ref = "cloud" }
 
 [plugins]
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
