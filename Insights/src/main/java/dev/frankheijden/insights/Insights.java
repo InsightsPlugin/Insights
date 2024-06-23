@@ -39,14 +39,17 @@ import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
-import dev.frankheijden.insights.tasks.EntityTrackerTask;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.incendo.cloud.annotations.AnnotationParser;
 import org.incendo.cloud.execution.ExecutionCoordinator;
@@ -59,7 +62,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Optional;
 
 public class Insights extends InsightsPlugin {
 
@@ -81,7 +83,6 @@ public class Insights extends InsightsPlugin {
     private AddonStorage addonStorage;
     private WorldChunkScanTracker worldChunkScanTracker;
     private AddonScanTracker addonScanTracker;
-    private EntityTrackerTask entityTrackerTask;
     private MetricsManager metricsManager;
     private ScanHistory scanHistory;
     private ListenerManager listenerManager;
@@ -146,12 +147,6 @@ public class Insights extends InsightsPlugin {
 
         loadCommands();
 
-        if (!PaperLib.isPaper()) {
-            entityTrackerTask = new EntityTrackerTask(this);
-            var interval = settings.SPIGOT_ENTITY_TRACKER_INTERVAL_TICKS;
-            Bukkit.getScheduler().runTaskTimer(this, entityTrackerTask, 0, interval);
-        }
-
         reload();
     }
 
@@ -193,10 +188,6 @@ public class Insights extends InsightsPlugin {
     @Override
     public InsightsNMS getNMS() {
         return nms;
-    }
-
-    public Optional<EntityTrackerTask> getEntityTracker() {
-        return Optional.ofNullable(entityTrackerTask);
     }
 
     @Override
@@ -300,6 +291,25 @@ public class Insights extends InsightsPlugin {
                     }
             );
         }
+
+        commandManager.parameterInjectorRegistry().registerInjector(
+                CommandSender.class,
+                (context, annotationAccessor) -> context.sender().getSender()
+        );
+        commandManager.parameterInjectorRegistry().registerInjector(
+                Player.class,
+                (context, annotationAccessor) -> {
+                    var sender = context.sender().getSender();
+                    if (sender instanceof Player player) {
+                        return player;
+                    }
+
+                    audiences.sender(sender).sendMessage(
+                            Component.text("This command can only be sent as a player", NamedTextColor.RED)
+                    );
+                    return null;
+                }
+        );
 
         // Create Annotation Parser
         var annotationParser = new AnnotationParser(commandManager, CommandSourceStack.class);
