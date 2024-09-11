@@ -30,7 +30,13 @@ public class ScanObjectArrayParser<C> implements ArgumentParser<C, ScanObject<?>
     @Override
     public ArgumentParseResult<ScanObject<?>[]> parse(CommandContext<C> ctx, CommandInput input) {
         try {
-            int queueSize = input.length();
+            // Find the index of the first item in the *actual* input
+            // input.input() is the entire command
+            int indexOf = input.input().indexOf(input.peekString());
+
+            // Find the number of elements that need to be in the array
+            int queueSize = input.input().substring(indexOf).split(" ").length;
+
             List<ScanObject<?>> items = new ArrayList<>(queueSize);
             for (var i = 0; i < (queueSize - 1); i++) {
                 items.add(ScanObject.parse(input.peekString()));
