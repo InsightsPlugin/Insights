@@ -12,7 +12,7 @@ plugins {
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.19.2-SNAPSHOT"
+version = "6.19.2"
 
 subprojects {
     apply(plugin = "java")
