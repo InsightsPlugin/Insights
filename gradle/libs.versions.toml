@@ -1,7 +1,7 @@
 [versions]
 # libraries
 semver = "0.10.2"
-minecraft = "1.21-R0.1-SNAPSHOT"
+minecraft = "1.21.3-R0.1-SNAPSHOT"
 paperLib = "1.0.8"
 bStats = "3.0.0"
 adventure = "4.17.0"
@@ -10,14 +10,14 @@ assertj = "3.23.1"
 mockito = "4.11.0"
 jupiter = "5.9.1"
 brigadier = "1.0.18"
-placeholderapi = "2.11.4"
+placeholderapi = "2.11.6"
 commodore = "2.2"
 cloudPaper = "2.0.0-beta.9"
 cloud = "2.0.0-rc.2"
 
 # plugins
-shadow = "8.1.1"
-userdev = "1.7.1"
+shadow = "9.0.0-beta2"
+userdev = "1.7.5"
 pluginYml = "0.6.0"
 
 [libraries]
@@ -40,6 +40,6 @@ cloudPaper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud
 cloudAnnotations = { group = "org.incendo", name = "cloud-annotations", version.ref = "cloud" }
 
 [plugins]
-shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 userdev = { id = "io.papermc.paperweight.userdev", version.ref = "userdev" }
 pluginYml = { id = "net.minecrell.plugin-yml.bukkit", version.ref = "pluginYml" }

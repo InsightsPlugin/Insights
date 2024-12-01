@@ -1,7 +1,7 @@
 package dev.frankheijden.insights.nms.impl;
 
-import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
-import ca.spottedleaf.moonrise.patches.chunk_system.io.RegionFileIOThread;
+import ca.spottedleaf.concurrentutil.util.Priority;
+import ca.spottedleaf.moonrise.patches.chunk_system.io.MoonriseRegionFileIO;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
-import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+import net.minecraft.world.level.chunk.storage.SerializableChunkData;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -67,7 +67,7 @@ public class InsightsNMSImpl extends InsightsNMS {
 
             PalettedContainer<BlockState> blockStateContainer;
             if (sectionTag.contains("block_states", Tag.TAG_COMPOUND)) {
-                Codec<PalettedContainer<BlockState>> blockStateCodec = ChunkSerializer.BLOCK_STATE_CODEC;
+                Codec<PalettedContainer<BlockState>> blockStateCodec = SerializableChunkData.BLOCK_STATE_CODEC;
                 dataResult = blockStateCodec.parse(
                         NbtOps.INSTANCE,
                         sectionTag.getCompound("block_states")
@@ -125,12 +125,12 @@ public class InsightsNMSImpl extends InsightsNMS {
             Consumer<ChunkEntity> entityConsumer
     ) throws IOException {
         var serverLevel = ((CraftWorld) world).getHandle();
-        CompoundTag tag = RegionFileIOThread.loadData(
+        CompoundTag tag = MoonriseRegionFileIO.loadData(
                 serverLevel,
                 chunkX,
                 chunkZ,
-                RegionFileIOThread.RegionFileType.ENTITY_DATA,
-                PrioritisedExecutor.Priority.BLOCKING
+                MoonriseRegionFileIO.RegionFileType.ENTITY_DATA,
+                Priority.BLOCKING
         );
         if (tag == null) return;
 

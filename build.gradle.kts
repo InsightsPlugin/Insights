@@ -12,12 +12,12 @@ plugins {
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.19.2"
+version = "6.19.3"
 
 subprojects {
     apply(plugin = "java")
     apply(plugin = "checkstyle")
-    apply(plugin = "com.github.johnrengelman.shadow")
+    apply(plugin = "com.gradleup.shadow")
 
     version = rootProject.version
 
@@ -157,17 +157,6 @@ tasks.register<Copy>("copyJars") {
 }
 
 buildscript {
-    // tmp workaround for the shadow plugin + Java 21:
-    // https://github.com/johnrengelman/shadow/pull/876#issuecomment-1942380071
-    configurations {
-        classpath {
-            resolutionStrategy {
-                force("org.ow2.asm:asm:9.6")
-                force("org.ow2.asm:asm-commons:9.6")
-            }
-        }
-    }
-
     dependencies {
         classpath("io.github.z4kn4fein:semver:2.0.0")
     }

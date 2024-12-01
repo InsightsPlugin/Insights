@@ -1,2 +1,2 @@
 # Changelog
-- Fix /scanworld command parser, thx @ben9964 <3
+- 1.21.3 Support by @Jsinco (removes support for <= 1.21.2)
