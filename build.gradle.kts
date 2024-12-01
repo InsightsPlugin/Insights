@@ -12,12 +12,12 @@ plugins {
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.19.2"
+version = "6.19.3"
 
 subprojects {
     apply(plugin = "java")
     apply(plugin = "checkstyle")
-    apply(plugin = "com.github.johnrengelman.shadow")
+    apply(plugin = "com.gradleup.shadow")
 
     version = rootProject.version
 
