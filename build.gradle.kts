@@ -157,18 +157,6 @@ tasks.register<Copy>("copyJars") {
 }
 
 buildscript {
-    // tmp workaround for the shadow plugin + Java 21:
-    // https://github.com/johnrengelman/shadow/pull/876#issuecomment-1942380071
-    // -> No longer needed, gradleup
-//    configurations {
-//        classpath {
-//            resolutionStrategy {
-//                force("org.ow2.asm:asm:9.6")
-//                force("org.ow2.asm:asm-commons:9.6")
-//            }
-//        }
-//    }
-
     dependencies {
         classpath("io.github.z4kn4fein:semver:2.0.0")
     }
