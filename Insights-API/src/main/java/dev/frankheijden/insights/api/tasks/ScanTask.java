@@ -12,11 +12,12 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.TriConsumer;
 import dev.frankheijden.insights.api.utils.EnumUtils;
+import dev.frankheijden.insights.api.utils.SchedulingUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
+import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -51,7 +52,7 @@ public class ScanTask<R> implements Runnable {
     private final AtomicBoolean completedExceptionally = new AtomicBoolean();
     private final int chunkCount;
     private long lastInfo = 0;
-    private BukkitTask task;
+    private ScheduledTask task;
 
     /**
      * Creates a new ScanTask to scan a collection of ChunkPart's.
@@ -370,8 +371,13 @@ public class ScanTask<R> implements Runnable {
     }
 
     private void start() {
-        BukkitScheduler scheduler = plugin.getServer().getScheduler();
-        task = scheduler.runTaskTimer(plugin, this, 0, plugin.getSettings().SCANS_ITERATION_INTERVAL_TICKS);
+        GlobalRegionScheduler scheduler = plugin.getServer().getGlobalRegionScheduler();
+        task = scheduler.runAtFixedRate(
+                plugin,
+                SchedulingUtils.wrapRunnable(this),
+                1L,
+                plugin.getSettings().SCANS_ITERATION_INTERVAL_TICKS
+        );
     }
 
     private void cancel() {
