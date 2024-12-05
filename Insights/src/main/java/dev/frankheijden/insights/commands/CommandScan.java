@@ -9,7 +9,9 @@ import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.util.LazyChunkPartRadiusIterator;
 import dev.frankheijden.insights.api.utils.Constants;
+import dev.frankheijden.insights.api.utils.SchedulingUtils;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.annotation.specifier.Range;
@@ -114,17 +116,26 @@ public class CommandScan extends InsightsCommand {
             boolean displayZeros,
             boolean groupByChunk
     ) {
-        Chunk chunk = player.getLocation().getChunk();
-        World world = chunk.getWorld();
-        int chunkX = chunk.getX();
-        int chunkZ = chunk.getZ();
+        SchedulingUtils.runImmediatelyAtEntityIfFolia(plugin, player, () -> {
+            Location loc = player.getLocation();
+            SchedulingUtils.runImmediatelyAtLocationIfFolia(plugin, loc, () -> {
+                Chunk chunk = loc.getChunk();
+                World world = chunk.getWorld();
+                int chunkX = chunk.getX();
+                int chunkZ = chunk.getZ();
 
-        LazyChunkPartRadiusIterator it = new LazyChunkPartRadiusIterator(world, chunkX, chunkZ, radius);
+                LazyChunkPartRadiusIterator it = new LazyChunkPartRadiusIterator(world, chunkX, chunkZ, radius);
 
-        if (groupByChunk) {
-            ScanTask.scanAndDisplayGroupedByChunk(plugin, player, it, it.getChunkCount(), options, items, false);
-        } else {
-            ScanTask.scanAndDisplay(plugin, player, it, it.getChunkCount(), options, items, displayZeros);
-        }
+                if (groupByChunk) {
+                    ScanTask.scanAndDisplayGroupedByChunk(
+                            plugin, player, it, it.getChunkCount(), options, items, false
+                    );
+                } else {
+                    ScanTask.scanAndDisplay(
+                            plugin, player, it, it.getChunkCount(), options, items, displayZeros
+                    );
+                }
+            });
+        });
     }
 }
