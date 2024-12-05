@@ -375,7 +375,7 @@ public class ScanTask<R> implements Runnable {
         task = scheduler.runAtFixedRate(
                 plugin,
                 SchedulingUtils.wrapRunnable(this),
-                1L,
+                1L, // At least 1 tick for Folia schedulers
                 plugin.getSettings().SCANS_ITERATION_INTERVAL_TICKS
         );
     }
