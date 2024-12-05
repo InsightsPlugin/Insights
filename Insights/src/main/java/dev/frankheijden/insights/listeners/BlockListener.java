@@ -338,7 +338,7 @@ public class BlockListener extends InsightsListener {
             materials[i] = material;
         }
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+        plugin.getServer().getRegionScheduler().runDelayed(plugin, event.getBlock().getLocation(), task -> {
             for (var i = 0; i < blocks.size(); i++) {
                 var relative = blocks.get(i).getRelative(event.getDirection());
                 var material = relative.getType();

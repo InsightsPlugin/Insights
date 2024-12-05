@@ -12,11 +12,12 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.TriConsumer;
 import dev.frankheijden.insights.api.utils.EnumUtils;
+import dev.frankheijden.insights.api.utils.SchedulingUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
+import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -51,7 +52,7 @@ public class ScanTask<R> implements Runnable {
     private final AtomicBoolean completedExceptionally = new AtomicBoolean();
     private final int chunkCount;
     private long lastInfo = 0;
-    private BukkitTask task;
+    private ScheduledTask task;
 
     /**
      * Creates a new ScanTask to scan a collection of ChunkPart's.
@@ -370,8 +371,13 @@ public class ScanTask<R> implements Runnable {
     }
 
     private void start() {
-        BukkitScheduler scheduler = plugin.getServer().getScheduler();
-        task = scheduler.runTaskTimer(plugin, this, 0, plugin.getSettings().SCANS_ITERATION_INTERVAL_TICKS);
+        GlobalRegionScheduler scheduler = plugin.getServer().getGlobalRegionScheduler();
+        task = scheduler.runAtFixedRate(
+                plugin,
+                SchedulingUtils.wrapRunnable(this),
+                1L, // At least 1 tick for Folia schedulers
+                plugin.getSettings().SCANS_ITERATION_INTERVAL_TICKS
+        );
     }
 
     private void cancel() {
@@ -416,35 +422,39 @@ public class ScanTask<R> implements Runnable {
             var loc = chunkPart.getChunkLocation();
             var world = loc.getWorld();
 
-            CompletableFuture<Storage> storageFuture;
-            if (world.isChunkLoaded(loc.getX(), loc.getZ())) {
-                storageFuture = executor.submit(
-                        world.getChunkAt(loc.getX(), loc.getZ()),
-                        chunkPart.getChunkCuboid(),
-                        options
-                );
-            } else {
-                storageFuture = executor.submit(
-                        loc.getWorld(),
-                        loc.getX(),
-                        loc.getZ(),
-                        chunkPart.getChunkCuboid(),
-                        options
-                );
-            }
+            int chunkX = loc.getX();
+            int chunkZ = loc.getZ();
+            SchedulingUtils.runImmediatelyAtChunkIfFolia(plugin, world, chunkX, chunkZ, () -> {
+                CompletableFuture<Storage> storageFuture;
+                if (world.isChunkLoaded(loc.getX(), loc.getZ())) {
+                    storageFuture = executor.submit(
+                            world.getChunkAt(loc.getX(), loc.getZ()),
+                            chunkPart.getChunkCuboid(),
+                            options
+                    );
+                } else {
+                    storageFuture = executor.submit(
+                            loc.getWorld(),
+                            loc.getX(),
+                            loc.getZ(),
+                            chunkPart.getChunkCuboid(),
+                            options
+                    );
+                }
 
-            storageFuture
-                    .thenAccept(storage -> resultMerger.accept(storage, loc, result))
-                    .thenRun(() -> {
-                        iterationChunks.incrementAndGet();
-                        chunks.incrementAndGet();
-                    })
-                    .exceptionally(th -> {
-                        if (!completedExceptionally.getAndSet(true)) {
-                            plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
-                        }
-                        return null;
-                    });
+                storageFuture
+                        .thenAccept(storage -> resultMerger.accept(storage, loc, result))
+                        .thenRun(() -> {
+                            iterationChunks.incrementAndGet();
+                            chunks.incrementAndGet();
+                        })
+                        .exceptionally(th -> {
+                            if (!completedExceptionally.getAndSet(true)) {
+                                plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
+                            }
+                            return null;
+                        });
+            });
         }
     }
 

@@ -17,6 +17,7 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
+import dev.frankheijden.insights.api.utils.SchedulingUtils;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Chunk;
@@ -57,12 +58,14 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     }
 
     protected void handleModification(Location location, Consumer<Storage> storageConsumer) {
-        UUID worldUid = location.getWorld().getUID();
-        long chunkKey = ChunkUtils.getKey(location);
-        plugin.getWorldStorage().getWorld(worldUid).get(chunkKey).ifPresent(storageConsumer);
-        plugin.getAddonManager().getRegion(location)
-                .flatMap(region -> plugin.getAddonStorage().get(region.getKey()))
-                .ifPresent(storageConsumer);
+        SchedulingUtils.runImmediatelyAtLocationIfFolia(plugin, location, () -> {
+            UUID worldUid = location.getWorld().getUID();
+            long chunkKey = ChunkUtils.getKey(location);
+            plugin.getWorldStorage().getWorld(worldUid).get(chunkKey).ifPresent(storageConsumer);
+            plugin.getAddonManager().getRegion(location)
+                    .flatMap(region -> plugin.getAddonStorage().get(region.getKey()))
+                    .ifPresent(storageConsumer);
+        });
     }
 
     protected void handleModification(Location location, Material from, Material to, int amount) {

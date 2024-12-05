@@ -2,12 +2,13 @@ package dev.frankheijden.insights.api.config.notifications;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.config.Messages;
+import dev.frankheijden.insights.api.utils.SchedulingUtils;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -20,7 +21,7 @@ public class BossBarNotification implements Notification {
     protected final Queue<Audience> viewers = new LinkedList<>();
     protected final int ticks;
     protected final Runnable bossBarClearer;
-    protected BukkitTask task;
+    protected ScheduledTask task;
 
     protected BossBarNotification(InsightsPlugin plugin, BossBar bossBar, Messages.Message content, int ticks) {
         this.plugin = plugin;
@@ -55,7 +56,11 @@ public class BossBarNotification implements Notification {
                     audience.showBossBar(bossBar);
                     viewers.add(audience);
                 }
-                task = Bukkit.getScheduler().runTaskLater(plugin, bossBarClearer, ticks);
+                task = Bukkit.getGlobalRegionScheduler().runDelayed(
+                        plugin,
+                        SchedulingUtils.wrapRunnable(bossBarClearer),
+                        ticks
+                );
             }
         };
     }
