@@ -1,7 +1,7 @@
 [versions]
 # libraries
 semver = "0.10.2"
-minecraft = "1.21.3-R0.1-SNAPSHOT"
+minecraft = "1.21.4-R0.1-SNAPSHOT"
 paperLib = "1.0.8"
 bStats = "3.0.0"
 adventure = "4.17.0"
@@ -17,7 +17,7 @@ cloud = "2.0.0-rc.2"
 
 # plugins
 shadow = "9.0.0-beta2"
-userdev = "1.7.5"
+userdev = "2.0.0-beta.13"
 pluginYml = "0.6.0"
 
 [libraries]
