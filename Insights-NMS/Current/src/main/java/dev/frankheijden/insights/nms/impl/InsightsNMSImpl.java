@@ -4,6 +4,8 @@ import ca.spottedleaf.concurrentutil.util.Priority;
 import ca.spottedleaf.moonrise.patches.chunk_system.io.MoonriseRegionFileIO;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.utils.SchedulingUtils;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
 import dev.frankheijden.insights.nms.core.ChunkSection;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
@@ -106,15 +108,20 @@ public class InsightsNMSImpl extends InsightsNMS {
 
     @Override
     public void getLoadedChunkEntities(Chunk chunk, Consumer<ChunkEntity> entityConsumer) {
-        for (org.bukkit.entity.Entity bukkitEntity : chunk.getEntities()) {
-            Entity entity = ((CraftEntity) bukkitEntity).getHandle();
-            entityConsumer.accept(new ChunkEntity(
-                    bukkitEntity.getType(),
-                    entity.getBlockX(),
-                    entity.getBlockY(),
-                    entity.getBlockZ()
-            ));
-        }
+        var plugin = InsightsPlugin.getInstance();
+        SchedulingUtils.runImmediatelyAtChunkIfFolia(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> {
+            for (org.bukkit.entity.Entity bukkitEntity : chunk.getEntities()) {
+                SchedulingUtils.runImmediatelyAtEntityIfFolia(plugin, bukkitEntity, () -> {
+                    Entity entity = ((CraftEntity) bukkitEntity).getHandle();
+                    entityConsumer.accept(new ChunkEntity(
+                            bukkitEntity.getType(),
+                            entity.getBlockX(),
+                            entity.getBlockY(),
+                            entity.getBlockZ()
+                    ));
+                });
+            }
+        });
     }
 
     @Override

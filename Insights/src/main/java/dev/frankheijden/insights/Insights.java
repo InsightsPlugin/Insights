@@ -23,6 +23,7 @@ import dev.frankheijden.insights.api.metrics.MetricsManager;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
 import dev.frankheijden.insights.api.utils.IOUtils;
+import dev.frankheijden.insights.api.utils.SchedulingUtils;
 import dev.frankheijden.insights.commands.CommandCancelScan;
 import dev.frankheijden.insights.commands.CommandInsights;
 import dev.frankheijden.insights.commands.CommandScan;
@@ -43,11 +44,11 @@ import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.scheduler.BukkitTask;
 import org.incendo.cloud.annotations.AnnotationParser;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.PaperCommandManager;
@@ -83,8 +84,8 @@ public class Insights extends InsightsPlugin {
     private ScanHistory scanHistory;
     private ListenerManager listenerManager;
     private InsightsPlaceholderExpansion placeholderExpansion;
-    private BukkitTask playerTracker = null;
-    private BukkitTask updateChecker = null;
+    private ScheduledTask playerTracker = null;
+    private ScheduledTask updateChecker = null;
     private BukkitAudiences audiences = null;
     private RedstoneUpdateCount redstoneUpdateCount = null;
     private ChunkTeleport chunkTeleport;
@@ -117,13 +118,13 @@ public class Insights extends InsightsPlugin {
             ex.printStackTrace();
         }
 
-        getServer().getScheduler().runTaskLater(this, () -> {
+        getServer().getGlobalRegionScheduler().runDelayed(this, task -> {
             try {
                 addonManager.loadAddons();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-        }, 1);
+        }, 1L);
 
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
         worldStorage = new WorldStorage();
@@ -379,7 +380,7 @@ public class Insights extends InsightsPlugin {
         }
 
         if (settings.CHUNK_SCANS_MODE == Settings.ChunkScanMode.ALWAYS) {
-            playerTracker = getServer().getScheduler().runTaskTimerAsynchronously(
+            playerTracker = SchedulingUtils.runTaskTimerAsynchronously(
                     this,
                     new PlayerTrackerTask(this),
                     0,
@@ -392,7 +393,7 @@ public class Insights extends InsightsPlugin {
         }
 
         if (settings.UPDATE_CHECKER_ENABLED) {
-            updateChecker = getServer().getScheduler().runTaskTimerAsynchronously(
+            updateChecker = SchedulingUtils.runTaskTimerAsynchronously(
                     this,
                     new UpdateCheckerTask(this),
                     20,
