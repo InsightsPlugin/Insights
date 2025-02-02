@@ -15,6 +15,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -38,6 +39,8 @@ import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.block.SpongeAbsorbEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -188,9 +191,17 @@ public class BlockListener extends InsightsListener {
         var block = event.getBlock();
         var itemStack = event.getItemStack();
         if (itemStack != null && itemStack.getType() == Material.MILK_BUCKET) return;
+        var material = block.getType();
+
+        // When a block is waterlogged, it returns the waterlogged block instead of WATER, LAVA, etc.
+        if (block.getBlockData() instanceof Waterlogged waterlogged && waterlogged.isWaterlogged()) {
+            // As far as I'm aware, waterlogged blocks must always be with water,
+            // so we can confidently say this is water we're checking for.
+            material = Material.WATER;
+        }
 
         // Handle the removal
-        handleRemoval(event.getPlayer(), block.getLocation(), ScanObject.of(block.getType()), 1, false);
+        handleRemoval(event.getPlayer(), block.getLocation(), ScanObject.of(material), 1, false);
     }
 
     private Block getTopNonGravityBlock(Block start) {
