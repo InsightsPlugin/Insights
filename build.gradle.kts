@@ -12,7 +12,7 @@ plugins {
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.19.5"
+version = "6.19.6"
 
 subprojects {
     apply(plugin = "java")
@@ -123,7 +123,7 @@ repositories {
 
 dependencies {
     implementation(project(":Insights-API", "shadow"))
-    implementation(project(":Insights", "shadow"))
+    implementation(project(":Insights-Core", "shadow"))
     Files
         .list(rootProject.projectDir.toPath().resolve("Insights-NMS"))
         .filter { !it.fileName.toString().startsWith(".") }
@@ -142,18 +142,26 @@ tasks {
         dependsOn("shadowJar")
         finalizedBy("copyJars")
     }
-}
 
-tasks.register("cleanJars") {
-    delete(file("jars"))
-}
-
-tasks.register<Copy>("copyJars") {
-    from(tasks.findByPath("shadowJar")!!) {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    shadowJar {
+        archiveClassifier = ""
     }
-    into(file("jars"))
-    rename("(.+)Parent(.+)-all(.+)", "$1$2$3")
+    jar {
+        enabled = false
+    }
+
+    register("cleanJars") {
+        delete(file("jars"))
+    }
+
+    register<Copy>("copyJars") {
+        from(findByPath("shadowJar")!!) {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+        into(file("jars"))
+        rename("(.+)Parent(.+)-all(.+)", "$1$2$3")
+    }
+
 }
 
 buildscript {
