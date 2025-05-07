@@ -30,12 +30,13 @@ tasks.withType<ShadowJar> {
 }
 
 bukkit {
+    name = "Insights"
     main = "dev.frankheijden.insights.Insights"
     description = "Insights about your server and regional block limits"
     apiVersion = "1.21"
     website = "https://github.com/InsightsPlugin/Insights"
     softDepend = listOf("PlaceholderAPI")
-    authors = listOf("FrankHeijden")
+    authors = listOf("FrankHeijden", "Jsinco")
     permissions {
         register("insights.info") {
             description = "Allows you to see information about insights"
