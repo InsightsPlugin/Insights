@@ -21,6 +21,8 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.chunk.storage.SerializableChunkData;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -164,7 +166,7 @@ public class InsightsNMSImpl extends InsightsNMS {
     }
 
     private void readChunkEntities(CompoundTag nbt, Consumer<ChunkEntity> entityConsumer) {
-        var typeOptional = net.minecraft.world.entity.EntityType.by(nbt);
+        var typeOptional = net.minecraft.world.entity.EntityType.byString(nbt.getString("id").orElseThrow());
         if (typeOptional.isPresent()) {
             String entityTypeName = net.minecraft.world.entity.EntityType.getKey(typeOptional.get()).getPath();
             ListTag posList = nbt.getList("Pos").orElseThrow();
