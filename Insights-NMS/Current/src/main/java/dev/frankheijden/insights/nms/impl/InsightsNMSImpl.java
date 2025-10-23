@@ -19,10 +19,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
+import net.minecraft.world.level.chunk.Strategy;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.chunk.storage.SerializableChunkData;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.ValueInput;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -90,8 +89,9 @@ public class InsightsNMSImpl extends InsightsNMS {
             if (sectionIndex < 0 || sectionIndex >= sectionsCount) continue;
 
             PalettedContainer<BlockState> blockStateContainer;
+            Strategy<BlockState> strategy = serverLevel.palettedContainerFactory().blockStatesStrategy();
             if (sectionTag.contains("block_states")) {
-                Codec<PalettedContainer<BlockState>> blockStateCodec = SerializableChunkData.BLOCK_STATE_CODEC;
+                Codec<PalettedContainer<BlockState>> blockStateCodec = PalettedContainer.codecRW(BlockState.CODEC, strategy, Blocks.AIR.defaultBlockState(), new BlockState[0]);
                 dataResult = blockStateCodec.parse(NbtOps.INSTANCE, sectionTag.getCompound("block_states").orElseThrow())
                         .promotePartial(message -> logger.severe(String.format(
                         CHUNK_ERROR,
@@ -108,12 +108,13 @@ public class InsightsNMSImpl extends InsightsNMS {
                     throw ex;
                 }
             } else {
-                blockStateContainer = new PalettedContainer<>(
-                        Block.BLOCK_STATE_REGISTRY,
-                        Blocks.AIR.defaultBlockState(),
-                        PalettedContainer.Strategy.SECTION_STATES,
-                        null
-                );
+                blockStateContainer = new PalettedContainer<>(Blocks.AIR.defaultBlockState(), strategy, new BlockState[0]);
+//                blockStateContainer = new PalettedContainer<BlockState>(
+//                        Block.BLOCK_STATE_REGISTRY,
+//                        Blocks.AIR.defaultBlockState(),
+//                        Strategy.SECTION_STATES,
+//                        null
+//                );
             }
 
             LevelChunkSection chunkSection = new LevelChunkSection(blockStateContainer, null);

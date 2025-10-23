@@ -24,7 +24,7 @@ public class CommandInsights extends InsightsCommand {
         sender.sendMessage(ColorUtils.colorize(
                 "&8&l&m---------------=&r&8[ &b&lInsights&8 ]&l&m=----------------",
                 "&b Plugin version: &a" + plugin.getDescription().getVersion(),
-                "&b Plugin author: &7FrankHeijden#0099",
+                "&b Plugin author(s): &7" + String.join(", ", plugin.getDescription().getAuthors()),
                 "&b Plugin link: &7https://www.spigotmc.org/resources/56489/",
                 "&b Wiki: &7https://github.com/InsightsPlugin/Insights/wiki",
                 "&8&m-------------------------------------------------"

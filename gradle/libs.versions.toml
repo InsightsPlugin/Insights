@@ -14,10 +14,11 @@ placeholderapi = "2.11.6"
 commodore = "2.2"
 cloudPaper = "2.0.0-beta.9"
 cloud = "2.0.0-rc.2"
+runPaper = "2.3.1"
 
 # plugins
 shadow = "9.0.0-beta2"
-userdev = "2.0.0-beta.17"
+userdev = "2.0.0-beta.19"
 pluginYml = "0.6.0"
 
 [libraries]
@@ -43,3 +44,4 @@ cloudAnnotations = { group = "org.incendo", name = "cloud-annotations", version.
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 userdev = { id = "io.papermc.paperweight.userdev", version.ref = "userdev" }
 pluginYml = { id = "net.minecrell.plugin-yml.bukkit", version.ref = "pluginYml" }
+runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper"}

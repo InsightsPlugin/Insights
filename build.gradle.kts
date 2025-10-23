@@ -7,12 +7,13 @@ plugins {
     `maven-publish`
     alias(libs.plugins.shadow)
     alias(libs.plugins.userdev) apply false
+    alias(libs.plugins.runPaper)
 }
 
 val name = "Insights"
 group = "dev.frankheijden.insights"
 val dependencyDir = "$group.dependencies"
-version = "6.19.7"
+version = "6.19.8"
 
 subprojects {
     apply(plugin = "java")
@@ -162,6 +163,9 @@ tasks {
         rename("(.+)Parent(.+)-all(.+)", "$1$2$3")
     }
 
+    runServer {
+        minecraftVersion("1.21.10")
+    }
 }
 
 buildscript {
