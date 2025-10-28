@@ -72,6 +72,7 @@ subprojects {
         testImplementation(libs.jupiterApi)
         testImplementation(libs.jupiterParams)
         testImplementation(libs.jupiterEngine)
+        testRuntimeOnly(libs.jupiterPlatformLauncher)
     }
 
     tasks {
