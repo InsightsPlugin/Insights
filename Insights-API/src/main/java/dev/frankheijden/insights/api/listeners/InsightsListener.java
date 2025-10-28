@@ -172,7 +172,6 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         Optional<Region> regionOptional = plugin.getAddonManager().getRegion(location);
         World world = location.getWorld();
         long chunkKey = ChunkUtils.getKey(location);
-        UUID uuid = player.getUniqueId();
 
         LimitEnvironment env;
         Optional<Storage> storageOptional;
@@ -199,7 +198,7 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         // Notify the user (if they have permission)
         if (player.hasPermission("insights.notifications")) {
             float progress = (float) (count + delta) / limitInfo.getLimit();
-            plugin.getNotifications().getCachedProgress(uuid, Messages.Key.LIMIT_NOTIFICATION)
+            plugin.getNotifications().getCachedProgress(player.getUniqueId(), Messages.Key.LIMIT_NOTIFICATION)
                     .progress(progress)
                     .add(player)
                     .create()

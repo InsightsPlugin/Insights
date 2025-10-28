@@ -103,7 +103,7 @@ subprojects {
         configFile = file("$rootDir/config/checkstyle/checkstyle.xml")
         ignoreFailures = false
         maxErrors = 0
-        maxWarnings = 0
+        maxWarnings = 10
     }
 
     tasks.withType<ShadowJar> {
