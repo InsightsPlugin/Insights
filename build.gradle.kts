@@ -8,12 +8,14 @@ plugins {
     alias(libs.plugins.shadow)
     alias(libs.plugins.userdev) apply false
     alias(libs.plugins.runPaper)
+    alias(libs.plugins.minotaur)
 }
 
-val name = "Insights"
+
 group = "dev.frankheijden.insights"
+version = "6.20.0"
 val dependencyDir = "$group.dependencies"
-version = "6.19.8"
+val targetMinecraftVersions = listOf("1.21.10", "1.21.9")
 
 subprojects {
     apply(plugin = "java")
@@ -224,3 +226,17 @@ publishing {
         }
     }
 }
+
+modrinth {
+    token.set(System.getenv("MODRINTH_TOKEN") ?: run {
+        return@modrinth
+    })
+    projectId.set("V27CDDh1")
+    versionNumber.set(project.version.toString())
+    versionType.set("release")
+    uploadFile.set(tasks.shadowJar)
+    loaders.addAll("paper", "purpur")
+    gameVersions.addAll(targetMinecraftVersions)
+    changelog.set(System.getenv("CHANGE_LOG") ?: "No changelog provided.")
+}
+
