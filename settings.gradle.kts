@@ -3,15 +3,14 @@ import java.nio.file.Files
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven("https://papermc.io/repo/repository/maven-public/")
+        maven("https://repo.papermc.io/repository/maven-public/")
     }
 }
 
-rootProject.name = "InsightsParent"
+rootProject.name = "Insights"
 include("Insights-API")
-include("Insights")
-Files
-    .list(rootProject.projectDir.toPath().resolve("Insights-NMS"))
+include("Insights-Core")
+Files.list(rootProject.projectDir.toPath().resolve("Insights-NMS"))
     .filter { !it.fileName.toString().startsWith(".") }
     .forEach {
         val name = "Insights-NMS-${it.fileName}"

@@ -24,13 +24,13 @@ public class RTileEntityTypes {
     static {
         try {
             var tileEntityTypesClazz = Class.forName(
-                    "net.minecraft.world.level.block.entity.TileEntityTypes"
+                    "net.minecraft.world.level.block.entity.BlockEntityType"
             );
             var craftBlockDataClazz = Class.forName(
                     "org.bukkit.craftbukkit.block.data.CraftBlockData"
             );
             var blockDataClazz = Class.forName(
-                    "net.minecraft.world.level.block.state.IBlockData"
+                    "net.minecraft.world.level.block.state.BlockState"
             );
             MethodHandle isValidMethodHandle;
             try {
@@ -78,6 +78,7 @@ public class RTileEntityTypes {
                  | InvocationTargetException
                  | IllegalAccessException ex
         ) {
+            ex.printStackTrace();
             throw new RuntimeException(ex);
         }
     }

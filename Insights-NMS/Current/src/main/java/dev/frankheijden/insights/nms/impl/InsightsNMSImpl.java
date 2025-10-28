@@ -14,13 +14,12 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
+import net.minecraft.world.level.chunk.Strategy;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
-import net.minecraft.world.level.chunk.storage.SerializableChunkData;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -55,23 +54,49 @@ public class InsightsNMSImpl extends InsightsNMS {
         if (tagOptional.isEmpty()) return;
         CompoundTag tag = tagOptional.get();
 
-        ListTag sectionsTagList = tag.getList("sections", Tag.TAG_COMPOUND);
+        Optional<ListTag> optionalSectionsTagList = tag.getList("sections");
+        if (optionalSectionsTagList.isEmpty()) {
+            logger.severe(String.format(
+                    CHUNK_ERROR,
+                    chunkX,
+                    0,
+                    chunkZ,
+                    "Sections tag is missing"
+            ));
+            return;
+        }
+        ListTag sectionsTagList = optionalSectionsTagList.get();
 
         DataResult<PalettedContainer<BlockState>> dataResult;
         int nonNullSectionCount = 0;
         for (int i = 0; i < sectionsTagList.size(); i++) {
-            CompoundTag sectionTag = sectionsTagList.getCompound(i);
-            var chunkSectionPart = sectionTag.getByte("Y");
+            Optional<CompoundTag> optionalSectionTag = sectionsTagList.getCompound(i);
+            if (optionalSectionTag.isEmpty()) {
+                logger.severe(String.format(
+                        CHUNK_ERROR,
+                        chunkX,
+                        i,
+                        chunkZ,
+                        "Section tag is missing"
+                ));
+                continue;
+            }
+            CompoundTag sectionTag = optionalSectionTag.get();
+            var chunkSectionPart = sectionTag.getByte("Y").orElseThrow();
             var sectionIndex = serverLevel.getSectionIndexFromSectionY(chunkSectionPart);
             if (sectionIndex < 0 || sectionIndex >= sectionsCount) continue;
 
             PalettedContainer<BlockState> blockStateContainer;
-            if (sectionTag.contains("block_states", Tag.TAG_COMPOUND)) {
-                Codec<PalettedContainer<BlockState>> blockStateCodec = SerializableChunkData.BLOCK_STATE_CODEC;
-                dataResult = blockStateCodec.parse(
-                        NbtOps.INSTANCE,
-                        sectionTag.getCompound("block_states")
-                ).promotePartial(message -> logger.severe(String.format(
+            Strategy<BlockState> strategy = serverLevel.palettedContainerFactory().blockStatesStrategy();
+            if (sectionTag.contains("block_states")) {
+                Codec<PalettedContainer<BlockState>> blockStateCodec = PalettedContainer.codecRW(
+                        BlockState.CODEC,
+                        strategy,
+                        Blocks.AIR.defaultBlockState(),
+                        new BlockState[0]
+                );
+                dataResult = blockStateCodec.parse(NbtOps.INSTANCE, sectionTag.getCompound("block_states").orElseThrow())
+                        .promotePartial(message -> logger.severe(String.format(
                         CHUNK_ERROR,
                         chunkX,
                         chunkSectionPart,
@@ -86,12 +111,7 @@ public class InsightsNMSImpl extends InsightsNMS {
                     throw ex;
                 }
             } else {
-                blockStateContainer = new PalettedContainer<>(
-                        Block.BLOCK_STATE_REGISTRY,
-                        Blocks.AIR.defaultBlockState(),
-                        PalettedContainer.Strategy.SECTION_STATES,
-                        null
-                );
+                blockStateContainer = new PalettedContainer<>(Blocks.AIR.defaultBlockState(), strategy, new BlockState[0]);
             }
 
             LevelChunkSection chunkSection = new LevelChunkSection(blockStateContainer, null);
@@ -134,7 +154,7 @@ public class InsightsNMSImpl extends InsightsNMS {
         );
         if (tag == null) return;
 
-        readChunkEntities(tag.getList("Entities", Tag.TAG_COMPOUND), entityConsumer);
+        readChunkEntities(tag.getList("Entities").orElseThrow(), entityConsumer);
     }
 
     private void readChunkEntities(ListTag listTag, Consumer<ChunkEntity> entityConsumer) {
@@ -144,20 +164,20 @@ public class InsightsNMSImpl extends InsightsNMS {
     }
 
     private void readChunkEntities(CompoundTag nbt, Consumer<ChunkEntity> entityConsumer) {
-        var typeOptional = net.minecraft.world.entity.EntityType.by(nbt);
+        var typeOptional = net.minecraft.world.entity.EntityType.byString(nbt.getString("id").orElseThrow());
         if (typeOptional.isPresent()) {
             String entityTypeName = net.minecraft.world.entity.EntityType.getKey(typeOptional.get()).getPath();
-            ListTag posList = nbt.getList("Pos", Tag.TAG_DOUBLE);
+            ListTag posList = nbt.getList("Pos").orElseThrow();
             entityConsumer.accept(new ChunkEntity(
                     EntityType.fromName(entityTypeName),
-                    Mth.floor(Mth.clamp(posList.getDouble(0), -3E7D, 3E7D)),
-                    Mth.floor(Mth.clamp(posList.getDouble(1), -2E7D, 2E7D)),
-                    Mth.floor(Mth.clamp(posList.getDouble(2), -3E7D, 3E7D))
+                    Mth.floor(Mth.clamp(posList.getDouble(0).orElseThrow(), -3E7D, 3E7D)),
+                    Mth.floor(Mth.clamp(posList.getDouble(1).orElseThrow(), -2E7D, 2E7D)),
+                    Mth.floor(Mth.clamp(posList.getDouble(2).orElseThrow(), -3E7D, 3E7D))
             ));
         }
 
-        if (nbt.contains("Passengers", Tag.TAG_LIST)) {
-            readChunkEntities(nbt.getList("Passengers", Tag.TAG_COMPOUND), entityConsumer);
+        if (nbt.contains("Passengers")) {
+            readChunkEntities(nbt.getList("Passengers").orElseThrow(), entityConsumer);
         }
     }
 

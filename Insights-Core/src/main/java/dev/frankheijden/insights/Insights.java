@@ -61,7 +61,7 @@ import java.util.Locale;
 
 public class Insights extends InsightsPlugin {
 
-    private static final Version minimumCompatibleVersion = Version.of(1, 20, 6);
+    private static final Version minimumCompatibleVersion = Version.of(1, 21, 5);
 
     private static final String SETTINGS_FILE_NAME = "config.yml";
     private static final String MESSAGES_FILE_NAME = "messages.yml";

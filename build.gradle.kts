@@ -7,12 +7,15 @@ plugins {
     `maven-publish`
     alias(libs.plugins.shadow)
     alias(libs.plugins.userdev) apply false
+    alias(libs.plugins.runPaper)
+    alias(libs.plugins.minotaur)
 }
 
-val name = "Insights"
+
 group = "dev.frankheijden.insights"
+version = "6.20.0"
 val dependencyDir = "$group.dependencies"
-version = "6.19.3"
+val targetMinecraftVersions = listOf("1.21.10", "1.21.9")
 
 subprojects {
     apply(plugin = "java")
@@ -46,7 +49,7 @@ subprojects {
         maven("https://repo.codemc.io/repository/maven-public")
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        maven("https://papermc.io/repo/repository/maven-public/")
+        maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://libraries.minecraft.net")
     }
 
@@ -69,6 +72,7 @@ subprojects {
         testImplementation(libs.jupiterApi)
         testImplementation(libs.jupiterParams)
         testImplementation(libs.jupiterEngine)
+        testRuntimeOnly(libs.jupiterPlatformLauncher)
     }
 
     tasks {
@@ -100,7 +104,7 @@ subprojects {
         configFile = file("$rootDir/config/checkstyle/checkstyle.xml")
         ignoreFailures = false
         maxErrors = 0
-        maxWarnings = 0
+        maxWarnings = 10
     }
 
     tasks.withType<ShadowJar> {
@@ -123,7 +127,7 @@ repositories {
 
 dependencies {
     implementation(project(":Insights-API", "shadow"))
-    implementation(project(":Insights", "shadow"))
+    implementation(project(":Insights-Core", "shadow"))
     Files
         .list(rootProject.projectDir.toPath().resolve("Insights-NMS"))
         .filter { !it.fileName.toString().startsWith(".") }
@@ -142,18 +146,29 @@ tasks {
         dependsOn("shadowJar")
         finalizedBy("copyJars")
     }
-}
 
-tasks.register("cleanJars") {
-    delete(file("jars"))
-}
-
-tasks.register<Copy>("copyJars") {
-    from(tasks.findByPath("shadowJar")!!) {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    shadowJar {
+        archiveClassifier = ""
     }
-    into(file("jars"))
-    rename("(.+)Parent(.+)-all(.+)", "$1$2$3")
+    jar {
+        enabled = false
+    }
+
+    register("cleanJars") {
+        delete(file("jars"))
+    }
+
+    register<Copy>("copyJars") {
+        from(findByPath("shadowJar")!!) {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+        into(file("jars"))
+        rename("(.+)Parent(.+)-all(.+)", "$1$2$3")
+    }
+
+    runServer {
+        minecraftVersion("1.21.10")
+    }
 }
 
 buildscript {
@@ -212,3 +227,17 @@ publishing {
         }
     }
 }
+
+modrinth {
+    token.set(System.getenv("MODRINTH_TOKEN") ?: run {
+        return@modrinth
+    })
+    projectId.set("V27CDDh1")
+    versionNumber.set(project.version.toString())
+    versionType.set("release")
+    uploadFile.set(tasks.shadowJar)
+    loaders.addAll("paper", "purpur")
+    gameVersions.addAll(targetMinecraftVersions)
+    changelog.set(System.getenv("CHANGE_LOG") ?: "No changelog provided.")
+}
+

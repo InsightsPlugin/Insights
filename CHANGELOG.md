@@ -1,2 +1,2 @@
 # Changelog
-- 1.21.3 Support by @Jsinco (removes support for <= 1.21.2)
+- Fix [#219](https://github.com/InsightsPlugin/Insights/issues/219), waterlogged blocks being counted on bucket filling. By @Jsinco

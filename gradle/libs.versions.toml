@@ -9,15 +9,18 @@ adventurePlatformBukkit = "4.3.3"
 assertj = "3.23.1"
 mockito = "4.11.0"
 jupiter = "5.9.1"
+jupiterPlatform = "6.0.0"
 brigadier = "1.0.18"
 placeholderapi = "2.11.6"
 commodore = "2.2"
 cloudPaper = "2.0.0-beta.9"
 cloud = "2.0.0-rc.2"
+runPaper = "2.3.1"
+minotaur = "2.8.7"
 
 # plugins
 shadow = "9.0.0-beta2"
-userdev = "1.7.5"
+userdev = "2.0.0-beta.19"
 pluginYml = "0.6.0"
 
 [libraries]
@@ -33,6 +36,7 @@ mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "moc
 jupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "jupiter" }
 jupiterParams = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "jupiter" }
 jupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "jupiter" }
+jupiterPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "jupiterPlatform" }
 brigadier = { group = "com.mojang", name = "brigadier", version.ref = "brigadier" }
 placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
@@ -43,3 +47,5 @@ cloudAnnotations = { group = "org.incendo", name = "cloud-annotations", version.
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 userdev = { id = "io.papermc.paperweight.userdev", version.ref = "userdev" }
 pluginYml = { id = "net.minecrell.plugin-yml.bukkit", version.ref = "pluginYml" }
+runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper"}
+minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
