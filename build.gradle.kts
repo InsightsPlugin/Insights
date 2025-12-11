@@ -132,8 +132,9 @@ dependencies {
         .list(rootProject.projectDir.toPath().resolve("Insights-NMS"))
         .filter { !it.fileName.toString().startsWith(".") }
         .forEach {
-            val configuration = if (it.fileName.toString() == "Core") "shadow" else "reobf"
-            implementation(project(":Insights-NMS-${it.fileName}", configuration))
+            //val configuration = if (it.fileName.toString() == "Core") "shadow" else "reobf"
+            // reobf is no longer needed as we don't support spigot servers and minecraft is no longer obfuscated
+            implementation(project(":Insights-NMS-${it.fileName}", "shadow"))
         }
 }
 
