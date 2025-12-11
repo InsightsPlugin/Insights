@@ -9,6 +9,7 @@ import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.util.MaterialTags;
 import dev.frankheijden.insights.api.utils.BlockUtils;
 import dev.frankheijden.insights.api.utils.ChunkUtils;
+import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -120,12 +121,10 @@ public class BlockListener extends InsightsListener {
 
         if (Tag.BEDS.isTagged(material)) {
             Optional<Block> blockOptional = BlockUtils.getOtherHalf(block);
-            if (blockOptional.isPresent()) {
-                var otherHalf = blockOptional.get();
-
-                // Update the other half's location
+            // Update the other half's location
+            blockOptional.ifPresent(otherHalf -> {
                 handleModification(otherHalf.getLocation(), material, -1);
-            }
+            });
         }
 
         // Handle the removal
@@ -272,6 +271,16 @@ public class BlockListener extends InsightsListener {
         for (Block explodedBlock : event.blockList()) {
             handleModification(explodedBlock, -1);
         }
+    }
+
+    /**
+     * Handles blocks breaking other blocks (like flowing water breaking redstone/torches).
+     */
+    @AllowDisabling
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockBreakBlock(BlockBreakBlockEvent event) {
+        var block = event.getBlock();
+        handleModification(block, -1);
     }
 
     /**

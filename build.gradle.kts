@@ -13,7 +13,7 @@ plugins {
 
 
 group = "dev.frankheijden.insights"
-version = "6.20.1"
+version = "6.20.2"
 val dependencyDir = "$group.dependencies"
 val targetMinecraftVersions = listOf("1.21.10", "1.21.9")
 
@@ -132,8 +132,9 @@ dependencies {
         .list(rootProject.projectDir.toPath().resolve("Insights-NMS"))
         .filter { !it.fileName.toString().startsWith(".") }
         .forEach {
-            val configuration = if (it.fileName.toString() == "Core") "shadow" else "reobf"
-            implementation(project(":Insights-NMS-${it.fileName}", configuration))
+            //val configuration = if (it.fileName.toString() == "Core") "shadow" else "reobf"
+            // reobf is no longer needed as we don't support spigot servers and minecraft is no longer obfuscated
+            implementation(project(":Insights-NMS-${it.fileName}", "shadow"))
         }
 }
 
