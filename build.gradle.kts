@@ -15,7 +15,7 @@ plugins {
 group = "dev.frankheijden.insights"
 version = "6.20.2"
 val dependencyDir = "$group.dependencies"
-val targetMinecraftVersions = listOf("1.21.10", "1.21.9")
+val targetMinecraftVersions = listOf("1.21.11", "1.21.10", "1.21.9")
 
 subprojects {
     apply(plugin = "java")
@@ -168,7 +168,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.21.10")
+        minecraftVersion("1.21.11")
     }
 }
 
