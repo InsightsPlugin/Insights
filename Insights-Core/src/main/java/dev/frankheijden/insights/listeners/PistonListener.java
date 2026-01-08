@@ -97,11 +97,12 @@ public class PistonListener extends InsightsListener {
         if (storageOptional.isEmpty()) {
             if (regionOptional.isPresent()) {
                 Region region = regionOptional.get();
-                plugin.getAddonScanTracker().add(region.getAddon());
+                String key = region.getKey();
+                plugin.getAddonScanTracker().add(key);
                 List<ChunkPart> chunkParts = region.toChunkParts();
                 ScanTask.scan(plugin, chunkParts, chunkParts.size(), ScanOptions.scanOnly(), info -> {}, storage -> {
-                    plugin.getAddonScanTracker().remove(region.getAddon());
-                    plugin.getAddonStorage().put(region.getKey(), storage);
+                    plugin.getAddonScanTracker().remove(key);
+                    plugin.getAddonStorage().put(key, storage);
                 });
             } else {
                 plugin.getChunkContainerExecutor().submit(chunk);
