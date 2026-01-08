@@ -34,7 +34,7 @@ public abstract class InsightsNMS {
             int chunkX,
             int chunkZ,
             Consumer<ChunkSection> sectionConsumer
-    );
+    ) throws IOException;
 
     public abstract void getLoadedChunkEntities(Chunk chunk, Consumer<ChunkEntity> entityConsumer);
 
