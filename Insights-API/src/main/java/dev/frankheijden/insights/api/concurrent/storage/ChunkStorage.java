@@ -1,16 +1,26 @@
 package dev.frankheijden.insights.api.concurrent.storage;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkStorage {
 
+    private static final int MAX_CACHED_CHUNKS = 5000;
     private final Map<Long, Storage> distributionMap;
 
     public ChunkStorage() {
-        this.distributionMap = new ConcurrentHashMap<>();
+        // LRU cache with 5000 chunk limit to avoid re-scanning on chunk reload
+        this.distributionMap = Collections.synchronizedMap(
+            new LinkedHashMap<>(MAX_CACHED_CHUNKS, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<Long, Storage> eldest) {
+                    return size() > MAX_CACHED_CHUNKS;
+                }
+            }
+        );
     }
 
     public Set<Long> getChunks() {

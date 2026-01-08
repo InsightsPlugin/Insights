@@ -17,13 +17,13 @@ public class ChunkListener extends InsightsListener {
     }
 
     /**
-     * Cleans up any chunk data from insights when a chunk unloads.
+     * Cleans up redstone count when chunk unloads.
+     * Chunk cache is NOT removed - managed by LRU (max 5000 chunks).
      */
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         Chunk chunk = event.getChunk();
         long chunkKey = ChunkUtils.getKey(chunk);
-        plugin.getWorldStorage().getWorld(chunk.getWorld().getUID()).remove(chunkKey);
         insights.getRedstoneUpdateCount().remove(chunkKey);
     }
 }
