@@ -253,10 +253,14 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         AddonStorage addonStorage = plugin.getAddonStorage();
         Optional<Storage> storageOptional = addonStorage.get(key);
         if (storageOptional.isEmpty()) {
-            // Check if a scan is already in progress for this region to prevent duplicate scans
-            if (plugin.getAddonScanTracker().isQueued(key)) {
+            // Use tryAdd to atomically check if a scan is already in progress
+            if (!plugin.getAddonScanTracker().tryAdd(key)) {
+                // A scan is already in progress, but we need to remove the tracker
+                // since scanRegion won't be called
                 return Optional.empty();
             }
+            // Remove the tracker since scanRegion will add it again
+            plugin.getAddonScanTracker().remove(key);
 
             // Notify the user scan started
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
@@ -359,13 +363,12 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     private void scanRegion(Player player, Region region, Consumer<Storage> storageConsumer) {
         String key = region.getKey();
 
-        // Prevent duplicate scans for the same region
-        if (plugin.getAddonScanTracker().isQueued(key)) {
+        // Use tryAdd to atomically prevent duplicate scans for the same region
+        if (!plugin.getAddonScanTracker().tryAdd(key)) {
             return;
         }
 
         // Submit the cuboid for scanning
-        plugin.getAddonScanTracker().add(key);
         List<ChunkPart> chunkParts = region.toChunkParts();
         ScanTask.scan(
                 plugin,

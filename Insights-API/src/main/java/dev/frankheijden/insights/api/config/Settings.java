@@ -53,6 +53,9 @@ public class Settings {
     public final int REDSTONE_UPDATE_AGGREGATE_TICKS;
     public final int REDSTONE_UPDATE_AGGREGATE_SIZE;
     public final boolean REDSTONE_UPDATE_LIMITER_BLOCK_OUTSIDE_REGION;
+    public final int CHUNK_CACHE_MAX_SIZE;
+    public final int ADDON_CACHE_MAX_SIZE;
+    public final long ADDON_CACHE_TTL_MINUTES;
 
     /**
      * Constructs a new Settings object from the given YamlParser.
@@ -73,6 +76,10 @@ public class Settings {
 
         CHUNK_SCANS_MODE = parser.getEnum("settings.chunk-scans.mode", ChunkScanMode.ALWAYS);
         CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS = parser.getInt("settings.chunk-scans.player-tracker-interval-ticks", 5, 1, Integer.MAX_VALUE);
+
+        CHUNK_CACHE_MAX_SIZE = parser.getInt("settings.chunk-cache.max-size", 5000, 100, Integer.MAX_VALUE);
+        ADDON_CACHE_MAX_SIZE = parser.getInt("settings.addon-cache.max-size", 500, 1, Integer.MAX_VALUE);
+        ADDON_CACHE_TTL_MINUTES = parser.getInt("settings.addon-cache.ttl-minutes", 10, 1, Integer.MAX_VALUE);
 
         NOTIFICATION_TYPE = parser.getEnum("settings.notification.type", NotificationType.BOSSBAR);
 

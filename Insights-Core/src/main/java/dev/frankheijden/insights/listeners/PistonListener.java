@@ -98,7 +98,11 @@ public class PistonListener extends InsightsListener {
             if (regionOptional.isPresent()) {
                 Region region = regionOptional.get();
                 String key = region.getKey();
-                plugin.getAddonScanTracker().add(key);
+                // Use tryAdd to atomically prevent duplicate scans
+                if (!plugin.getAddonScanTracker().tryAdd(key)) {
+                    // Another scan is already in progress
+                    return true;
+                }
                 List<ChunkPart> chunkParts = region.toChunkParts();
                 ScanTask.scan(plugin, chunkParts, chunkParts.size(), ScanOptions.scanOnly(), info -> {}, storage -> {
                     plugin.getAddonScanTracker().remove(key);
