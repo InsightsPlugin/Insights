@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
@@ -70,7 +71,7 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
         return cuboid;
     }
 
-    public abstract void getChunkSections(Consumer<@NotNull ChunkSection> sectionConsumer) throws IOException;
+    public abstract void getChunkSections(Consumer<@Nullable ChunkSection> sectionConsumer) throws IOException;
 
     public abstract void getChunkEntities(Consumer<@NotNull ChunkEntity> entityConsumer) throws IOException;
 
@@ -90,6 +91,10 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
             int maxSectionY = blockMaxY >> 4;
             try {
                 getChunkSections(section -> {
+                    // Skip null sections - they represent empty sections that don't need to be counted
+                    // unless we're calculating totals, but for limits we only care about non-air blocks
+                    if (section == null) return;
+
                     int sectionY = section.index();
                     if (sectionY < minSectionY || sectionY > maxSectionY) return;
                     int minY = sectionY == minSectionY ? blockMinY & 15 : 0;

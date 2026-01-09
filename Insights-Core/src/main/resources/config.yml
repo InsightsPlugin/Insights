@@ -11,6 +11,19 @@ settings:
   chunk-scans:
     mode: "ALWAYS"
     player-tracker-interval-ticks: 5
+
+  # Chunk cache: stores scanned chunk data per world (LRU eviction)
+  chunk-cache:
+    # Max chunks cached PER WORLD (e.g. 3 worlds = up to 15000 total)
+    max-size: 5000
+
+  # Addon cache: stores region data for Lands, WorldGuard, etc. (LRU + TTL)
+  addon-cache:
+    # Max regions in cache (LRU evicts least recently used when full)
+    max-size: 500
+    # Minutes before cached region expires and requires re-scan
+    ttl-minutes: 10
+
   notification:
     type: "BOSSBAR"
     bossbar:

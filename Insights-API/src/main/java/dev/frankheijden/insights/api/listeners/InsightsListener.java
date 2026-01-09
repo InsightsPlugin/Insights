@@ -253,6 +253,15 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
         AddonStorage addonStorage = plugin.getAddonStorage();
         Optional<Storage> storageOptional = addonStorage.get(key);
         if (storageOptional.isEmpty()) {
+            // Use tryAdd to atomically check if a scan is already in progress
+            if (!plugin.getAddonScanTracker().tryAdd(key)) {
+                // A scan is already in progress, but we need to remove the tracker
+                // since scanRegion won't be called
+                return Optional.empty();
+            }
+            // Remove the tracker since scanRegion will add it again
+            plugin.getAddonScanTracker().remove(key);
+
             // Notify the user scan started
             if (plugin.getSettings().canReceiveAreaScanNotifications(player)) {
                 plugin.getMessages().getMessage(Messages.Key.AREA_SCAN_STARTED).addTemplates(
@@ -352,8 +361,14 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
     }
 
     private void scanRegion(Player player, Region region, Consumer<Storage> storageConsumer) {
+        String key = region.getKey();
+
+        // Use tryAdd to atomically prevent duplicate scans for the same region
+        if (!plugin.getAddonScanTracker().tryAdd(key)) {
+            return;
+        }
+
         // Submit the cuboid for scanning
-        plugin.getAddonScanTracker().add(region.getAddon());
         List<ChunkPart> chunkParts = region.toChunkParts();
         ScanTask.scan(
                 plugin,
@@ -365,10 +380,10 @@ public abstract class InsightsListener extends InsightsBase implements Listener 
                 DistributionStorage::new,
                 (storage, loc, acc) -> storage.mergeRight(acc),
                 storage -> {
-                    plugin.getAddonScanTracker().remove(region.getAddon());
+                    plugin.getAddonScanTracker().remove(key);
 
                     // Store the cuboid
-                    plugin.getAddonStorage().put(region.getKey(), storage);
+                    plugin.getAddonStorage().put(key, storage);
 
                     // Give the result back to the consumer
                     storageConsumer.accept(storage);

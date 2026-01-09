@@ -28,7 +28,7 @@ public class UnloadedChunkContainer extends ChunkContainer {
     }
 
     @Override
-    public void getChunkSections(Consumer<@Nullable ChunkSection> sectionConsumer) {
+    public void getChunkSections(Consumer<@Nullable ChunkSection> sectionConsumer) throws IOException {
         nms.getUnloadedChunkSections(world, chunkX, chunkZ, sectionConsumer);
     }
 

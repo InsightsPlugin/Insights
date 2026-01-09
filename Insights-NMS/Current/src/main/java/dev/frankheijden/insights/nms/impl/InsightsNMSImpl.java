@@ -1,24 +1,10 @@
 package dev.frankheijden.insights.nms.impl;
 
-import ca.spottedleaf.concurrentutil.util.Priority;
-import ca.spottedleaf.moonrise.patches.chunk_system.io.MoonriseRegionFileIO;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
 import dev.frankheijden.insights.nms.core.ChunkSection;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.chunk.PalettedContainer;
-import net.minecraft.world.level.chunk.Strategy;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -27,9 +13,7 @@ import org.bukkit.craftbukkit.CraftChunk;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
-import org.bukkit.entity.EntityType;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -44,83 +28,31 @@ public class InsightsNMSImpl extends InsightsNMS {
     }
 
     @Override
-    public void getUnloadedChunkSections(World world, int chunkX, int chunkZ, Consumer<ChunkSection> sectionConsumer) {
-        var serverLevel = ((CraftWorld) world).getHandle();
-        int sectionsCount = serverLevel.getSectionsCount();
-        var chunkMap = serverLevel.getChunkSource().chunkMap;
-        var chunkPos = new ChunkPos(chunkX, chunkZ);
-
-        Optional<CompoundTag> tagOptional = chunkMap.read(chunkPos).join();
-        if (tagOptional.isEmpty()) return;
-        CompoundTag tag = tagOptional.get();
-
-        Optional<ListTag> optionalSectionsTagList = tag.getList("sections");
-        if (optionalSectionsTagList.isEmpty()) {
-            logger.severe(String.format(
-                    CHUNK_ERROR,
-                    chunkX,
-                    0,
-                    chunkZ,
-                    "Sections tag is missing"
-            ));
-            return;
-        }
-        ListTag sectionsTagList = optionalSectionsTagList.get();
-
-        DataResult<PalettedContainer<BlockState>> dataResult;
-        int nonNullSectionCount = 0;
-        for (int i = 0; i < sectionsTagList.size(); i++) {
-            Optional<CompoundTag> optionalSectionTag = sectionsTagList.getCompound(i);
-            if (optionalSectionTag.isEmpty()) {
-                logger.severe(String.format(
-                        CHUNK_ERROR,
-                        chunkX,
-                        i,
-                        chunkZ,
-                        "Section tag is missing"
-                ));
-                continue;
-            }
-            CompoundTag sectionTag = optionalSectionTag.get();
-            var chunkSectionPart = sectionTag.getByte("Y").orElseThrow();
-            var sectionIndex = serverLevel.getSectionIndexFromSectionY(chunkSectionPart);
-            if (sectionIndex < 0 || sectionIndex >= sectionsCount) continue;
-
-            PalettedContainer<BlockState> blockStateContainer;
-            Strategy<BlockState> strategy = serverLevel.palettedContainerFactory().blockStatesStrategy();
-            if (sectionTag.contains("block_states")) {
-                Codec<PalettedContainer<BlockState>> blockStateCodec = PalettedContainer.codecRW(
-                        BlockState.CODEC,
-                        strategy,
-                        Blocks.AIR.defaultBlockState(),
-                        new BlockState[0]
-                );
-                dataResult = blockStateCodec.parse(NbtOps.INSTANCE, sectionTag.getCompound("block_states").orElseThrow())
-                        .promotePartial(message -> logger.severe(String.format(
-                        CHUNK_ERROR,
-                        chunkX,
-                        chunkSectionPart,
-                        chunkZ,
-                        message
-                )));
-
-                try {
-                    blockStateContainer = dataResult.getOrThrow();
-                } catch (IllegalStateException ex) {
-                    logger.severe(ex.getMessage());
-                    throw ex;
-                }
+    public void getUnloadedChunkSections(
+            World world,
+            int chunkX,
+            int chunkZ,
+            Consumer<ChunkSection> sectionConsumer
+    ) throws IOException {
+        // Use getChunkAtAsync to safely load the chunk without touching files directly
+        // This prevents data corruption and uses Bukkit's proper chunk loading mechanism
+        // The chunk will be loaded temporarily and then unloaded automatically
+        try {
+            Chunk chunk = world.getChunkAtAsync(chunkX, chunkZ, false).join();
+            if (chunk != null) {
+                // Chunk loaded successfully, use the same logic as loaded chunks
+                getLoadedChunkSections(chunk, sectionConsumer);
             } else {
-                blockStateContainer = new PalettedContainer<>(Blocks.AIR.defaultBlockState(), strategy, new BlockState[0]);
+                // Chunk doesn't exist or couldn't be loaded
+                // Return null sections for all expected sections
+                var serverLevel = ((CraftWorld) world).getHandle();
+                int sectionsCount = serverLevel.getSectionsCount();
+                for (int i = 0; i < sectionsCount; i++) {
+                    sectionConsumer.accept(null);
+                }
             }
-
-            LevelChunkSection chunkSection = new LevelChunkSection(blockStateContainer, null);
-            sectionConsumer.accept(new ChunkSectionImpl(chunkSection, sectionIndex));
-            nonNullSectionCount++;
-        }
-
-        for (int i = nonNullSectionCount; i < sectionsCount; i++) {
-            sectionConsumer.accept(null);
+        } catch (Exception e) {
+            throw new IOException("Failed to load chunk at (" + chunkX + ", " + chunkZ + ")", e);
         }
     }
 
@@ -144,40 +76,16 @@ public class InsightsNMSImpl extends InsightsNMS {
             int chunkZ,
             Consumer<ChunkEntity> entityConsumer
     ) throws IOException {
-        var serverLevel = ((CraftWorld) world).getHandle();
-        CompoundTag tag = MoonriseRegionFileIO.loadData(
-                serverLevel,
-                chunkX,
-                chunkZ,
-                MoonriseRegionFileIO.RegionFileType.ENTITY_DATA,
-                Priority.BLOCKING
-        );
-        if (tag == null) return;
-
-        readChunkEntities(tag.getList("Entities").orElseThrow(), entityConsumer);
-    }
-
-    private void readChunkEntities(ListTag listTag, Consumer<ChunkEntity> entityConsumer) {
-        for (Tag tag : listTag) {
-            readChunkEntities((CompoundTag) tag, entityConsumer);
-        }
-    }
-
-    private void readChunkEntities(CompoundTag nbt, Consumer<ChunkEntity> entityConsumer) {
-        var typeOptional = net.minecraft.world.entity.EntityType.byString(nbt.getString("id").orElseThrow());
-        if (typeOptional.isPresent()) {
-            String entityTypeName = net.minecraft.world.entity.EntityType.getKey(typeOptional.get()).getPath();
-            ListTag posList = nbt.getList("Pos").orElseThrow();
-            entityConsumer.accept(new ChunkEntity(
-                    EntityType.fromName(entityTypeName),
-                    Mth.floor(Mth.clamp(posList.getDouble(0).orElseThrow(), -3E7D, 3E7D)),
-                    Mth.floor(Mth.clamp(posList.getDouble(1).orElseThrow(), -2E7D, 2E7D)),
-                    Mth.floor(Mth.clamp(posList.getDouble(2).orElseThrow(), -3E7D, 3E7D))
-            ));
-        }
-
-        if (nbt.contains("Passengers")) {
-            readChunkEntities(nbt.getList("Passengers").orElseThrow(), entityConsumer);
+        // Use getChunkAtAsync to safely load the chunk without touching files directly
+        try {
+            Chunk chunk = world.getChunkAtAsync(chunkX, chunkZ, false).join();
+            if (chunk != null) {
+                // Chunk loaded successfully, use the same logic as loaded chunks
+                getLoadedChunkEntities(chunk, entityConsumer);
+            }
+            // If chunk is null, no entities to return
+        } catch (Exception e) {
+            throw new IOException("Failed to load chunk entities at (" + chunkX + ", " + chunkZ + ")", e);
         }
     }
 
