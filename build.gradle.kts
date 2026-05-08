@@ -150,6 +150,9 @@ tasks {
 
     shadowJar {
         archiveClassifier = ""
+        manifest {
+            attributes("paperweight-mappings-namespace" to "mojang")
+        }
     }
     jar {
         enabled = false
