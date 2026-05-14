@@ -70,7 +70,9 @@ public class CommandScanCache extends InsightsCommand {
         if (optionalRegion.isPresent()) {
             plugin.getAddonStorage().remove(optionalRegion.get().getKey());
         } else {
-            plugin.getWorldStorage().getWorld(loc.getWorld().getUID()).remove(ChunkUtils.getKey(loc.getChunk()));
+            int chunkX = loc.getBlockX() >> 4;
+            int chunkZ = loc.getBlockZ() >> 4;
+            plugin.getWorldStorage().getWorld(loc.getWorld().getUID()).remove(ChunkUtils.getKey(chunkX, chunkZ));
         }
 
         String areaName = optionalRegion
@@ -93,9 +95,11 @@ public class CommandScanCache extends InsightsCommand {
         if (optionalRegion.isPresent()) {
             optionalStorage = plugin.getAddonStorage().get(optionalRegion.get().getKey());
         } else {
+            int chunkX = loc.getBlockX() >> 4;
+            int chunkZ = loc.getBlockZ() >> 4;
             optionalStorage = plugin.getWorldStorage()
                     .getWorld(loc.getWorld().getUID())
-                    .get(ChunkUtils.getKey(loc.getChunk()));
+                    .get(ChunkUtils.getKey(chunkX, chunkZ));
         }
 
         if (optionalStorage.isPresent()) {

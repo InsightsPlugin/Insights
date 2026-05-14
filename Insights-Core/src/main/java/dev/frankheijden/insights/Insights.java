@@ -43,11 +43,11 @@ import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.lib.PaperLib;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.scheduler.BukkitTask;
 import org.incendo.cloud.annotations.AnnotationParser;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.PaperCommandManager;
@@ -58,6 +58,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class Insights extends InsightsPlugin {
 
@@ -83,8 +84,8 @@ public class Insights extends InsightsPlugin {
     private ScanHistory scanHistory;
     private ListenerManager listenerManager;
     private InsightsPlaceholderExpansion placeholderExpansion;
-    private BukkitTask playerTracker = null;
-    private BukkitTask updateChecker = null;
+    private ScheduledTask playerTracker = null;
+    private ScheduledTask updateChecker = null;
     private BukkitAudiences audiences = null;
     private RedstoneUpdateCount redstoneUpdateCount = null;
     private ChunkTeleport chunkTeleport;
@@ -117,7 +118,7 @@ public class Insights extends InsightsPlugin {
             ex.printStackTrace();
         }
 
-        getServer().getScheduler().runTaskLater(this, () -> {
+        getServer().getGlobalRegionScheduler().runDelayed(this, (scheduledTask) -> {
             try {
                 addonManager.loadAddons();
             } catch (IOException ex) {
@@ -379,11 +380,12 @@ public class Insights extends InsightsPlugin {
         }
 
         if (settings.CHUNK_SCANS_MODE == Settings.ChunkScanMode.ALWAYS) {
-            playerTracker = getServer().getScheduler().runTaskTimerAsynchronously(
+            playerTracker = getServer().getAsyncScheduler().runAtFixedRate(
                     this,
-                    new PlayerTrackerTask(this),
-                    0,
-                    settings.CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS
+                    scheduledTask -> new PlayerTrackerTask(this).run(),
+                    1L,
+                    settings.CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS * 50L,
+                    TimeUnit.MILLISECONDS
             );
         }
 
@@ -392,11 +394,12 @@ public class Insights extends InsightsPlugin {
         }
 
         if (settings.UPDATE_CHECKER_ENABLED) {
-            updateChecker = getServer().getScheduler().runTaskTimerAsynchronously(
+            updateChecker = getServer().getAsyncScheduler().runAtFixedRate(
                     this,
-                    new UpdateCheckerTask(this),
-                    20,
-                    20L * settings.UPDATE_CHECKER_INTERVAL_SECONDS
+                    scheduledTask -> new UpdateCheckerTask(this).run(),
+                    20 * 50L,
+                    20L * settings.UPDATE_CHECKER_INTERVAL_SECONDS * 50L,
+                    TimeUnit.MILLISECONDS
             );
         }
 

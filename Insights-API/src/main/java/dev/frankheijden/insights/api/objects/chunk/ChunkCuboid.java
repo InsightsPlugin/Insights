@@ -5,10 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkCuboid {
 
-    private static final Map<UUID, ChunkCuboid> maxCuboidCache = new HashMap<>();
+    private static final Map<UUID, ChunkCuboid> maxCuboidCache = new ConcurrentHashMap<>();
 
     private final ChunkVector min;
     private final ChunkVector max;
