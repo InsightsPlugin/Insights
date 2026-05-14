@@ -13,10 +13,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Level;
@@ -36,7 +36,7 @@ public class AddonManager {
     public AddonManager(InsightsPlugin plugin, Path addonsFolder) {
         this.plugin = plugin;
         this.addonsFolder = addonsFolder;
-        this.addons = new HashMap<>();
+        this.addons = new ConcurrentHashMap<>();
     }
 
     /**

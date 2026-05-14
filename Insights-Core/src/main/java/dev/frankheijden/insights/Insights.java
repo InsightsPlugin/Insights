@@ -118,13 +118,13 @@ public class Insights extends InsightsPlugin {
             ex.printStackTrace();
         }
 
-        getServer().getGlobalRegionScheduler().runDelayed(this, (scheduledTask) -> {
+        getServer().getAsyncScheduler().runDelayed(this, (scheduledTask) -> {
             try {
                 addonManager.loadAddons();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-        }, 1);
+        }, 50L, TimeUnit.MILLISECONDS);
 
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
         worldStorage = new WorldStorage();
