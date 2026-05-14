@@ -24,6 +24,9 @@ class LazyChunkPartRadiusIteratorTest {
     @MethodSource("radiusGenerator")
     void determineChunkParts(int chunkX, int chunkZ, int radius) {
         World world = Mockito.mock(World.class);
+        Mockito.when(world.getUID()).thenReturn(java.util.UUID.randomUUID());
+        Mockito.when(world.getMinHeight()).thenReturn(-64);
+        Mockito.when(world.getMaxHeight()).thenReturn(320);
 
         int edge = (2 * radius) + 1;
         int chunkCount = edge * edge;
