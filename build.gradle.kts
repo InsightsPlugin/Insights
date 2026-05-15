@@ -13,9 +13,9 @@ plugins {
 
 
 group = "dev.frankheijden.insights"
-version = "6.21.1"
+version = "6.21.2"
 val dependencyDir = "$group.dependencies"
-val targetMinecraftVersions = listOf("26.1.2", "1.21.11", "1.21.10", "1.21.9")
+val targetMinecraftVersions = listOf("26.1.2", "1.21.11", "1.21.10")
 
 subprojects {
     apply(plugin = "java")
@@ -208,16 +208,16 @@ task("printVersion") {
 publishing {
     repositories {
         maven {
-            name = "fvdh"
+            name = "jsinco-repo"
             url = if (version.toString().toVersion().preRelease == null) {
-                uri("https://repo.fvdh.dev/releases")
+                uri("https://repo.jsinco.dev/releases")
             } else {
-                uri("https://repo.fvdh.dev/snapshots")
+                uri("https://repo.jsinco.dev/snapshots")
             }
 
             credentials {
-                username = System.getenv("FVDH_USERNAME")
-                password = System.getenv("FVDH_TOKEN")
+                username = System.getenv("JSINCO_REPO_USERNAME")
+                password = System.getenv("JSINCO_REPO_SECRET")
             }
         }
     }
@@ -238,7 +238,7 @@ modrinth {
     versionNumber.set(project.version.toString())
     versionType.set("release")
     uploadFile.set(tasks.shadowJar)
-    loaders.addAll("paper", "purpur")
+    loaders.addAll("paper", "purpur", "folia")
     gameVersions.addAll(targetMinecraftVersions)
     changelog.set(System.getenv("CHANGE_LOG") ?: "No changelog provided.")
 }

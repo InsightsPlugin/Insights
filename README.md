@@ -1,16 +1,16 @@
 # Insights
 <div align="center">
-  <a href="https://github.com/FrankHeijden/Insights/actions">
-    <img alt="GitHub Actions" src="https://github.com/FrankHeijden/Insights/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=main"/>
+  <a href="https://github.com/InsightsPlugin/Insights/actions">
+    <img alt="GitHub Actions" src="https://github.com/InsightsPlugin/Insights/actions/workflows/publish.yml/badge.svg?branch=main"/>
   </a>
-  <a href="https://repo.fvdh.dev/#/releases/dev/frankheijden/insights/Insights">
-    <img alt="FvdH Repository" src="https://repo.fvdh.dev/api/badge/latest/releases/dev/frankheijden/insights/Insights?color=40c14a&amp;name=fvdh-repository"/>
+  <a href="https://repo.jsinco.dev/#/releases/dev/frankheijden/insights/Insights">
+    <img alt="Maven Version" src="https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo.jsinco.dev%2Freleases%2Fdev%2Ffrankheijden%2Finsights%2FInsights%2Fmaven-metadata.xml&color=40c14a&label=jsinco-repo"/>
   </a>
-  <a href="https://github.com/FrankHeijden/Insights/releases/latest">
+  <a href="https://github.com/InsightsPlugin/Insights/releases/latest">
     <img alt="GitHub Releases" src="https://img.shields.io/github/release/FrankHeijden/Insights.svg?label=GitHub%20Releases&color=40c14a"/>
   </a>
-  <a href="https://www.spigotmc.org/resources/56489/">
-    <img alt="Spigot Downloads" src="https://img.shields.io/badge/dynamic/json.svg?color=40c14a&label=Downloads%20%28SpigotMC%29&query=%24.downloads&url=https%3A%2F%2Fapi.spiget.org%2Fv2%2Fresources%2F56489"/>
+  <a href="https://modrinth.com/plugin/insights">
+    <img alt="Modrinth Downloads" src="https://img.shields.io/modrinth/dt/insights?color=40c14a&label=Downloads%20%28Modrinth%29"/>
   </a>
   <a href="https://www.spigotmc.org/resources/56489/">
     <img alt="Spigot Ratings" src="https://img.shields.io/badge/dynamic/json.svg?color=40c14a&label=Ratings%20%28SpigotMC%29&query=%24.rating.average&suffix=%20%2F%205&url=https%3A%2F%2Fapi.spiget.org%2Fv2%2Fresources%2F56489"/>
@@ -77,7 +77,7 @@ There are two ways to compile Insights:
 ### Repository / Dependency
 If you wish to use snapshot version of Insights, you can use the following repo:
 ```
-https://repo.fvdh.dev/snapshots
+https://repo.jsinco.dev/snapshots
 ```
 
 #### Gradle:
@@ -87,7 +87,7 @@ repositories {
 }
 
 dependencies {
-  maven("https://repo.fvdh.dev/releases")
+  maven("https://repo.jsinco.dev/releases")
 }
 ```
 
@@ -97,8 +97,8 @@ dependencies {
   <repositories>
     <!-- Insights repo -->
     <repository>
-      <id>fvdh</id>
-      <url>https://repo.fvdh.dev/releases</url>
+      <id>jsinco-repo</id>
+      <url>https://repo.jsinco.dev/releases</url>
     </repository>
   </repositories>
   
