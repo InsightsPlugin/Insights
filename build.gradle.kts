@@ -238,7 +238,7 @@ modrinth {
     versionNumber.set(project.version.toString())
     versionType.set("release")
     uploadFile.set(tasks.shadowJar)
-    loaders.addAll("paper", "purpur")
+    loaders.addAll("paper", "purpur", "folia")
     gameVersions.addAll(targetMinecraftVersions)
     changelog.set(System.getenv("CHANGE_LOG") ?: "No changelog provided.")
 }
