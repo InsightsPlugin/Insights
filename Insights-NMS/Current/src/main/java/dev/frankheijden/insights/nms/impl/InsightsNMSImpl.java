@@ -29,7 +29,6 @@ import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.util.Optional;
 import java.util.function.BiConsumer;

@@ -9,7 +9,6 @@ import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.util.LazyChunkPartRadiusIterator;
 import dev.frankheijden.insights.api.utils.Constants;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;

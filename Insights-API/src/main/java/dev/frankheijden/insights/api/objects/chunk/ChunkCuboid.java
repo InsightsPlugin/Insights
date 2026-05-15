@@ -1,7 +1,6 @@
 package dev.frankheijden.insights.api.objects.chunk;
 
 import org.bukkit.World;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
