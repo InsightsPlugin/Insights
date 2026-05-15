@@ -1,9 +1,10 @@
 package dev.frankheijden.insights.api.concurrent.count;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
-import org.bukkit.scheduler.BukkitTask;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class TickResetCount<T> {
 
@@ -12,7 +13,7 @@ public class TickResetCount<T> {
     private final int size;
     private final Map<T, IntegerCount> counts;
     private final ResetTask resetTask;
-    private BukkitTask bukkitTask = null;
+    private ScheduledTask task = null;
 
     /**
      * Constructs a new TickResetCount.
@@ -30,15 +31,16 @@ public class TickResetCount<T> {
      * @throws IllegalStateException If the task is already running.
      */
     public void start() {
-        if (bukkitTask != null) {
+        if (task != null) {
             throw new IllegalStateException("ResetTask is already running!");
         }
 
-        this.bukkitTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(
+        this.task = plugin.getServer().getAsyncScheduler().runAtFixedRate(
                 plugin,
-                resetTask,
-                0,
-                intervalTicks
+                scheduledTask -> resetTask.run(),
+                1L,
+                intervalTicks * 50L,
+                TimeUnit.MILLISECONDS
         );
     }
 
@@ -47,12 +49,12 @@ public class TickResetCount<T> {
      * @throws IllegalStateException If the task is not running.
      */
     public void stop() {
-        if (bukkitTask == null) {
+        if (task == null) {
             throw new IllegalStateException("ResetTask is not running!");
         }
 
-        this.bukkitTask.cancel();
-        this.bukkitTask = null;
+        this.task.cancel();
+        this.task = null;
     }
 
     public int getCurrentTick() {

@@ -6,9 +6,9 @@ import dev.frankheijden.insights.api.config.notifications.Notification;
 import dev.frankheijden.insights.api.config.notifications.NotificationFactory;
 import dev.frankheijden.insights.api.config.notifications.ProgressNotification;
 import dev.frankheijden.insights.api.config.notifications.ProgressNotificationFactory;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Notifications {
 
@@ -16,8 +16,8 @@ public class Notifications {
     private final ProgressNotificationFactory progressNotificationFactory;
     private final Messages messages;
     private final Settings.NotificationType type;
-    private final Map<UUID, Cache<Notification>> notificationMap = new HashMap<>();
-    private final Map<UUID, Cache<ProgressNotification>> progressNotificationMap = new HashMap<>();
+    private final Map<UUID, Cache<Notification>> notificationMap = new ConcurrentHashMap<>();
+    private final Map<UUID, Cache<ProgressNotification>> progressNotificationMap = new ConcurrentHashMap<>();
 
     /**
      * Constructs a new Notifications Facade.

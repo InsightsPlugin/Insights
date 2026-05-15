@@ -9,7 +9,7 @@ import dev.frankheijden.insights.api.reflection.RTileEntityTypes;
 import dev.frankheijden.insights.api.tasks.ScanTask;
 import dev.frankheijden.insights.api.util.LazyChunkPartRadiusIterator;
 import dev.frankheijden.insights.api.utils.Constants;
-import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.annotation.specifier.Range;
@@ -114,10 +114,10 @@ public class CommandScan extends InsightsCommand {
             boolean displayZeros,
             boolean groupByChunk
     ) {
-        Chunk chunk = player.getLocation().getChunk();
-        World world = chunk.getWorld();
-        int chunkX = chunk.getX();
-        int chunkZ = chunk.getZ();
+        Location location = player.getLocation();
+        int chunkX = location.getBlockX() >> 4;
+        int chunkZ = location.getBlockZ() >> 4;
+        World world = player.getWorld();
 
         LazyChunkPartRadiusIterator it = new LazyChunkPartRadiusIterator(world, chunkX, chunkZ, radius);
 

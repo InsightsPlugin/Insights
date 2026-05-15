@@ -1,10 +1,12 @@
 package dev.frankheijden.insights.api.concurrent.containers;
 
+import dev.frankheijden.insights.api.InsightsPlugin;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
 import dev.frankheijden.insights.nms.core.ChunkSection;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,11 +26,19 @@ public class LoadedChunkContainer extends ChunkContainer {
 
     @Override
     public void getChunkSections(Consumer<@Nullable ChunkSection> sectionConsumer) {
-        nms.getLoadedChunkSections(chunk, sectionConsumer);
+        if (Bukkit.isOwnedByCurrentRegion(chunk.getWorld(), chunkX, chunkZ)) {
+            nms.getLoadedChunkSections(chunk, sectionConsumer);
+        } else {
+            Bukkit.getRegionScheduler().execute(InsightsPlugin.getInstance(), chunk.getWorld(), chunkX, chunkZ, () -> nms.getLoadedChunkSections(chunk, sectionConsumer));
+        }
     }
 
     @Override
     public void getChunkEntities(Consumer<@NotNull ChunkEntity> entityConsumer) {
-        nms.getLoadedChunkEntities(chunk, entityConsumer);
+        if (Bukkit.isOwnedByCurrentRegion(chunk.getWorld(), chunkX, chunkZ)) {
+            nms.getLoadedChunkEntities(chunk, entityConsumer);
+        } else {
+            Bukkit.getRegionScheduler().execute(InsightsPlugin.getInstance(), chunk.getWorld(), chunkX, chunkZ, () -> nms.getLoadedChunkEntities(chunk, entityConsumer));
+        }
     }
 }

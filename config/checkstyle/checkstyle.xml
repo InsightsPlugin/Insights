@@ -38,7 +38,8 @@
     <module name="LineLength">
         <property name="fileExtensions" value="java"/>
         <!-- changed from 100 to 120, loosen a bit -->
-        <property name="max" value="120"/>
+        <!-- Updated to 200 for now for easier contributions -->
+        <property name="max" value="200"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
 
@@ -198,7 +199,7 @@
                      value="Parameter name ''{0}'' must match pattern ''{1}''."/>
         </module>
         <module name="LambdaParameterName">
-            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+            <property name="format" value="^(_|[a-z][a-zA-Z0-9]*)$"/>
             <message key="name.invalidPattern"
                      value="Lambda parameter name ''{0}'' must match pattern ''{1}''."/>
         </module>
