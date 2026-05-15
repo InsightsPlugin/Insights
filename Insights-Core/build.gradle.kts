@@ -37,6 +37,7 @@ bukkit {
     website = "https://github.com/InsightsPlugin/Insights"
     softDepend = listOf("PlaceholderAPI")
     authors = listOf("FrankHeijden", "Jsinco")
+    contributors = listOf("Euphillya")
     foliaSupported = true
     permissions {
         register("insights.info") {
