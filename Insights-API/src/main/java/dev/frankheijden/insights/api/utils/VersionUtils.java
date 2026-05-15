@@ -4,7 +4,8 @@ import java.util.regex.Pattern;
 
 public class VersionUtils {
 
-    private static final Pattern integerPattern = Pattern.compile("[^0-9]");
+    public static final boolean IS_PAPER = classExists("io.papermc.paper.threadedregions.scheduler.ScheduledTask");
+    private static final Pattern INTEGER_PATTERN = Pattern.compile("[^0-9]");
 
     private VersionUtils() {}
 
@@ -34,6 +35,15 @@ public class VersionUtils {
     }
 
     private static int extractInteger(String str) {
-        return Integer.parseInt(integerPattern.matcher(str).replaceAll(""));
+        return Integer.parseInt(INTEGER_PATTERN.matcher(str).replaceAll(""));
+    }
+
+    private static boolean classExists(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }

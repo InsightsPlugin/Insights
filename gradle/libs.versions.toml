@@ -2,7 +2,6 @@
 # libraries
 semver = "0.10.2"
 minecraft = "26.1.2.build.+"
-paperLib = "1.0.8"
 bStats = "3.0.0"
 adventure = "4.17.0"
 adventurePlatformBukkit = "4.4.1"
@@ -26,7 +25,6 @@ pluginYml = "0.6.0"
 [libraries]
 semver = { group = "com.github.zafarkhaja", name = "java-semver", version.ref = "semver" }
 paperApi = { group = "io.papermc.paper", name = "paper-api", version.ref = "minecraft" }
-paperLib = { group = "io.papermc", name = "paperlib", version.ref = "paperLib" }
 bStatsBukkit = { group = "org.bstats", name = "bstats-bukkit", version.ref = "bStats" }
 adventureApi = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
 adventureMiniMessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }

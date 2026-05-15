@@ -5,6 +5,7 @@ import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.annotations.AllowPriorityOverride;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.listeners.manager.InsightsListenerManager;
+import dev.frankheijden.insights.api.utils.VersionUtils;
 import dev.frankheijden.insights.listeners.BlockListener;
 import dev.frankheijden.insights.listeners.ChunkListener;
 import dev.frankheijden.insights.listeners.EntityListener;
@@ -14,7 +15,6 @@ import dev.frankheijden.insights.listeners.PistonListener;
 import dev.frankheijden.insights.listeners.PlayerListener;
 import dev.frankheijden.insights.listeners.WorldListener;
 import dev.frankheijden.insights.nms.core.ReflectionUtils;
-import io.papermc.lib.PaperLib;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class ListenerManager implements InsightsListenerManager {
         List<Method> disableMethods = new ArrayList<>();
         disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(BlockListener.class, AllowDisabling.class));
         disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(WorldListener.class, AllowDisabling.class));
-        if (PaperLib.isPaper()) {
+        if (VersionUtils.IS_PAPER) {
             disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(PaperBlockListener.class, AllowDisabling.class));
         }
         ALLOWED_DISABLE_EVENTS = getEventClassMap(disableMethods);
@@ -84,9 +84,9 @@ public class ListenerManager implements InsightsListenerManager {
         this.chunkListener = new ChunkListener(plugin);
         this.blockListener = new BlockListener(plugin);
         this.worldListener = new WorldListener(plugin);
-        this.paperEntityListener = PaperLib.isPaper() ? new PaperEntityListener(plugin) : null;
-        this.paperBlockListener = PaperLib.isPaper() ? new PaperBlockListener(plugin) : null;
-        this.entityListener = PaperLib.isPaper() ? null : new EntityListener(plugin);
+        this.paperEntityListener = VersionUtils.IS_PAPER ? new PaperEntityListener(plugin) : null;
+        this.paperBlockListener = VersionUtils.IS_PAPER ? new PaperBlockListener(plugin) : null;
+        this.entityListener = VersionUtils.IS_PAPER ? null : new EntityListener(plugin);
         this.pistonListener = new PistonListener(plugin);
     }
 
@@ -104,7 +104,7 @@ public class ListenerManager implements InsightsListenerManager {
             BlockRedstoneEvent.getHandlerList().unregister(blockListener);
         }
 
-        if (PaperLib.isPaper()) {
+        if (VersionUtils.IS_PAPER) {
             listeners.add(paperEntityListener);
             disableListeners.add(paperBlockListener);
         } else {

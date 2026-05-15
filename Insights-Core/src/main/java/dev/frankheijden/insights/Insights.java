@@ -23,6 +23,7 @@ import dev.frankheijden.insights.api.metrics.MetricsManager;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.tasks.UpdateCheckerTask;
 import dev.frankheijden.insights.api.utils.IOUtils;
+import dev.frankheijden.insights.api.utils.VersionUtils;
 import dev.frankheijden.insights.commands.CommandCancelScan;
 import dev.frankheijden.insights.commands.CommandInsights;
 import dev.frankheijden.insights.commands.CommandScan;
@@ -42,7 +43,6 @@ import dev.frankheijden.insights.nms.core.InsightsNMS;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import io.leangen.geantyref.TypeToken;
-import io.papermc.lib.PaperLib;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
@@ -149,7 +149,7 @@ public class Insights extends InsightsPlugin {
 
     private static boolean isIncompatible() {
         var minecraftVersion = Version.parse(Bukkit.getServer().getMinecraftVersion(), false);
-        return !PaperLib.isPaper() || minecraftVersion.compareTo(minimumCompatibleVersion) < 0;
+        return !VersionUtils.IS_PAPER || minecraftVersion.compareTo(minimumCompatibleVersion) < 0;
     }
 
     @Override
