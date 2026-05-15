@@ -1,4 +1,4 @@
-name: "Publish to Modrinth"
+name: "Publish Insights"
 
 on:
   release:
@@ -24,3 +24,8 @@ jobs:
         env:
           CHANGE_LOG: ${{ github.event.release.body }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+      - name: Publish to Repository
+        run: "./gradlew publish"
+        env:
+          JSINCO_REPO_USERNAME: ${{ secrets.JSINCO_REPO_USERNAME }}
+          JSINCO_REPO_SECRET: ${{ secrets.JSINCO_REPO_SECRET }}
