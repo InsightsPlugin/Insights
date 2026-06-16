@@ -3,6 +3,7 @@ package dev.frankheijden.insights.api.addons;
 import dev.frankheijden.insights.api.InsightsPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -65,21 +66,53 @@ public class AddonManager {
                     );
                     continue;
                 }
-
-                if (!InsightsPlugin.getInstance().isAvailable(addon.getPluginName())) {
-                    plugin.getLogger().severe("Error loading addon: " + addon.getPluginName() + " is not enabled!");
-                    continue;
-                }
-
-                if (addon instanceof Listener) {
-                    Bukkit.getPluginManager().registerEvents((Listener) addon, plugin);
-                    plugin.getLogger().info("Registered listener of addon '" + addon.getPluginName() + "'");
-                }
-
-                this.addons.put(addon.getPluginName(), addon);
-                plugin.getLogger().info("Loaded addon '" + addon.getPluginName() + "' v" + addon.getVersion());
+                registerAddon(addon);
             }
         }
+    }
+
+    /**
+     * Registers an addon instance directly, without loading it from the addons folder.
+     * Useful for addons bundled in another plugin / already on the classpath.
+     *
+     * @return true if the addon was registered, false otherwise.
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean registerAddon(InsightsAddon addon) {
+        if (!InsightsPlugin.getInstance().isAvailable(addon.getPluginName())) {
+            plugin.getLogger().severe("Error loading addon: " + addon.getPluginName() + " is not enabled!");
+            return false;
+        }
+
+        if (addon instanceof Listener) {
+            Bukkit.getPluginManager().registerEvents((Listener) addon, plugin);
+            plugin.getLogger().info("Registered listener of addon '" + addon.getPluginName() + "'");
+        }
+
+        this.addons.put(addon.getPluginName(), addon);
+        plugin.getLogger().info("Loaded addon '" + addon.getPluginName() + "' v" + addon.getVersion());
+        return true;
+    }
+
+    /**
+     * Unregisters a previously registered addon by its plugin name.
+     * If the addon is a Listener, its events are unregistered as well.
+     *
+     * @return the removed addon, or null if no addon was registered under that name.
+     */
+    public InsightsAddon unregisterAddon(String pluginName) {
+        InsightsAddon addon = addons.remove(pluginName);
+        if (addon == null) {
+            return null;
+        }
+
+        if (addon instanceof Listener) {
+            HandlerList.unregisterAll((Listener) addon);
+            plugin.getLogger().info("Unregistered listener of addon '" + addon.getPluginName() + "'");
+        }
+
+        plugin.getLogger().info("Unloaded addon '" + addon.getPluginName() + "' v" + addon.getVersion());
+        return addon;
     }
 
     public InsightsAddon loadAddon(Path path) throws AddonException, MalformedURLException {
@@ -166,7 +199,7 @@ public class AddonManager {
         }
 
         for (String pluginName : addonsToRemove) {
-            InsightsAddon addon = addons.remove(pluginName);
+            InsightsAddon addon = unregisterAddon(pluginName);
             if (addon != null) {
                 plugin.getLogger().warning("Unloaded addon '" + addon.getPluginName() + "' v" + addon.getVersion()
                         + ", because the plugin disappeared.");
