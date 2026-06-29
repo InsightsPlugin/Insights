@@ -1,7 +1,7 @@
 [versions]
 # libraries
 semver = "0.10.2"
-minecraft = "26.1.2.build.+"
+minecraft = "26.2.build.+"
 bStats = "3.0.0"
 adventure = "4.17.0"
 adventurePlatformBukkit = "4.4.1"
