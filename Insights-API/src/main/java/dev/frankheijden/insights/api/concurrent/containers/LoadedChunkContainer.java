@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class LoadedChunkContainer extends ChunkContainer {
@@ -26,19 +27,39 @@ public class LoadedChunkContainer extends ChunkContainer {
 
     @Override
     public void getChunkSections(Consumer<@Nullable ChunkSection> sectionConsumer) {
-        if (Bukkit.isOwnedByCurrentRegion(chunk.getWorld(), chunkX, chunkZ)) {
-            nms.getLoadedChunkSections(chunk, sectionConsumer);
-        } else {
-            Bukkit.getRegionScheduler().execute(InsightsPlugin.getInstance(), chunk.getWorld(), chunkX, chunkZ, () -> nms.getLoadedChunkSections(chunk, sectionConsumer));
-        }
+        runOnOwningRegion(() -> nms.getLoadedChunkSections(chunk, sectionConsumer));
     }
 
     @Override
     public void getChunkEntities(Consumer<@NotNull ChunkEntity> entityConsumer) {
+        runOnOwningRegion(() -> nms.getLoadedChunkEntities(chunk, entityConsumer));
+    }
+
+    /**
+     * Runs the given chunk-reading task on the region thread which owns this chunk, blocking the
+     * calling (worker) thread until it has completed.
+     *
+     * <p>This synchronization is required: {@link ChunkContainer#get()} reads the populated
+     * material/entity maps immediately after invoking these methods. If the read were merely
+     * scheduled on the region thread (fire-and-forget), {@code get()} would observe still-empty
+     * maps and return a distribution counting 0, causing limits to be bypassed on every chunk
+     * that is rescanned after being (re)loaded.
+     */
+    private void runOnOwningRegion(Runnable task) {
         if (Bukkit.isOwnedByCurrentRegion(chunk.getWorld(), chunkX, chunkZ)) {
-            nms.getLoadedChunkEntities(chunk, entityConsumer);
-        } else {
-            Bukkit.getRegionScheduler().execute(InsightsPlugin.getInstance(), chunk.getWorld(), chunkX, chunkZ, () -> nms.getLoadedChunkEntities(chunk, entityConsumer));
+            task.run();
+            return;
         }
+
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        Bukkit.getRegionScheduler().execute(InsightsPlugin.getInstance(), chunk.getWorld(), chunkX, chunkZ, () -> {
+            try {
+                task.run();
+                future.complete(null);
+            } catch (Throwable th) {
+                future.completeExceptionally(th);
+            }
+        });
+        future.join();
     }
 }
