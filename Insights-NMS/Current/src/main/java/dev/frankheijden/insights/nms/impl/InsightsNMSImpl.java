@@ -7,10 +7,12 @@ import com.mojang.serialization.DataResult;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
 import dev.frankheijden.insights.nms.core.ChunkSection;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -165,7 +167,7 @@ public class InsightsNMSImpl extends InsightsNMS {
     }
 
     private void readChunkEntities(CompoundTag nbt, Consumer<ChunkEntity> entityConsumer) {
-        var typeOptional = net.minecraft.world.entity.EntityType.byString(nbt.getString("id").orElseThrow());
+        var typeOptional = BuiltInRegistries.ENTITY_TYPE.getOptional(Identifier.tryParse(nbt.getString("id").orElseThrow()));
         if (typeOptional.isPresent()) {
             String entityTypeName = net.minecraft.world.entity.EntityType.getKey(typeOptional.get()).getPath();
             ListTag posList = nbt.getList("Pos").orElseThrow();

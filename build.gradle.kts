@@ -13,9 +13,9 @@ plugins {
 
 
 group = "dev.frankheijden.insights"
-version = "6.21.2"
+version = "6.22.1"
 val dependencyDir = "$group.dependencies"
-val targetMinecraftVersions = listOf("26.1.2", "1.21.11", "1.21.10")
+val targetMinecraftVersions = listOf("26.2", "26.1.2", "1.21.11")
 
 subprojects {
     apply(plugin = "java")
