@@ -62,6 +62,13 @@ public class ChunkContainerExecutor implements ContainerExecutor {
         return submit(new LoadedChunkContainer(nms, chunk, cuboid, options), options);
     }
 
+    public CompletableFuture<Storage> submitLoadChunkContainer(World world, int chunkX, int chunkZ, ChunkCuboid cuboid, ScanOptions options) {
+        return world.getChunkAtAsync(chunkX, chunkZ, false, true)
+                .thenCompose(chunk ->
+                        submit(new LoadedChunkContainer(nms, chunk, cuboid, options), options)
+                );
+    }
+
     public CompletableFuture<Storage> submit(World world, int x, int z, ChunkCuboid cuboid, ScanOptions options) {
         return submit(new UnloadedChunkContainer(nms, world, x, z, cuboid, options), options);
     }

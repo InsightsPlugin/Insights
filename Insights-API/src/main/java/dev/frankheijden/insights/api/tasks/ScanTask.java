@@ -418,36 +418,22 @@ public class ScanTask<R> implements Runnable {
             var loc = chunkPart.getChunkLocation();
             var world = loc.getWorld();
 
-            Bukkit.getRegionScheduler().run(plugin, world, loc.getX(), loc.getZ(), scheduledTask -> {
-                CompletableFuture<Storage> storageFuture;
-                if (world.isChunkLoaded(loc.getX(), loc.getZ())) {
-                    storageFuture = executor.submit(
-                            world.getChunkAt(loc.getX(), loc.getZ()),
-                            chunkPart.getChunkCuboid(),
-                            options
-                    );
-                } else {
-                    storageFuture = executor.submit(
-                            loc.getWorld(),
-                            loc.getX(),
-                            loc.getZ(),
-                            chunkPart.getChunkCuboid(),
-                            options
-                    );
-                }
-                storageFuture
-                        .thenAccept(storage -> resultMerger.accept(storage, loc, result))
-                        .thenRun(() -> {
-                            iterationChunks.incrementAndGet();
-                            chunks.incrementAndGet();
-                        })
-                        .exceptionally(th -> {
-                            if (!completedExceptionally.getAndSet(true)) {
-                                plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
-                            }
-                            return null;
-                        });
-            });
+            executor.submitLoadChunkContainer(world,
+                    loc.getX(),
+                    loc.getZ(),
+                    chunkPart.getChunkCuboid(),
+                    options)
+                    .thenAccept(storage -> resultMerger.accept(storage, loc, result))
+                    .thenRun(() -> {
+                        iterationChunks.incrementAndGet();
+                        chunks.incrementAndGet();
+                    })
+                    .exceptionally(th -> {
+                        if (!completedExceptionally.getAndSet(true)) {
+                            plugin.getLogger().log(Level.SEVERE, th, th::getMessage);
+                        }
+                        return null;
+                    });
         }
     }
 
