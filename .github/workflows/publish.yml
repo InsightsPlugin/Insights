@@ -2,7 +2,7 @@ name: "Publish Insights"
 
 on:
   release:
-    branches: [master]
+    branches: [main]
     types: [published]
 
 jobs:
