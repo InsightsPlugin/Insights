@@ -13,7 +13,7 @@ plugins {
 
 
 group = "dev.frankheijden.insights"
-version = "6.22.0"
+version = "6.22.1"
 val dependencyDir = "$group.dependencies"
 val targetMinecraftVersions = listOf("26.2", "26.1.2", "1.21.11")
 
