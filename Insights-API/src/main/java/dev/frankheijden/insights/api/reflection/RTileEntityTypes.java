@@ -26,6 +26,14 @@ public class RTileEntityTypes {
             var tileEntityTypesClazz = Class.forName(
                     "net.minecraft.world.level.block.entity.BlockEntityType"
             );
+            Class<?> tileEntityTypesHolderClazz;
+            try {
+                tileEntityTypesHolderClazz = Class.forName(
+                        "net.minecraft.world.level.block.entity.BlockEntityTypes"
+                );
+            } catch (ClassNotFoundException ignored) {
+                tileEntityTypesHolderClazz = tileEntityTypesClazz;
+            }
             var craftBlockDataClazz = Class.forName(
                     "org.bukkit.craftbukkit.block.data.CraftBlockData"
             );
@@ -52,23 +60,30 @@ public class RTileEntityTypes {
             }
 
             Set<Material> materials = new HashSet<>();
-            try {
-                for (Field field : tileEntityTypesClazz.getFields()) {
-                    if (!Modifier.isStatic(field.getModifiers())) continue;
-                    if (!field.getType().equals(tileEntityTypesClazz)) continue;
+            for (Field field : tileEntityTypesHolderClazz.getFields()) {
+                if (!Modifier.isStatic(field.getModifiers())) continue;
+                if (!field.getType().equals(tileEntityTypesClazz)) continue;
 
-                    Object tileEntityTypes = field.get(null);
-                    for (Map.Entry<Material, Object> entry : blockStateMap.entrySet()) {
+                Object tileEntityTypes = field.get(null);
+                for (Map.Entry<Material, Object> entry : blockStateMap.entrySet()) {
+                    try {
                         if ((boolean) isValidMethodHandle.invoke(tileEntityTypes, entry.getValue())) {
                             materials.add(entry.getKey());
                         }
+                    } catch (Throwable th) {
+                        throw new RuntimeException(th);
                     }
                 }
-            } catch (Throwable th) {
-                th.printStackTrace();
             }
 
             materials.removeIf(Material::isAir);
+            if (materials.isEmpty()) {
+                throw new IllegalStateException(
+                        "Could not determine tile entity materials from "
+                                + tileEntityTypesHolderClazz.getName()
+                                + " (server version not supported?)"
+                );
+            }
             TILE_ENTITY_MATERIALS = Collections.unmodifiableSet(EnumSet.copyOf(materials));
             TILE_ENTITIES = TILE_ENTITY_MATERIALS.stream()
                     .map(ScanObject::of)
