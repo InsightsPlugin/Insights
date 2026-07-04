@@ -86,7 +86,7 @@ public class ChunkContainerExecutor implements ContainerExecutor {
             scanTracker.set(worldUid, chunkKey, true);
         }
 
-        return submit(container).thenApply(storage -> {
+        return container.scan(containerExecutor).thenApply(storage -> {
             if (options.save()) worldStorage.getWorld(worldUid).put(chunkKey, storage);
             if (options.track()) scanTracker.set(worldUid, chunkKey, false);
 
@@ -106,6 +106,11 @@ public class ChunkContainerExecutor implements ContainerExecutor {
     @Override
     public CompletableFuture<Void> submit(RunnableContainer container) {
         return containerExecutor.submit(container);
+    }
+
+    @Override
+    public int getTimeout() {
+        return containerExecutor.getTimeout();
     }
 
     @Override

@@ -10,5 +10,11 @@ public interface ContainerExecutor {
 
     CompletableFuture<Void> submit(RunnableContainer container);
 
+    /**
+     * Timeout in milliseconds.
+     * @return Timeout in milliseconds.
+     */
+    int getTimeout();
+
     void shutdown();
 }

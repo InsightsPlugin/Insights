@@ -54,6 +54,11 @@ public class ContainerExecutorService implements ContainerExecutor {
         return CompletableFuture.runAsync(container, executor).orTimeout(timeoutMs, TimeUnit.MILLISECONDS);
     }
 
+    @Override
+    public int getTimeout() {
+        return timeoutMs;
+    }
+
     public int getQueueSize() {
         return executor.getQueue().size();
     }

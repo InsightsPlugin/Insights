@@ -1,6 +1,8 @@
 package dev.frankheijden.insights.api.concurrent.containers;
 
+import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
+import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.objects.chunk.ChunkCuboid;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
 import dev.frankheijden.insights.nms.core.ChunkSection;
@@ -9,6 +11,7 @@ import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class UnloadedChunkContainer extends ChunkContainer {
@@ -35,5 +38,10 @@ public class UnloadedChunkContainer extends ChunkContainer {
     @Override
     public void getChunkEntities(Consumer<@NotNull ChunkEntity> entityConsumer) throws IOException {
         nms.getUnloadedChunkEntities(world, chunkX, chunkZ, entityConsumer);
+    }
+
+    @Override
+    public CompletableFuture<DistributionStorage> scan(ContainerExecutor executor) {
+        return executor.submit(this);
     }
 }

@@ -1,5 +1,6 @@
 package dev.frankheijden.insights.api.concurrent.containers;
 
+import dev.frankheijden.insights.api.concurrent.ContainerExecutor;
 import dev.frankheijden.insights.api.concurrent.ScanOptions;
 import dev.frankheijden.insights.api.concurrent.storage.DistributionStorage;
 import dev.frankheijden.insights.api.exceptions.ChunkIOException;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public abstract class ChunkContainer implements SupplierContainer<DistributionStorage> {
@@ -73,6 +75,16 @@ public abstract class ChunkContainer implements SupplierContainer<DistributionSt
     public abstract void getChunkSections(Consumer<@NotNull ChunkSection> sectionConsumer) throws IOException;
 
     public abstract void getChunkEntities(Consumer<@NotNull ChunkEntity> entityConsumer) throws IOException;
+
+    /**
+     * Implementations may vary what thread this method performs operations on.
+     *
+     * @see LoadedChunkContainer#scan(ContainerExecutor)
+     * @see UnloadedChunkContainer#scan(ContainerExecutor)
+     * @param executor The executor to run the scan on.
+     * @return A CompletableFuture of the DistributionStorage.
+     */
+    public abstract CompletableFuture<DistributionStorage> scan(ContainerExecutor executor);
 
     @Override
     public DistributionStorage get() {
