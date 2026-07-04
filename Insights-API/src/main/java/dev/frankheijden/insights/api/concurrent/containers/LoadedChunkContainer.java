@@ -26,19 +26,11 @@ public class LoadedChunkContainer extends ChunkContainer {
 
     @Override
     public void getChunkSections(Consumer<@Nullable ChunkSection> sectionConsumer) {
-        if (Bukkit.isOwnedByCurrentRegion(chunk.getWorld(), chunkX, chunkZ)) {
-            nms.getLoadedChunkSections(chunk, sectionConsumer);
-        } else {
-            Bukkit.getRegionScheduler().execute(InsightsPlugin.getInstance(), chunk.getWorld(), chunkX, chunkZ, () -> nms.getLoadedChunkSections(chunk, sectionConsumer));
-        }
+        nms.getLoadedChunkSections(chunk, sectionConsumer);
     }
 
     @Override
     public void getChunkEntities(Consumer<@NotNull ChunkEntity> entityConsumer) {
-        if (Bukkit.isOwnedByCurrentRegion(chunk.getWorld(), chunkX, chunkZ)) {
-            nms.getLoadedChunkEntities(chunk, entityConsumer);
-        } else {
-            Bukkit.getRegionScheduler().execute(InsightsPlugin.getInstance(), chunk.getWorld(), chunkX, chunkZ, () -> nms.getLoadedChunkEntities(chunk, entityConsumer));
-        }
+        nms.getLoadedChunkEntities(chunk, entityConsumer);
     }
 }
