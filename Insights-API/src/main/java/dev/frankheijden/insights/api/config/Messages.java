@@ -86,7 +86,7 @@ public class Messages {
 
             if (obj instanceof Material material) {
                 var key = material.getKey();
-                if (material.isItem()) {
+                if (material.isItem() && !material.isAir()) {
                     return component.hoverEvent(HoverEvent.showItem(
                             net.kyori.adventure.key.Key.key(key.getNamespace(), key.getKey()),
                             1
