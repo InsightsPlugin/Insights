@@ -57,9 +57,6 @@ subprojects {
     dependencies {
         compileOnly(libs.paperApi)
         implementation(libs.bStatsBukkit)
-        implementation(libs.adventureApi)
-        implementation(libs.adventureMiniMessage)
-        implementation(libs.adventurePlatformBukkit)
 
         if (!nms || nmsImpl) {
             compileOnly(project(":Insights-NMS-Core"))
@@ -109,9 +106,6 @@ subprojects {
     tasks.withType<ShadowJar> {
         relocate("dev.frankheijden.minecraftreflection", "$dependencyDir.minecraftreflection")
         relocate("org.bstats", "$dependencyDir.bstats")
-        relocate("net.kyori.adventure", "$dependencyDir.adventure")
-        relocate("net.kyori.examination", "$dependencyDir.examination")
-        relocate("net.kyori.option", "$dependencyDir.option")
         if (nmsImpl) {
             relocate(project.group.toString().replaceAfterLast('.', "impl"), project.group.toString())
         }

@@ -7,7 +7,6 @@ import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import dev.frankheijden.insights.api.utils.StringUtils;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -33,23 +32,17 @@ import java.util.function.ToLongFunction;
 public class Messages {
 
     private final InsightsPlugin plugin;
-    private final BukkitAudiences audiences;
     private final YamlParser parser;
     private final MiniMessage miniMessage;
     private final Map<Key, String> messageCache;
     private final TagResolver prefixResolver;
 
-    protected Messages(InsightsPlugin plugin, BukkitAudiences audiences, YamlParser parser) {
+    protected Messages(InsightsPlugin plugin, YamlParser parser) {
         this.plugin = plugin;
-        this.audiences = audiences;
         this.parser = parser;
         this.miniMessage = MiniMessage.miniMessage();
         this.messageCache = new EnumMap<>(Key.class);
         this.prefixResolver = tagOf("prefix", miniMessage.deserialize(getRawMessage(Key.PREFIX)));
-    }
-
-    public BukkitAudiences getAudiences() {
-        return audiences;
     }
 
     public Message getMessage(Key messageKey) {
@@ -122,11 +115,10 @@ public class Messages {
 
     public static Messages load(
             InsightsPlugin plugin,
-            BukkitAudiences audiences,
             File file,
             InputStream defaultSettings
     ) throws IOException {
-        return new Messages(plugin, audiences, PassiveYamlParser.load(file, defaultSettings));
+        return new Messages(plugin, PassiveYamlParser.load(file, defaultSettings));
     }
 
     public static TagResolver tagOf(String name, String content) {
@@ -272,7 +264,14 @@ public class Messages {
          * Sends the message to given receiver, using the message type defined.
          */
         public void sendTo(CommandSender sender) {
-            sendTo(audiences.sender(sender));
+            if (content != null && !content.isEmpty()) {
+                var component = miniMessage.deserialize(content, resolver);
+                if (type == Type.ACTIONBAR) {
+                    sender.sendActionBar(component);
+                } else {
+                    sender.sendMessage(component);
+                }
+            }
         }
 
         /**
@@ -380,12 +379,10 @@ public class Messages {
                 components.add(elementFormatFunction.apply(elements[i]));
             }
 
-            var audience = audiences.sender(sender);
-
             header.sendTo(sender);
-            components.forEach(audience::sendMessage);
+            components.forEach(sender::sendMessage);
             footer.sendTo(sender);
-            audience.sendMessage(createFooter(page));
+            sender.sendMessage(createFooter(page));
         }
     }
 }
