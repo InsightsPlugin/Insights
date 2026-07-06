@@ -44,7 +44,6 @@ import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -86,7 +85,6 @@ public class Insights extends InsightsPlugin {
     private InsightsPlaceholderExpansion placeholderExpansion;
     private ScheduledTask playerTracker = null;
     private ScheduledTask updateChecker = null;
-    private BukkitAudiences audiences = null;
     private RedstoneUpdateCount redstoneUpdateCount = null;
     private ChunkTeleport chunkTeleport;
     private InsightsNMS nms;
@@ -107,7 +105,6 @@ public class Insights extends InsightsPlugin {
         }
         nms = InsightsNMS.get();
 
-        this.audiences = BukkitAudiences.create(this);
         this.listenerManager = new ListenerManager(this);
         reloadConfigs();
 
@@ -164,7 +161,6 @@ public class Insights extends InsightsPlugin {
             placeholderExpansion = null;
         }
         chunkContainerExecutor.shutdown();
-        audiences.close();
     }
 
     @Override
@@ -201,7 +197,7 @@ public class Insights extends InsightsPlugin {
     public void reloadMessages() {
         File file = new File(getDataFolder(), MESSAGES_FILE_NAME);
         try {
-            messages = Messages.load(this, this.audiences, file, getResource(MESSAGES_FILE_NAME));
+            messages = Messages.load(this, file, getResource(MESSAGES_FILE_NAME));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
