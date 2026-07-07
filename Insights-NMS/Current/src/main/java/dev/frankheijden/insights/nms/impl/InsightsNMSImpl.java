@@ -2,6 +2,7 @@ package dev.frankheijden.insights.nms.impl;
 
 import ca.spottedleaf.concurrentutil.util.Priority;
 import ca.spottedleaf.moonrise.patches.chunk_system.io.MoonriseRegionFileIO;
+import com.google.common.base.Predicates;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
@@ -13,6 +14,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.Strategy;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.phys.AABB;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -32,6 +35,8 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -129,10 +134,40 @@ public class InsightsNMSImpl extends InsightsNMS {
 
     @Override
     public void getLoadedChunkEntities(Chunk chunk, Consumer<ChunkEntity> entityConsumer) {
-        for (org.bukkit.entity.Entity bukkitEntity : chunk.getEntities()) {
-            Entity entity = ((CraftEntity) bukkitEntity).getHandle();
+        World bukkitWorld = chunk.getWorld();
+        ServerLevel level = ((CraftWorld) bukkitWorld).getHandle();
+        int chunkX = chunk.getX();
+        int chunkZ = chunk.getZ();
+
+        double minX = chunkX << 4;
+        double minZ = chunkZ << 4;
+        AABB chunkBox = new AABB(
+                minX, bukkitWorld.getMinHeight(), minZ,
+                minX + 16, bukkitWorld.getMaxHeight(), minZ + 16
+        );
+
+        List<Entity> entities = new ArrayList<>();
+
+        try {
+            level.moonrise$getEntityLookup().getEntities(
+                    (Entity) null,
+                    chunkBox,
+                    entities,
+                    e -> (e.getBlockX() >> 4) == chunkX && (e.getBlockZ() >> 4) == chunkZ
+            );
+        } catch (RuntimeException ex) {
+            logger.severe(String.format(
+                    CHUNK_ERROR,
+                    chunkX,
+                    0,
+                    chunkZ,
+                    "Failed to get entities: " + ex.getMessage()
+            ));
+            return;
+        }
+        for (Entity entity : entities) {
             entityConsumer.accept(new ChunkEntity(
-                    bukkitEntity.getType(),
+                    entity.getBukkitEntity().getType(),
                     entity.getBlockX(),
                     entity.getBlockY(),
                     entity.getBlockZ()
