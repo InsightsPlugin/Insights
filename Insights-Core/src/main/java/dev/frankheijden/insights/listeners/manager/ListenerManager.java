@@ -40,6 +40,7 @@ public class ListenerManager implements InsightsListenerManager {
         List<Method> disableMethods = new ArrayList<>();
         disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(BlockListener.class, AllowDisabling.class));
         disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(WorldListener.class, AllowDisabling.class));
+        disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(EntityListener.class, AllowDisabling.class));
         if (VersionUtils.IS_PAPER) {
             disableMethods.addAll(ReflectionUtils.getAnnotatedMethods(PaperBlockListener.class, AllowDisabling.class));
         }
@@ -105,10 +106,10 @@ public class ListenerManager implements InsightsListenerManager {
         }
 
         if (VersionUtils.IS_PAPER) {
-            listeners.add(paperEntityListener);
+            disableListeners.add(paperEntityListener);
             disableListeners.add(paperBlockListener);
         } else {
-            listeners.add(entityListener);
+            disableListeners.add(entityListener);
         }
 
         if (plugin.getSettings().APPLY_PISTON_LIMITS) {

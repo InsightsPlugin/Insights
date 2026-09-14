@@ -1,11 +1,14 @@
 package dev.frankheijden.insights.listeners;
 
 import dev.frankheijden.insights.api.InsightsPlugin;
+import dev.frankheijden.insights.api.annotations.AllowDisabling;
 import dev.frankheijden.insights.api.annotations.AllowPriorityOverride;
 import dev.frankheijden.insights.api.events.EntityRemoveFromWorldEvent;
 import dev.frankheijden.insights.api.listeners.InsightsListener;
 import dev.frankheijden.insights.api.objects.wrappers.ScanObject;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
@@ -15,6 +18,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Tameable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -26,11 +30,15 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.projectiles.ProjectileSource;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class EntityListener extends InsightsListener {
 
@@ -41,6 +49,21 @@ public class EntityListener extends InsightsListener {
             EntityType.GLOW_ITEM_FRAME,
             EntityType.PAINTING
     );
+
+    /**
+     * Spawn reasons of mobs which are built out of blocks. Derived at runtime so that reasons
+     * added by later Minecraft versions (e.g. BUILD_COPPERGOLEM) are picked up as well.
+     */
+    protected static final Set<CreatureSpawnEvent.SpawnReason> BUILD_SPAWN_REASONS = Arrays
+            .stream(CreatureSpawnEvent.SpawnReason.values())
+            .filter(reason -> reason.name().startsWith("BUILD_"))
+            .collect(Collectors.toCollection(() -> EnumSet.noneOf(CreatureSpawnEvent.SpawnReason.class)));
+
+    /**
+     * The widest build pattern (wither, iron golem) reaches two blocks away from the position the
+     * mob is spawned at, in any orientation the pattern may have been matched in.
+     */
+    protected static final int BUILD_PATTERN_RADIUS = 2;
 
     private final Set<UUID> removedEntities;
 
@@ -151,6 +174,54 @@ public class EntityListener extends InsightsListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityRemoveFromWorld(EntityRemoveFromWorldEvent event) {
         handleEntityRemoveFromWorld(event.getEntity());
+    }
+
+    /**
+     * Handles the CreatureSpawnEvent for mobs which are built out of blocks.
+     *
+     * <p>The blocks making up a wither or golem are consumed with a direct block set, which fires
+     * no block event at all, so the cache is never told about them. The same goes for the chest a
+     * copper golem leaves behind. Snapshot the area around the spawn and reconcile whatever
+     * actually changed once those changes have been applied.
+     */
+    @AllowDisabling
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        if (!BUILD_SPAWN_REASONS.contains(event.getSpawnReason())) return;
+        reconcileBuildPattern(event.getLocation());
+    }
+
+    /**
+     * Reconciles the cache with the blocks a build pattern consumed or left behind.
+     */
+    private void reconcileBuildPattern(Location location) {
+        World world = location.getWorld();
+        int minY = Math.max(world.getMinHeight(), location.getBlockY() - BUILD_PATTERN_RADIUS);
+        int maxY = Math.min(world.getMaxHeight() - 1, location.getBlockY() + BUILD_PATTERN_RADIUS);
+
+        Map<Block, Material> snapshot = new HashMap<>();
+        for (int x = location.getBlockX() - BUILD_PATTERN_RADIUS; x <= location.getBlockX() + BUILD_PATTERN_RADIUS; x++) {
+            for (int z = location.getBlockZ() - BUILD_PATTERN_RADIUS; z <= location.getBlockZ() + BUILD_PATTERN_RADIUS; z++) {
+                // Never load a chunk for this, an unloaded chunk holds no cache to correct anyway.
+                if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
+
+                for (int y = minY; y <= maxY; y++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    snapshot.put(block, block.getType());
+                }
+            }
+        }
+
+        if (snapshot.isEmpty()) return;
+
+        plugin.getServer().getRegionScheduler().runDelayed(plugin, location, scheduledTask -> {
+            snapshot.forEach((block, material) -> {
+                Material current = block.getType();
+                if (current != material) {
+                    handleModification(block.getLocation(), material, current, 1);
+                }
+            });
+        }, 1L); // The pattern is cleared right after the spawn event, within the same tick
     }
 
     protected void handleEntityRemoveFromWorld(Entity entity) {
