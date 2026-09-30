@@ -1,7 +1,7 @@
 [versions]
 # libraries
 semver = "0.10.2"
-minecraft = "26.2.build.+"
+minecraft = "26.3.build.+"
 bStats = "3.0.0"
 assertj = "3.23.1"
 mockito = "4.11.0"
@@ -10,7 +10,7 @@ jupiterPlatform = "6.0.0"
 brigadier = "1.0.18"
 placeholderapi = "2.11.6"
 commodore = "2.2"
-cloudPaper = "2.0.0-SNAPSHOT"
+cloudPaper = "2.0.1"
 cloud = "2.0.0"
 runPaper = "2.3.1"
 minotaur = "2.+"
