@@ -145,6 +145,7 @@ public class Messages {
         LIMIT_DISALLOWED_PLACEMENT("limit-disallowed-placement"),
         SCAN_START("scan.start"),
         SCAN_ALREADY_SCANNING("scan.already-scanning"),
+        SCAN_FAILED("scan.failed"),
         SCAN_FINISH_HEADER("scan.finish.header"),
         SCAN_FINISH_CHUNK_FORMAT("scan.finish.chunk-format"),
         SCAN_FINISH_CHUNK_HOVER("scan.finish.chunk-hover"),

@@ -19,6 +19,6 @@ public class ChunkScanTracker implements ScanTracker<Long> {
 
     @Override
     public boolean isQueued(Long obj) {
-        return false;
+        return queuedChunks.contains(obj);
     }
 }

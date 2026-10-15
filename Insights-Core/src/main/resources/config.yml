@@ -11,6 +11,11 @@ settings:
   chunk-scans:
     mode: "ALWAYS"
     player-tracker-interval-ticks: 5
+  chunk-cache:
+    max-size: 5000
+  addon-cache:
+    max-size: 500
+    ttl-minutes: 10
   notification:
     type: "BOSSBAR"
     bossbar:

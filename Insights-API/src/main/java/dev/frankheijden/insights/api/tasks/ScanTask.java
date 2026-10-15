@@ -16,7 +16,6 @@ import dev.frankheijden.insights.api.utils.StringUtils;
 import io.papermc.paper.threadedregions.scheduler.AsyncScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import java.time.Duration;
 import java.util.Comparator;
@@ -24,7 +23,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -267,7 +265,19 @@ public class ScanTask<R> implements Runnable {
                 true,
                 resultSupplier,
                 resultMerger,
-                resultConsumer.andThen(r -> scanners.remove(uuid))
+                r -> {
+                    // Always free up the player's scan slot, even if the result is null
+                    // (the scan completed exceptionally) or resultConsumer throws.
+                    try {
+                        if (r == null) {
+                            plugin.getMessages().getMessage(Messages.Key.SCAN_FAILED).sendTo(player);
+                            return;
+                        }
+                        resultConsumer.accept(r);
+                    } finally {
+                        scanners.remove(uuid);
+                    }
+                }
         );
 
         // Add the player to the scanners

@@ -124,8 +124,8 @@ public class Insights extends InsightsPlugin {
         }, 50L, TimeUnit.MILLISECONDS);
 
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
-        worldStorage = new WorldStorage();
-        addonStorage = new AddonStorage();
+        worldStorage = new WorldStorage(settings.CHUNK_CACHE_MAX_SIZE);
+        addonStorage = new AddonStorage(settings.ADDON_CACHE_MAX_SIZE, settings.ADDON_CACHE_TTL_MINUTES);
         worldChunkScanTracker = new WorldChunkScanTracker();
         addonScanTracker = new AddonScanTracker();
         executor = ContainerExecutorService.newExecutor(
@@ -161,6 +161,7 @@ public class Insights extends InsightsPlugin {
             placeholderExpansion = null;
         }
         chunkContainerExecutor.shutdown();
+        addonStorage.shutdown();
     }
 
     @Override
@@ -188,6 +189,14 @@ public class Insights extends InsightsPlugin {
         File file = new File(getDataFolder(), SETTINGS_FILE_NAME);
         try {
             settings = Settings.load(this, file, getResource(SETTINGS_FILE_NAME)).exceptionally(getLogger());
+            // Recreate storages with new settings if they exist
+            if (worldStorage != null) {
+                worldStorage = new WorldStorage(settings.CHUNK_CACHE_MAX_SIZE);
+            }
+            if (addonStorage != null) {
+                addonStorage.shutdown();
+                addonStorage = new AddonStorage(settings.ADDON_CACHE_MAX_SIZE, settings.ADDON_CACHE_TTL_MINUTES);
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }

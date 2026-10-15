@@ -11,6 +11,7 @@ messages:
   scan:
     start: "<prefix><dark_aqua>Scanning <aqua><bold><count></bold><dark_aqua> chunks..."
     already-scanning: "<prefix><red>Please wait for your other scan to finish before requesting another one."
+    failed: "<prefix><red>The scan could not be completed because one or more chunks failed to load. Please try again."
     finish:
       header: "<dark_gray><strikethrough>----------------=<reset><dark_gray>[<aqua><bold> Insights Scan<reset> <dark_gray>]<strikethrough>=---------------"
       chunk-format: "<dark_aqua>Chunk <aqua><world><dark_aqua> @ <aqua><chunk-x><dark_aqua>, <aqua><chunk-z>"
