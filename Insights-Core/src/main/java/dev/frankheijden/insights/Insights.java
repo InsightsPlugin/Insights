@@ -36,17 +36,18 @@ import dev.frankheijden.insights.commands.parser.LimitParser;
 import dev.frankheijden.insights.commands.parser.ScanHistoryPageParser;
 import dev.frankheijden.insights.commands.parser.ScanObjectArrayParser;
 import dev.frankheijden.insights.commands.parser.WorldParser;
-import dev.frankheijden.insights.commands.util.CommandSenderMapper;
 import dev.frankheijden.insights.concurrent.ContainerExecutorService;
 import dev.frankheijden.insights.listeners.manager.ListenerManager;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
 import dev.frankheijden.insights.placeholders.InsightsPlaceholderExpansion;
 import dev.frankheijden.insights.tasks.PlayerTrackerTask;
 import io.leangen.geantyref.TypeToken;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.incendo.cloud.SenderMapper;
 import org.incendo.cloud.annotations.AnnotationParser;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.PaperCommandManager;
@@ -248,7 +249,7 @@ public class Insights extends InsightsPlugin {
     }
 
     private void loadCommands() {
-        var commandManager = PaperCommandManager.builder(new CommandSenderMapper())
+        var commandManager = PaperCommandManager.builder(SenderMapper.create(CommandSourceStack::getSender, nms::getCommandSourceStack))
                 .executionCoordinator(ExecutionCoordinator.asyncCoordinator())
                 .buildOnEnable(this);
 

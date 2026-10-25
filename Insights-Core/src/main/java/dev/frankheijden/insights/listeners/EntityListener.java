@@ -36,6 +36,7 @@ public class EntityListener extends InsightsListener {
 
     protected static final Set<EntityType> LIMITED_ENTITIES = EnumSet.of(
             EntityType.ARMOR_STAND,
+            EntityType.CUSHION,
             EntityType.END_CRYSTAL,
             EntityType.ITEM_FRAME,
             EntityType.GLOW_ITEM_FRAME,
@@ -106,7 +107,13 @@ public class EntityListener extends InsightsListener {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHangingBreak(HangingBreakEvent event) {
-        Entity entity = event.getEntity();
+        Entity remover = event instanceof HangingBreakByEntityEvent
+                ? ((HangingBreakByEntityEvent) event).getRemover()
+                : null;
+        handleEntityBreak(event.getEntity(), remover);
+    }
+
+    protected void handleEntityBreak(Entity entity, Entity remover) {
         EntityType entityType = entity.getType();
         if (!LIMITED_ENTITIES.contains(entityType)) return;
         removedEntities.add(entity.getUniqueId());
@@ -114,12 +121,10 @@ public class EntityListener extends InsightsListener {
         Location location = entity.getLocation();
 
         int delta = 1;
-        if (event instanceof HangingBreakByEntityEvent) {
-            Entity remover = ((HangingBreakByEntityEvent) event).getRemover();
-            if (remover instanceof Player) {
-                handleRemoval((Player) remover, location, ScanObject.of(entityType), delta);
-                return;
-            }
+        Optional<Player> player = getPlayer(remover);
+        if (player.isPresent()) {
+            handleRemoval(player.get(), location, ScanObject.of(entityType), delta);
+            return;
         }
 
         // Update the cache if it was not broken by a player (but instead by e.g. physics)
