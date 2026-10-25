@@ -7,13 +7,18 @@ import com.mojang.serialization.DataResult;
 import dev.frankheijden.insights.nms.core.ChunkEntity;
 import dev.frankheijden.insights.nms.core.ChunkSection;
 import dev.frankheijden.insights.nms.core.InsightsNMS;
+import io.papermc.paper.brigadier.NullCommandSender;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -24,11 +29,15 @@ import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.Strategy;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftChunk;
 import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +49,22 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class InsightsNMSImpl extends InsightsNMS {
+
+    @Override
+    public CommandSourceStack getCommandSourceStack(CommandSender sender) {
+        if (sender == NullCommandSender.INSTANCE) {
+            return new CommandSourceStack(
+                    CommandSource.NULL,
+                    Vec3.ZERO,
+                    Vec2.ZERO,
+                    null,
+                    LevelBasedPermissionSet.OWNER,
+                    CommonComponents.EMPTY,
+                    null
+            );
+        }
+        return VanillaCommandWrapper.getListener(sender);
+    }
 
     @Override
     public void getLoadedChunkSections(Chunk chunk, Consumer<ChunkSection> sectionConsumer) {

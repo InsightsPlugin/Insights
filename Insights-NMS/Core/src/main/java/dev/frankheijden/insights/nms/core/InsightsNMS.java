@@ -1,7 +1,9 @@
 package dev.frankheijden.insights.nms.core;
 
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.Chunk;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -26,6 +28,8 @@ public abstract class InsightsNMS {
             throw new RuntimeException(e);
         }
     }
+
+    public abstract CommandSourceStack getCommandSourceStack(CommandSender sender);
 
     public abstract void getLoadedChunkSections(Chunk chunk, Consumer<ChunkSection> sectionConsumer);
 
